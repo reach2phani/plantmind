@@ -18,12 +18,45 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 .main{max-width:760px;margin:0 auto;padding:28px 24px}
 .page-title{font-size:20px;font-weight:600;color:#0f172a;margin-bottom:4px}
 .page-sub{font-size:13px;color:#64748b;margin-bottom:24px}
-.upload-zone{border:2px dashed #cbd5e1;border-radius:12px;padding:44px 24px;text-align:center;cursor:pointer;background:#fff;transition:all 0.2s;margin-bottom:20px}
+
+/* Upload zone */
+.upload-zone{border:2px dashed #cbd5e1;border-radius:12px;padding:44px 24px;text-align:center;cursor:pointer;background:#fff;transition:all 0.2s;margin-bottom:16px}
 .upload-zone:hover,.upload-zone.dragover{border-color:#4f46e5;background:#eef2ff}
 .uz-title{font-size:15px;font-weight:500;color:#0f172a;margin-bottom:4px}
 .uz-sub{font-size:13px;color:#94a3b8}
 .uz-link{color:#4f46e5;text-decoration:underline;cursor:pointer}
-.selected-file{background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px 14px;font-size:13px;color:#3730a3;margin-bottom:16px;display:none}
+.uz-hint{font-size:11px;color:#94a3b8;margin-top:8px}
+
+/* File queue */
+.queue-wrap{margin-bottom:16px;display:none}
+.queue-title{font-size:13px;font-weight:600;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.queue-count{font-size:12px;color:#64748b;font-weight:400}
+.queue-item{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:6px;transition:border-color 0.2s}
+.queue-item.success{border-color:#86efac;background:#f0fdf4}
+.queue-item.error{border-color:#fecaca;background:#fef2f2}
+.queue-item.uploading{border-color:#a5b4fc;background:#eef2ff}
+.qi-top{display:flex;align-items:center;gap:10px}
+.qi-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.qi-info{flex:1}
+.qi-name{font-size:13px;font-weight:500;color:#0f172a}
+.qi-size{font-size:11px;color:#94a3b8}
+.qi-status{font-size:12px;font-weight:500;flex-shrink:0}
+.qi-status.done{color:#16a34a}
+.qi-status.err{color:#dc2626}
+.qi-status.uploading{color:#4f46e5}
+.qi-status.waiting{color:#94a3b8}
+.qi-bar{height:3px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden}
+.qi-fill{height:100%;background:#4f46e5;border-radius:2px;width:0%;transition:width 0.3s}
+.qi-fill.done{background:#16a34a}
+.qi-fill.err{background:#dc2626}
+.qi-msg{font-size:11px;color:#dc2626;margin-top:4px;display:none}
+
+/* Batch summary */
+.batch-summary{background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#3730a3;display:none;align-items:center;justify-content:space-between}
+.bs-text{font-weight:500}
+.bs-detail{font-size:12px;color:#6366f1}
+
+/* Form */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .field{display:flex;flex-direction:column;gap:4px}
 .field.full{grid-column:1/-1}
@@ -31,15 +64,21 @@ label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;lett
 .req{color:#ef4444}
 select,input[type=text]{padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#0f172a;background:#fff;outline:none}
 select:focus,input[type=text]:focus{border-color:#4f46e5}
-.upload-btn{width:100%;padding:12px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-row{display:flex;gap:10px;margin-bottom:8px}
+.upload-btn{flex:1;padding:12px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s}
 .upload-btn:hover{background:#4338ca}
 .upload-btn:disabled{background:#94a3b8;cursor:not-allowed}
-.toast{position:fixed;top:20px;right:20px;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:999}
+.clear-btn{padding:12px 20px;background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.clear-btn:hover{border-color:#cbd5e1;color:#0f172a}
+
+/* Toast */
+.toast{position:fixed;top:20px;right:20px;padding:14px 18px;border-radius:8px;font-size:14px;font-weight:500;display:none;z-index:999;max-width:360px;line-height:1.5}
 .toast.success{background:#f0fdf4;border:1px solid #86efac;color:#166534}
 .toast.error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
-.progress{height:4px;background:#e2e8f0;border-radius:2px;margin:10px 0;display:none;overflow:hidden}
-.progress-bar{height:100%;background:#4f46e5;border-radius:2px;width:0%;transition:width 0.3s}
-.recent-title{font-size:14px;font-weight:600;color:#0f172a;margin:28px 0 12px}
+
+/* Doc list */
+.recent-title{font-size:14px;font-weight:600;color:#0f172a;margin:28px 0 12px;display:flex;align-items:center;justify-content:space-between}
+.doc-count{font-size:12px;color:#64748b;font-weight:400}
 .doc-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:6px}
 .doc-icon{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
 .icon-pdf{background:#fef2f2;color:#b91c1c}
@@ -56,6 +95,7 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
 .b-training{background:#faf5ff;color:#7c3aed}
 .b-ncr{background:#fff7ed;color:#c2410c}
 .b-shift-log{background:#f0fdf4;color:#166534}
+.b-batch-record{background:#fdf4ff;color:#7e22ce}
 .b-other{background:#f8fafc;color:#64748b}
 .status-ready{display:flex;align-items:center;gap:4px;font-size:11px;color:#16a34a;flex-shrink:0}
 .status-dot{width:6px;height:6px;border-radius:50%;background:#16a34a}
@@ -76,16 +116,28 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
 </div>
 
 <div class="main">
-  <div class="page-title">Upload document</div>
+  <div class="page-title">Upload documents</div>
   <div class="page-sub">Add SOPs, work instructions, batch records, or training videos to the knowledge base</div>
 
   <div class="upload-zone" id="uploadZone">
-    <div class="uz-title">Drag and drop your file here</div>
-    <div class="uz-sub">or <span class="uz-link" onclick="document.getElementById('fileInput').click()">browse to upload</span> &nbsp;&middot;&nbsp; PDF, DOCX, TXT, CSV, MP4 up to 500MB</div>
-    <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.txt,.csv,.mp4,.mov">
+    <div class="uz-title">Drag and drop files here</div>
+    <div class="uz-sub">or <span class="uz-link" onclick="document.getElementById('fileInput').click()">browse to upload</span></div>
+    <div class="uz-hint">PDF, DOCX, TXT, CSV, MP4 &nbsp;&middot;&nbsp; Up to 500MB per file &nbsp;&middot;&nbsp; Multiple files supported</div>
+    <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.txt,.csv,.mp4,.mov" multiple>
   </div>
 
-  <div class="selected-file" id="selectedFile"></div>
+  <div class="batch-summary" id="batchSummary">
+    <span class="bs-text" id="bsSummaryText"></span>
+    <span class="bs-detail" id="bsDetailText"></span>
+  </div>
+
+  <div class="queue-wrap" id="queueWrap">
+    <div class="queue-title">
+      <span>Files selected</span>
+      <span class="queue-count" id="queueCount"></span>
+    </div>
+    <div id="queueList"></div>
+  </div>
 
   <div class="form-grid">
     <div class="field">
@@ -114,6 +166,7 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
         <option value="NCR">NCR</option>
         <option value="Training">Training</option>
         <option value="Shift Log">Shift Log</option>
+        <option value="Other">Other</option>
       </select>
     </div>
     <div class="field">
@@ -126,13 +179,15 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
     </div>
   </div>
 
-  <div class="progress" id="progressWrap">
-    <div class="progress-bar" id="progressBar"></div>
+  <div class="btn-row">
+    <button class="upload-btn" id="uploadBtn" onclick="startBatchUpload()">Upload documents</button>
+    <button class="clear-btn" id="clearBtn" onclick="clearQueue()" style="display:none">Clear</button>
   </div>
 
-  <button class="upload-btn" id="uploadBtn" onclick="doUpload()">Upload document</button>
-
-  <div class="recent-title">Recently uploaded</div>
+  <div class="recent-title">
+    <span>Recently uploaded</span>
+    <span class="doc-count" id="docCount"></span>
+  </div>
   <div id="docList">
     {% if documents %}
       {% for doc in documents %}
@@ -163,31 +218,108 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
 <div class="toast" id="toast"></div>
 
 <script>
-var selectedFile = null;
+var selectedFiles = [];
+var uploadResults = { done: 0, failed: 0, total: 0 };
 
+// drag and drop
 var zone = document.getElementById('uploadZone');
-zone.addEventListener('dragover', function(e) {
-  e.preventDefault();
-  zone.classList.add('dragover');
-});
-zone.addEventListener('dragleave', function() {
-  zone.classList.remove('dragover');
-});
+zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', function() { zone.classList.remove('dragover'); });
 zone.addEventListener('drop', function(e) {
   e.preventDefault();
   zone.classList.remove('dragover');
-  var f = e.dataTransfer.files[0];
-  if (f) setFile(f);
+  addFiles(Array.from(e.dataTransfer.files));
 });
 document.getElementById('fileInput').addEventListener('change', function() {
-  if (this.files[0]) setFile(this.files[0]);
+  addFiles(Array.from(this.files));
+  this.value = '';
 });
 
-function setFile(f) {
-  selectedFile = f;
-  var sf = document.getElementById('selectedFile');
-  sf.style.display = 'block';
-  sf.textContent = 'Selected: ' + f.name + ' (' + (f.size / 1024).toFixed(0) + ' KB)';
+function addFiles(files) {
+  files.forEach(function(f) {
+    var already = selectedFiles.some(function(x) { return x.name === f.name; });
+    if (!already) selectedFiles.push(f);
+  });
+  renderQueue();
+}
+
+function renderQueue() {
+  var wrap = document.getElementById('queueWrap');
+  var list = document.getElementById('queueList');
+  var count = document.getElementById('queueCount');
+  var clearBtn = document.getElementById('clearBtn');
+
+  if (selectedFiles.length === 0) {
+    wrap.style.display = 'none';
+    clearBtn.style.display = 'none';
+    document.getElementById('batchSummary').style.display = 'none';
+    document.getElementById('uploadBtn').textContent = 'Upload documents';
+    return;
+  }
+
+  wrap.style.display = 'block';
+  clearBtn.style.display = 'block';
+  count.textContent = selectedFiles.length + ' file' + (selectedFiles.length > 1 ? 's' : '') +
+    ' \u00b7 ' + formatBytes(selectedFiles.reduce(function(a, f) { return a + f.size; }, 0));
+
+  document.getElementById('uploadBtn').textContent =
+    'Upload ' + selectedFiles.length + ' file' + (selectedFiles.length > 1 ? 's' : '');
+
+  list.innerHTML = selectedFiles.map(function(f, i) {
+    var ext = f.name.split('.').pop().toLowerCase();
+    var iconClass = ['pdf','docx','mp4','csv'].indexOf(ext) >= 0 ? ext : 'other';
+    return '<div class="queue-item" id="qi-' + i + '">' +
+      '<div class="qi-top">' +
+        '<div class="qi-icon icon-' + iconClass + '">' + ext.toUpperCase() + '</div>' +
+        '<div class="qi-info">' +
+          '<div class="qi-name">' + f.name + '</div>' +
+          '<div class="qi-size">' + formatBytes(f.size) + '</div>' +
+        '</div>' +
+        '<div class="qi-status waiting" id="qis-' + i + '">Waiting</div>' +
+      '</div>' +
+      '<div class="qi-bar"><div class="qi-fill" id="qif-' + i + '"></div></div>' +
+      '<div class="qi-msg" id="qim-' + i + '"></div>' +
+    '</div>';
+  }).join('');
+}
+
+function clearQueue() {
+  selectedFiles = [];
+  uploadResults = { done: 0, failed: 0, total: 0 };
+  renderQueue();
+}
+
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(0) + ' KB';
+  return (b / 1048576).toFixed(1) + ' MB';
+}
+
+function setItemState(i, state, msg) {
+  var item = document.getElementById('qi-' + i);
+  var stat = document.getElementById('qis-' + i);
+  var fill = document.getElementById('qif-' + i);
+  var msgEl = document.getElementById('qim-' + i);
+  if (!item) return;
+  item.className = 'queue-item ' + (state === 'done' ? 'success' : state === 'err' ? 'error' : state === 'uploading' ? 'uploading' : '');
+  stat.className = 'qi-status ' + (state === 'done' ? 'done' : state === 'err' ? 'err' : state === 'uploading' ? 'uploading' : 'waiting');
+  stat.textContent = state === 'done' ? 'Done' : state === 'err' ? 'Failed' : state === 'uploading' ? 'Uploading...' : 'Waiting';
+  fill.className = 'qi-fill ' + (state === 'done' ? 'done' : state === 'err' ? 'err' : '');
+  fill.style.width = state === 'done' ? '100%' : state === 'err' ? '100%' : state === 'uploading' ? '60%' : '0%';
+  if (msg) { msgEl.style.display = 'block'; msgEl.textContent = msg; }
+}
+
+function updateSummary() {
+  var el = document.getElementById('batchSummary');
+  var txt = document.getElementById('bsSummaryText');
+  var det = document.getElementById('bsDetailText');
+  el.style.display = 'flex';
+  var total = uploadResults.total;
+  var done  = uploadResults.done;
+  var fail  = uploadResults.failed;
+  var pct   = Math.round(((done + fail) / total) * 100);
+  txt.textContent = done + ' of ' + total + ' uploaded';
+  det.textContent = (fail > 0 ? fail + ' failed \u00b7 ' : '') + pct + '% complete';
 }
 
 function showToast(msg, type) {
@@ -195,64 +327,78 @@ function showToast(msg, type) {
   t.textContent = msg;
   t.className = 'toast ' + type;
   t.style.display = 'block';
-  setTimeout(function() { t.style.display = 'none'; }, 4000);
+  setTimeout(function() { t.style.display = 'none'; }, 5000);
 }
 
-function doUpload() {
-  if (!selectedFile) { showToast('Please select a file first', 'error'); return; }
-  var plant = document.getElementById('plantSite').value;
-  var line  = document.getElementById('line').value;
-  if (!plant || !line) { showToast('Please select Plant Site and Line', 'error'); return; }
+function uploadOne(file, index, plant, line, docType, revision) {
+  return new Promise(function(resolve) {
+    setItemState(index, 'uploading', null);
+    var fd = new FormData();
+    fd.append('file', file);
+    fd.append('plant_site', plant);
+    fd.append('line', line);
+    fd.append('doc_type', docType);
+    fd.append('revision', revision);
+
+    fetch('/upload', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          setItemState(index, 'done', null);
+          uploadResults.done++;
+          addDocRow(data.document);
+        } else {
+          setItemState(index, 'err', data.error || 'Upload failed');
+          uploadResults.failed++;
+        }
+        updateSummary();
+        resolve();
+      })
+      .catch(function() {
+        setItemState(index, 'err', 'Network error - check connection');
+        uploadResults.failed++;
+        updateSummary();
+        resolve();
+      });
+  });
+}
+
+async function startBatchUpload() {
+  if (selectedFiles.length === 0) { showToast('Please select at least one file', 'error'); return; }
+  var plant    = document.getElementById('plantSite').value;
+  var line     = document.getElementById('line').value;
+  var docType  = document.getElementById('docType').value;
+  var revision = document.getElementById('revision').value;
+  if (!plant || !line) { showToast('Please select Plant Site and Line before uploading', 'error'); return; }
 
   var btn = document.getElementById('uploadBtn');
-  var pw  = document.getElementById('progressWrap');
-  var pb  = document.getElementById('progressBar');
   btn.disabled = true;
-  btn.textContent = 'Uploading...';
-  pw.style.display = 'block';
+  document.getElementById('clearBtn').style.display = 'none';
 
-  var pct = 0;
-  var iv = setInterval(function() {
-    pct += 15;
-    pb.style.width = Math.min(pct, 85) + '%';
-    if (pct >= 85) clearInterval(iv);
-  }, 150);
+  uploadResults = { done: 0, failed: 0, total: selectedFiles.length };
+  updateSummary();
 
-  var fd = new FormData();
-  fd.append('file',       selectedFile);
-  fd.append('plant_site', plant);
-  fd.append('line',       line);
-  fd.append('doc_type',   document.getElementById('docType').value);
-  fd.append('revision',   document.getElementById('revision').value);
+  for (var i = 0; i < selectedFiles.length; i++) {
+    await uploadOne(selectedFiles[i], i, plant, line, docType, revision);
+  }
 
-  fetch('/upload', { method: 'POST', body: fd })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      clearInterval(iv);
-      pb.style.width = '100%';
-      setTimeout(function() {
-        pw.style.display = 'none';
-        pb.style.width = '0%';
-        btn.disabled = false;
-        btn.textContent = 'Upload document';
-        if (data.success) {
-          showToast(data.message, 'success');
-          addDocRow(data.document);
-          selectedFile = null;
-          document.getElementById('selectedFile').style.display = 'none';
-          document.getElementById('fileInput').value = '';
-        } else {
-          showToast(data.error || 'Upload failed', 'error');
-        }
-      }, 400);
-    })
-    .catch(function() {
-      clearInterval(iv);
-      btn.disabled = false;
-      btn.textContent = 'Upload document';
-      pw.style.display = 'none';
-      showToast('Upload failed - check your connection', 'error');
+  btn.disabled = false;
+  var msg = uploadResults.done + ' of ' + uploadResults.total + ' files uploaded successfully.';
+  if (uploadResults.failed > 0) msg += ' ' + uploadResults.failed + ' failed — check items above.';
+  showToast(msg, uploadResults.failed === 0 ? 'success' : 'error');
+
+  if (uploadResults.failed === 0) {
+    setTimeout(function() {
+      selectedFiles = [];
+      renderQueue();
+    }, 2000);
+  } else {
+    selectedFiles = selectedFiles.filter(function(f, i) {
+      var stat = document.getElementById('qis-' + i);
+      return stat && stat.textContent === 'Failed';
     });
+    document.getElementById('clearBtn').style.display = 'block';
+  }
 }
 
 function addDocRow(doc) {
@@ -263,7 +409,7 @@ function addDocRow(doc) {
   var valid = ['pdf','docx','mp4','csv'];
   var ic = valid.indexOf(ft) >= 0 ? ft : 'other';
   var dt = doc.doc_type || 'Document';
-  var dc = dt.toLowerCase().replace(' ', '-');
+  var dc = dt.toLowerCase().replace(/ /g, '-');
   var row = document.createElement('div');
   row.className = 'doc-row';
   row.innerHTML =
@@ -278,7 +424,20 @@ function addDocRow(doc) {
     '<span class="doc-badge b-' + dc + '">' + dt + '</span>' +
     '<div class="status-ready"><div class="status-dot"></div> Ready</div>';
   list.insertBefore(row, list.firstChild);
+  var countEl = document.getElementById('docCount');
+  if (countEl) {
+    var rows = list.querySelectorAll('.doc-row').length;
+    countEl.textContent = rows + ' document' + (rows !== 1 ? 's' : '');
+  }
 }
+
+// init doc count
+window.onload = function() {
+  var list = document.getElementById('docList');
+  var rows = list.querySelectorAll('.doc-row').length;
+  var countEl = document.getElementById('docCount');
+  if (countEl && rows > 0) countEl.textContent = rows + ' document' + (rows !== 1 ? 's' : '');
+};
 </script>
 </body>
 </html>
