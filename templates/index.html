@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantMind</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
+.nav{background:#1e293b;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.nav-brand{font-size:18px;font-weight:700;color:#fff}
+.nav-brand span{color:#a5b4fc}
+.nav-ctx{font-size:12px;color:#94a3b8;background:#0f172a;padding:4px 12px;border-radius:6px}
+.tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 24px;display:flex}
+.tab{padding:13px 20px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
+.badge{font-size:10px;background:#fee2e2;color:#b91c1c;padding:1px 6px;border-radius:999px;margin-left:5px}
+.main{max-width:760px;margin:0 auto;padding:28px 24px}
+.page-title{font-size:20px;font-weight:600;color:#0f172a;margin-bottom:4px}
+.page-sub{font-size:13px;color:#64748b;margin-bottom:24px}
+.upload-zone{border:2px dashed #cbd5e1;border-radius:12px;padding:44px 24px;text-align:center;cursor:pointer;background:#fff;transition:all 0.2s;margin-bottom:20px}
+.upload-zone:hover,.upload-zone.dragover{border-color:#4f46e5;background:#eef2ff}
+.uz-title{font-size:15px;font-weight:500;color:#0f172a;margin-bottom:4px}
+.uz-sub{font-size:13px;color:#94a3b8}
+.uz-link{color:#4f46e5;text-decoration:underline;cursor:pointer}
+.selected-file{background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px 14px;font-size:13px;color:#3730a3;margin-bottom:16px;display:none}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field.full{grid-column:1/-1}
+label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+.req{color:#ef4444}
+select,input[type=text]{padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#0f172a;background:#fff;outline:none}
+select:focus,input[type=text]:focus{border-color:#4f46e5}
+.upload-btn{width:100%;padding:12px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+.upload-btn:hover{background:#4338ca}
+.upload-btn:disabled{background:#94a3b8;cursor:not-allowed}
+.toast{position:fixed;top:20px;right:20px;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:999}
+.toast.success{background:#f0fdf4;border:1px solid #86efac;color:#166534}
+.toast.error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
+.progress{height:4px;background:#e2e8f0;border-radius:2px;margin:10px 0;display:none;overflow:hidden}
+.progress-bar{height:100%;background:#4f46e5;border-radius:2px;width:0%;transition:width 0.3s}
+.recent-title{font-size:14px;font-weight:600;color:#0f172a;margin:28px 0 12px}
+.doc-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:6px}
+.doc-icon{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.icon-pdf{background:#fef2f2;color:#b91c1c}
+.icon-docx{background:#eff6ff;color:#1d4ed8}
+.icon-mp4{background:#faf5ff;color:#7c3aed}
+.icon-csv{background:#f0fdf4;color:#166534}
+.icon-other{background:#f8fafc;color:#64748b}
+.doc-info{flex:1}
+.doc-name{font-size:13px;font-weight:500;color:#0f172a}
+.doc-meta{font-size:11px;color:#94a3b8;margin-top:2px}
+.doc-badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500;flex-shrink:0}
+.b-sop{background:#f0fdf4;color:#166534}
+.b-work-instruction{background:#eff6ff;color:#1e40af}
+.b-training{background:#faf5ff;color:#7c3aed}
+.b-ncr{background:#fff7ed;color:#c2410c}
+.b-shift-log{background:#f0fdf4;color:#166534}
+.b-other{background:#f8fafc;color:#64748b}
+.status-ready{display:flex;align-items:center;gap:4px;font-size:11px;color:#16a34a;flex-shrink:0}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#16a34a}
+.empty{text-align:center;padding:32px;color:#94a3b8;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">Plant<span>Mind</span></div>
+  <div class="nav-ctx">Houston Plant &middot; Line 2</div>
+</div>
+
+<div class="tabs">
+  <div class="tab">Ask a question</div>
+  <div class="tab">Document library</div>
+  <div class="tab active">Upload <span class="badge">admin</span></div>
+</div>
+
+<div class="main">
+  <div class="page-title">Upload document</div>
+  <div class="page-sub">Add SOPs, work instructions, batch records, or training videos to the knowledge base</div>
+
+  <div class="upload-zone" id="uploadZone">
+    <div class="uz-title">Drag and drop your file here</div>
+    <div class="uz-sub">or <span class="uz-link" onclick="document.getElementById('fileInput').click()">browse to upload</span> &nbsp;&middot;&nbsp; PDF, DOCX, TXT, CSV, MP4 up to 500MB</div>
+    <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.txt,.csv,.mp4,.mov">
+  </div>
+
+  <div class="selected-file" id="selectedFile"></div>
+
+  <div class="form-grid">
+    <div class="field">
+      <label>Plant site <span class="req">*</span></label>
+      <select id="plantSite">
+        <option value="">-- select --</option>
+        <option value="Houston Plant">Houston Plant</option>
+        <option value="Deer Park Facility">Deer Park Facility</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Production line <span class="req">*</span></label>
+      <select id="line">
+        <option value="">-- select --</option>
+        <option value="Line 1">Line 1</option>
+        <option value="Line 2">Line 2</option>
+        <option value="Line 3">Line 3</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Document type</label>
+      <select id="docType">
+        <option value="SOP">SOP</option>
+        <option value="Work Instruction">Work Instruction</option>
+        <option value="Batch Record">Batch Record</option>
+        <option value="NCR">NCR</option>
+        <option value="Training">Training</option>
+        <option value="Shift Log">Shift Log</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Revision</label>
+      <input type="text" id="revision" value="1.0">
+    </div>
+    <div class="field full">
+      <label>Equipment tag (optional)</label>
+      <input type="text" id="equipTag" placeholder="e.g. P-201, R-04">
+    </div>
+  </div>
+
+  <div class="progress" id="progressWrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <button class="upload-btn" id="uploadBtn" onclick="doUpload()">Upload document</button>
+
+  <div class="recent-title">Recently uploaded</div>
+  <div id="docList">
+    {% if documents %}
+      {% for doc in documents %}
+      <div class="doc-row">
+        <div class="doc-icon icon-{{ doc.file_type if doc.file_type in ['pdf','docx','mp4','csv'] else 'other' }}">
+          {{ doc.file_type.upper() if doc.file_type else 'FILE' }}
+        </div>
+        <div class="doc-info">
+          <div class="doc-name">{{ doc.name }}</div>
+          <div class="doc-meta">
+            {{ doc.plant_site or '' }}
+            {% if doc.line %} &middot; {{ doc.line }}{% endif %}
+            {% if doc.revision %} &middot; Rev {{ doc.revision }}{% endif %}
+          </div>
+        </div>
+        <span class="doc-badge b-{{ doc.doc_type.lower().replace(' ','-') if doc.doc_type else 'other' }}">
+          {{ doc.doc_type or 'Document' }}
+        </span>
+        <div class="status-ready"><div class="status-dot"></div> Ready</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">No documents uploaded yet. Upload your first document above.</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var selectedFile = null;
+
+var zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  zone.classList.add('dragover');
+});
+zone.addEventListener('dragleave', function() {
+  zone.classList.remove('dragover');
+});
+zone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  zone.classList.remove('dragover');
+  var f = e.dataTransfer.files[0];
+  if (f) setFile(f);
+});
+document.getElementById('fileInput').addEventListener('change', function() {
+  if (this.files[0]) setFile(this.files[0]);
+});
+
+function setFile(f) {
+  selectedFile = f;
+  var sf = document.getElementById('selectedFile');
+  sf.style.display = 'block';
+  sf.textContent = 'Selected: ' + f.name + ' (' + (f.size / 1024).toFixed(0) + ' KB)';
+}
+
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.style.display = 'block';
+  setTimeout(function() { t.style.display = 'none'; }, 4000);
+}
+
+function doUpload() {
+  if (!selectedFile) { showToast('Please select a file first', 'error'); return; }
+  var plant = document.getElementById('plantSite').value;
+  var line  = document.getElementById('line').value;
+  if (!plant || !line) { showToast('Please select Plant Site and Line', 'error'); return; }
+
+  var btn = document.getElementById('uploadBtn');
+  var pw  = document.getElementById('progressWrap');
+  var pb  = document.getElementById('progressBar');
+  btn.disabled = true;
+  btn.textContent = 'Uploading...';
+  pw.style.display = 'block';
+
+  var pct = 0;
+  var iv = setInterval(function() {
+    pct += 15;
+    pb.style.width = Math.min(pct, 85) + '%';
+    if (pct >= 85) clearInterval(iv);
+  }, 150);
+
+  var fd = new FormData();
+  fd.append('file',       selectedFile);
+  fd.append('plant_site', plant);
+  fd.append('line',       line);
+  fd.append('doc_type',   document.getElementById('docType').value);
+  fd.append('revision',   document.getElementById('revision').value);
+
+  fetch('/upload', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      clearInterval(iv);
+      pb.style.width = '100%';
+      setTimeout(function() {
+        pw.style.display = 'none';
+        pb.style.width = '0%';
+        btn.disabled = false;
+        btn.textContent = 'Upload document';
+        if (data.success) {
+          showToast(data.message, 'success');
+          addDocRow(data.document);
+          selectedFile = null;
+          document.getElementById('selectedFile').style.display = 'none';
+          document.getElementById('fileInput').value = '';
+        } else {
+          showToast(data.error || 'Upload failed', 'error');
+        }
+      }, 400);
+    })
+    .catch(function() {
+      clearInterval(iv);
+      btn.disabled = false;
+      btn.textContent = 'Upload document';
+      pw.style.display = 'none';
+      showToast('Upload failed - check your connection', 'error');
+    });
+}
+
+function addDocRow(doc) {
+  var list = document.getElementById('docList');
+  var empty = list.querySelector('.empty');
+  if (empty) empty.remove();
+  var ft = doc.file_type || 'other';
+  var valid = ['pdf','docx','mp4','csv'];
+  var ic = valid.indexOf(ft) >= 0 ? ft : 'other';
+  var dt = doc.doc_type || 'Document';
+  var dc = dt.toLowerCase().replace(' ', '-');
+  var row = document.createElement('div');
+  row.className = 'doc-row';
+  row.innerHTML =
+    '<div class="doc-icon icon-' + ic + '">' + ft.toUpperCase() + '</div>' +
+    '<div class="doc-info">' +
+      '<div class="doc-name">' + doc.name + '</div>' +
+      '<div class="doc-meta">' + (doc.plant_site || '') +
+        (doc.line ? ' &middot; ' + doc.line : '') +
+        (doc.revision ? ' &middot; Rev ' + doc.revision : '') +
+      '</div>' +
+    '</div>' +
+    '<span class="doc-badge b-' + dc + '">' + dt + '</span>' +
+    '<div class="status-ready"><div class="status-dot"></div> Ready</div>';
+  list.insertBefore(row, list.firstChild);
+}
+</script>
+</body>
+</html>
