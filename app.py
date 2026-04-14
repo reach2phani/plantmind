@@ -54,14 +54,40 @@ def api_documents():
     docs = supabase.table("documents").select("*").order("created_at", desc=True).execute()
     return jsonify({"documents": docs.data})
 
+@app.route("/api/documents/<doc_id>", methods=["PATCH"])
+def update_document(doc_id):
+    data = request.get_json()
+    allowed_fields = {"plant_site", "line", "doc_type", "revision", "equip_tag"}
+    updates = {k: v for k, v in data.items() if k in allowed_fields}
+    if not updates:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    result = supabase.table("documents").update(updates).eq("id", doc_id).execute()
+    if not result.data:
+        return jsonify({"error": "Document not found"}), 404
+
+    saved = result.data[0]
+
+    # Re-embed with updated metadata in background
+    def run_reembed():
+        base      = os.path.dirname(os.path.abspath(__file__))
+        raw_path  = saved.get("file_path", "")
+        full_path = os.path.join(base, raw_path)
+        if os.path.exists(full_path):
+            embed_document(saved["id"], full_path, saved)
+
+    threading.Thread(target=run_reembed, daemon=True).start()
+
+    return jsonify({"success": True, "document": saved})
+
 @app.route("/api/feedback", methods=["POST"])
 def save_feedback():
-    data = request.get_json()
+    data   = request.get_json()
     record = {
-        "question":    data.get("question", ""),
-        "answer":      data.get("answer", ""),
-        "rating":      data.get("rating", 0),
-        "sources":     json.dumps(data.get("sources", [])),
+        "question": data.get("question", ""),
+        "answer":   data.get("answer",   ""),
+        "rating":   data.get("rating",   0),
+        "sources":  json.dumps(data.get("sources", [])),
     }
     supabase.table("feedback").insert(record).execute()
     return jsonify({"success": True})
@@ -112,7 +138,7 @@ def upload():
     result = supabase.table("documents").insert(record).execute()
     saved  = result.data[0]
 
-    was_sup = existing.data and parse_revision(new_rev) > parse_revision(existing.data[0].get("revision","1.0"))
+    was_sup = existing.data and parse_revision(new_rev) > parse_revision(existing.data[0].get("revision", "1.0"))
     message = (f"Rev {new_rev} uploaded. Previous Rev {existing.data[0]['revision']} archived."
                if was_sup else f"{filename} uploaded successfully.")
 
@@ -138,22 +164,21 @@ def ask():
     question_vec = embedder.encode(question).tolist()
 
     filter_dict = {}
-    if plant:     filter_dict["plant_site"]  = {"$eq": plant}
-    if line:      filter_dict["line"]        = {"$eq": line}
-    if equip_tag: filter_dict["equip_tag"]   = {"$eq": equip_tag}
+    if plant:     filter_dict["plant_site"] = {"$eq": plant}
+    if line:      filter_dict["line"]       = {"$eq": line}
+    if equip_tag: filter_dict["equip_tag"]  = {"$eq": equip_tag}
 
     results = pine_index.query(
         vector=question_vec, top_k=5, include_metadata=True,
         filter=filter_dict if filter_dict else None
     )
-    matches = results.get("matches", [])
+    matches     = results.get("matches", [])
+    was_fallback = False
 
-    # If filtered search returns nothing, fall back to unfiltered
     if (not matches or matches[0]["score"] < 0.35) and filter_dict:
-        results = pine_index.query(
-            vector=question_vec, top_k=5, include_metadata=True
-        )
-        matches  = results.get("matches", [])
+        results      = pine_index.query(vector=question_vec, top_k=5, include_metadata=True)
+        matches      = results.get("matches", [])
+        was_fallback = True
 
     if not matches or matches[0]["score"] < 0.35:
         def no_ans():
@@ -174,26 +199,25 @@ def ask():
             sources.append({
                 "name":      name,
                 "revision":  rev,
-                "doc_type":  meta.get("doc_type", ""),
+                "doc_type":  meta.get("doc_type",  ""),
                 "equip_tag": meta.get("equip_tag", ""),
                 "score":     round(m["score"], 2)
             })
         context_parts.append(f"[From {name} Rev {rev}]:\n{text}")
 
-    context = "\n\n".join(context_parts)
+    context       = "\n\n".join(context_parts)
     system_prompt = (
         "You are PlantMind, an AI assistant for manufacturing plant operators. "
         "Answer questions using ONLY the provided document context. "
         "Be specific and practical. Never fabricate information not in the context."
     )
-    user_prompt = (
-        f"Context:\n\n{context}\n\n"
-        f"Question: {question}\n\n"
-        "Answer clearly and specifically based only on the context above."
-    )
+    user_prompt  = (f"Context:\n\n{context}\n\nQuestion: {question}\n\n"
+                    "Answer clearly and specifically based only on the context above.")
     sources_json = json.dumps(sources)
 
     def full_stream():
+        if was_fallback:
+            yield "FALLBACK:"
         yield f"SOURCES:{sources_json}\n\n"
         stream = groq_client.chat.completions.create(
             model="llama-3.1-8b-instant",
@@ -213,11 +237,11 @@ def ask():
 
 @app.route("/embed-all", methods=["POST"])
 def embed_all():
-    docs = supabase.table("documents").select("*").eq("status","uploaded").execute()
-    base = os.path.dirname(os.path.abspath(__file__))
+    docs  = supabase.table("documents").select("*").eq("status", "uploaded").execute()
+    base  = os.path.dirname(os.path.abspath(__file__))
     total = 0
     for doc in docs.data:
-        full_path = os.path.join(base, doc.get("file_path",""))
+        full_path = os.path.join(base, doc.get("file_path", ""))
         if os.path.exists(full_path):
             total += embed_document(doc["id"], full_path, doc)
     return jsonify({"success": True, "message": f"Embedded {total} chunks from {len(docs.data)} documents"})

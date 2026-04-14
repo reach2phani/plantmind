@@ -10,7 +10,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 .nav{background:#1e293b;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
 .nav-brand{font-size:18px;font-weight:700;color:#fff}
 .nav-brand span{color:#a5b4fc}
-.nav-ctx{font-size:12px;color:#94a3b8;background:#0f172a;padding:4px 12px;border-radius:6px;display:flex;align-items:center;gap:6px}
+.nav-ctx{font-size:12px;color:#94a3b8;background:#0f172a;padding:4px 12px;border-radius:6px;display:flex;align-items:center;gap:6px;cursor:pointer}
 .nav-dot{width:6px;height:6px;border-radius:50%;background:#94a3b8;flex-shrink:0}
 .tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 24px;display:flex}
 .tab{padding:13px 20px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
@@ -31,9 +31,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 .results-count{font-size:13px;color:#64748b}
 .results-count strong{color:#0f172a}
 .doc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.doc-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;position:relative}
+.doc-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;transition:all .15s;position:relative}
 .doc-card:hover{border-color:#a5b4fc}
 .doc-card.archived{opacity:.55}
+.doc-card.editing{border-color:#4f46e5;background:#eef2ff}
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
 .doc-icon{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
 .icon-pdf{background:#fef2f2;color:#b91c1c}
@@ -59,8 +60,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 .status-dot{width:5px;height:5px;border-radius:50%}
 .dot-green{background:#16a34a}
 .dot-gray{background:#94a3b8}
-.ask-about{position:absolute;bottom:12px;right:12px;font-size:11px;color:#4f46e5;background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:3px 8px;opacity:0;transition:opacity .15s;text-decoration:none}
-.doc-card:hover .ask-about{opacity:1}
+.card-actions{display:flex;gap:6px;margin-top:10px}
+.btn-edit{font-size:11px;padding:4px 10px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;background:#fff;color:#475569;transition:all .15s}
+.btn-edit:hover{border-color:#a5b4fc;color:#4f46e5}
+.ask-about{font-size:11px;padding:4px 10px;border:1px solid #c7d2fe;border-radius:6px;cursor:pointer;background:#eef2ff;color:#4f46e5;text-decoration:none;transition:all .15s}
+.ask-about:hover{background:#e0e7ff}
+
+/* Edit form */
+.edit-form{border-top:1px solid #c7d2fe;margin-top:10px;padding-top:10px}
+.edit-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.edit-field{display:flex;flex-direction:column;gap:2px}
+.edit-field.full{grid-column:1/-1}
+.edit-label{font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.03em}
+.edit-input{padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;color:#0f172a;background:#fff;outline:none}
+.edit-input:focus{border-color:#4f46e5}
+.edit-btns{display:flex;gap:6px;margin-top:8px}
+.btn-save{flex:1;padding:7px;background:#4f46e5;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-save:hover{background:#4338ca}
+.btn-cancel{padding:7px 12px;background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;cursor:pointer}
+.btn-cancel:hover{border-color:#cbd5e1}
+.save-msg{font-size:11px;color:#16a34a;text-align:center;margin-top:6px;display:none}
+
 .empty{text-align:center;padding:48px 24px;color:#94a3b8;grid-column:1/-1}
 .empty-title{font-size:15px;font-weight:500;color:#475569;margin-bottom:6px}
 </style>
@@ -68,9 +88,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 <body>
 <div class="nav">
   <div class="nav-brand">Plant<span>Mind</span></div>
-  <div class="nav-ctx">
+  <div class="nav-ctx" id="navCtx">
     <div class="nav-dot" id="navDot"></div>
-    <span id="navCtxText">Select your context</span>
+    <span id="navCtxText">Set your context</span>
   </div>
 </div>
 <div class="tabs">
@@ -79,7 +99,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
   <a class="tab" href="/">Upload <span class="tab-badge">admin</span></a>
 </div>
 <div class="main">
-  <div class="stats" id="statsRow">
+  <div class="stats">
     <div class="stat"><div class="stat-num" id="statTotal">-</div><div class="stat-lbl">Total documents</div></div>
     <div class="stat"><div class="stat-num" id="statReady">-</div><div class="stat-lbl">Ready for Q&A</div></div>
     <div class="stat"><div class="stat-num" id="statTypes">-</div><div class="stat-lbl">Document types</div></div>
@@ -104,8 +124,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 </div>
 <script src="/static/nav_context.js"></script>
 <script>
-var allDocs = [];
+var allDocs      = [];
 var showArchived = false;
+var editingId    = null;
 
 fetch('/api/documents')
   .then(function(r){return r.json()})
@@ -120,18 +141,12 @@ fetch('/api/documents')
   });
 
 function populateFilters(){
-  var plants = [...new Set(allDocs.map(function(d){return d.plant_site}).filter(Boolean))];
-  var lines  = [...new Set(allDocs.map(function(d){return d.line}).filter(Boolean))];
-  var types  = [...new Set(allDocs.map(function(d){return d.doc_type}).filter(Boolean))];
-  var equips = [...new Set(allDocs.map(function(d){return d.equip_tag}).filter(Boolean))];
-  var pf=document.getElementById('plantFilter');
-  plants.forEach(function(p){var o=document.createElement('option');o.value=p;o.textContent=p;pf.appendChild(o)});
-  var lf=document.getElementById('lineFilter');
-  lines.forEach(function(l){var o=document.createElement('option');o.value=l;o.textContent=l;lf.appendChild(o)});
-  var tf=document.getElementById('typeFilter');
-  types.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t;tf.appendChild(o)});
-  var ef=document.getElementById('equipFilter');
-  equips.forEach(function(e){var o=document.createElement('option');o.value=e;o.textContent=e;ef.appendChild(o)});
+  var plants=[...new Set(allDocs.map(function(d){return d.plant_site}).filter(Boolean))];
+  var lines=[...new Set(allDocs.map(function(d){return d.line}).filter(Boolean))];
+  var types=[...new Set(allDocs.map(function(d){return d.doc_type}).filter(Boolean))];
+  var equips=[...new Set(allDocs.map(function(d){return d.equip_tag}).filter(Boolean))];
+  function populate(id,items){var s=document.getElementById(id);items.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o)})}
+  populate('plantFilter',plants);populate('lineFilter',lines);populate('typeFilter',types);populate('equipFilter',equips);
 }
 
 function updateStats(){
@@ -173,36 +188,117 @@ function filterDocs(){
   var total=allDocs.filter(function(d){return showArchived||d.status!=='archived'}).length;
   document.getElementById('resultsCount').innerHTML='Showing <strong>'+filtered.length+'</strong> of <strong>'+total+'</strong> documents';
   var grid=document.getElementById('docGrid');
-  if(filtered.length===0){
-    grid.innerHTML='<div class="empty"><div class="empty-title">No documents match</div></div>';
-    return;
-  }
-  grid.innerHTML=filtered.map(function(doc){
-    var ft=(doc.file_type||'other').toLowerCase();
-    var valid=['pdf','docx','mp4','csv'];
-    var ic=valid.indexOf(ft)>=0?ft:'other';
-    var dt=doc.doc_type||'Other';
-    var dtCls=doc.status==='archived'?'archived':dt.toLowerCase().replace(/ /g,'-');
-    var isArch=doc.status==='archived';
-    var date=doc.created_at?new Date(doc.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
-    var askUrl='/chat?q='+encodeURIComponent('Tell me about '+doc.name);
-    return '<div class="doc-card'+(isArch?' archived':'')+'">'+
-      '<div class="card-top">'+
-        '<div class="doc-icon icon-'+ic+'">'+ft.toUpperCase()+'</div>'+
-        '<span class="doc-type-badge b-'+dtCls+'">'+(isArch?'Archived':dt)+'</span>'+
-      '</div>'+
-      '<div class="doc-name">'+escHtml(doc.name)+'</div>'+
-      '<div class="doc-meta">'+(doc.plant_site||'')+(doc.line?' &middot; '+doc.line:'')+(date?' &middot; '+date:'')+'</div>'+
-      (doc.equip_tag?'<span class="equip-tag">'+escHtml(doc.equip_tag)+'</span>':'')+
-      '<div class="card-footer">'+
-        '<span class="rev-badge">Rev '+escHtml(doc.revision||'1.0')+'</span>'+
-        (isArch
-          ?'<div class="status-archived"><div class="status-dot dot-gray"></div>Archived</div>'
-          :'<div class="status-ready"><div class="status-dot dot-green"></div>Ready</div>')+
-      '</div>'+
-      (!isArch?'<a class="ask-about" href="'+askUrl+'">Ask about this &rarr;</a>':'')+
-    '</div>';
-  }).join('');
+  if(filtered.length===0){grid.innerHTML='<div class="empty"><div class="empty-title">No documents match</div></div>';return}
+  grid.innerHTML=filtered.map(function(doc){return renderCard(doc)}).join('');
+}
+
+function renderCard(doc){
+  var ft=(doc.file_type||'other').toLowerCase();
+  var valid=['pdf','docx','mp4','csv'];
+  var ic=valid.indexOf(ft)>=0?ft:'other';
+  var dt=doc.doc_type||'Other';
+  var dtCls=doc.status==='archived'?'archived':dt.toLowerCase().replace(/ /g,'-');
+  var isArch=doc.status==='archived';
+  var date=doc.created_at?new Date(doc.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+  var isEditing=editingId===doc.id;
+
+  return '<div class="doc-card'+(isArch?' archived':'')+(isEditing?' editing':'')+'" id="card-'+doc.id+'">' +
+    '<div class="card-top">' +
+      '<div class="doc-icon icon-'+ic+'">'+ft.toUpperCase()+'</div>' +
+      '<span class="doc-type-badge b-'+dtCls+'">'+(isArch?'Archived':dt)+'</span>' +
+    '</div>' +
+    '<div class="doc-name">'+escHtml(doc.name)+'</div>' +
+    '<div class="doc-meta">'+(doc.plant_site||'')+(doc.line?' &middot; '+doc.line:'')+(date?' &middot; '+date:'')+'</div>' +
+    (doc.equip_tag?'<div><span class="equip-tag">'+escHtml(doc.equip_tag)+'</span></div>':'')+
+    '<div class="card-footer">' +
+      '<span class="rev-badge">Rev '+escHtml(doc.revision||'1.0')+'</span>' +
+      (isArch
+        ?'<div class="status-archived"><div class="status-dot dot-gray"></div>Archived</div>'
+        :'<div class="status-ready"><div class="status-dot dot-green"></div>Ready</div>') +
+    '</div>' +
+    (!isArch ?
+      '<div class="card-actions">' +
+        '<button class="btn-edit" onclick="toggleEdit(\''+doc.id+'\')">'+(isEditing?'Cancel edit':'Edit tags')+'</button>' +
+        '<a class="ask-about" href="/chat?q='+encodeURIComponent('Tell me about '+doc.name)+'">Ask about this &rarr;</a>' +
+      '</div>' : ''
+    ) +
+    (isEditing ? renderEditForm(doc) : '') +
+  '</div>';
+}
+
+function renderEditForm(doc){
+  return '<div class="edit-form">' +
+    '<div class="edit-row">' +
+      '<div class="edit-field">' +
+        '<span class="edit-label">Plant site</span>' +
+        '<select class="edit-input" id="ep-'+doc.id+'">' +
+          '<option value="">-- select --</option>' +
+          ['Houston Plant','Deer Park Facility'].map(function(p){return '<option value="'+p+'"'+(doc.plant_site===p?' selected':'')+'>'+p+'</option>'}).join('') +
+        '</select>' +
+      '</div>' +
+      '<div class="edit-field">' +
+        '<span class="edit-label">Line</span>' +
+        '<select class="edit-input" id="el-'+doc.id+'">' +
+          '<option value="">-- select --</option>' +
+          ['Line 1','Line 2','Line 3'].map(function(l){return '<option value="'+l+'"'+(doc.line===l?' selected':'')+'>'+l+'</option>'}).join('') +
+        '</select>' +
+      '</div>' +
+      '<div class="edit-field">' +
+        '<span class="edit-label">Doc type</span>' +
+        '<select class="edit-input" id="et-'+doc.id+'">' +
+          ['SOP','Work Instruction','Batch Record','NCR','Training','Shift Log','Other'].map(function(t){return '<option value="'+t+'"'+(doc.doc_type===t?' selected':'')+'>'+t+'</option>'}).join('') +
+        '</select>' +
+      '</div>' +
+      '<div class="edit-field">' +
+        '<span class="edit-label">Revision</span>' +
+        '<input class="edit-input" id="er-'+doc.id+'" type="text" value="'+escHtml(doc.revision||'1.0')+'">' +
+      '</div>' +
+      '<div class="edit-field full">' +
+        '<span class="edit-label">Equipment tag</span>' +
+        '<input class="edit-input" id="ee-'+doc.id+'" type="text" value="'+escHtml(doc.equip_tag||'')+'" placeholder="e.g. P-201, R-04">' +
+      '</div>' +
+    '</div>' +
+    '<div class="edit-btns">' +
+      '<button class="btn-save" onclick="saveEdit(\''+doc.id+'\')">Save and re-index</button>' +
+      '<button class="btn-cancel" onclick="toggleEdit(\''+doc.id+'\')">Cancel</button>' +
+    '</div>' +
+    '<div class="save-msg" id="sm-'+doc.id+'">Saved — re-indexing in background...</div>' +
+  '</div>';
+}
+
+function toggleEdit(docId){
+  editingId = editingId === docId ? null : docId;
+  filterDocs();
+}
+
+function saveEdit(docId){
+  var updates = {
+    plant_site: document.getElementById('ep-'+docId).value,
+    line:       document.getElementById('el-'+docId).value,
+    doc_type:   document.getElementById('et-'+docId).value,
+    revision:   document.getElementById('er-'+docId).value,
+    equip_tag:  document.getElementById('ee-'+docId).value,
+  };
+  fetch('/api/documents/'+docId, {
+    method: 'PATCH',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(updates)
+  })
+  .then(function(r){return r.json()})
+  .then(function(data){
+    if(data.success){
+      var idx = allDocs.findIndex(function(d){return d.id===docId});
+      if(idx>=0) Object.assign(allDocs[idx], updates);
+      var msg = document.getElementById('sm-'+docId);
+      if(msg){msg.style.display='block'}
+      setTimeout(function(){
+        editingId = null;
+        updateStats();
+        filterDocs();
+      }, 1500);
+    }
+  })
+  .catch(function(){alert('Save failed — check the server is running')});
 }
 
 function escHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
