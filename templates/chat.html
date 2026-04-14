@@ -11,7 +11,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .nav-brand{font-size:18px;font-weight:700;color:#fff}
 .nav-brand span{color:#a5b4fc}
 .nav-ctx{font-size:12px;color:#94a3b8;background:#0f172a;padding:4px 12px;border-radius:6px;display:flex;align-items:center;gap:6px}
-.nav-dot{width:6px;height:6px;border-radius:50%;background:#16a34a}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:#94a3b8;flex-shrink:0}
 .tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 24px;display:flex;flex-shrink:0}
 .tab{padding:13px 20px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
 .tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
@@ -29,6 +29,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .ctx-lbl{font-size:12px;color:#94a3b8}
 .ctx-select{padding:4px 10px;border:1px solid #e2e8f0;border-radius:999px;font-size:12px;color:#475569;background:#fff;outline:none;cursor:pointer}
 .ctx-select:focus{border-color:#a5b4fc}
+.active-filter{display:inline-flex;align-items:center;gap:4px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:3px 10px;font-size:12px;color:#3730a3}
+.active-filter .clear-f{cursor:pointer;opacity:.6;margin-left:2px}
+.active-filter .clear-f:hover{opacity:1}
 .answers{flex:1;overflow-y:auto;padding-bottom:20px}
 .answer-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:14px}
 .answer-q{background:#eef2ff;border-bottom:1px solid #c7d2fe;padding:11px 16px;font-size:13px;color:#3730a3;font-weight:500}
@@ -37,6 +40,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .answer-text mark{background:#fef9c3;padding:0 3px;border-radius:3px}
 .cursor{display:inline-block;width:2px;height:15px;background:#4f46e5;margin-left:2px;animation:blink 1s infinite;vertical-align:middle}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.fallback-note{font-size:11px;color:#94a3b8;font-style:italic;margin-bottom:8px}
 .sources-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
 .cite{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start}
 .cite-num{background:#4f46e5;color:#fff;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
@@ -47,13 +51,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .act-btn{font-size:12px;padding:5px 12px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;background:#fff;color:#475569;transition:all .15s}
 .act-btn:hover{border-color:#a5b4fc;color:#4f46e5}
 .helpful{font-size:12px;color:#94a3b8;margin-left:auto;display:flex;align-items:center;gap:6px}
-.thumb{cursor:pointer;opacity:.4;transition:opacity .15s;font-size:16px}
+.thumb{cursor:pointer;opacity:.4;transition:opacity .15s;font-size:16px;background:none;border:none;padding:0}
 .thumb:hover{opacity:1}
 .thumb.active{opacity:1}
+.thumb-thanks{font-size:11px;color:#16a34a;display:none}
 .no-answer-card{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;overflow:hidden;margin-bottom:14px}
 .no-answer-q{background:#fef3c7;border-bottom:1px solid #fde68a;padding:11px 16px;font-size:13px;color:#92400e;font-weight:500}
 .no-answer-body{padding:16px}
-.no-answer-msg{font-size:14px;color:#92400e;line-height:1.7;margin-bottom:10px}
+.no-answer-msg{font-size:14px;color:#92400e;line-height:1.7;margin-bottom:6px}
 .no-answer-hint{font-size:12px;color:#b45309}
 .empty-state{text-align:center;padding:48px 24px;color:#94a3b8}
 .empty-title{font-size:16px;font-weight:500;color:#475569;margin-bottom:8px}
@@ -64,21 +69,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 </style>
 </head>
 <body>
-
 <div class="nav">
   <div class="nav-brand">Plant<span>Mind</span></div>
   <div class="nav-ctx">
-    <div class="nav-dot"></div>
-    <strong style="color:#e2e8f0">Houston Plant &middot; Line 2</strong>
+    <div class="nav-dot" id="navDot"></div>
+    <span id="navCtxText">Select your context</span>
   </div>
 </div>
-
 <div class="tabs">
   <a class="tab active" href="/chat">Ask a question</a>
   <a class="tab" href="/library">Document library</a>
   <a class="tab" href="/">Upload <span class="tab-badge">admin</span></a>
 </div>
-
 <div class="main">
   <div class="ask-card">
     <div class="ask-label">What do you need to know?</div>
@@ -90,20 +92,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
     </div>
     <div class="ctx-bar">
       <span class="ctx-lbl">Searching in:</span>
-      <select class="ctx-select" id="plantFilter">
+      <select class="ctx-select" id="plantFilter" onchange="onFilterChange()">
         <option value="">All plant sites</option>
-        <option value="Houston Plant" selected>Houston Plant</option>
+        <option value="Houston Plant">Houston Plant</option>
         <option value="Deer Park Facility">Deer Park Facility</option>
       </select>
-      <select class="ctx-select" id="lineFilter">
+      <select class="ctx-select" id="lineFilter" onchange="onFilterChange()">
         <option value="">All lines</option>
         <option value="Line 1">Line 1</option>
-        <option value="Line 2" selected>Line 2</option>
+        <option value="Line 2">Line 2</option>
         <option value="Line 3">Line 3</option>
       </select>
+      <input class="ctx-select" type="text" id="equipFilter" placeholder="Equipment tag e.g. P-201" style="width:180px" oninput="onFilterChange()">
+      <div id="activeFilterPills"></div>
     </div>
   </div>
-
   <div class="answers" id="answersArea">
     <div class="empty-state" id="emptyState">
       <div class="empty-title">Ask PlantMind anything about your plant</div>
@@ -118,15 +121,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
     </div>
   </div>
 </div>
-
+<script src="/static/nav_context.js"></script>
 <script>
 var chatHistory = [];
 
+// sync filters from saved context
+window.addEventListener('load', function() {
+  PlantMindContext.syncToSelects('plantFilter','lineFilter');
+  updateFilterPills();
+});
+
+function onFilterChange() {
+  var plant = document.getElementById('plantFilter').value;
+  var line  = document.getElementById('lineFilter').value;
+  PlantMindContext.set(plant, line);
+  updateFilterPills();
+}
+
+function updateFilterPills() {
+  var plant = document.getElementById('plantFilter').value;
+  var line  = document.getElementById('lineFilter').value;
+  var equip = document.getElementById('equipFilter').value.trim();
+  var pills = [];
+  if (plant) pills.push('<span class="active-filter">' + escHtml(plant) + ' <span class="clear-f" onclick="clearFilter(\'plant\')">&#x2715;</span></span>');
+  if (line)  pills.push('<span class="active-filter">' + escHtml(line)  + ' <span class="clear-f" onclick="clearFilter(\'line\')">&#x2715;</span></span>');
+  if (equip) pills.push('<span class="active-filter">' + escHtml(equip) + ' <span class="clear-f" onclick="clearFilter(\'equip\')">&#x2715;</span></span>');
+  document.getElementById('activeFilterPills').innerHTML = pills.join('');
+}
+
+function clearFilter(type) {
+  if (type === 'plant') { document.getElementById('plantFilter').value = ''; }
+  if (type === 'line')  { document.getElementById('lineFilter').value  = ''; }
+  if (type === 'equip') { document.getElementById('equipFilter').value = ''; }
+  onFilterChange();
+}
+
 function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    submitQuestion();
-  }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitQuestion(); }
 }
 
 function useExample(el) {
@@ -135,60 +166,45 @@ function useExample(el) {
 }
 
 function escHtml(t) {
-  return String(t)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function highlightKeywords(text) {
-  var keywords = ['temperature','pressure','vibration','alarm','shutdown',
-    'check','verify','torque','alignment','bearing','LOTO','lockout',
-    'isolation','emergency','caution','warning'];
+  var kw = ['temperature','pressure','vibration','alarm','shutdown','check','verify',
+            'torque','alignment','bearing','LOTO','lockout','isolation','emergency','caution','warning'];
   var safe = escHtml(text);
-  keywords.forEach(function(kw) {
-    var re = new RegExp('\\b(' + kw + ')\\b', 'gi');
-    safe = safe.replace(re, '<mark>$1</mark>');
+  kw.forEach(function(k) {
+    safe = safe.replace(new RegExp('\\b(' + k + ')\\b','gi'), '<mark>$1</mark>');
   });
   return safe;
 }
 
-function renderSources(sources, srcEl, citesEl) {
+function renderSources(sources, srcEl, citesEl, wasFallback) {
   if (!sources || sources.length === 0) return;
   srcEl.style.display = 'block';
+  if (wasFallback) {
+    citesEl.insertAdjacentHTML('beforebegin',
+      '<div class="fallback-note">Filter returned no results — showing best matches from all documents.</div>');
+  }
   citesEl.innerHTML = sources.map(function(s, i) {
-    return '<div class="cite">' +
-      '<div class="cite-num">' + (i+1) + '</div>' +
-      '<div class="cite-txt">' +
-        '<strong>' + escHtml(s.name) + ' &middot; Rev ' + escHtml(s.revision) + '</strong>' +
-        (s.doc_type ? ' &middot; ' + escHtml(s.doc_type) : '') +
-        '<span class="cite-score">Match: ' + Math.round(s.score * 100) + '%</span>' +
+    return '<div class="cite"><div class="cite-num">' + (i+1) + '</div>' +
+      '<div class="cite-txt"><strong>' + escHtml(s.name) + ' &middot; Rev ' + escHtml(s.revision) + '</strong>' +
+      (s.doc_type ? ' &middot; ' + escHtml(s.doc_type) : '') +
+      (s.equip_tag ? ' &middot; ' + escHtml(s.equip_tag) : '') +
+      '<span class="cite-score">Match: ' + Math.round(s.score*100) + '%</span>' +
       '</div></div>';
   }).join('');
-}
-
-function rate(el) {
-  el.classList.add('active');
-  el.parentNode.querySelectorAll('.thumb').forEach(function(t) {
-    if (t !== el) t.style.opacity = '0.2';
-  });
-}
-
-function askFollowUp(q) {
-  document.getElementById('questionInput').value = 'Follow up on: ' + q + '\n';
-  document.getElementById('questionInput').focus();
 }
 
 function submitQuestion() {
   var q     = document.getElementById('questionInput').value.trim();
   var plant = document.getElementById('plantFilter').value;
   var line  = document.getElementById('lineFilter').value;
+  var equip = document.getElementById('equipFilter').value.trim();
   if (!q) return;
 
   var emptyState = document.getElementById('emptyState');
   if (emptyState) emptyState.style.display = 'none';
-
   document.getElementById('questionInput').value = '';
   document.getElementById('askBtn').disabled = true;
   document.getElementById('askBtn').textContent = 'Thinking...';
@@ -197,7 +213,6 @@ function submitQuestion() {
   var idx = chatHistory.length;
 
   var area = document.getElementById('answersArea');
-
   var card = document.createElement('div');
   card.className = 'answer-card';
   card.id = 'card-' + idx;
@@ -205,33 +220,33 @@ function submitQuestion() {
     '<div class="answer-q">' + escHtml(q) + '</div>' +
     '<div class="answer-body">' +
       '<div class="answer-text" id="ans-' + idx + '"><span class="cursor"></span></div>' +
-      '<div id="src-' + idx + '" style="display:none">' +
-        '<div class="sources-label">Sources</div>' +
-        '<div id="cites-' + idx + '"></div>' +
-      '</div>' +
+      '<div id="src-' + idx + '" style="display:none"><div class="sources-label">Sources</div><div id="cites-' + idx + '"></div></div>' +
     '</div>' +
     '<div class="answer-actions" id="actions-' + idx + '" style="display:none">' +
       '<button class="act-btn" onclick="askFollowUp(\'' + escHtml(q).replace(/'/g,"&#39;") + '\')">Ask follow-up</button>' +
       '<div class="helpful">Helpful?' +
-        '<span class="thumb" onclick="rate(this)">&#128077;</span>' +
-        '<span class="thumb" onclick="rate(this)">&#128078;</span>' +
+        '<button class="thumb" id="up-' + idx + '" onclick="rate(' + idx + ',1)">&#128077;</button>' +
+        '<button class="thumb" id="dn-' + idx + '" onclick="rate(' + idx + ',0)">&#128078;</button>' +
+        '<span class="thumb-thanks" id="thanks-' + idx + '">Thanks!</span>' +
       '</div>' +
     '</div>';
   area.insertBefore(card, area.firstChild);
 
-  var ansEl     = document.getElementById('ans-' + idx);
-  var srcEl     = document.getElementById('src-' + idx);
-  var citesEl   = document.getElementById('cites-' + idx);
-  var actionsEl = document.getElementById('actions-' + idx);
+  var ansEl    = document.getElementById('ans-' + idx);
+  var srcEl    = document.getElementById('src-' + idx);
+  var citesEl  = document.getElementById('cites-' + idx);
+  var actEl    = document.getElementById('actions-' + idx);
 
   var answerText  = '';
   var sourcesRead = false;
   var buffer      = '';
+  var sources     = [];
+  var wasFallback = false;
 
   fetch('/ask', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ question: q, plant_site: plant, line: line })
+    body: JSON.stringify({question: q, plant_site: plant, line: line, equip_tag: equip})
   })
   .then(function(r) {
     var reader  = r.body.getReader();
@@ -241,13 +256,16 @@ function submitQuestion() {
       reader.read().then(function(result) {
         if (result.done) {
           ansEl.innerHTML = highlightKeywords(answerText);
-          actionsEl.style.display = 'flex';
+          actEl.style.display = 'flex';
           document.getElementById('askBtn').disabled = false;
           document.getElementById('askBtn').textContent = 'Ask PlantMind';
+          // store answer for rating
+          card.dataset.question = q;
+          card.dataset.answer   = answerText;
+          card.dataset.sources  = JSON.stringify(sources);
           return;
         }
-
-        buffer += decoder.decode(result.value, { stream: true });
+        buffer += decoder.decode(result.value, {stream: true});
 
         if (!sourcesRead) {
           if (buffer.startsWith('NOANSWER:')) {
@@ -258,43 +276,68 @@ function submitQuestion() {
               '<div class="no-answer-q">' + escHtml(q) + '</div>' +
               '<div class="no-answer-body">' +
                 '<div class="no-answer-msg">' + escHtml(msg) + '</div>' +
-                '<div class="no-answer-hint">Try rephrasing your question, or upload a document that covers this topic.</div>' +
+                '<div class="no-answer-hint">Try rephrasing, or upload a document covering this topic.</div>' +
               '</div>';
             document.getElementById('askBtn').disabled = false;
             document.getElementById('askBtn').textContent = 'Ask PlantMind';
             return;
           }
-
+          if (buffer.startsWith('FALLBACK:')) {
+            wasFallback = true;
+            buffer = buffer.replace('FALLBACK:', '');
+          }
           if (buffer.includes('\n\n')) {
             var parts = buffer.split('\n\n');
             var first = parts[0];
             if (first.startsWith('SOURCES:')) {
-              try {
-                var sources = JSON.parse(first.replace('SOURCES:', ''));
-                renderSources(sources, srcEl, citesEl);
-              } catch(e) {}
+              try { sources = JSON.parse(first.replace('SOURCES:', '')); renderSources(sources, srcEl, citesEl, wasFallback); } catch(e) {}
               buffer = parts.slice(1).join('\n\n');
               sourcesRead = true;
             }
           }
         }
-
         if (sourcesRead) {
-          answerText += buffer;
-          buffer = '';
+          answerText += buffer; buffer = '';
           ansEl.innerHTML = highlightKeywords(answerText) + '<span class="cursor"></span>';
         }
-
         read();
       });
     }
     read();
   })
   .catch(function(err) {
-    ansEl.innerHTML = '<span style="color:#dc2626;font-size:13px">Connection error: ' + err.message + '. Check the server is running.</span>';
+    ansEl.innerHTML = '<span style="color:#dc2626;font-size:13px">Connection error: ' + err.message + '</span>';
     document.getElementById('askBtn').disabled = false;
     document.getElementById('askBtn').textContent = 'Ask PlantMind';
   });
+}
+
+function rate(idx, val) {
+  var card = document.getElementById('card-' + idx);
+  if (!card) return;
+  var upBtn    = document.getElementById('up-' + idx);
+  var dnBtn    = document.getElementById('dn-' + idx);
+  var thanks   = document.getElementById('thanks-' + idx);
+  upBtn.classList.toggle('active', val === 1);
+  dnBtn.classList.toggle('active', val === 0);
+  upBtn.style.opacity = val === 1 ? '1' : '0.2';
+  dnBtn.style.opacity = val === 0 ? '1' : '0.2';
+  thanks.style.display = 'inline';
+  fetch('/api/feedback', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      question: card.dataset.question || '',
+      answer:   card.dataset.answer   || '',
+      rating:   val,
+      sources:  JSON.parse(card.dataset.sources || '[]')
+    })
+  });
+}
+
+function askFollowUp(q) {
+  document.getElementById('questionInput').value = 'Follow up on: ' + q + '\n';
+  document.getElementById('questionInput').focus();
 }
 </script>
 </body>

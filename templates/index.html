@@ -10,28 +10,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 .nav{background:#1e293b;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
 .nav-brand{font-size:18px;font-weight:700;color:#fff}
 .nav-brand span{color:#a5b4fc}
-.nav-ctx{font-size:12px;color:#94a3b8;background:#0f172a;padding:4px 12px;border-radius:6px}
+.nav-ctx{font-size:12px;color:#94a3b8;background:#0f172a;padding:4px 12px;border-radius:6px;display:flex;align-items:center;gap:6px;cursor:pointer}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:#94a3b8;flex-shrink:0}
 .tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 24px;display:flex}
-.tab{padding:13px 20px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab{padding:13px 20px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
 .tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
 .badge{font-size:10px;background:#fee2e2;color:#b91c1c;padding:1px 6px;border-radius:999px;margin-left:5px}
 .main{max-width:760px;margin:0 auto;padding:28px 24px}
 .page-title{font-size:20px;font-weight:600;color:#0f172a;margin-bottom:4px}
 .page-sub{font-size:13px;color:#64748b;margin-bottom:24px}
-
-/* Upload zone */
 .upload-zone{border:2px dashed #cbd5e1;border-radius:12px;padding:44px 24px;text-align:center;cursor:pointer;background:#fff;transition:all 0.2s;margin-bottom:16px}
 .upload-zone:hover,.upload-zone.dragover{border-color:#4f46e5;background:#eef2ff}
 .uz-title{font-size:15px;font-weight:500;color:#0f172a;margin-bottom:4px}
 .uz-sub{font-size:13px;color:#94a3b8}
 .uz-link{color:#4f46e5;text-decoration:underline;cursor:pointer}
 .uz-hint{font-size:11px;color:#94a3b8;margin-top:8px}
-
-/* File queue */
 .queue-wrap{margin-bottom:16px;display:none}
 .queue-title{font-size:13px;font-weight:600;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 .queue-count{font-size:12px;color:#64748b;font-weight:400}
-.queue-item{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:6px;transition:border-color 0.2s}
+.queue-item{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:6px;transition:border-color .2s}
 .queue-item.success{border-color:#86efac;background:#f0fdf4}
 .queue-item.error{border-color:#fecaca;background:#fef2f2}
 .queue-item.uploading{border-color:#a5b4fc;background:#eef2ff}
@@ -46,17 +43,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 .qi-status.uploading{color:#4f46e5}
 .qi-status.waiting{color:#94a3b8}
 .qi-bar{height:3px;background:#e2e8f0;border-radius:2px;margin-top:6px;overflow:hidden}
-.qi-fill{height:100%;background:#4f46e5;border-radius:2px;width:0%;transition:width 0.3s}
+.qi-fill{height:100%;background:#4f46e5;border-radius:2px;width:0%;transition:width .3s}
 .qi-fill.done{background:#16a34a}
 .qi-fill.err{background:#dc2626}
 .qi-msg{font-size:11px;color:#dc2626;margin-top:4px;display:none}
-
-/* Batch summary */
 .batch-summary{background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#3730a3;display:none;align-items:center;justify-content:space-between}
 .bs-text{font-weight:500}
 .bs-detail{font-size:12px;color:#6366f1}
-
-/* Form */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .field{display:flex;flex-direction:column;gap:4px}
 .field.full{grid-column:1/-1}
@@ -65,20 +58,14 @@ label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;lett
 select,input[type=text]{padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#0f172a;background:#fff;outline:none}
 select:focus,input[type=text]:focus{border-color:#4f46e5}
 .btn-row{display:flex;gap:10px;margin-bottom:8px}
-.upload-btn{flex:1;padding:12px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s}
+.upload-btn{flex:1;padding:12px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
 .upload-btn:hover{background:#4338ca}
 .upload-btn:disabled{background:#94a3b8;cursor:not-allowed}
-.clear-btn{padding:12px 20px;background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;white-space:nowrap}
-.clear-btn:hover{border-color:#cbd5e1;color:#0f172a}
-
-/* Toast */
+.clear-btn{padding:12px 20px;background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;cursor:pointer;display:none}
 .toast{position:fixed;top:20px;right:20px;padding:14px 18px;border-radius:8px;font-size:14px;font-weight:500;display:none;z-index:999;max-width:360px;line-height:1.5}
 .toast.success{background:#f0fdf4;border:1px solid #86efac;color:#166534}
 .toast.error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
-
-/* Doc list */
-.recent-title{font-size:14px;font-weight:600;color:#0f172a;margin:28px 0 12px;display:flex;align-items:center;justify-content:space-between}
-.doc-count{font-size:12px;color:#64748b;font-weight:400}
+.recent-title{font-size:14px;font-weight:600;color:#0f172a;margin:28px 0 12px}
 .doc-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:6px}
 .doc-icon{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
 .icon-pdf{background:#fef2f2;color:#b91c1c}
@@ -100,46 +87,38 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
 .status-ready{display:flex;align-items:center;gap:4px;font-size:11px;color:#16a34a;flex-shrink:0}
 .status-dot{width:6px;height:6px;border-radius:50%;background:#16a34a}
 .empty{text-align:center;padding:32px;color:#94a3b8;font-size:13px}
-.tab { text-decoration: none; display: block; }
 </style>
 </head>
 <body>
-
 <div class="nav">
   <div class="nav-brand">Plant<span>Mind</span></div>
-  <div class="nav-ctx">Houston Plant &middot; Line 2</div>
+  <div class="nav-ctx" id="navCtx">
+    <div class="nav-dot" id="navDot"></div>
+    <span id="navCtxText">Select your context</span>
+  </div>
 </div>
-
 <div class="tabs">
   <a class="tab" href="/chat">Ask a question</a>
   <a class="tab" href="/library">Document library</a>
   <a class="tab active" href="/">Upload <span class="badge">admin</span></a>
 </div>
-
 <div class="main">
   <div class="page-title">Upload documents</div>
   <div class="page-sub">Add SOPs, work instructions, batch records, or training videos to the knowledge base</div>
-
   <div class="upload-zone" id="uploadZone">
     <div class="uz-title">Drag and drop files here</div>
     <div class="uz-sub">or <span class="uz-link" onclick="document.getElementById('fileInput').click()">browse to upload</span></div>
-    <div class="uz-hint">PDF, DOCX, TXT, CSV, MP4 &nbsp;&middot;&nbsp; Up to 500MB per file &nbsp;&middot;&nbsp; Multiple files supported</div>
+    <div class="uz-hint">PDF, DOCX, TXT, CSV, MP4 &nbsp;&middot;&nbsp; Multiple files supported</div>
     <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.txt,.csv,.mp4,.mov" multiple>
   </div>
-
   <div class="batch-summary" id="batchSummary">
     <span class="bs-text" id="bsSummaryText"></span>
     <span class="bs-detail" id="bsDetailText"></span>
   </div>
-
   <div class="queue-wrap" id="queueWrap">
-    <div class="queue-title">
-      <span>Files selected</span>
-      <span class="queue-count" id="queueCount"></span>
-    </div>
+    <div class="queue-title"><span>Files selected</span><span class="queue-count" id="queueCount"></span></div>
     <div id="queueList"></div>
   </div>
-
   <div class="form-grid">
     <div class="field">
       <label>Plant site <span class="req">*</span></label>
@@ -176,19 +155,14 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
     </div>
     <div class="field full">
       <label>Equipment tag (optional)</label>
-      <input type="text" id="equipTag" placeholder="e.g. P-201, R-04">
+      <input type="text" id="equipTag" placeholder="e.g. P-201, R-04  (comma separated for multiple)">
     </div>
   </div>
-
   <div class="btn-row">
     <button class="upload-btn" id="uploadBtn" onclick="startBatchUpload()">Upload documents</button>
-    <button class="clear-btn" id="clearBtn" onclick="clearQueue()" style="display:none">Clear</button>
+    <button class="clear-btn" id="clearBtn" onclick="clearQueue()">Clear</button>
   </div>
-
-  <div class="recent-title">
-    <span>Recently uploaded</span>
-    <span class="doc-count" id="docCount"></span>
-  </div>
+  <div class="recent-title">Recently uploaded</div>
   <div id="docList">
     {% if documents %}
       {% for doc in documents %}
@@ -201,6 +175,7 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
           <div class="doc-meta">
             {{ doc.plant_site or '' }}
             {% if doc.line %} &middot; {{ doc.line }}{% endif %}
+            {% if doc.equip_tag %} &middot; {{ doc.equip_tag }}{% endif %}
             {% if doc.revision %} &middot; Rev {{ doc.revision }}{% endif %}
           </div>
         </div>
@@ -211,234 +186,132 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
       </div>
       {% endfor %}
     {% else %}
-      <div class="empty">No documents uploaded yet. Upload your first document above.</div>
+      <div class="empty">No documents uploaded yet.</div>
     {% endif %}
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
-
+<script src="/static/nav_context.js"></script>
 <script>
 var selectedFiles = [];
-var uploadResults = { done: 0, failed: 0, total: 0 };
+var uploadResults = {done:0,failed:0,total:0};
 
-// drag and drop
+PlantMindContext.syncToSelects('plantSite','line');
+PlantMindContext.bindSelects('plantSite','line');
+
 var zone = document.getElementById('uploadZone');
-zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('dragover'); });
-zone.addEventListener('dragleave', function() { zone.classList.remove('dragover'); });
-zone.addEventListener('drop', function(e) {
-  e.preventDefault();
-  zone.classList.remove('dragover');
-  addFiles(Array.from(e.dataTransfer.files));
-});
-document.getElementById('fileInput').addEventListener('change', function() {
-  addFiles(Array.from(this.files));
-  this.value = '';
-});
+zone.addEventListener('dragover',function(e){e.preventDefault();zone.classList.add('dragover')});
+zone.addEventListener('dragleave',function(){zone.classList.remove('dragover')});
+zone.addEventListener('drop',function(e){e.preventDefault();zone.classList.remove('dragover');addFiles(Array.from(e.dataTransfer.files))});
+document.getElementById('fileInput').addEventListener('change',function(){addFiles(Array.from(this.files));this.value=''});
 
-function addFiles(files) {
-  files.forEach(function(f) {
-    var already = selectedFiles.some(function(x) { return x.name === f.name; });
-    if (!already) selectedFiles.push(f);
+function addFiles(files){
+  files.forEach(function(f){
+    if(!selectedFiles.some(function(x){return x.name===f.name})) selectedFiles.push(f);
   });
   renderQueue();
 }
 
-function renderQueue() {
-  var wrap = document.getElementById('queueWrap');
-  var list = document.getElementById('queueList');
-  var count = document.getElementById('queueCount');
-  var clearBtn = document.getElementById('clearBtn');
-
-  if (selectedFiles.length === 0) {
-    wrap.style.display = 'none';
-    clearBtn.style.display = 'none';
-    document.getElementById('batchSummary').style.display = 'none';
-    document.getElementById('uploadBtn').textContent = 'Upload documents';
-    return;
-  }
-
-  wrap.style.display = 'block';
-  clearBtn.style.display = 'block';
-  count.textContent = selectedFiles.length + ' file' + (selectedFiles.length > 1 ? 's' : '') +
-    ' \u00b7 ' + formatBytes(selectedFiles.reduce(function(a, f) { return a + f.size; }, 0));
-
-  document.getElementById('uploadBtn').textContent =
-    'Upload ' + selectedFiles.length + ' file' + (selectedFiles.length > 1 ? 's' : '');
-
-  list.innerHTML = selectedFiles.map(function(f, i) {
-    var ext = f.name.split('.').pop().toLowerCase();
-    var iconClass = ['pdf','docx','mp4','csv'].indexOf(ext) >= 0 ? ext : 'other';
-    return '<div class="queue-item" id="qi-' + i + '">' +
-      '<div class="qi-top">' +
-        '<div class="qi-icon icon-' + iconClass + '">' + ext.toUpperCase() + '</div>' +
-        '<div class="qi-info">' +
-          '<div class="qi-name">' + f.name + '</div>' +
-          '<div class="qi-size">' + formatBytes(f.size) + '</div>' +
-        '</div>' +
-        '<div class="qi-status waiting" id="qis-' + i + '">Waiting</div>' +
-      '</div>' +
-      '<div class="qi-bar"><div class="qi-fill" id="qif-' + i + '"></div></div>' +
-      '<div class="qi-msg" id="qim-' + i + '"></div>' +
-    '</div>';
+function renderQueue(){
+  var wrap=document.getElementById('queueWrap');
+  var list=document.getElementById('queueList');
+  var count=document.getElementById('queueCount');
+  var clearBtn=document.getElementById('clearBtn');
+  if(selectedFiles.length===0){wrap.style.display='none';clearBtn.style.display='none';document.getElementById('batchSummary').style.display='none';document.getElementById('uploadBtn').textContent='Upload documents';return}
+  wrap.style.display='block';clearBtn.style.display='block';
+  count.textContent=selectedFiles.length+' file'+(selectedFiles.length>1?'s':'')+' \u00b7 '+formatBytes(selectedFiles.reduce(function(a,f){return a+f.size},0));
+  document.getElementById('uploadBtn').textContent='Upload '+selectedFiles.length+' file'+(selectedFiles.length>1?'s':'');
+  list.innerHTML=selectedFiles.map(function(f,i){
+    var ext=f.name.split('.').pop().toLowerCase();
+    var ic=['pdf','docx','mp4','csv'].indexOf(ext)>=0?ext:'other';
+    return '<div class="queue-item" id="qi-'+i+'"><div class="qi-top"><div class="qi-icon icon-'+ic+'">'+ext.toUpperCase()+'</div><div class="qi-info"><div class="qi-name">'+f.name+'</div><div class="qi-size">'+formatBytes(f.size)+'</div></div><div class="qi-status waiting" id="qis-'+i+'">Waiting</div></div><div class="qi-bar"><div class="qi-fill" id="qif-'+i+'"></div></div><div class="qi-msg" id="qim-'+i+'"></div></div>';
   }).join('');
 }
 
-function clearQueue() {
-  selectedFiles = [];
-  uploadResults = { done: 0, failed: 0, total: 0 };
-  renderQueue();
+function clearQueue(){selectedFiles=[];uploadResults={done:0,failed:0,total:0};renderQueue()}
+function formatBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(0)+' KB';return(b/1048576).toFixed(1)+' MB'}
+
+function setItemState(i,state,msg){
+  var item=document.getElementById('qi-'+i);
+  var stat=document.getElementById('qis-'+i);
+  var fill=document.getElementById('qif-'+i);
+  var msgEl=document.getElementById('qim-'+i);
+  if(!item)return;
+  item.className='queue-item '+(state==='done'?'success':state==='err'?'error':state==='uploading'?'uploading':'');
+  stat.className='qi-status '+(state==='done'?'done':state==='err'?'err':state==='uploading'?'uploading':'waiting');
+  stat.textContent=state==='done'?'Done':state==='err'?'Failed':state==='uploading'?'Uploading...':'Waiting';
+  fill.className='qi-fill '+(state==='done'?'done':state==='err'?'err':'');
+  fill.style.width=state==='done'?'100%':state==='err'?'100%':state==='uploading'?'60%':'0%';
+  if(msg){msgEl.style.display='block';msgEl.textContent=msg}
 }
 
-function formatBytes(b) {
-  if (b < 1024) return b + ' B';
-  if (b < 1048576) return (b / 1024).toFixed(0) + ' KB';
-  return (b / 1048576).toFixed(1) + ' MB';
+function updateSummary(){
+  var el=document.getElementById('batchSummary');
+  var txt=document.getElementById('bsSummaryText');
+  var det=document.getElementById('bsDetailText');
+  el.style.display='flex';
+  var pct=Math.round(((uploadResults.done+uploadResults.failed)/uploadResults.total)*100);
+  txt.textContent=uploadResults.done+' of '+uploadResults.total+' uploaded';
+  det.textContent=(uploadResults.failed>0?uploadResults.failed+' failed \u00b7 ':'')+pct+'% complete';
 }
 
-function setItemState(i, state, msg) {
-  var item = document.getElementById('qi-' + i);
-  var stat = document.getElementById('qis-' + i);
-  var fill = document.getElementById('qif-' + i);
-  var msgEl = document.getElementById('qim-' + i);
-  if (!item) return;
-  item.className = 'queue-item ' + (state === 'done' ? 'success' : state === 'err' ? 'error' : state === 'uploading' ? 'uploading' : '');
-  stat.className = 'qi-status ' + (state === 'done' ? 'done' : state === 'err' ? 'err' : state === 'uploading' ? 'uploading' : 'waiting');
-  stat.textContent = state === 'done' ? 'Done' : state === 'err' ? 'Failed' : state === 'uploading' ? 'Uploading...' : 'Waiting';
-  fill.className = 'qi-fill ' + (state === 'done' ? 'done' : state === 'err' ? 'err' : '');
-  fill.style.width = state === 'done' ? '100%' : state === 'err' ? '100%' : state === 'uploading' ? '60%' : '0%';
-  if (msg) { msgEl.style.display = 'block'; msgEl.textContent = msg; }
-}
+function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.style.display='block';setTimeout(function(){t.style.display='none'},5000)}
 
-function updateSummary() {
-  var el = document.getElementById('batchSummary');
-  var txt = document.getElementById('bsSummaryText');
-  var det = document.getElementById('bsDetailText');
-  el.style.display = 'flex';
-  var total = uploadResults.total;
-  var done  = uploadResults.done;
-  var fail  = uploadResults.failed;
-  var pct   = Math.round(((done + fail) / total) * 100);
-  txt.textContent = done + ' of ' + total + ' uploaded';
-  det.textContent = (fail > 0 ? fail + ' failed \u00b7 ' : '') + pct + '% complete';
-}
-
-function showToast(msg, type) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + type;
-  t.style.display = 'block';
-  setTimeout(function() { t.style.display = 'none'; }, 5000);
-}
-
-function uploadOne(file, index, plant, line, docType, revision) {
-  return new Promise(function(resolve) {
-    setItemState(index, 'uploading', null);
-    var fd = new FormData();
-    fd.append('file', file);
-    fd.append('plant_site', plant);
-    fd.append('line', line);
-    fd.append('doc_type', docType);
-    fd.append('revision', revision);
-
-    fetch('/upload', { method: 'POST', body: fd })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.success) {
-          setItemState(index, 'done', null);
-          uploadResults.done++;
-          addDocRow(data.document);
-        } else {
-          setItemState(index, 'err', data.error || 'Upload failed');
-          uploadResults.failed++;
-        }
-        updateSummary();
-        resolve();
+function uploadOne(file,index,plant,line,docType,revision,equipTag){
+  return new Promise(function(resolve){
+    setItemState(index,'uploading',null);
+    var fd=new FormData();
+    fd.append('file',file);fd.append('plant_site',plant);fd.append('line',line);
+    fd.append('doc_type',docType);fd.append('revision',revision);fd.append('equip_tag',equipTag);
+    fetch('/upload',{method:'POST',body:fd})
+      .then(function(r){return r.json()})
+      .then(function(data){
+        if(data.success){setItemState(index,'done',null);uploadResults.done++;addDocRow(data.document)}
+        else{setItemState(index,'err',data.error||'Upload failed');uploadResults.failed++}
+        updateSummary();resolve();
       })
-      .catch(function() {
-        setItemState(index, 'err', 'Network error - check connection');
-        uploadResults.failed++;
-        updateSummary();
-        resolve();
-      });
+      .catch(function(){setItemState(index,'err','Network error');uploadResults.failed++;updateSummary();resolve()});
   });
 }
 
-async function startBatchUpload() {
-  if (selectedFiles.length === 0) { showToast('Please select at least one file', 'error'); return; }
-  var plant    = document.getElementById('plantSite').value;
-  var line     = document.getElementById('line').value;
-  var docType  = document.getElementById('docType').value;
-  var revision = document.getElementById('revision').value;
-  if (!plant || !line) { showToast('Please select Plant Site and Line before uploading', 'error'); return; }
-
-  var btn = document.getElementById('uploadBtn');
-  btn.disabled = true;
-  document.getElementById('clearBtn').style.display = 'none';
-
-  uploadResults = { done: 0, failed: 0, total: selectedFiles.length };
-  updateSummary();
-
-  for (var i = 0; i < selectedFiles.length; i++) {
-    await uploadOne(selectedFiles[i], i, plant, line, docType, revision);
+async function startBatchUpload(){
+  if(selectedFiles.length===0){showToast('Please select at least one file','error');return}
+  var plant=document.getElementById('plantSite').value;
+  var line=document.getElementById('line').value;
+  if(!plant||!line){showToast('Please select Plant Site and Line before uploading','error');return}
+  var docType=document.getElementById('docType').value;
+  var revision=document.getElementById('revision').value;
+  var equipTag=document.getElementById('equipTag').value;
+  var btn=document.getElementById('uploadBtn');
+  btn.disabled=true;document.getElementById('clearBtn').style.display='none';
+  uploadResults={done:0,failed:0,total:selectedFiles.length};updateSummary();
+  for(var i=0;i<selectedFiles.length;i++){
+    await uploadOne(selectedFiles[i],i,plant,line,docType,revision,equipTag);
   }
-
-  btn.disabled = false;
-  var msg = uploadResults.done + ' of ' + uploadResults.total + ' files uploaded successfully.';
-  if (uploadResults.failed > 0) msg += ' ' + uploadResults.failed + ' failed — check items above.';
-  showToast(msg, uploadResults.failed === 0 ? 'success' : 'error');
-
-  if (uploadResults.failed === 0) {
-    setTimeout(function() {
-      selectedFiles = [];
-      renderQueue();
-    }, 2000);
-  } else {
-    selectedFiles = selectedFiles.filter(function(f, i) {
-      var stat = document.getElementById('qis-' + i);
-      return stat && stat.textContent === 'Failed';
-    });
-    document.getElementById('clearBtn').style.display = 'block';
-  }
+  btn.disabled=false;
+  var msg=uploadResults.done+' of '+uploadResults.total+' files uploaded successfully.';
+  if(uploadResults.failed>0) msg+=' '+uploadResults.failed+' failed.';
+  showToast(msg,uploadResults.failed===0?'success':'error');
+  if(uploadResults.failed===0){setTimeout(function(){selectedFiles=[];renderQueue()},2000)}
+  else{document.getElementById('clearBtn').style.display='block'}
 }
 
-function addDocRow(doc) {
-  var list = document.getElementById('docList');
-  var empty = list.querySelector('.empty');
-  if (empty) empty.remove();
-  var ft = doc.file_type || 'other';
-  var valid = ['pdf','docx','mp4','csv'];
-  var ic = valid.indexOf(ft) >= 0 ? ft : 'other';
-  var dt = doc.doc_type || 'Document';
-  var dc = dt.toLowerCase().replace(/ /g, '-');
-  var row = document.createElement('div');
-  row.className = 'doc-row';
-  row.innerHTML =
-    '<div class="doc-icon icon-' + ic + '">' + ft.toUpperCase() + '</div>' +
-    '<div class="doc-info">' +
-      '<div class="doc-name">' + doc.name + '</div>' +
-      '<div class="doc-meta">' + (doc.plant_site || '') +
-        (doc.line ? ' &middot; ' + doc.line : '') +
-        (doc.revision ? ' &middot; Rev ' + doc.revision : '') +
-      '</div>' +
-    '</div>' +
-    '<span class="doc-badge b-' + dc + '">' + dt + '</span>' +
+function addDocRow(doc){
+  var list=document.getElementById('docList');
+  var empty=list.querySelector('.empty');if(empty)empty.remove();
+  var ft=doc.file_type||'other';
+  var valid=['pdf','docx','mp4','csv'];
+  var ic=valid.indexOf(ft)>=0?ft:'other';
+  var dt=doc.doc_type||'Document';
+  var dc=dt.toLowerCase().replace(/ /g,'-');
+  var row=document.createElement('div');row.className='doc-row';
+  row.innerHTML='<div class="doc-icon icon-'+ic+'">'+ft.toUpperCase()+'</div>'+
+    '<div class="doc-info"><div class="doc-name">'+doc.name+'</div>'+
+    '<div class="doc-meta">'+(doc.plant_site||'')+(doc.line?' \u00b7 '+doc.line:'')+(doc.equip_tag?' \u00b7 '+doc.equip_tag:'')+(doc.revision?' \u00b7 Rev '+doc.revision:'')+'</div></div>'+
+    '<span class="doc-badge b-'+dc+'">'+dt+'</span>'+
     '<div class="status-ready"><div class="status-dot"></div> Ready</div>';
-  list.insertBefore(row, list.firstChild);
-  var countEl = document.getElementById('docCount');
-  if (countEl) {
-    var rows = list.querySelectorAll('.doc-row').length;
-    countEl.textContent = rows + ' document' + (rows !== 1 ? 's' : '');
-  }
+  list.insertBefore(row,list.firstChild);
 }
-
-// init doc count
-window.onload = function() {
-  var list = document.getElementById('docList');
-  var rows = list.querySelectorAll('.doc-row').length;
-  var countEl = document.getElementById('docCount');
-  if (countEl && rows > 0) countEl.textContent = rows + ' document' + (rows !== 1 ? 's' : '');
-};
 </script>
 </body>
 </html>
