@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantMind - Document Library</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
+.nav{background:#1e293b;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.nav-brand{font-size:18px;font-weight:700;color:#fff}
+.nav-brand span{color:#a5b4fc}
+.nav-ctx{font-size:12px;color:#94a3b8;background:#0f172a;padding:4px 12px;border-radius:6px;display:flex;align-items:center;gap:6px}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:#16a34a}
+.tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 24px;display:flex}
+.tab{padding:13px 20px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
+.tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
+.tab-badge{font-size:10px;background:#fee2e2;color:#b91c1c;padding:1px 6px;border-radius:999px;margin-left:5px}
+.main{max-width:960px;margin:0 auto;padding:24px}
+
+/* Stats row */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px}
+.stat-num{font-size:24px;font-weight:600;color:#0f172a}
+.stat-lbl{font-size:12px;color:#64748b;margin-top:2px}
+
+/* Search and filters */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:200px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;display:flex;align-items:center;padding:0 12px;height:38px}
+.search-wrap input{border:none;outline:none;font-size:13px;flex:1;color:#0f172a;background:transparent}
+.search-icon{color:#94a3b8;font-size:14px;margin-right:6px}
+.filter-select{padding:0 12px;height:38px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;color:#475569;background:#fff;outline:none;cursor:pointer}
+.filter-select:focus{border-color:#a5b4fc}
+.toggle-archived{padding:0 14px;height:38px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;color:#94a3b8;background:#fff;cursor:pointer;white-space:nowrap}
+.toggle-archived.on{border-color:#a5b4fc;color:#4f46e5;background:#eef2ff}
+
+/* Results header */
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.results-count{font-size:13px;color:#64748b}
+.results-count strong{color:#0f172a}
+
+/* Document grid */
+.doc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.doc-grid{grid-template-columns:1fr}}
+
+/* Document card */
+.doc-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;position:relative}
+.doc-card:hover{border-color:#a5b4fc;box-shadow:0 2px 8px rgba(79,70,229,.08)}
+.doc-card.archived{opacity:.55}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.doc-icon{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.icon-pdf{background:#fef2f2;color:#b91c1c}
+.icon-docx{background:#eff6ff;color:#1d4ed8}
+.icon-mp4{background:#faf5ff;color:#7c3aed}
+.icon-csv{background:#f0fdf4;color:#166534}
+.icon-other{background:#f8fafc;color:#64748b}
+.doc-type-badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500}
+.b-sop{background:#f0fdf4;color:#166534}
+.b-work-instruction{background:#eff6ff;color:#1e40af}
+.b-training{background:#faf5ff;color:#7c3aed}
+.b-ncr{background:#fff7ed;color:#c2410c}
+.b-shift-log{background:#f0fdf4;color:#166534}
+.b-batch-record{background:#fdf4ff;color:#7e22ce}
+.b-other{background:#f8fafc;color:#64748b}
+.b-archived{background:#f1f5f9;color:#94a3b8}
+.doc-name{font-size:13px;font-weight:500;color:#0f172a;margin-bottom:4px;line-height:1.4;word-break:break-word}
+.doc-meta{font-size:11px;color:#94a3b8;line-height:1.6}
+.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9}
+.rev-badge{font-size:10px;font-family:monospace;background:#f1f5f9;color:#64748b;padding:2px 7px;border-radius:4px}
+.status-ready{display:flex;align-items:center;gap:4px;font-size:11px;color:#16a34a}
+.status-archived{display:flex;align-items:center;gap:4px;font-size:11px;color:#94a3b8}
+.status-dot{width:5px;height:5px;border-radius:50%}
+.dot-green{background:#16a34a}
+.dot-gray{background:#94a3b8}
+.ask-about{position:absolute;bottom:12px;right:12px;font-size:11px;color:#4f46e5;background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:3px 8px;opacity:0;transition:opacity .15s;text-decoration:none}
+.doc-card:hover .ask-about{opacity:1}
+
+/* Empty state */
+.empty{text-align:center;padding:48px 24px;color:#94a3b8;grid-column:1/-1}
+.empty-title{font-size:15px;font-weight:500;color:#475569;margin-bottom:6px}
+.empty-sub{font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">Plant<span>Mind</span></div>
+  <div class="nav-ctx">
+    <div class="nav-dot"></div>
+    <strong style="color:#e2e8f0">Houston Plant &middot; Line 2</strong>
+  </div>
+</div>
+
+<div class="tabs">
+  <a class="tab" href="/chat">Ask a question</a>
+  <a class="tab active" href="/library">Document library</a>
+  <a class="tab" href="/">Upload <span class="tab-badge">admin</span></a>
+</div>
+
+<div class="main">
+
+  <div class="stats" id="statsRow">
+    <div class="stat"><div class="stat-num" id="statTotal">-</div><div class="stat-lbl">Total documents</div></div>
+    <div class="stat"><div class="stat-num" id="statReady">-</div><div class="stat-lbl">Ready for Q&A</div></div>
+    <div class="stat"><div class="stat-num" id="statTypes">-</div><div class="stat-lbl">Document types</div></div>
+    <div class="stat"><div class="stat-num" id="statLines">-</div><div class="stat-lbl">Production lines</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" id="searchInput" placeholder="Search by name, equipment tag, or keyword..." oninput="filterDocs()">
+    </div>
+    <select class="filter-select" id="plantFilter" onchange="filterDocs()">
+      <option value="">All plant sites</option>
+    </select>
+    <select class="filter-select" id="lineFilter" onchange="filterDocs()">
+      <option value="">All lines</option>
+    </select>
+    <select class="filter-select" id="typeFilter" onchange="filterDocs()">
+      <option value="">All types</option>
+    </select>
+    <button class="toggle-archived" id="archivedToggle" onclick="toggleArchived()">Show archived</button>
+  </div>
+
+  <div class="results-header">
+    <span class="results-count" id="resultsCount"></span>
+  </div>
+
+  <div class="doc-grid" id="docGrid">
+    <div class="empty"><div class="empty-title">Loading documents...</div></div>
+  </div>
+
+</div>
+
+<script>
+var allDocs = [];
+var showArchived = false;
+
+fetch('/api/documents')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    allDocs = data.documents || [];
+    populateFilters();
+    updateStats();
+    filterDocs();
+  })
+  .catch(function() {
+    document.getElementById('docGrid').innerHTML =
+      '<div class="empty"><div class="empty-title">Could not load documents</div><div class="empty-sub">Check the server is running</div></div>';
+  });
+
+function populateFilters() {
+  var plants = [...new Set(allDocs.map(function(d) { return d.plant_site; }).filter(Boolean))];
+  var lines  = [...new Set(allDocs.map(function(d) { return d.line; }).filter(Boolean))];
+  var types  = [...new Set(allDocs.map(function(d) { return d.doc_type; }).filter(Boolean))];
+
+  var pf = document.getElementById('plantFilter');
+  plants.forEach(function(p) {
+    var o = document.createElement('option'); o.value = p; o.textContent = p; pf.appendChild(o);
+  });
+
+  var lf = document.getElementById('lineFilter');
+  lines.forEach(function(l) {
+    var o = document.createElement('option'); o.value = l; o.textContent = l; lf.appendChild(o);
+  });
+
+  var tf = document.getElementById('typeFilter');
+  types.forEach(function(t) {
+    var o = document.createElement('option'); o.value = t; o.textContent = t; tf.appendChild(o);
+  });
+}
+
+function updateStats() {
+  var active = allDocs.filter(function(d) { return d.status === 'uploaded'; });
+  var types  = new Set(active.map(function(d) { return d.doc_type; }).filter(Boolean));
+  var lines  = new Set(active.map(function(d) { return d.line; }).filter(Boolean));
+  document.getElementById('statTotal').textContent = active.length;
+  document.getElementById('statReady').textContent = active.length;
+  document.getElementById('statTypes').textContent = types.size;
+  document.getElementById('statLines').textContent = lines.size;
+}
+
+function toggleArchived() {
+  showArchived = !showArchived;
+  var btn = document.getElementById('archivedToggle');
+  btn.classList.toggle('on', showArchived);
+  btn.textContent = showArchived ? 'Hide archived' : 'Show archived';
+  filterDocs();
+}
+
+function filterDocs() {
+  var search = document.getElementById('searchInput').value.toLowerCase();
+  var plant  = document.getElementById('plantFilter').value;
+  var line   = document.getElementById('lineFilter').value;
+  var type   = document.getElementById('typeFilter').value;
+
+  var filtered = allDocs.filter(function(d) {
+    if (!showArchived && d.status === 'archived') return false;
+    if (plant && d.plant_site !== plant) return false;
+    if (line  && d.line !== line)        return false;
+    if (type  && d.doc_type !== type)    return false;
+    if (search) {
+      var haystack = (d.name + ' ' + (d.plant_site||'') + ' ' + (d.line||'') + ' ' + (d.doc_type||'')).toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
+  var countEl = document.getElementById('resultsCount');
+  countEl.innerHTML = 'Showing <strong>' + filtered.length + '</strong> of <strong>' + allDocs.filter(function(d){ return showArchived || d.status!=='archived'; }).length + '</strong> documents';
+
+  var grid = document.getElementById('docGrid');
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty"><div class="empty-title">No documents match your filters</div><div class="empty-sub">Try adjusting the search or filters above</div></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(function(doc) {
+    var ft       = (doc.file_type || 'other').toLowerCase();
+    var validFt  = ['pdf','docx','mp4','csv'];
+    var iconCls  = validFt.indexOf(ft) >= 0 ? ft : 'other';
+    var dt       = doc.doc_type || 'Other';
+    var dtCls    = doc.status === 'archived' ? 'archived' : dt.toLowerCase().replace(/ /g,'-');
+    var isArch   = doc.status === 'archived';
+    var date     = doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    var askUrl   = '/chat?q=' + encodeURIComponent('Tell me about ' + doc.name);
+
+    return '<div class="doc-card' + (isArch ? ' archived' : '') + '">' +
+      '<div class="card-top">' +
+        '<div class="doc-icon icon-' + iconCls + '">' + ft.toUpperCase() + '</div>' +
+        '<span class="doc-type-badge b-' + dtCls + '">' + (isArch ? 'Archived' : dt) + '</span>' +
+      '</div>' +
+      '<div class="doc-name">' + escHtml(doc.name) + '</div>' +
+      '<div class="doc-meta">' +
+        (doc.plant_site || '') +
+        (doc.line ? ' &middot; ' + doc.line : '') +
+        (date ? ' &middot; ' + date : '') +
+      '</div>' +
+      '<div class="card-footer">' +
+        '<span class="rev-badge">Rev ' + escHtml(doc.revision || '1.0') + '</span>' +
+        (isArch
+          ? '<div class="status-archived"><div class="status-dot dot-gray"></div>Archived</div>'
+          : '<div class="status-ready"><div class="status-dot dot-green"></div>Ready</div>') +
+      '</div>' +
+      (!isArch ? '<a class="ask-about" href="' + askUrl + '">Ask about this &rarr;</a>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

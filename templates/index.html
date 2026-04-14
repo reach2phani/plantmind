@@ -100,6 +100,7 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
 .status-ready{display:flex;align-items:center;gap:4px;font-size:11px;color:#16a34a;flex-shrink:0}
 .status-dot{width:6px;height:6px;border-radius:50%;background:#16a34a}
 .empty{text-align:center;padding:32px;color:#94a3b8;font-size:13px}
+.tab { text-decoration: none; display: block; }
 </style>
 </head>
 <body>
@@ -110,9 +111,9 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
 </div>
 
 <div class="tabs">
-  <div class="tab">Ask a question</div>
-  <div class="tab">Document library</div>
-  <div class="tab active">Upload <span class="badge">admin</span></div>
+  <a class="tab" href="/chat">Ask a question</a>
+  <a class="tab" href="/library">Document library</a>
+  <a class="tab active" href="/">Upload <span class="badge">admin</span></a>
 </div>
 
 <div class="main">
