@@ -1,6 +1,8 @@
 import os
+import re
 import threading
 import json
+from datetime import datetime
 from flask import Flask, request, jsonify, render_template, Response, stream_with_context
 from dotenv import load_dotenv
 from supabase import create_client
@@ -32,6 +34,64 @@ def parse_revision(rev_str):
     except Exception:
         return 0.0
 
+def time_in_range(event_time, time_from, time_to):
+    try:
+        fmt = "%H:%M"
+        et  = datetime.strptime(event_time.strip()[:5], fmt).time()
+        tf  = datetime.strptime(time_from.strip()[:5],  fmt).time()
+        tt  = datetime.strptime(time_to.strip()[:5],    fmt).time()
+        if tf <= tt:
+            return tf <= et <= tt
+        else:
+            return et >= tf or et <= tt
+    except Exception:
+        return True
+
+def get_match_metadata(m):
+    """Safely extract metadata from Pinecone match object or dict."""
+    if isinstance(m, dict):
+        return m.get("metadata", {})
+    return getattr(m, "metadata", {}) or {}
+
+def get_match_score(m):
+    if isinstance(m, dict):
+        return m.get("score", 0)
+    return getattr(m, "score", 0)
+
+def match_to_dict(m):
+    """Convert Pinecone match object to plain dict safely."""
+    meta = get_match_metadata(m)
+    if not isinstance(meta, dict):
+        try:
+            meta = dict(meta)
+        except Exception:
+            meta = {}
+    return {
+        "score":    get_match_score(m),
+        "metadata": meta
+    }
+
+def filter_shift_chunks(matches, time_from, time_to):
+    if not time_from or not time_to:
+        return [match_to_dict(m) for m in matches]
+    filtered = []
+    for m in matches:
+        md   = match_to_dict(m)
+        text = md["metadata"].get("text", "")
+        lines = text.split("\n")
+        kept  = []
+        for line in lines:
+            t = re.search(r'\bat (\d{2}:\d{2})\b', line)
+            if t:
+                if time_in_range(t.group(1), time_from, time_to):
+                    kept.append(line)
+            else:
+                kept.append(line)
+        if kept:
+            md["metadata"]["text"] = "\n".join(kept)
+            filtered.append(md)
+    return filtered if filtered else [match_to_dict(m) for m in matches]
+
 # ── Pages ──────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -56,28 +116,21 @@ def api_documents():
 
 @app.route("/api/documents/<doc_id>", methods=["PATCH"])
 def update_document(doc_id):
-    data = request.get_json()
+    data    = request.get_json()
     allowed_fields = {"plant_site", "line", "doc_type", "revision", "equip_tag"}
     updates = {k: v for k, v in data.items() if k in allowed_fields}
     if not updates:
         return jsonify({"error": "No valid fields to update"}), 400
-
     result = supabase.table("documents").update(updates).eq("id", doc_id).execute()
     if not result.data:
         return jsonify({"error": "Document not found"}), 404
-
     saved = result.data[0]
-
-    # Re-embed with updated metadata in background
     def run_reembed():
         base      = os.path.dirname(os.path.abspath(__file__))
-        raw_path  = saved.get("file_path", "")
-        full_path = os.path.join(base, raw_path)
+        full_path = os.path.join(base, saved.get("file_path", ""))
         if os.path.exists(full_path):
             embed_document(saved["id"], full_path, saved)
-
     threading.Thread(target=run_reembed, daemon=True).start()
-
     return jsonify({"success": True, "document": saved})
 
 @app.route("/api/feedback", methods=["POST"])
@@ -125,20 +178,14 @@ def upload():
     file.save(save_path)
 
     record = {
-        "name":       filename,
-        "file_type":  file_type,
-        "plant_site": plant_site,
-        "line":       line,
-        "doc_type":   doc_type,
-        "revision":   new_rev,
-        "file_path":  save_path,
-        "status":     "uploaded",
-        "equip_tag":  equip_tag,
+        "name": filename, "file_type": file_type, "plant_site": plant_site,
+        "line": line, "doc_type": doc_type, "revision": new_rev,
+        "file_path": save_path, "status": "uploaded", "equip_tag": equip_tag,
     }
     result = supabase.table("documents").insert(record).execute()
     saved  = result.data[0]
 
-    was_sup = existing.data and parse_revision(new_rev) > parse_revision(existing.data[0].get("revision", "1.0"))
+    was_sup = existing.data and parse_revision(new_rev) > parse_revision(existing.data[0].get("revision","1.0"))
     message = (f"Rev {new_rev} uploaded. Previous Rev {existing.data[0]['revision']} archived."
                if was_sup else f"{filename} uploaded successfully.")
 
@@ -155,6 +202,9 @@ def ask():
     plant     = data.get("plant_site", "")
     line      = data.get("line",       "")
     equip_tag = data.get("equip_tag",  "")
+    mode      = data.get("mode",       "doc")
+    time_from = data.get("time_from",  "")
+    time_to   = data.get("time_to",    "")
 
     if not question:
         def err():
@@ -163,31 +213,48 @@ def ask():
 
     question_vec = embedder.encode(question).tolist()
 
+    # Build filter — shift mode only searches CSVs, doc mode excludes CSVs
     filter_dict = {}
-    if plant:     filter_dict["plant_site"] = {"$eq": plant}
-    if line:      filter_dict["line"]       = {"$eq": line}
-    if equip_tag: filter_dict["equip_tag"]  = {"$eq": equip_tag}
+    if mode == "shift":
+        filter_dict["file_type"] = {"$eq": "csv"}
+        if line:
+            filter_dict["line"] = {"$eq": line}
+    else:
+        filter_dict["file_type"] = {"$nin": ["csv"]}
+        if plant:     filter_dict["plant_site"] = {"$eq": plant}
+        if line:      filter_dict["line"]       = {"$eq": line}
+        if equip_tag: filter_dict["equip_tag"]  = {"$eq": equip_tag}
 
-    results = pine_index.query(
-        vector=question_vec, top_k=5, include_metadata=True,
-        filter=filter_dict if filter_dict else None
+    results  = pine_index.query(
+        vector=question_vec, top_k=8, include_metadata=True,
+        filter=filter_dict
     )
-    matches     = results.get("matches", [])
+    matches      = results.get("matches", [])
     was_fallback = False
 
-    if (not matches or matches[0]["score"] < 0.35) and filter_dict:
-        results      = pine_index.query(vector=question_vec, top_k=5, include_metadata=True)
-        matches      = results.get("matches", [])
+    # Fallback — remove non-filetype filters and retry
+    if (not matches or matches[0]["score"] < 0.35) and len(filter_dict) > 1:
+        fallback_filter = {"file_type": filter_dict["file_type"]}
+        results  = pine_index.query(vector=question_vec, top_k=8, include_metadata=True, filter=fallback_filter)
+        matches  = results.get("matches", [])
         was_fallback = True
 
     if not matches or matches[0]["score"] < 0.35:
         def no_ans():
-            yield "NOANSWER:I could not find a confident answer in the uploaded documents. Try rephrasing your question or check that the relevant document has been uploaded."
+            if mode == "shift":
+                yield "NOANSWER:No shift log events found for this time range. Check that a shift log has been uploaded for this period."
+            else:
+                yield "NOANSWER:I could not find a confident answer in the uploaded documents. Try rephrasing your question or check that the relevant document has been uploaded."
         return Response(stream_with_context(no_ans()), mimetype="text/plain")
+
+    # For shift mode — filter chunks by time range
+    if mode == "shift" and time_from and time_to:
+        matches = filter_shift_chunks(matches, time_from, time_to)
 
     context_parts = []
     sources       = []
     seen          = set()
+    matches       = [match_to_dict(m) for m in matches]
     for m in matches:
         meta = m.get("metadata", {})
         text = meta.get("text", "")
@@ -203,16 +270,38 @@ def ask():
                 "equip_tag": meta.get("equip_tag", ""),
                 "score":     round(m["score"], 2)
             })
-        context_parts.append(f"[From {name} Rev {rev}]:\n{text}")
+        context_parts.append(f"[From {name}]:\n{text}")
 
-    context       = "\n\n".join(context_parts)
-    system_prompt = (
-        "You are PlantMind, an AI assistant for manufacturing plant operators. "
-        "Answer questions using ONLY the provided document context. "
-        "Be specific and practical. Never fabricate information not in the context."
-    )
-    user_prompt  = (f"Context:\n\n{context}\n\nQuestion: {question}\n\n"
-                    "Answer clearly and specifically based only on the context above.")
+    context = "\n\n".join(context_parts)
+
+    if mode == "shift":
+        time_ctx = f" between {time_from} and {time_to}" if time_from and time_to else ""
+        line_ctx = f" on {line}" if line else ""
+        system_prompt = (
+            "You are PlantMind, a shift intelligence assistant for manufacturing plant operators. "
+            "Answer questions using ONLY the provided shift log context. "
+            "Format your answer as a clear bulleted list of events with timestamps where available. "
+            "Group events by category: Alarms, Maintenance, Quality, Process. "
+            "Be concise and factual. Never fabricate events not in the context."
+        )
+        user_prompt = (
+            f"Shift log context{line_ctx}{time_ctx}:\n\n{context}\n\n"
+            f"Question: {question}\n\n"
+            "Summarise the relevant shift events as a structured list with timestamps. "
+            "Group by category if multiple types of events exist."
+        )
+    else:
+        system_prompt = (
+            "You are PlantMind, an AI assistant for manufacturing plant operators. "
+            "Answer questions using ONLY the provided document context. "
+            "Be specific and practical. Never fabricate information not in the context."
+        )
+        user_prompt = (
+            f"Context:\n\n{context}\n\n"
+            f"Question: {question}\n\n"
+            "Answer clearly and specifically based only on the context above."
+        )
+
     sources_json = json.dumps(sources)
 
     def full_stream():
@@ -225,7 +314,7 @@ def ask():
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_prompt}
             ],
-            stream=True, max_tokens=600, temperature=0.1
+            stream=True, max_tokens=800, temperature=0.1
         )
         for chunk in stream:
             delta = chunk.choices[0].delta
