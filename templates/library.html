@@ -122,11 +122,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
     <div class="empty"><div class="empty-title">Loading documents...</div></div>
   </div>
 </div>
+<style>
+.pagination{display:none;align-items:center;justify-content:center;gap:12px;margin-top:20px;padding:4px 0}
+.pg-btn{padding:7px 16px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#475569;transition:all .15s}
+.pg-btn:hover:not([disabled]){border-color:#a5b4fc;color:#4f46e5}
+.pg-btn[disabled]{opacity:.4;cursor:not-allowed}
+.pg-info{font-size:13px;color:#64748b}
+.pg-info strong{color:#0f172a}
+</style>
+<div id="pagination" class="pagination"></div>
 <script src="/static/nav_context.js"></script>
 <script>
 var allDocs      = [];
 var showArchived = false;
 var editingId    = null;
+var currentPage  = 1;
+var PAGE_SIZE    = 12;
 
 fetch('/api/documents')
   .then(function(r){return r.json()})
@@ -160,6 +171,7 @@ function updateStats(){
 }
 
 function toggleArchived(){
+  currentPage=1;
   showArchived=!showArchived;
   var btn=document.getElementById('archivedToggle');
   btn.classList.toggle('on',showArchived);
@@ -168,6 +180,7 @@ function toggleArchived(){
 }
 
 function filterDocs(){
+  if(event&&event.type!=='init') currentPage=1;
   var search=document.getElementById('searchInput').value.toLowerCase();
   var plant=document.getElementById('plantFilter').value;
   var line=document.getElementById('lineFilter').value;
@@ -186,10 +199,36 @@ function filterDocs(){
     return true;
   });
   var total=allDocs.filter(function(d){return showArchived||d.status!=='archived'}).length;
-  document.getElementById('resultsCount').innerHTML='Showing <strong>'+filtered.length+'</strong> of <strong>'+total+'</strong> documents';
+  var totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+  if(currentPage>totalPages) currentPage=1;
+  var start=(currentPage-1)*PAGE_SIZE;
+  var pageItems=filtered.slice(start,start+PAGE_SIZE);
+  document.getElementById('resultsCount').innerHTML=
+    'Showing <strong>'+(filtered.length===0?0:start+1)+'&ndash;'+Math.min(start+PAGE_SIZE,filtered.length)+'</strong> of <strong>'+filtered.length+'</strong> documents';
   var grid=document.getElementById('docGrid');
-  if(filtered.length===0){grid.innerHTML='<div class="empty"><div class="empty-title">No documents match</div></div>';return}
-  grid.innerHTML=filtered.map(function(doc){return renderCard(doc)}).join('');
+  if(filtered.length===0){
+    document.getElementById('pagination').style.display='none';
+    grid.innerHTML='<div class="empty"><div class="empty-title">No documents match</div></div>';
+    return;
+  }
+  grid.innerHTML=pageItems.map(function(doc){return renderCard(doc)}).join('');
+  renderPagination(currentPage,totalPages,filtered.length);
+}
+
+function renderPagination(page,totalPages,total){
+  var pg=document.getElementById('pagination');
+  if(totalPages<=1){pg.style.display='none';return;}
+  pg.style.display='flex';
+  pg.innerHTML=
+    '<button class="pg-btn" onclick="goPage('+page+'-1)" '+(page<=1?'disabled':'')+'>&#8592; Previous</button>'+
+    '<span class="pg-info">Page <strong>'+page+'</strong> of <strong>'+totalPages+'</strong></span>'+
+    '<button class="pg-btn" onclick="goPage('+page+'+1)" '+(page>=totalPages?'disabled':'')+'>Next &#8594;</button>';
+}
+
+function goPage(p){
+  currentPage=p;
+  filterDocs();
+  window.scrollTo(0,0);
 }
 
 function renderCard(doc){

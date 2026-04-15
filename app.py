@@ -2,6 +2,7 @@ import os
 import re
 import threading
 import json
+import tempfile
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template, Response, stream_with_context
 from dotenv import load_dotenv
@@ -14,8 +15,7 @@ from groq import Groq
 load_dotenv()
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+SUPABASE_BUCKET = "plantmind-docs"
 
 supabase    = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 pc          = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
@@ -127,9 +127,9 @@ def update_document(doc_id):
     saved = result.data[0]
     def run_reembed():
         base      = os.path.dirname(os.path.abspath(__file__))
-        full_path = os.path.join(base, saved.get("file_path", ""))
-        if os.path.exists(full_path):
-            embed_document(saved["id"], full_path, saved)
+        storage_path = saved.get("file_path", "")
+        if storage_path:
+            embed_document(saved["id"], storage_path, saved)
     threading.Thread(target=run_reembed, daemon=True).start()
     return jsonify({"success": True, "document": saved})
 
@@ -174,13 +174,20 @@ def upload():
 
     safe_rev  = new_rev.replace(".", "_")
     save_name = f"rev{safe_rev}_{filename}"
-    save_path = os.path.join(UPLOAD_FOLDER, save_name)
-    file.save(save_path)
+
+    # Upload to Supabase Storage
+    file_bytes   = file.read()
+    storage_path = f"documents/{save_name}"
+    supabase.storage.from_(SUPABASE_BUCKET).upload(
+        path=storage_path,
+        file=file_bytes,
+        file_options={"content-type": "application/octet-stream", "upsert": "true"}
+    )
 
     record = {
         "name": filename, "file_type": file_type, "plant_site": plant_site,
         "line": line, "doc_type": doc_type, "revision": new_rev,
-        "file_path": save_path, "status": "uploaded", "equip_tag": equip_tag,
+        "file_path": storage_path, "status": "uploaded", "equip_tag": equip_tag,
     }
     result = supabase.table("documents").insert(record).execute()
     saved  = result.data[0]
@@ -190,7 +197,7 @@ def upload():
                if was_sup else f"{filename} uploaded successfully.")
 
     def run_embed():
-        embed_document(saved["id"], save_path, saved)
+        embed_document(saved["id"], storage_path, saved)
     threading.Thread(target=run_embed, daemon=True).start()
 
     return jsonify({"success": True, "message": message, "document": saved})
@@ -327,12 +334,11 @@ def ask():
 @app.route("/embed-all", methods=["POST"])
 def embed_all():
     docs  = supabase.table("documents").select("*").eq("status", "uploaded").execute()
-    base  = os.path.dirname(os.path.abspath(__file__))
     total = 0
     for doc in docs.data:
-        full_path = os.path.join(base, doc.get("file_path", ""))
-        if os.path.exists(full_path):
-            total += embed_document(doc["id"], full_path, doc)
+        storage_path = doc.get("file_path", "")
+        if storage_path:
+            total += embed_document(doc["id"], storage_path, doc)
     return jsonify({"success": True, "message": f"Embedded {total} chunks from {len(docs.data)} documents"})
 
 if __name__ == "__main__":

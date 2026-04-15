@@ -1,17 +1,35 @@
 import os
 import csv
 import io
+import tempfile
 from dotenv import load_dotenv
 from pinecone import Pinecone
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
+from supabase import create_client
 
 load_dotenv()
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
-pc    = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-index = pc.Index(os.getenv("PINECONE_INDEX"))
+model    = SentenceTransformer("all-MiniLM-L6-v2")
+pc       = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+index    = pc.Index(os.getenv("PINECONE_INDEX"))
+supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+
+SUPABASE_BUCKET = "plantmind-docs"
+
+def download_to_tempfile(storage_path):
+    """Download file from Supabase Storage to a temp file. Returns temp file path."""
+    try:
+        file_bytes = supabase.storage.from_(SUPABASE_BUCKET).download(storage_path)
+        ext = storage_path.rsplit(".", 1)[-1].lower()
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}")
+        tmp.write(file_bytes)
+        tmp.close()
+        return tmp.name
+    except Exception as e:
+        print(f"  Download error for {storage_path}: {e}")
+        return None
 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
@@ -100,10 +118,26 @@ def chunk_csv(file_path):
     return chunks
 
 
-def embed_document(doc_id, file_path, metadata):
-    print(f"Embedding: {file_path}")
-    ext = file_path.rsplit(".", 1)[-1].lower()
+def embed_document(doc_id, storage_path, metadata):
+    print(f"Embedding: {storage_path}")
+    ext = storage_path.rsplit(".", 1)[-1].lower()
 
+    # Download from Supabase Storage to a local temp file
+    file_path = download_to_tempfile(storage_path)
+    if not file_path:
+        print(f"  Could not download {storage_path}")
+        return 0
+
+    try:
+        result = _embed_local(doc_id, file_path, ext, metadata)
+    finally:
+        try:
+            os.unlink(file_path)
+        except Exception:
+            pass
+    return result
+
+def _embed_local(doc_id, file_path, ext, metadata):
     if ext == "pdf":
         try:
             loader    = PyPDFLoader(file_path)
@@ -238,3 +272,4 @@ def embed_document(doc_id, file_path, metadata):
     else:
         print(f"  Skipping unsupported type: {ext}")
         return 0
+# end _embed_local
