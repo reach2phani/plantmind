@@ -9,18 +9,25 @@ from dotenv import load_dotenv
 from supabase import create_client
 from embedder import embed_document
 from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
 from groq import Groq
 
 load_dotenv()
 app = Flask(__name__)
+
+def get_embedding(text, input_type="query"):
+    """Get embedding vector using Pinecone's hosted inference API."""
+    result = pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[text[:8000]],
+        parameters={"input_type": input_type, "truncate": "END"}
+    )
+    return result[0].values
 
 SUPABASE_BUCKET = "plantmind-docs"
 
 supabase    = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 pc          = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 pine_index  = pc.Index(os.getenv("PINECONE_INDEX"))
-embedder    = SentenceTransformer("all-MiniLM-L6-v2")
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 ALLOWED = {"pdf", "docx", "txt", "csv", "mp4", "mov"}
@@ -218,7 +225,7 @@ def ask():
             yield "NOANSWER:Please enter a question."
         return Response(stream_with_context(err()), mimetype="text/plain")
 
-    question_vec = embedder.encode(question).tolist()
+    question_vec = get_embedding(question)
 
     # Build filter — shift mode only searches CSVs, doc mode excludes CSVs
     filter_dict = {}

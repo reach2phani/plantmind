@@ -6,15 +6,22 @@ from dotenv import load_dotenv
 from pinecone import Pinecone
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from sentence_transformers import SentenceTransformer
 from supabase import create_client
 
 load_dotenv()
 
-model    = SentenceTransformer("all-MiniLM-L6-v2")
 pc       = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index    = pc.Index(os.getenv("PINECONE_INDEX"))
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+
+def get_embedding(text):
+    """Get embedding vector using Pinecone's hosted inference API."""
+    result = pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[text[:8000]],
+        parameters={"input_type": "passage", "truncate": "END"}
+    )
+    return result[0].values
 
 SUPABASE_BUCKET = "plantmind-docs"
 
@@ -161,7 +168,7 @@ def _embed_local(doc_id, file_path, ext, metadata):
         for i, text in enumerate(texts):
             if not text.strip():
                 continue
-            embedding = model.encode(text).tolist()
+            embedding = get_embedding(text)
             vectors.append({
                 "id":     f"{doc_id}_chunk_{i}",
                 "values": embedding,
@@ -200,7 +207,7 @@ def _embed_local(doc_id, file_path, ext, metadata):
             text = chunk.get("text", "")
             if not text.strip():
                 continue
-            embedding = model.encode(text).tolist()
+            embedding = get_embedding(text)
             vectors.append({
                 "id":     f"{doc_id}_chunk_{i}",
                 "values": embedding,
@@ -242,7 +249,7 @@ def _embed_local(doc_id, file_path, ext, metadata):
         for i, text in enumerate(texts):
             if not text.strip():
                 continue
-            embedding = model.encode(text).tolist()
+            embedding = get_embedding(text)
             vectors.append({
                 "id":     f"{doc_id}_chunk_{i}",
                 "values": embedding,
