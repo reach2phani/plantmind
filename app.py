@@ -348,5 +348,27 @@ def embed_all():
             total += embed_document(doc["id"], storage_path, doc)
     return jsonify({"success": True, "message": f"Embedded {total} chunks from {len(docs.data)} documents"})
 
+@app.route("/investigate", methods=["POST"])
+def investigate():
+    from agent_v2 import investigate_incident
+    data     = request.get_json()
+    incident = data.get("incident", "").strip()
+    plant    = data.get("plant_site", "")
+    line     = data.get("line",       "")
+
+    if not incident:
+        return jsonify({"error": "Please describe the incident"}), 400
+
+    if plant or line:
+        context  = f"[Plant: {plant}, Line: {line}] "
+        incident = context + incident
+
+    def stream():
+        for chunk in investigate_incident(incident):
+            yield chunk
+
+    return Response(stream_with_context(stream()), mimetype="text/plain",
+                    headers={"X-Accel-Buffering": "no"})
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

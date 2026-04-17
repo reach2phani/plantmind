@@ -95,6 +95,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .no-answer-body{padding:16px}
 .no-answer-msg{font-size:14px;color:#92400e;line-height:1.7;margin-bottom:6px}
 .no-answer-hint{font-size:12px;color:#b45309}
+.ask-card.agent-mode{border-color:#7c3aed;background:#faf5ff}
+.ask-card.agent-mode .ask-ta{border-color:#7c3aed}
+.ask-card.agent-mode .ask-ta:focus{border-color:#6d28d9}
+.ask-card.agent-mode .ask-btn{background:#7c3aed}
+.ask-card.agent-mode .ask-btn:hover{background:#6d28d9}
+.mode-btn.active-agent{background:#7c3aed;color:#fff}
+.agent-card{background:#faf5ff;border:1px solid #ddd6fe;border-radius:12px;overflow:hidden;margin-bottom:14px}
+.agent-q{background:#ede9fe;border-bottom:1px solid #ddd6fe;padding:11px 16px;font-size:13px;color:#5b21b6;font-weight:500}
+.agent-body{padding:16px;font-size:14px;line-height:1.8;color:#0f172a;white-space:pre-wrap}
+.agent-thinking{color:#7c3aed;font-size:13px;font-style:italic}
 .empty-state{text-align:center;padding:48px 24px;color:#94a3b8}
 .empty-title{font-size:16px;font-weight:500;color:#475569;margin-bottom:8px}
 .empty-sub{font-size:13px;line-height:1.6}
@@ -125,6 +135,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
       <div class="mode-toggle">
         <button class="mode-btn active-doc" id="btnDoc"  onclick="setMode('doc')">Documents</button>
         <button class="mode-btn"            id="btnShift" onclick="setMode('shift')">Shift log</button>
+        <button class="mode-btn"            id="btnAgent" onclick="setMode('agent')">&#9889; Agent</button>
       </div>
     </div>
     <div class="ask-row">
@@ -193,6 +204,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
         <div class="example-q shift-ex" onclick="useExample(this,'shift')">What alarms occurred during this shift?</div>
         <div class="example-q shift-ex" onclick="useExample(this,'shift')">What maintenance work was done on Line 2?</div>
         <div class="example-q shift-ex" onclick="useExample(this,'shift')">Were there any quality issues during this shift?</div>
+        <div class="example-q" style="border-color:#ddd6fe" onclick="useExample(this,'agent')">WR-401 weld quality alarm on Line 4, third time this week, investigate root cause</div>
+        <div class="example-q" style="border-color:#ddd6fe" onclick="useExample(this,'agent')">P-201 thermal overload trip, recurring issue, panels quarantined, investigate</div>
       </div>
     </div>
   </div>
@@ -221,31 +234,40 @@ function setMode(mode) {
   var card      = document.getElementById('askCard');
   var btnDoc    = document.getElementById('btnDoc');
   var btnShift  = document.getElementById('btnShift');
+  var btnAgent  = document.getElementById('btnAgent');
   var docFilt   = document.getElementById('docFilters');
   var shiftPan  = document.getElementById('shiftPanel');
   var askLabel  = document.getElementById('askLabel');
   var ta        = document.getElementById('questionInput');
   var askBtn    = document.getElementById('askBtn');
 
+  card.classList.remove('shift-mode','agent-mode');
+  btnDoc.className   = 'mode-btn';
+  btnShift.className = 'mode-btn';
+  btnAgent.className = 'mode-btn';
+  docFilt.style.display = 'none';
+  shiftPan.classList.remove('visible');
+
   if (mode === 'doc') {
-    card.classList.remove('shift-mode');
-    btnDoc.className   = 'mode-btn active-doc';
-    btnShift.className = 'mode-btn';
-    docFilt.style.display  = 'flex';
-    shiftPan.classList.remove('visible');
-    askLabel.textContent   = 'What do you need to know?';
+    btnDoc.className      = 'mode-btn active-doc';
+    docFilt.style.display = 'flex';
+    askLabel.textContent  = 'What do you need to know?';
     ta.placeholder = 'e.g. What should I check first when P-201 shows high vibration alarm?\ne.g. Walk me through the Line 3 changeover procedure';
     askBtn.textContent = 'Ask PlantMind';
-  } else {
+  } else if (mode === 'shift') {
     card.classList.add('shift-mode');
-    btnDoc.className   = 'mode-btn';
     btnShift.className = 'mode-btn active-shift';
-    docFilt.style.display  = 'none';
     shiftPan.classList.add('visible');
-    askLabel.textContent   = 'Ask about shift events';
+    askLabel.textContent = 'Ask about shift events';
     ta.placeholder = 'e.g. What alarms occurred during this shift?\ne.g. Any maintenance work done on Line 2?';
     askBtn.textContent = 'Search shift log';
     if (!activePreset) setPreset('night');
+  } else if (mode === 'agent') {
+    card.classList.add('agent-mode');
+    btnAgent.className = 'mode-btn active-agent';
+    askLabel.textContent = 'Describe the incident to investigate';
+    ta.placeholder = 'e.g. WR-401 weld quality alarm on Line 4, third time this week, spatter index 4.8, panels quarantined';
+    askBtn.textContent = '\u26a1 Investigate';
   }
 }
 
@@ -311,12 +333,6 @@ function handleKey(e) {
   if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitQuestion();}
 }
 
-function useExample(el, mode) {
-  setMode(mode);
-  if (mode==='shift'&&!activePreset) setPreset('night');
-  document.getElementById('questionInput').value = el.textContent.trim();
-  submitQuestion();
-}
 
 function escHtml(t) {
   return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -347,6 +363,8 @@ function renderSources(sources, srcEl, citesEl, wasFallback, isShift) {
 function submitQuestion() {
   var q = document.getElementById('questionInput').value.trim();
   if (!q) return;
+
+  if (currentMode === 'agent') { submitInvestigation(q); return; }
 
   var isShift  = currentMode==='shift';
   var plant    = isShift ? '' : document.getElementById('plantFilter').value;
@@ -465,6 +483,65 @@ function rate(idx,val){
 function askFollowUp(q){
   document.getElementById('questionInput').value='Follow up on: '+q+'\n';
   document.getElementById('questionInput').focus();
+}
+
+
+function submitInvestigation(incident) {
+  var btn = document.getElementById('askBtn');
+  btn.disabled = true;
+  btn.textContent = 'Investigating...';
+
+  var ctx   = PlantMindContext ? PlantMindContext.get() : {};
+  var plant = ctx.plant || '';
+  var line  = ctx.line  || '';
+
+  var area = document.getElementById('answersArea');
+  var emp  = document.getElementById('emptyState');
+  if (emp) emp.style.display = 'none';
+  document.getElementById('questionInput').value = '';
+
+  var card = document.createElement('div');
+  card.className = 'agent-card';
+  card.innerHTML =
+    '<div class="agent-q">' +
+      '<span style="font-size:10px;background:#7c3aed;color:#fff;padding:1px 6px;border-radius:4px;margin-right:6px;font-weight:600">AGENT</span>' +
+      escHtml(incident) +
+    '</div>' +
+    '<div class="agent-body" id="agent-body-' + Date.now() + '">' +
+      '<span class="agent-thinking">&#9889; Agent starting investigation...</span>' +
+    '</div>';
+  area.insertBefore(card, area.firstChild);
+
+  var bodyId = card.querySelector('.agent-body').id;
+  var bodyEl = document.getElementById(bodyId);
+  var content = '';
+
+  fetch('/investigate', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({incident: incident, plant_site: plant, line: line})
+  }).then(function(res) {
+    var reader  = res.body.getReader();
+    var decoder = new TextDecoder();
+
+    function read() {
+      reader.read().then(function(result) {
+        if (result.done) {
+          btn.disabled    = false;
+          btn.textContent = '\u26a1 Investigate';
+          return;
+        }
+        content += decoder.decode(result.value, {stream: true});
+        bodyEl.innerHTML = escHtml(content).replace(/\n/g, '<br>');
+        read();
+      });
+    }
+    read();
+  }).catch(function(err) {
+    bodyEl.innerHTML = '<span style="color:red">Investigation failed: ' + escHtml(err.message) + '</span>';
+    btn.disabled    = false;
+    btn.textContent = '\u26a1 Investigate';
+  });
 }
 </script>
 </body>
