@@ -6,116 +6,165 @@
 <title>PlantMind - Ask a Question</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;height:100vh;display:flex;flex-direction:column}
-.nav{background:#1e293b;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
-.nav-brand{font-size:18px;font-weight:700;color:#fff}
+html{height:100vh;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Nav ── */
+.nav{background:#1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.nav-brand{font-size:17px;font-weight:700;color:#fff}
 .nav-brand span{color:#a5b4fc}
-.nav-ctx{font-size:12px;color:#94a3b8;background:#0f172a;padding:4px 12px;border-radius:6px;display:flex;align-items:center;gap:6px;cursor:pointer}
-.nav-dot{width:6px;height:6px;border-radius:50%;background:#94a3b8;flex-shrink:0}
-.tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 24px;display:flex;flex-shrink:0}
-.tab{padding:13px 20px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
-.tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
-.tab-badge{font-size:10px;background:#fee2e2;color:#b91c1c;padding:1px 6px;border-radius:999px;margin-left:5px}
-.main{flex:1;max-width:800px;width:100%;margin:0 auto;padding:24px 24px 0;display:flex;flex-direction:column;overflow:hidden}
+.nav-ctx{font-size:11px;color:#94a3b8;background:#0f172a;padding:3px 10px;border-radius:5px;display:flex;align-items:center;gap:5px;cursor:pointer}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:#94a3b8;flex-shrink:0}
+.nav-dot.online{background:#22c55e}
 
-/* Ask card */
-.ask-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:16px;flex-shrink:0;transition:border-color .2s}
-.ask-card.shift-mode{border-color:#d97706;background:#fffbeb}
-.ask-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.ask-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em}
-.mode-toggle{display:flex;background:#f1f5f9;border-radius:8px;padding:3px;gap:2px}
-.mode-btn{padding:5px 12px;font-size:12px;font-weight:500;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#64748b;transition:all .15s;white-space:nowrap}
-.mode-btn.active-doc{background:#4f46e5;color:#fff}
-.mode-btn.active-shift{background:#d97706;color:#fff}
-.ask-row{display:flex;gap:10px;align-items:flex-end}
-.ask-ta{flex:1;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:15px;color:#0f172a;resize:none;height:72px;font-family:inherit;line-height:1.5;outline:none;background:#f8fafc;transition:border-color .2s}
-.ask-ta:focus{border-color:#4f46e5;background:#fff}
-.ask-card.shift-mode .ask-ta{border-color:#d97706}
-.ask-card.shift-mode .ask-ta:focus{border-color:#b45309}
-.ask-btn{background:#4f46e5;color:#fff;border:none;border-radius:10px;padding:0 22px;height:72px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s}
-.ask-btn:hover{background:#4338ca}
-.ask-btn:disabled{background:#94a3b8;cursor:not-allowed}
-.ask-card.shift-mode .ask-btn{background:#d97706}
-.ask-card.shift-mode .ask-btn:hover{background:#b45309}
+/* ── Page tabs ── */
+.page-tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
+.page-tab{padding:11px 18px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
+.page-tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
+.tab-badge{font-size:10px;background:#fee2e2;color:#b91c1c;padding:1px 5px;border-radius:999px;margin-left:4px}
 
-/* Document mode filters */
-.ctx-bar{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
-.ctx-lbl{font-size:12px;color:#94a3b8}
-.ctx-select{padding:4px 10px;border:1px solid #e2e8f0;border-radius:999px;font-size:12px;color:#475569;background:#fff;outline:none;cursor:pointer}
-.ctx-select:focus{border-color:#a5b4fc}
-.active-filter{display:inline-flex;align-items:center;gap:4px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:3px 10px;font-size:12px;color:#3730a3}
-.active-filter .clear-f{cursor:pointer;opacity:.6;margin-left:2px}
-.active-filter.shift-pill{background:#fff3cd;border-color:#fbbf24;color:#92400e}
+/* ── Body layout ── */
+.body{display:flex;flex:1;min-height:0;overflow:hidden}
 
-/* Shift mode panel */
-.shift-panel{margin-top:12px;display:none}
-.shift-panel.visible{display:block}
-.shift-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-.shift-lbl{font-size:12px;color:#92400e;font-weight:500;min-width:40px}
-.preset-btns{display:flex;gap:6px;flex-wrap:wrap}
-.preset-btn{padding:5px 12px;font-size:12px;border:1px solid #e2e8f0;border-radius:999px;cursor:pointer;background:#fff;color:#475569;transition:all .15s;white-space:nowrap}
-.preset-btn:hover{border-color:#d97706;color:#92400e}
-.preset-btn.active{background:#fff3cd;border-color:#d97706;color:#92400e;font-weight:500}
-.custom-time{display:flex;align-items:center;gap:6px;margin-top:6px}
-.time-input{padding:5px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#0f172a;background:#fff;outline:none;width:100px}
-.time-input:focus{border-color:#d97706}
-.time-sep{font-size:12px;color:#94a3b8}
-.shift-line-select{padding:5px 10px;border:1px solid #e2e8f0;border-radius:999px;font-size:12px;color:#475569;background:#fff;outline:none;cursor:pointer}
-.shift-active-pill{display:inline-flex;align-items:center;gap:6px;background:#fff3cd;border:1px solid #d97706;border-radius:8px;padding:6px 12px;font-size:12px;color:#92400e;font-weight:500;margin-top:8px}
-.shift-active-pill .dot{width:6px;height:6px;border-radius:50%;background:#d97706}
+/* ── Sidebar ── */
+.sidebar{width:236px;background:#fff;border-left:1px solid #e2e8f0;display:none;flex-direction:column;flex-shrink:0}
+.sb-head{padding:11px 14px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between}
+.sb-title{font-size:12px;font-weight:600;color:#0f172a}
+.sb-clear{font-size:11px;color:#94a3b8;cursor:pointer;background:none;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px}
+.sb-clear:hover{color:#64748b;border-color:#cbd5e1}
+.sb-list{flex:1;overflow-y:auto;padding:6px 0}
+.sb-day{font-size:10px;font-weight:600;color:#94a3b8;padding:10px 14px 3px;text-transform:uppercase;letter-spacing:.05em}
+.sb-item{padding:8px 14px;cursor:pointer;display:flex;align-items:flex-start;gap:8px;transition:background .1s}
+.sb-item:hover{background:#f8fafc}
+.sb-item.active{background:#f1f5f9}
+.sb-mode-dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.dot-doc{background:#4f46e5}
+.dot-shift{background:#d97706}
+.dot-agent{background:#7c3aed}
+.sb-item-q{font-size:12px;color:#334155;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sb-item-meta{font-size:10px;color:#94a3b8;margin-top:2px}
+.sb-empty{padding:32px 14px;text-align:center;color:#94a3b8;font-size:12px;line-height:1.7}
+.sb-loading{padding:16px 14px;text-align:center;color:#94a3b8;font-size:12px}
 
-/* Answers */
-.answers{flex:1;overflow-y:auto;padding-bottom:20px}
-.answer-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:14px}
-.answer-q{background:#eef2ff;border-bottom:1px solid #c7d2fe;padding:11px 16px;font-size:13px;color:#3730a3;font-weight:500}
-.answer-q.shift-q{background:#fff3cd;border-bottom-color:#fbbf24;color:#92400e}
-.answer-body{padding:16px}
-.answer-text{font-size:14px;color:#0f172a;line-height:1.8;margin-bottom:14px;min-height:20px}
-.answer-text mark{background:#fef9c3;padding:0 3px;border-radius:3px}
-.cursor{display:inline-block;width:2px;height:15px;background:#4f46e5;margin-left:2px;animation:blink 1s infinite;vertical-align:middle}
+/* ── Chat main ── */
+.chat-main{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ── Mode tabs ── */
+.mode-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 20px;display:flex;align-items:center;flex-shrink:0}
+.mode-tab{padding:10px 16px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:#94a3b8;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:color .15s}
+.mode-tab:hover{color:#475569}
+.mode-tab.active-doc{color:#4f46e5;border-bottom-color:#4f46e5}
+.mode-tab.active-shift{color:#d97706;border-bottom-color:#d97706}
+.mode-tab.active-agent{color:#7c3aed;border-bottom-color:#7c3aed}
+.mode-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.md-doc{background:#4f46e5}
+.md-shift{background:#d97706}
+.md-agent{background:#7c3aed}
+.mode-hint{margin-left:auto;font-size:11px;color:#94a3b8;padding-right:4px;align-self:center}
+
+/* ── Answers area ── */
+.answers{flex:1;min-height:0;height:0;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
+
+/* ── Q&A card ── */
+.answer-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px}
+.answer-q{padding:10px 14px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px}
+.answer-q.doc-q{background:#eef2ff;color:#3730a3;border-bottom:1px solid #c7d2fe}
+.answer-q.shift-q{background:#fff3cd;color:#92400e;border-bottom:1px solid #fbbf24}
+.mode-badge{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600;flex-shrink:0}
+.badge-doc{background:#4f46e5;color:#fff}
+.badge-shift{background:#d97706;color:#fff}
+.answer-body{padding:14px;font-size:14px;color:#0f172a;line-height:1.8}
+.answer-text mark{background:#fef9c3;padding:0 2px;border-radius:2px}
+.cursor{display:inline-block;width:2px;height:14px;background:#4f46e5;margin-left:2px;animation:blink 1s infinite;vertical-align:middle}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 .fallback-note{font-size:11px;color:#94a3b8;font-style:italic;margin-bottom:8px}
-.sources-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
-.cite{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start}
-.cite-num{background:#4f46e5;color:#fff;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.sources-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.cite{display:flex;gap:7px;margin-bottom:5px;align-items:flex-start}
+.cite-num{width:17px;height:17px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;color:#fff}
+.cite-num.doc{background:#4f46e5}
 .cite-num.shift{background:#d97706}
 .cite-txt{font-size:12px;color:#64748b;line-height:1.5}
-.cite-txt strong{color:#334155;font-weight:600}
-.cite-score{font-size:10px;color:#94a3b8;margin-left:6px}
-.answer-actions{display:flex;gap:8px;padding:11px 16px;border-top:1px solid #f1f5f9;align-items:center}
-.act-btn{font-size:12px;padding:5px 12px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;background:#fff;color:#475569;transition:all .15s}
+.cite-score{font-size:10px;color:#94a3b8;margin-left:5px}
+.card-actions{padding:9px 14px;border-top:1px solid #f1f5f9;display:flex;align-items:center;gap:6px}
+.act-btn{font-size:12px;padding:4px 10px;border:1px solid #e2e8f0;border-radius:5px;cursor:pointer;background:#fff;color:#475569;transition:all .15s}
 .act-btn:hover{border-color:#a5b4fc;color:#4f46e5}
-.helpful{font-size:12px;color:#94a3b8;margin-left:auto;display:flex;align-items:center;gap:6px}
-.thumb{cursor:pointer;opacity:.4;font-size:16px;background:none;border:none;padding:0;transition:opacity .15s}
-.thumb:hover{opacity:1}
-.thumb.active{opacity:1}
+.helpful{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px;color:#94a3b8}
+.thumb{cursor:pointer;opacity:.4;font-size:15px;background:none;border:none;padding:0;transition:opacity .15s}
+.thumb:hover,.thumb.active{opacity:1}
 .thumb-thanks{font-size:11px;color:#16a34a;display:none}
-.no-answer-card{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;overflow:hidden;margin-bottom:14px}
-.no-answer-q{background:#fef3c7;border-bottom:1px solid #fde68a;padding:11px 16px;font-size:13px;color:#92400e;font-weight:500}
-.no-answer-body{padding:16px}
-.no-answer-msg{font-size:14px;color:#92400e;line-height:1.7;margin-bottom:6px}
+
+/* ── No answer card ── */
+.no-answer-card{background:#fffbeb;border:1px solid #fde68a;border-radius:12px}
+.no-answer-q{background:#fef3c7;border-bottom:1px solid #fde68a;padding:10px 14px;font-size:13px;color:#92400e;font-weight:500}
+.no-answer-body{padding:14px}
+.no-answer-msg{font-size:14px;color:#92400e;line-height:1.7;margin-bottom:4px}
 .no-answer-hint{font-size:12px;color:#b45309}
-.ask-card.agent-mode{border-color:#7c3aed;background:#faf5ff}
-.ask-card.agent-mode .ask-ta{border-color:#7c3aed}
-.ask-card.agent-mode .ask-ta:focus{border-color:#6d28d9}
-.ask-card.agent-mode .ask-btn{background:#7c3aed}
-.ask-card.agent-mode .ask-btn:hover{background:#6d28d9}
-.mode-btn.active-agent{background:#7c3aed;color:#fff}
-.agent-card{background:#faf5ff;border:1px solid #ddd6fe;border-radius:12px;overflow:hidden;margin-bottom:14px}
-.agent-q{background:#ede9fe;border-bottom:1px solid #ddd6fe;padding:11px 16px;font-size:13px;color:#5b21b6;font-weight:500}
-.agent-body{padding:16px;font-size:14px;line-height:1.8;color:#0f172a;white-space:pre-wrap}
-.agent-thinking{color:#7c3aed;font-size:13px;font-style:italic}
-.empty-state{text-align:center;padding:48px 24px;color:#94a3b8}
-.empty-title{font-size:16px;font-weight:500;color:#475569;margin-bottom:8px}
-.empty-sub{font-size:13px;line-height:1.6}
-.empty-examples{display:flex;flex-direction:column;gap:6px;margin-top:16px;text-align:left}
-.example-q{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;font-size:13px;color:#475569;cursor:pointer;transition:all .15s}
-.example-q:hover{border-color:#a5b4fc;color:#4f46e5;background:#f8fafc}
-.example-q.shift-ex{border-color:#fde68a}
-.example-q.shift-ex:hover{border-color:#d97706;color:#92400e;background:#fffbeb}
+
+/* ── Agent card ── */
+.agent-card{background:#fff;border:1px solid #ddd6fe;border-radius:12px}
+.agent-q{background:#ede9fe;border-bottom:1px solid #ddd6fe;padding:10px 14px;font-size:13px;font-weight:500;color:#5b21b6;display:flex;align-items:center;gap:7px}
+.badge-agent{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600;background:#7c3aed;color:#fff;flex-shrink:0}
+
+/* Agent zone 1: thinking stream */
+.agent-progress{background:#faf5ff;border-bottom:1px solid #ddd6fe;padding:10px 14px}
+.az-label{font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.agent-step{display:flex;align-items:center;gap:7px;font-size:12px;color:#64748b;margin-bottom:3px;line-height:1.5}
+.step-check{font-size:12px}
+.agent-thinking-text{font-size:12px;color:#7c3aed;font-style:italic}
+
+/* Agent zone 2: report */
+.agent-report{padding:14px}
+.report-sec{margin-bottom:12px}
+.report-sec-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.report-text{font-size:14px;color:#0f172a;line-height:1.8;white-space:pre-wrap}
+
+/* Agent zone 3: plant manager summary */
+.pm-block{margin:0 14px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:11px 13px}
+.pm-label{font-size:10px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.pm-dot{width:6px;height:6px;border-radius:50%;background:#16a34a}
+.pm-text{font-size:13px;color:#166534;line-height:1.75}
+
+/* Agent sources chips */
+.src-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.src-chip{font-size:10px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;color:#475569}
+
+/* ── Empty state ── */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center}
+.empty-title{font-size:16px;font-weight:500;color:#0f172a;margin-bottom:6px}
+.empty-sub{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:20px;max-width:400px}
+.example-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:520px}
+.ex-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:12px;color:#64748b;cursor:pointer;text-align:left;line-height:1.5;transition:all .15s}
+.ex-card:hover{border-color:#a5b4fc;color:#0f172a;background:#fafafa}
+.ex-label{font-size:10px;font-weight:600;margin-bottom:3px}
+.ex-doc .ex-label{color:#4f46e5}
+.ex-shift .ex-label{color:#d97706}
+.ex-agent .ex-label{color:#7c3aed}
+.ex-agent{grid-column:1/-1}
+
+/* ── Input area ── */
+.input-area{padding:10px 20px 14px;flex-shrink:0;background:#fff;border-top:1px solid #e2e8f0}
+.input-wrap{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;transition:border-color .2s}
+.input-wrap:focus-within{border-color:#a5b4fc;background:#fff}
+.input-wrap.iw-shift:focus-within{border-color:#fbbf24}
+.input-wrap.iw-agent:focus-within{border-color:#c4b5fd}
+.input-ta{width:100%;padding:10px 14px 4px;font-size:14px;border:none;background:transparent;resize:none;outline:none;color:#0f172a;font-family:inherit;line-height:1.5;min-height:48px;max-height:120px}
+.input-footer{padding:5px 10px 6px;display:flex;align-items:center;gap:6px}
+.ctx-pill{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid}
+.ctx-doc{background:#eef2ff;border-color:#c7d2fe;color:#3730a3}
+.ctx-shift{background:#fff3cd;border-color:#fbbf24;color:#92400e}
+.ctx-agent{background:#ede9fe;border-color:#ddd6fe;color:#5b21b6}
+.send-btn{margin-left:auto;padding:6px 18px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;color:#fff;transition:background .15s}
+.send-btn:disabled{background:#94a3b8;cursor:not-allowed}
+.btn-doc{background:#4f46e5}
+.btn-doc:hover:not(:disabled){background:#4338ca}
+.btn-shift{background:#d97706}
+.btn-shift:hover:not(:disabled){background:#b45309}
+.btn-agent{background:#7c3aed}
+.btn-agent:hover:not(:disabled){background:#6d28d9}
 </style>
 </head>
 <body>
+
 <div class="nav">
   <div class="nav-brand">Plant<span>Mind</span></div>
   <div class="nav-ctx" id="navCtx">
@@ -123,375 +172,574 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
     <span id="navCtxText">Set your context</span>
   </div>
 </div>
-<div class="tabs">
-  <a class="tab active" href="/chat">Ask a question</a>
-  <a class="tab" href="/library">Document library</a>
-  <a class="tab" href="/">Upload <span class="tab-badge">admin</span></a>
+
+<div class="page-tabs">
+  <a class="page-tab active" href="/chat">Ask a question</a>
+  <a class="page-tab" href="/library">Document library</a>
+  <a class="page-tab" href="/">Upload <span class="tab-badge">admin</span></a>
 </div>
-<div class="main">
-  <div class="ask-card" id="askCard">
-    <div class="ask-card-header">
-      <span class="ask-label" id="askLabel">What do you need to know?</span>
-      <div class="mode-toggle">
-        <button class="mode-btn active-doc" id="btnDoc"  onclick="setMode('doc')">Documents</button>
-        <button class="mode-btn"            id="btnShift" onclick="setMode('shift')">Shift log</button>
-        <button class="mode-btn"            id="btnAgent" onclick="setMode('agent')">&#9889; Agent</button>
+
+<div class="body">
+
+  <!-- ── MAIN ── -->
+  <div class="chat-main">
+
+    <!-- Mode tabs -->
+    <div class="mode-bar">
+      <div class="mode-tab active-doc" id="tab-doc" onclick="setMode('doc')">
+        <div class="mode-dot md-doc"></div>Documents
       </div>
-    </div>
-    <div class="ask-row">
-      <textarea class="ask-ta" id="questionInput"
-        placeholder="e.g. What should I check first when P-201 shows high vibration alarm?&#10;e.g. Walk me through the Line 3 changeover procedure"
-        onkeydown="handleKey(event)"></textarea>
-      <button class="ask-btn" id="askBtn" onclick="submitQuestion()">Ask PlantMind</button>
+      <div class="mode-tab" id="tab-shift" onclick="setMode('shift')">
+        <div class="mode-dot md-shift"></div>Shift log
+      </div>
+      <div class="mode-tab" id="tab-agent" onclick="setMode('agent')">
+        <div class="mode-dot md-agent"></div>&#9889; Agent investigation
+      </div>
+      <span class="mode-hint" id="modeHint">Search your uploaded SOPs, work instructions and NCRs</span>
+      <button class="sb-clear" id="sbToggle" onclick="toggleSidebar()" style="font-size:11px;margin-left:8px;flex-shrink:0;align-self:center">Show history</button>
     </div>
 
-    <!-- Document mode filters -->
-    <div class="ctx-bar" id="docFilters">
-      <span class="ctx-lbl">Searching in:</span>
-      <select class="ctx-select" id="plantFilter" onchange="onFilterChange()">
-        <option value="">All plant sites</option>
-        <option value="Houston Plant">Houston Plant</option>
-        <option value="Deer Park Facility">Deer Park Facility</option>
-      </select>
-      <select class="ctx-select" id="lineFilter" onchange="onFilterChange()">
-        <option value="">All lines</option>
-        <option value="Line 1">Line 1</option>
-        <option value="Line 2">Line 2</option>
-        <option value="Line 3">Line 3</option>
-      </select>
-      <input class="ctx-select" type="text" id="equipFilter" placeholder="Equipment tag e.g. P-201" style="width:180px" oninput="onFilterChange()">
-      <div id="activeFilterPills"></div>
-    </div>
-
-    <!-- Shift mode panel -->
-    <div class="shift-panel" id="shiftPanel">
-      <div class="shift-row">
-        <span class="shift-lbl">Line:</span>
-        <select class="shift-line-select" id="shiftLine">
-          <option value="">All lines</option>
-          <option value="Line 1">Line 1</option>
-          <option value="Line 2">Line 2</option>
-          <option value="Line 3">Line 3</option>
-        </select>
-      </div>
-      <div class="shift-row">
-        <span class="shift-lbl">Shift:</span>
-        <div class="preset-btns">
-          <button class="preset-btn" onclick="setPreset('night')"   id="pre-night">Night (22:00–06:00)</button>
-          <button class="preset-btn" onclick="setPreset('day')"     id="pre-day">Day (06:00–14:00)</button>
-          <button class="preset-btn" onclick="setPreset('afternoon')" id="pre-afternoon">Afternoon (14:00–22:00)</button>
-          <button class="preset-btn" onclick="setPreset('custom')"  id="pre-custom">Custom</button>
+    <!-- Answers -->
+    <div class="answers" id="answersArea">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-title">Ask PlantMind anything about your plant</div>
+        <div class="empty-sub">Search across SOPs, work instructions, NCRs, and shift logs — or run a full agent investigation on any incident</div>
+        <div class="example-grid">
+          <div class="ex-card ex-doc" onclick="useExample(this,'doc')">
+            <div class="ex-label">Documents</div>
+            What should I check first when P-201 shows high vibration alarm?
+          </div>
+          <div class="ex-card ex-doc" onclick="useExample(this,'doc')">
+            <div class="ex-label">Documents</div>
+            What is the torque spec for the Line 3 filler head clamps?
+          </div>
+          <div class="ex-card ex-shift" onclick="useExample(this,'shift')">
+            <div class="ex-label">Shift log</div>
+            What alarms occurred during the night shift?
+          </div>
+          <div class="ex-card ex-shift" onclick="useExample(this,'shift')">
+            <div class="ex-label">Shift log</div>
+            Any maintenance work done on Line 2 last shift?
+          </div>
+          <div class="ex-card ex-agent" onclick="useExample(this,'agent')">
+            <div class="ex-label">Agent investigation</div>
+            WR-401 weld quality alarm on Line 4, third time this week, spatter index 4.8 — investigate root cause
+          </div>
         </div>
       </div>
-      <div class="custom-time" id="customTime" style="display:none">
-        <span class="ctx-lbl">From:</span>
-        <input class="time-input" type="time" id="timeFrom" value="22:00">
-        <span class="time-sep">to</span>
-        <input class="time-input" type="time" id="timeTo" value="06:00">
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="input-wrap" id="inputWrap">
+        <textarea class="input-ta" id="questionInput"
+          placeholder="e.g. What should I check first when P-201 shows high vibration alarm?"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <div class="input-footer" id="inputFooter">
+          <span class="ctx-pill ctx-doc" id="ctxPill" style="display:none"></span>
+          <button class="send-btn btn-doc" id="sendBtn" onclick="submitQuestion()">Ask PlantMind</button>
+        </div>
       </div>
-      <div id="shiftActivePill"></div>
+    </div>
+
+  </div>
+
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar" id="historySidebar">
+    <div class="sb-head">
+      <span class="sb-title">History</span>
+      <button class="sb-clear" onclick="clearHistory()">Clear</button>
+    </div>
+    <div class="sb-list" id="sbList">
+      <div class="sb-loading">Loading history...</div>
     </div>
   </div>
 
-  <div class="answers" id="answersArea">
-    <div class="empty-state" id="emptyState">
-      <div class="empty-title">Ask PlantMind anything about your plant</div>
-      <div class="empty-sub">Search across all uploaded SOPs, work instructions, NCRs, and shift logs</div>
-      <div class="empty-examples">
-        <div class="example-q" onclick="useExample(this,'doc')">What should I check first when P-201 shows high vibration alarm?</div>
-        <div class="example-q" onclick="useExample(this,'doc')">What is the torque spec for the Line 3 filler head clamps?</div>
-        <div class="example-q" onclick="useExample(this,'doc')">What does alarm E-204 mean and what should I do?</div>
-        <div class="example-q shift-ex" onclick="useExample(this,'shift')">What alarms occurred during this shift?</div>
-        <div class="example-q shift-ex" onclick="useExample(this,'shift')">What maintenance work was done on Line 2?</div>
-        <div class="example-q shift-ex" onclick="useExample(this,'shift')">Were there any quality issues during this shift?</div>
-        <div class="example-q" style="border-color:#ddd6fe" onclick="useExample(this,'agent')">WR-401 weld quality alarm on Line 4, third time this week, investigate root cause</div>
-        <div class="example-q" style="border-color:#ddd6fe" onclick="useExample(this,'agent')">P-201 thermal overload trip, recurring issue, panels quarantined, investigate</div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script src="/static/nav_context.js"></script>
 <script>
-var chatHistory = [];
-var currentMode   = 'doc';
-var activePreset  = null;
+// ── State ──────────────────────────────────────────────────────────────────────
+var currentMode  = 'doc';
+var activePreset = null;
+var timeFrom     = '';
+var timeTo       = '';
 var PRESETS = {
   night:     {label:'Night shift',     from:'22:00', to:'06:00'},
   day:       {label:'Day shift',       from:'06:00', to:'14:00'},
-  afternoon: {label:'Afternoon shift', from:'14:00', to:'22:00'},
-  custom:    {label:'Custom range',    from:'',      to:''}
+  afternoon: {label:'Afternoon shift', from:'14:00', to:'22:00'}
 };
 
+// ── Init ───────────────────────────────────────────────────────────────────────
 window.addEventListener('load', function() {
-  PlantMindContext.syncToSelects('plantFilter','lineFilter');
-  PlantMindContext.syncToSelects('shiftLine','shiftLine');
-  updateFilterPills();
+  if (typeof PlantMindContext !== 'undefined') {
+    PlantMindContext.syncToSelects('','');
+  }
+  loadHistory();
+  updateCtxPill();
 });
+
+// ── Mode switching ─────────────────────────────────────────────────────────────
+var MODE_CONFIG = {
+  doc: {
+    hint:    'Search your uploaded SOPs, work instructions and NCRs',
+    ph:      'e.g. What should I check first when P-201 shows high vibration alarm?\ne.g. Walk me through the Line 3 changeover procedure',
+    btnText: 'Ask PlantMind',
+    btnCls:  'btn-doc',
+    wrapCls: '',
+    pillCls: 'ctx-doc'
+  },
+  shift: {
+    hint:    'Search shift log CSVs by time range',
+    ph:      'e.g. What alarms occurred during this shift?\ne.g. Any maintenance work done on Line 2?',
+    btnText: 'Search shift log',
+    btnCls:  'btn-shift',
+    wrapCls: 'iw-shift',
+    pillCls: 'ctx-shift'
+  },
+  agent: {
+    hint:    '4 specialist agents run in parallel — shift logs, maintenance, SOP, NCR',
+    ph:      'e.g. WR-401 weld quality alarm on Line 4, third time this week, spatter index 4.8, panels quarantined',
+    btnText: '⚡ Investigate',
+    btnCls:  'btn-agent',
+    wrapCls: 'iw-agent',
+    pillCls: 'ctx-agent'
+  }
+};
 
 function setMode(mode) {
   currentMode = mode;
-  var card      = document.getElementById('askCard');
-  var btnDoc    = document.getElementById('btnDoc');
-  var btnShift  = document.getElementById('btnShift');
-  var btnAgent  = document.getElementById('btnAgent');
-  var docFilt   = document.getElementById('docFilters');
-  var shiftPan  = document.getElementById('shiftPanel');
-  var askLabel  = document.getElementById('askLabel');
-  var ta        = document.getElementById('questionInput');
-  var askBtn    = document.getElementById('askBtn');
+  var cfg = MODE_CONFIG[mode];
 
-  card.classList.remove('shift-mode','agent-mode');
-  btnDoc.className   = 'mode-btn';
-  btnShift.className = 'mode-btn';
-  btnAgent.className = 'mode-btn';
-  docFilt.style.display = 'none';
-  shiftPan.classList.remove('visible');
+  ['doc','shift','agent'].forEach(function(m) {
+    document.getElementById('tab-'+m).className = 'mode-tab';
+  });
+  document.getElementById('tab-'+mode).className = 'mode-tab active-'+mode;
+  document.getElementById('modeHint').textContent = cfg.hint;
 
-  if (mode === 'doc') {
-    btnDoc.className      = 'mode-btn active-doc';
-    docFilt.style.display = 'flex';
-    askLabel.textContent  = 'What do you need to know?';
-    ta.placeholder = 'e.g. What should I check first when P-201 shows high vibration alarm?\ne.g. Walk me through the Line 3 changeover procedure';
-    askBtn.textContent = 'Ask PlantMind';
-  } else if (mode === 'shift') {
-    card.classList.add('shift-mode');
-    btnShift.className = 'mode-btn active-shift';
-    shiftPan.classList.add('visible');
-    askLabel.textContent = 'Ask about shift events';
-    ta.placeholder = 'e.g. What alarms occurred during this shift?\ne.g. Any maintenance work done on Line 2?';
-    askBtn.textContent = 'Search shift log';
-    if (!activePreset) setPreset('night');
-  } else if (mode === 'agent') {
-    card.classList.add('agent-mode');
-    btnAgent.className = 'mode-btn active-agent';
-    askLabel.textContent = 'Describe the incident to investigate';
-    ta.placeholder = 'e.g. WR-401 weld quality alarm on Line 4, third time this week, spatter index 4.8, panels quarantined';
-    askBtn.textContent = '\u26a1 Investigate';
+  var ta  = document.getElementById('questionInput');
+  var btn = document.getElementById('sendBtn');
+  var iw  = document.getElementById('inputWrap');
+
+  ta.placeholder  = cfg.ph;
+  btn.className   = 'send-btn ' + cfg.btnCls;
+  btn.textContent = cfg.btnText;
+  iw.className    = 'input-wrap ' + cfg.wrapCls;
+
+  updateCtxPill();
+
+  if (mode === 'shift' && !activePreset) {
+    activePreset = 'night';
+    timeFrom     = PRESETS.night.from;
+    timeTo       = PRESETS.night.to;
   }
 }
 
-function setPreset(key) {
-  activePreset = key;
-  document.querySelectorAll('.preset-btn').forEach(function(b) { b.classList.remove('active'); });
-  var btn = document.getElementById('pre-' + key);
-  if (btn) btn.classList.add('active');
-  var customDiv = document.getElementById('customTime');
-  if (key === 'custom') {
-    customDiv.style.display = 'flex';
+function updateCtxPill() {
+  var ctx  = (typeof PlantMindContext !== 'undefined') ? PlantMindContext.get() : {};
+  var pill = document.getElementById('ctxPill');
+  var cfg  = MODE_CONFIG[currentMode];
+  var parts = [];
+  if (ctx.plant) parts.push(ctx.plant);
+  if (ctx.line)  parts.push(ctx.line);
+  if (currentMode === 'shift' && activePreset) parts.push(PRESETS[activePreset].label);
+  if (parts.length > 0) {
+    pill.textContent = parts.join(' · ');
+    pill.className   = 'ctx-pill ' + cfg.pillCls;
+    pill.style.display = 'inline-block';
   } else {
-    customDiv.style.display = 'none';
-    var p = PRESETS[key];
-    document.getElementById('timeFrom').value = p.from;
-    document.getElementById('timeTo').value   = p.to;
+    pill.style.display = 'none';
   }
-  updateShiftPill();
 }
 
-function updateShiftPill() {
-  var pill  = document.getElementById('shiftActivePill');
-  var line  = document.getElementById('shiftLine').value;
-  var from  = document.getElementById('timeFrom').value;
-  var to    = document.getElementById('timeTo').value;
-  var label = activePreset ? PRESETS[activePreset].label : 'Custom';
-  if (!activePreset) { pill.innerHTML = ''; return; }
-  pill.innerHTML =
-    '<div class="shift-active-pill">' +
-      '<div class="dot"></div>' +
-      'Shift mode active &nbsp;&middot;&nbsp; ' + label +
-      (from && to ? ' (' + from + '–' + to + ')' : '') +
-      (line ? ' &nbsp;&middot;&nbsp; ' + line : ' &nbsp;&middot;&nbsp; All lines') +
-    '</div>';
-}
-
-function onFilterChange() {
-  var plant = document.getElementById('plantFilter').value;
-  var line  = document.getElementById('lineFilter').value;
-  PlantMindContext.set(plant, line);
-  updateFilterPills();
-}
-
-function updateFilterPills() {
-  var plant = document.getElementById('plantFilter').value;
-  var line  = document.getElementById('lineFilter').value;
-  var equip = document.getElementById('equipFilter').value.trim();
-  var pills = [];
-  if (plant) pills.push('<span class="active-filter">' + escHtml(plant) + ' <span class="clear-f" onclick="clearFilter(\'plant\')">&#x2715;</span></span>');
-  if (line)  pills.push('<span class="active-filter">' + escHtml(line)  + ' <span class="clear-f" onclick="clearFilter(\'line\')">&#x2715;</span></span>');
-  if (equip) pills.push('<span class="active-filter">' + escHtml(equip) + ' <span class="clear-f" onclick="clearFilter(\'equip\')">&#x2715;</span></span>');
-  document.getElementById('activeFilterPills').innerHTML = pills.join('');
-}
-
-function clearFilter(type) {
-  if (type==='plant') document.getElementById('plantFilter').value='';
-  if (type==='line')  document.getElementById('lineFilter').value='';
-  if (type==='equip') document.getElementById('equipFilter').value='';
-  onFilterChange();
-}
-
-function handleKey(e) {
-  if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitQuestion();}
-}
-
-
+// ── Helpers ────────────────────────────────────────────────────────────────────
 function escHtml(t) {
   return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function highlightKeywords(text) {
-  var kw=['temperature','pressure','vibration','alarm','shutdown','check','verify',
-          'torque','alignment','bearing','LOTO','lockout','isolation','emergency','caution','warning'];
-  var safe=escHtml(text);
-  kw.forEach(function(k){safe=safe.replace(new RegExp('\\b('+k+')\\b','gi'),'<mark>$1</mark>')});
+  var kw = ['temperature','pressure','vibration','alarm','shutdown','check','verify',
+            'torque','alignment','bearing','LOTO','lockout','isolation','emergency','caution','warning'];
+  var safe = escHtml(text);
+  kw.forEach(function(k) {
+    safe = safe.replace(new RegExp('\\b('+k+')\\b','gi'),'<mark>$1</mark>');
+  });
   return safe;
 }
 
-function renderSources(sources, srcEl, citesEl, wasFallback, isShift) {
-  if (!sources||sources.length===0) return;
-  srcEl.style.display='block';
-  if (wasFallback) citesEl.insertAdjacentHTML('beforebegin','<div class="fallback-note">Filter returned no results — showing best matches from all documents.</div>');
-  citesEl.innerHTML=sources.map(function(s,i){
-    return '<div class="cite"><div class="cite-num'+(isShift?' shift':'')+'">'+( i+1)+'</div>'+
-      '<div class="cite-txt"><strong>'+escHtml(s.name)+' &middot; Rev '+escHtml(s.revision)+'</strong>'+
-      (s.doc_type?' &middot; '+escHtml(s.doc_type):'')+
-      (s.equip_tag?' &middot; '+escHtml(s.equip_tag):'')+
-      '<span class="cite-score">Match: '+Math.round(s.score*100)+'%</span>'+
-      '</div></div>';
-  }).join('');
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitQuestion(); }
+}
+
+function useExample(el, mode) {
+  setMode(mode);
+  var txt = el.querySelector('.ex-label') ? el.textContent.replace(el.querySelector('.ex-label').textContent,'').trim() : el.textContent.trim();
+  document.getElementById('questionInput').value = txt;
+  document.getElementById('emptyState').style.display = 'none';
+}
+
+function formatRelTime(iso) {
+  var d    = new Date(iso);
+  var now  = new Date();
+  var diff = Math.floor((now - d) / 1000);
+  if (diff < 60)   return 'just now';
+  if (diff < 3600) return Math.floor(diff/60) + ' min ago';
+  if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+}
+
+function getDayLabel(iso) {
+  var d   = new Date(iso);
+  var now = new Date();
+  var t   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var y   = new Date(t); y.setDate(y.getDate()-1);
+  if (d >= t) return 'Today';
+  if (d >= y) return 'Yesterday';
+  return d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'short'});
+}
+
+// ── History sidebar ────────────────────────────────────────────────────────────
+function loadHistory() {
+  fetch('/api/history?limit=40')
+    .then(function(r) { return r.json(); })
+    .then(function(data) { renderSidebar(data.history || []); })
+    .catch(function() {
+      document.getElementById('sbList').innerHTML =
+        '<div class="sb-empty">Could not load history</div>';
+    });
+}
+
+function renderSidebar(items) {
+  var list = document.getElementById('sbList');
+  if (!items || items.length === 0) {
+    list.innerHTML = '<div class="sb-empty">No history yet.<br>Your conversations will appear here.</div>';
+    return;
+  }
+  var html    = '';
+  var lastDay = '';
+  items.forEach(function(item, idx) {
+    var day = getDayLabel(item.created_at);
+    if (day !== lastDay) {
+      html += '<div class="sb-day">' + escHtml(day) + '</div>';
+      lastDay = day;
+    }
+    html +=
+      '<div class="sb-item" id="sb-'+escHtml(item.id)+'" onclick="loadHistoryItem('+idx+')" data-idx="'+idx+'">' +
+        '<div class="sb-mode-dot dot-'+escHtml(item.mode)+'"></div>' +
+        '<div>' +
+          '<div class="sb-item-q">' + escHtml(item.question) + '</div>' +
+          '<div class="sb-item-meta">' + escHtml(item.mode.charAt(0).toUpperCase()+item.mode.slice(1)) +
+            ' · ' + formatRelTime(item.created_at) + '</div>' +
+        '</div>' +
+      '</div>';
+  });
+  list.innerHTML        = html;
+  list._historyItems    = items;
+}
+
+function loadHistoryItem(idx) {
+  var list  = document.getElementById('sbList');
+  var items = list._historyItems;
+  if (!items || !items[idx]) return;
+  var item  = items[idx];
+
+  document.querySelectorAll('.sb-item').forEach(function(el) { el.classList.remove('active'); });
+  var el = document.querySelector('[data-idx="'+idx+'"]');
+  if (el) el.classList.add('active');
+
+  var emp = document.getElementById('emptyState');
+  if (emp) emp.style.display = 'none';
+
+  var sources = [];
+  try { sources = JSON.parse(item.sources || '[]'); } catch(e) {}
+
+  setMode(item.mode);
+
+  var area = document.getElementById('answersArea');
+  var existing = document.getElementById('history-card-'+idx);
+  if (existing) { existing.scrollIntoView({behavior:'smooth'}); return; }
+
+  if (item.mode === 'agent') {
+    renderAgentHistory(item, idx, area);
+  } else {
+    renderQAHistory(item, idx, sources, area);
+  }
+}
+
+function renderQAHistory(item, idx, sources, area) {
+  var isShift = item.mode === 'shift';
+  var card    = document.createElement('div');
+  card.className = 'answer-card';
+  card.id        = 'history-card-'+idx;
+  card.innerHTML =
+    '<div class="answer-q ' + (isShift ? 'shift-q' : 'doc-q') + '">' +
+      '<span class="mode-badge ' + (isShift ? 'badge-shift' : 'badge-doc') + '">' + (isShift ? 'SHIFT' : 'DOCS') + '</span>' +
+      escHtml(item.question) +
+    '</div>' +
+    '<div class="answer-body">' +
+      '<div class="answer-text">' + highlightKeywords(item.answer) + '</div>' +
+      (sources.length ? renderSourcesHTML(sources, isShift) : '') +
+    '</div>' +
+    '<div class="card-actions">' +
+      '<button class="act-btn" onclick="reuseQuestion(\''+escHtml(item.question).replace(/'/g,'&#39;')+'\')">Ask again</button>' +
+    '</div>';
+  area.insertBefore(card, area.firstChild);
+  card.scrollIntoView({behavior:'smooth'});
+}
+
+function renderAgentHistory(item, idx, area) {
+  var card = document.createElement('div');
+  card.className = 'agent-card';
+  card.id        = 'history-card-'+idx;
+
+  var report = item.answer;
+  var technical = report;
+  var pmSummary = '';
+  var pmIdx = report.indexOf('PLANT MANAGER SUMMARY');
+  if (pmIdx > -1) {
+    technical = report.substring(0, pmIdx).trim();
+    pmSummary = report.substring(pmIdx + 'PLANT MANAGER SUMMARY'.length).trim()
+                      .replace(/^[=\s]+/,'').trim();
+  }
+
+  card.innerHTML =
+    '<div class="agent-q">' +
+      '<span class="badge-agent">AGENT</span>' + escHtml(item.question) +
+    '</div>' +
+    '<div class="agent-report">' +
+      '<div class="report-text">' + escHtml(technical) + '</div>' +
+    '</div>' +
+    (pmSummary ?
+      '<div class="pm-block">' +
+        '<div class="pm-label"><div class="pm-dot"></div>Plant manager summary</div>' +
+        '<div class="pm-text">' + escHtml(pmSummary) + '</div>' +
+      '</div>' : '') +
+    '<div class="card-actions">' +
+      '<button class="act-btn" onclick="reuseQuestion(\''+escHtml(item.question).replace(/'/g,'&#39;')+'\')">Re-investigate</button>' +
+    '</div>';
+  area.insertBefore(card, area.firstChild);
+  card.scrollIntoView({behavior:'smooth'});
+}
+
+function renderSourcesHTML(sources, isShift) {
+  if (!sources || !sources.length) return '';
+  var html = '<div style="margin-top:12px"><div class="sources-label">Sources</div>';
+  sources.forEach(function(s, i) {
+    html += '<div class="cite">' +
+      '<div class="cite-num '+(isShift?'shift':'doc')+'">'+(i+1)+'</div>' +
+      '<div class="cite-txt"><strong>'+escHtml(s.name||'')+' &middot; Rev '+escHtml(s.revision||'')+'</strong>' +
+      (s.doc_type ? ' &middot; '+escHtml(s.doc_type) : '') +
+      (s.equip_tag ? ' &middot; '+escHtml(s.equip_tag) : '') +
+      '<span class="cite-score">Match: '+Math.round((s.score||0)*100)+'%</span></div>' +
+    '</div>';
+  });
+  return html + '</div>';
+}
+
+function clearHistory() {
+  if (!confirm('Clear all history? This cannot be undone.')) return;
+  document.getElementById('sbList').innerHTML =
+    '<div class="sb-empty">No history yet.<br>Your conversations will appear here.</div>';
+}
+
+function reuseQuestion(q) {
+  document.getElementById('questionInput').value = q;
+  document.getElementById('questionInput').focus();
+}
+
+function toggleSidebar() {
+  var sb  = document.getElementById('historySidebar');
+  var btn = document.getElementById('sbToggle');
+  var isHidden = window.getComputedStyle(sb).display === 'none';
+  sb.style.display  = isHidden ? 'flex' : 'none';
+  btn.textContent   = isHidden ? 'Hide history' : 'Show history';
+}
+
+// ── Save to history (called after stream completes) ────────────────────────────
+function saveToHistory(mode, question, answer, sources, plantSite, line) {
+  fetch('/api/history', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      mode: mode, question: question, answer: answer,
+      sources: sources, plant_site: plantSite, line: line
+    })
+  })
+  .then(function() { loadHistory(); })
+  .catch(function(e) { console.warn('History save failed:', e); });
+}
+
+// ── Submit question (doc / shift modes) ───────────────────────────────────────
 function submitQuestion() {
   var q = document.getElementById('questionInput').value.trim();
   if (!q) return;
 
   if (currentMode === 'agent') { submitInvestigation(q); return; }
 
-  var isShift  = currentMode==='shift';
-  var plant    = isShift ? '' : document.getElementById('plantFilter').value;
-  var line     = isShift ? document.getElementById('shiftLine').value : document.getElementById('lineFilter').value;
-  var equip    = isShift ? '' : document.getElementById('equipFilter').value.trim();
-  var timeFrom = isShift ? document.getElementById('timeFrom').value : '';
-  var timeTo   = isShift ? document.getElementById('timeTo').value   : '';
+  var isShift  = currentMode === 'shift';
+  var ctx      = (typeof PlantMindContext !== 'undefined') ? PlantMindContext.get() : {};
+  var plant    = isShift ? '' : (ctx.plant || '');
+  var line     = isShift ? (ctx.line || '') : (ctx.line || '');
+  var equip    = '';
+  var tFrom    = isShift ? timeFrom : '';
+  var tTo      = isShift ? timeTo   : '';
 
-  var emptyState = document.getElementById('emptyState');
-  if (emptyState) emptyState.style.display='none';
-  document.getElementById('questionInput').value='';
-  document.getElementById('askBtn').disabled=true;
-  document.getElementById('askBtn').textContent=isShift?'Searching shift log...':'Thinking...';
+  var emp = document.getElementById('emptyState');
+  if (emp) emp.style.display = 'none';
+  document.getElementById('questionInput').value = '';
+  autoResize(document.getElementById('questionInput'));
 
-  chatHistory.unshift({q:q,time:new Date()});
-  var idx=chatHistory.length;
-  var area=document.getElementById('answersArea');
+  var btn = document.getElementById('sendBtn');
+  btn.disabled    = true;
+  btn.textContent = isShift ? 'Searching...' : 'Thinking...';
 
-  var card=document.createElement('div');
-  card.className='answer-card';
-  card.id='card-'+idx;
-  card.innerHTML=
-    '<div class="answer-q'+(isShift?' shift-q':'')+'">'+
-      (isShift?'<span style="font-size:10px;background:#d97706;color:#fff;padding:1px 6px;border-radius:4px;margin-right:6px;font-weight:600">SHIFT</span>':'')+
-      escHtml(q)+
-    '</div>'+
-    '<div class="answer-body">'+
-      '<div class="answer-text" id="ans-'+idx+'"><span class="cursor"></span></div>'+
-      '<div id="src-'+idx+'" style="display:none"><div class="sources-label">Sources</div><div id="cites-'+idx+'"></div></div>'+
-    '</div>'+
-    '<div class="answer-actions" id="actions-'+idx+'" style="display:none">'+
-      '<button class="act-btn" onclick="askFollowUp(\''+escHtml(q).replace(/'/g,"&#39;")+'\')" >Ask follow-up</button>'+
-      '<div class="helpful">Helpful?'+
-        '<button class="thumb" id="up-'+idx+'" onclick="rate('+idx+',1)">&#128077;</button>'+
-        '<button class="thumb" id="dn-'+idx+'" onclick="rate('+idx+',0)">&#128078;</button>'+
-        '<span class="thumb-thanks" id="thanks-'+idx+'">Thanks!</span>'+
-      '</div>'+
+  var area = document.getElementById('answersArea');
+  var idx  = Date.now();
+
+  var card = document.createElement('div');
+  card.className = 'answer-card';
+  card.id        = 'card-'+idx;
+  card.innerHTML =
+    '<div class="answer-q '+(isShift?'shift-q':'doc-q')+'">' +
+      '<span class="mode-badge '+(isShift?'badge-shift':'badge-doc')+'">'+(isShift?'SHIFT':'DOCS')+'</span>' +
+      escHtml(q) +
+    '</div>' +
+    '<div class="answer-body">' +
+      '<div class="answer-text" id="ans-'+idx+'"><span class="cursor"></span></div>' +
+      '<div id="src-'+idx+'" style="display:none"><div class="sources-label">Sources</div><div id="cites-'+idx+'"></div></div>' +
+    '</div>' +
+    '<div class="card-actions" id="actions-'+idx+'" style="display:none">' +
+      '<button class="act-btn" onclick="reuseQuestion(\''+escHtml(q).replace(/'/g,"&#39;")+'\')" >Ask again</button>' +
+      '<div class="helpful">Helpful?' +
+        '<button class="thumb" id="up-'+idx+'" onclick="rate(\''+idx+'\',1)">&#128077;</button>' +
+        '<button class="thumb" id="dn-'+idx+'" onclick="rate(\''+idx+'\',0)">&#128078;</button>' +
+        '<span class="thumb-thanks" id="thanks-'+idx+'">Thanks!</span>' +
+      '</div>' +
     '</div>';
-  area.insertBefore(card,area.firstChild);
+  area.insertBefore(card, area.firstChild);
 
-  var ansEl   =document.getElementById('ans-'+idx);
-  var srcEl   =document.getElementById('src-'+idx);
-  var citesEl =document.getElementById('cites-'+idx);
-  var actEl   =document.getElementById('actions-'+idx);
-  var answerText='';var sourcesRead=false;var buffer='';var sources=[];var wasFallback=false;
+  var ansEl    = document.getElementById('ans-'+idx);
+  var srcEl    = document.getElementById('src-'+idx);
+  var citesEl  = document.getElementById('cites-'+idx);
+  var actEl    = document.getElementById('actions-'+idx);
+  var ansText  = '';
+  var sources  = [];
+  var srcRead  = false;
+  var buffer   = '';
+  var fallback = false;
 
-  fetch('/ask',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({question:q,plant_site:plant,line:line,equip_tag:equip,
-                         mode:isShift?'shift':'doc',time_from:timeFrom,time_to:timeTo})
+  fetch('/ask', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      question: q, plant_site: plant, line: line, equip_tag: equip,
+      mode: isShift ? 'shift' : 'doc', time_from: tFrom, time_to: tTo
+    })
   })
-  .then(function(r){
-    var reader=r.body.getReader();
-    var decoder=new TextDecoder();
-    function read(){
-      reader.read().then(function(result){
-        if(result.done){
-          ansEl.innerHTML=highlightKeywords(answerText);
-          actEl.style.display='flex';
-          document.getElementById('askBtn').disabled=false;
-          document.getElementById('askBtn').textContent=isShift?'Search shift log':'Ask PlantMind';
-          card.dataset.question=q;card.dataset.answer=answerText;card.dataset.sources=JSON.stringify(sources);
+  .then(function(r) {
+    var reader  = r.body.getReader();
+    var decoder = new TextDecoder();
+    function read() {
+      reader.read().then(function(result) {
+        if (result.done) {
+          ansEl.innerHTML = highlightKeywords(ansText);
+          actEl.style.display = 'flex';
+          btn.disabled    = false;
+          btn.textContent = isShift ? 'Search shift log' : 'Ask PlantMind';
+          card.dataset.question = q;
+          card.dataset.answer   = ansText;
+          card.dataset.sources  = JSON.stringify(sources);
+          saveToHistory(currentMode, q, ansText, sources, plant, line);
           return;
         }
-        buffer+=decoder.decode(result.value,{stream:true});
-        if(!sourcesRead){
-          var cleanBuf=buffer.trim();
-          if(cleanBuf.startsWith('NOANSWER:')||cleanBuf.startsWith('FALLBACK:NOANSWER:')){
-            var msg=cleanBuf.replace('FALLBACK:','').replace('NOANSWER:','');
-            var cardEl=document.getElementById('card-'+idx);
-            cardEl.className='no-answer-card';
-            cardEl.innerHTML='<div class="no-answer-q">'+escHtml(q)+'</div>'+
-              '<div class="no-answer-body">'+
-                '<div class="no-answer-msg">'+escHtml(msg)+'</div>'+
-                '<div class="no-answer-hint">'+(isShift?'Check that a shift log has been uploaded for this time period.':'Try rephrasing, or upload a document covering this topic.')+'</div>'+
+        buffer += decoder.decode(result.value, {stream:true});
+        if (!srcRead) {
+          var clean = buffer.trim();
+          if (clean.startsWith('NOANSWER:') || clean.startsWith('FALLBACK:NOANSWER:')) {
+            var msg = clean.replace('FALLBACK:','').replace('NOANSWER:','');
+            var c   = document.getElementById('card-'+idx);
+            c.className = 'no-answer-card';
+            c.innerHTML =
+              '<div class="no-answer-q">'+escHtml(q)+'</div>' +
+              '<div class="no-answer-body">' +
+                '<div class="no-answer-msg">'+escHtml(msg)+'</div>' +
+                '<div class="no-answer-hint">'+(isShift?'Check that a shift log has been uploaded for this time period.':'Try rephrasing, or upload a document covering this topic.')+'</div>' +
               '</div>';
-            document.getElementById('askBtn').disabled=false;
-            document.getElementById('askBtn').textContent=isShift?'Search shift log':'Ask PlantMind';
+            btn.disabled    = false;
+            btn.textContent = isShift ? 'Search shift log' : 'Ask PlantMind';
             return;
           }
-          if(cleanBuf.startsWith('FALLBACK:')){wasFallback=true;buffer=buffer.replace('FALLBACK:','');}
-          if(buffer.includes('\n\n')){
-            var parts=buffer.split('\n\n');
-            if(parts[0].startsWith('SOURCES:')){
-              try{sources=JSON.parse(parts[0].replace('SOURCES:',''));renderSources(sources,srcEl,citesEl,wasFallback,isShift);}catch(e){}
-              buffer=parts.slice(1).join('\n\n');sourcesRead=true;
+          if (clean.startsWith('FALLBACK:')) { fallback = true; buffer = buffer.replace('FALLBACK:',''); }
+          if (buffer.includes('\n\n')) {
+            var parts = buffer.split('\n\n');
+            if (parts[0].startsWith('SOURCES:')) {
+              try {
+                sources = JSON.parse(parts[0].replace('SOURCES:',''));
+                srcEl.style.display = 'block';
+                if (fallback) citesEl.insertAdjacentHTML('beforebegin','<div class="fallback-note">Filter returned no results — showing best matches from all documents.</div>');
+                citesEl.innerHTML = sources.map(function(s,i) {
+                  return '<div class="cite"><div class="cite-num '+(isShift?'shift':'doc')+'">'+(i+1)+'</div>' +
+                    '<div class="cite-txt"><strong>'+escHtml(s.name)+' &middot; Rev '+escHtml(s.revision)+'</strong>' +
+                    (s.doc_type?' &middot; '+escHtml(s.doc_type):'') +
+                    (s.equip_tag?' &middot; '+escHtml(s.equip_tag):'') +
+                    '<span class="cite-score">Match: '+Math.round(s.score*100)+'%</span></div></div>';
+                }).join('');
+              } catch(e){}
+              buffer  = parts.slice(1).join('\n\n');
+              srcRead = true;
             }
           }
         }
-        if(sourcesRead){answerText+=buffer;buffer='';ansEl.innerHTML=highlightKeywords(answerText)+'<span class="cursor"></span>';}
+        if (srcRead) {
+          ansText  += buffer; buffer = '';
+          ansEl.innerHTML = highlightKeywords(ansText) + '<span class="cursor"></span>';
+        }
         read();
       });
     }
     read();
   })
-  .catch(function(err){
-    ansEl.innerHTML='<span style="color:#dc2626;font-size:13px">Connection error: '+err.message+'</span>';
-    document.getElementById('askBtn').disabled=false;
-    document.getElementById('askBtn').textContent=isShift?'Search shift log':'Ask PlantMind';
+  .catch(function(err) {
+    ansEl.innerHTML = '<span style="color:#dc2626;font-size:13px">Connection error: '+escHtml(err.message)+'</span>';
+    btn.disabled    = false;
+    btn.textContent = isShift ? 'Search shift log' : 'Ask PlantMind';
   });
 }
 
-function rate(idx,val){
-  var card=document.getElementById('card-'+idx);if(!card)return;
-  var up=document.getElementById('up-'+idx);var dn=document.getElementById('dn-'+idx);
-  var thanks=document.getElementById('thanks-'+idx);
-  up.classList.toggle('active',val===1);dn.classList.toggle('active',val===0);
-  up.style.opacity=val===1?'1':'0.2';dn.style.opacity=val===0?'1':'0.2';
-  thanks.style.display='inline';
-  fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({question:card.dataset.question||'',answer:card.dataset.answer||'',
-                         rating:val,sources:JSON.parse(card.dataset.sources||'[]')})});
+// ── Thumbs up/down ─────────────────────────────────────────────────────────────
+function rate(idx, val) {
+  var card   = document.getElementById('card-'+idx); if (!card) return;
+  var up     = document.getElementById('up-'+idx);
+  var dn     = document.getElementById('dn-'+idx);
+  var thanks = document.getElementById('thanks-'+idx);
+  up.classList.toggle('active', val===1);
+  dn.classList.toggle('active', val===0);
+  up.style.opacity = val===1 ? '1' : '0.2';
+  dn.style.opacity = val===0 ? '1' : '0.2';
+  thanks.style.display = 'inline';
+  fetch('/api/feedback', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      question: card.dataset.question||'',
+      answer:   card.dataset.answer||'',
+      rating:   val,
+      sources:  JSON.parse(card.dataset.sources||'[]')
+    })
+  });
 }
 
-function askFollowUp(q){
-  document.getElementById('questionInput').value='Follow up on: '+q+'\n';
-  document.getElementById('questionInput').focus();
-}
-
-
+// ── Agent investigation ────────────────────────────────────────────────────────
 function submitInvestigation(incident) {
-  var btn = document.getElementById('askBtn');
-  btn.disabled = true;
+  var btn = document.getElementById('sendBtn');
+  btn.disabled    = true;
   btn.textContent = 'Investigating...';
 
-  var ctx   = PlantMindContext ? PlantMindContext.get() : {};
+  var ctx   = (typeof PlantMindContext !== 'undefined') ? PlantMindContext.get() : {};
   var plant = ctx.plant || '';
   var line  = ctx.line  || '';
 
@@ -499,28 +747,41 @@ function submitInvestigation(incident) {
   var emp  = document.getElementById('emptyState');
   if (emp) emp.style.display = 'none';
   document.getElementById('questionInput').value = '';
+  autoResize(document.getElementById('questionInput'));
 
   var card = document.createElement('div');
   card.className = 'agent-card';
+  var bodyId = 'ab-' + Date.now();
+
   card.innerHTML =
     '<div class="agent-q">' +
-      '<span style="font-size:10px;background:#7c3aed;color:#fff;padding:1px 6px;border-radius:4px;margin-right:6px;font-weight:600">AGENT</span>' +
-      escHtml(incident) +
+      '<span class="badge-agent">AGENT</span>' + escHtml(incident) +
     '</div>' +
-    '<div class="agent-body" id="agent-body-' + Date.now() + '">' +
-      '<span class="agent-thinking">&#9889; Agent starting investigation...</span>' +
+    '<div class="agent-progress" id="prog-'+bodyId+'">' +
+      '<div class="az-label">Investigation progress</div>' +
+      '<div id="steps-'+bodyId+'"><div class="agent-thinking-text">&#9889; Starting investigation...</div></div>' +
+    '</div>' +
+    '<div class="agent-report" id="rep-'+bodyId+'" style="display:none">' +
+      '<div class="report-text" id="rtext-'+bodyId+'"></div>' +
     '</div>';
   area.insertBefore(card, area.firstChild);
 
-  var bodyId = card.querySelector('.agent-body').id;
-  var bodyEl = document.getElementById(bodyId);
-  var content = '';
+  var stepsEl  = document.getElementById('steps-'+bodyId);
+  var repEl    = document.getElementById('rep-'+bodyId);
+  var rtextEl  = document.getElementById('rtext-'+bodyId);
+  var progEl   = document.getElementById('prog-'+bodyId);
+
+  var fullContent     = '';
+  var reportStarted   = false;
+  var reportText      = '';
+  var progressLines   = [];
 
   fetch('/investigate', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: {'Content-Type':'application/json'},
     body: JSON.stringify({incident: incident, plant_site: plant, line: line})
-  }).then(function(res) {
+  })
+  .then(function(res) {
     var reader  = res.body.getReader();
     var decoder = new TextDecoder();
 
@@ -528,21 +789,119 @@ function submitInvestigation(incident) {
       reader.read().then(function(result) {
         if (result.done) {
           btn.disabled    = false;
-          btn.textContent = '\u26a1 Investigate';
+          btn.textContent = '⚡ Investigate';
+
+          // DONE_MARKER: parse from fullContent — reportText may be empty
+          var DONE_MARKER = 'INVESTIGATION REPORT';
+          var bodyText = '';
+          var doneIdx = fullContent.indexOf(DONE_MARKER);
+          if (doneIdx > -1) {
+            bodyText = fullContent.substring(doneIdx + DONE_MARKER.length)
+                                  .replace(/^[\s\u2550=\n]+/, '').trim();
+          } else {
+            var orchIdx = fullContent.lastIndexOf('Orchestrator synthesizing');
+            bodyText = orchIdx > -1
+              ? fullContent.substring(orchIdx).replace(/^[^\n]*\n/, '').trim()
+              : fullContent.trim();
+          }
+          var technical = bodyText;
+          var pmSummary = '';
+          var pmIdx = bodyText.indexOf('PLANT MANAGER SUMMARY');
+          if (pmIdx > -1) {
+            technical = bodyText.substring(0, pmIdx).trim();
+            pmSummary = bodyText.substring(pmIdx + 'PLANT MANAGER SUMMARY'.length)
+                                .replace(/^[\s\u2550=\n]+/, '').trim();
+          }
+          repEl.style.display = 'block';
+          rtextEl.textContent = technical;
+          if (pmSummary) {
+            var pmDiv = document.createElement('div');
+            pmDiv.className = 'pm-block';
+            pmDiv.innerHTML =
+              '<div class="pm-label"><div class="pm-dot"></div>Plant manager summary</div>' +
+              '<div class="pm-text">' + escHtml(pmSummary) + '</div>';
+            card.appendChild(pmDiv);
+          }
+          var actDiv = document.createElement('div');
+          actDiv.className = 'card-actions';
+          actDiv.innerHTML =
+            '<button class="act-btn" onclick="reuseQuestion(\''+escHtml(incident).replace(/'/g,"&#39;")+'\')">Re-investigate</button>' +
+            '<div class="helpful">Helpful?' +
+              '<button class="thumb" onclick="this.style.opacity=1;this.nextElementSibling.style.opacity=0.2">&#128077;</button>' +
+              '<button class="thumb" onclick="this.style.opacity=1;this.previousElementSibling.style.opacity=0.2">&#128078;</button>' +
+            '</div>';
+          card.appendChild(actDiv);
+          saveToHistory('agent', incident, bodyText, [], plant, line);
           return;
         }
-        content += decoder.decode(result.value, {stream: true});
-        bodyEl.innerHTML = escHtml(content).replace(/\n/g, '<br>');
+
+        var chunk = decoder.decode(result.value, {stream:true});
+        fullContent += chunk;
+
+        // Separator can be: "INVESTIGATION REPORT" surrounded by = or ═ lines
+        var REPORT_MARKER = 'INVESTIGATION REPORT';
+
+        if (!reportStarted) {
+          if (fullContent.includes(REPORT_MARKER)) {
+            reportStarted = true;
+            var sepIdx      = fullContent.indexOf(REPORT_MARKER);
+            var progressPart = fullContent.substring(0, sepIdx);
+            // Strip separator decoration (lines of = or ═) from start of report
+            var rawReport   = fullContent.substring(sepIdx + REPORT_MARKER.length);
+            reportText      = rawReport.replace(/^[\s═=\n]+/, '');
+
+            // Render progress steps
+            var lines = progressPart.split('\n').filter(function(l){ return l.trim(); });
+            var stepsHtml = '';
+            lines.forEach(function(line) {
+              var clean = line.trim();
+              // Skip pure decoration lines (═══, ===, ---)
+              if (/^[═=\-─]{3,}$/.test(clean)) return;
+              if (clean.includes('✅')) {
+                stepsHtml += '<div class="agent-step"><span class="step-check">✅</span>' + escHtml(clean.replace('✅','').trim()) + '</div>';
+              } else if (clean) {
+                stepsHtml += '<div class="agent-step">' + escHtml(clean) + '</div>';
+              }
+            });
+            if (stepsHtml) stepsEl.innerHTML = stepsHtml;
+            repEl.style.display = 'block';
+            rtextEl.textContent = reportText;
+          } else {
+            // Still streaming progress — update steps live
+            var lines = fullContent.split('\n').filter(function(l){ return l.trim(); });
+            var stepsHtml = '';
+            lines.forEach(function(line) {
+              var clean = line.trim();
+              if (/^[═=\-─]{3,}$/.test(clean)) return;
+              if (clean.includes('✅')) {
+                stepsHtml += '<div class="agent-step"><span class="step-check">✅</span>' + escHtml(clean.replace('✅','').trim()) + '</div>';
+              } else if (clean) {
+                stepsHtml += '<div class="agent-step">' + escHtml(clean) + '</div>';
+              }
+            });
+            if (stepsHtml) stepsEl.innerHTML = stepsHtml;
+          }
+        } else {
+          // Streaming the report body
+          var rawReport = fullContent.substring(
+            fullContent.indexOf(REPORT_MARKER) + REPORT_MARKER.length
+          );
+          reportText = rawReport.replace(/^[\s═=\n]+/, '');
+          rtextEl.textContent = reportText;
+        }
+
         read();
       });
     }
     read();
-  }).catch(function(err) {
-    bodyEl.innerHTML = '<span style="color:red">Investigation failed: ' + escHtml(err.message) + '</span>';
+  })
+  .catch(function(err) {
+    stepsEl.innerHTML = '<span style="color:#dc2626;font-size:13px">Investigation failed: '+escHtml(err.message)+'</span>';
     btn.disabled    = false;
-    btn.textContent = '\u26a1 Investigate';
+    btn.textContent = '⚡ Investigate';
   });
 }
 </script>
+
 </body>
 </html>

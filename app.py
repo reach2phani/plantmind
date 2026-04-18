@@ -10,6 +10,7 @@ from supabase import create_client
 from embedder import embed_document
 from pinecone import Pinecone
 from groq import Groq
+from multi_agent import investigate_incident
 
 load_dotenv()
 app = Flask(__name__)
@@ -348,13 +349,32 @@ def embed_all():
             total += embed_document(doc["id"], storage_path, doc)
     return jsonify({"success": True, "message": f"Embedded {total} chunks from {len(docs.data)} documents"})
 
+@app.route("/api/history", methods=["POST"])
+def save_history():
+    data = request.get_json()
+    record = {
+        "mode":       data.get("mode",       "doc"),
+        "question":   data.get("question",   ""),
+        "answer":     data.get("answer",     ""),
+        "sources":    json.dumps(data.get("sources", [])),
+        "plant_site": data.get("plant_site", ""),
+        "line":       data.get("line",       ""),
+    }
+    result = supabase.table("chat_history").insert(record).execute()
+    return jsonify({"success": True, "id": result.data[0]["id"] if result.data else None})
+
+@app.route("/api/history", methods=["GET"])
+def get_history():
+    limit = request.args.get("limit", 30)
+    result = supabase.table("chat_history")         .select("id, mode, question, answer, sources, plant_site, line, created_at")         .order("created_at", desc=True)         .limit(limit)         .execute()
+    return jsonify({"history": result.data})
+
 @app.route("/investigate", methods=["POST"])
 def investigate():
-    from multi_agent import investigate_incident
     data     = request.get_json()
     incident = data.get("incident", "").strip()
     plant    = data.get("plant_site", "")
-    line     = data.get("line",       "")
+    line     = data.get("line", "")
 
     if not incident:
         return jsonify({"error": "Please describe the incident"}), 400

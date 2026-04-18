@@ -119,12 +119,12 @@ Shift log search results:
 Analyse the alarm pattern from this data."""
 
     response = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": user_prompt}
         ],
-        max_tokens=600,
+        max_tokens=400,
         temperature=0.1
     )
 
@@ -177,12 +177,12 @@ Maintenance record search results:
 Analyse the maintenance history from this data."""
 
     response = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": user_prompt}
         ],
-        max_tokens=600,
+        max_tokens=400,
         temperature=0.1
     )
 
@@ -235,12 +235,12 @@ SOP search results:
 Extract the relevant procedures and specifications from this data."""
 
     response = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": user_prompt}
         ],
-        max_tokens=600,
+        max_tokens=400,
         temperature=0.1
     )
 
@@ -293,12 +293,12 @@ NCR search results:
 Analyse the quality and non-conformance history from this data."""
 
     response = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": user_prompt}
         ],
-        max_tokens=600,
+        max_tokens=400,
         temperature=0.1
     )
 
@@ -383,12 +383,12 @@ Specialist agent findings:
 Synthesize the final investigation report from these findings."""
 
     response = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": user_prompt}
         ],
-        max_tokens=1500,
+        max_tokens=800,
         temperature=0.1
     )
 
@@ -427,37 +427,46 @@ def investigate_incident(incident):
 
     specialist_results = []
     completed_names    = []
+    progress_lines     = []  # collect progress — yield AFTER executor closes
 
+    # Run all four specialists in parallel.
+    # IMPORTANT: do NOT yield inside the with-block — collect results first,
+    # yield progress after the executor has cleanly closed.
     with ThreadPoolExecutor(max_workers=4) as executor:
-        # Submit all four jobs at once
         future_to_name = {
             executor.submit(fn, incident, equipment_id): label
             for label, fn in specialist_functions
         }
-
-        # Collect results as they finish (whichever finishes first)
         for future in as_completed(future_to_name):
             label = future_to_name[future]
             try:
                 result = future.result()
                 specialist_results.append(result)
                 completed_names.append(label)
-                yield f"   ✅ {label} complete\n"
+                progress_lines.append(f"   ✅ {label} complete\n")
             except Exception as e:
-                # If a specialist fails, record the failure — don't crash the whole investigation
-                agent_name = label.split(" ", 1)[1]  # strip the emoji
+                agent_name = label.split(" ", 1)[1]
                 specialist_results.append({
                     "agent":    agent_name,
                     "icon":     "⚠️",
-                    "findings": f"Agent failed: {str(e)}",
+                    "findings": f"Agent failed — error: {str(e)}",
                     "raw_data": ""
                 })
-                yield f"   ⚠️ {label} encountered an error — continuing\n"
+                progress_lines.append(f"   ⚠️ {label} encountered an error — continuing\n")
+
+    # Executor is fully closed — now safe to yield
+    for line in progress_lines:
+        yield line
 
     yield "\n📝 All specialists complete. Orchestrator synthesizing report...\n\n"
 
     # ── Run orchestrator ───────────────────────────────────────────────────────
-    final_report = run_orchestrator(incident, specialist_results)
+    try:
+        final_report = run_orchestrator(incident, specialist_results)
+    except Exception as e:
+        yield f"\n❌ Orchestrator error: {str(e)}\n"
+        yield "\nNote: Rate limit hit. Please wait a minute and try again.\n"
+        return
 
     yield "\n" + "═" * 50 + "\n"
     yield "INVESTIGATION REPORT\n"
