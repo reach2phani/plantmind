@@ -350,7 +350,7 @@ def embed_all():
 
 @app.route("/investigate", methods=["POST"])
 def investigate():
-    from agent_v2 import investigate_incident
+    from multi_agent import investigate_incident
     data     = request.get_json()
     incident = data.get("incident", "").strip()
     plant    = data.get("plant_site", "")
