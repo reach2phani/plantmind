@@ -124,10 +124,12 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
       <label>Plant site <span class="req">*</span></label>
       <select id="plantSite">
         <option value="">-- select --</option>
-        <option value="Houston Plant">Houston Plant</option>
-        <option value="Deer Park Facility">Deer Park Facility</option>
-        <option value="Detroit Assembly">Detroit Assembly</option>
       </select>
+      <div id="addSiteRow" style="display:none;margin-top:6px;display:flex;gap:6px;align-items:center">
+        <input type="text" id="newSiteName" placeholder="New plant site name" style="flex:1;font-size:13px">
+        <button type="button" id="saveSiteBtn" onclick="saveNewSite()" style="padding:8px 14px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer">Add</button>
+        <button type="button" onclick="cancelAddSite()" style="padding:8px 10px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button>
+      </div>
     </div>
     <div class="field">
       <label>Production line <span class="req">*</span></label>
@@ -195,6 +197,65 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
 <div class="toast" id="toast"></div>
 <script src="/static/nav_context.js"></script>
 <script>
+// ── Plant site management ─────────────────────────────────────────────
+async function loadPlantSites() {
+  var res = await fetch('/api/plant-sites');
+  var data = await res.json();
+  var sel = document.getElementById('plantSite');
+  var current = sel.value;
+  // Keep first blank option, remove the rest
+  while (sel.options.length > 1) sel.remove(1);
+  (data.plant_sites || []).forEach(function(ps) {
+    var opt = document.createElement('option');
+    opt.value = ps.name; opt.textContent = ps.name;
+    sel.appendChild(opt);
+  });
+  // Always add "+ Add new plant site" at the bottom
+  var addOpt = document.createElement('option');
+  addOpt.value = '__add__'; addOpt.textContent = '+ Add new plant site';
+  sel.appendChild(addOpt);
+  if (current) sel.value = current;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadPlantSites();
+  document.getElementById('plantSite').addEventListener('change', function() {
+    if (this.value === '__add__') {
+      this.value = '';
+      document.getElementById('addSiteRow').style.display = 'flex';
+      document.getElementById('newSiteName').focus();
+    }
+  });
+});
+
+async function saveNewSite() {
+  var name = document.getElementById('newSiteName').value.trim();
+  if (!name) { alert('Please enter a plant site name'); return; }
+  var btn = document.getElementById('saveSiteBtn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    var res = await fetch('/api/plant-sites', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name: name})
+    });
+    var data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    await loadPlantSites();
+    document.getElementById('plantSite').value = name;
+    cancelAddSite();
+  } catch(e) {
+    alert('Failed to save plant site');
+  } finally {
+    btn.textContent = 'Add'; btn.disabled = false;
+  }
+}
+
+function cancelAddSite() {
+  document.getElementById('addSiteRow').style.display = 'none';
+  document.getElementById('newSiteName').value = '';
+}
+
 var selectedFiles = [];
 var uploadResults = {done:0,failed:0,total:0};
 

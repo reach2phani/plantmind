@@ -98,7 +98,9 @@ def filter_shift_chunks(matches, time_from, time_to):
         if kept:
             md["metadata"]["text"] = "\n".join(kept)
             filtered.append(md)
-    return filtered if filtered else [match_to_dict(m) for m in matches]
+    # G-09 fix: do NOT silently return all events when time filter produces nothing.
+    # Return empty list — caller will send a "no events in this window" response.
+    return filtered
 
 # ── Pages ──────────────────────────────────────────────────────────────
 
@@ -241,20 +243,27 @@ def ask():
         if equip_tag: filter_dict["equip_tag"]  = {"$eq": equip_tag}
 
     results  = pine_index.query(
-        vector=question_vec, top_k=8, include_metadata=True,
+        vector=question_vec, top_k=12, include_metadata=True,
         filter=filter_dict
     )
     matches      = results.get("matches", [])
     was_fallback = False
 
-    # Fallback — remove non-filetype filters and retry
-    if (not matches or matches[0]["score"] < 0.35) and len(filter_dict) > 1:
+    # Fallback — only relax plant/line filters, NEVER drop equip_tag.
+    # If equip_tag was set and nothing found, we must say no docs found —
+    # not search everything and risk returning docs for the wrong equipment.
+    low_confidence   = not matches or matches[0]["score"] < 0.35
+    has_equip_filter = bool(filter_dict.get("equip_tag"))
+
+    if low_confidence and not has_equip_filter and len(filter_dict) > 1:
         fallback_filter = {"file_type": filter_dict["file_type"]}
-        results  = pine_index.query(vector=question_vec, top_k=8, include_metadata=True, filter=fallback_filter)
+        results  = pine_index.query(vector=question_vec, top_k=12, include_metadata=True, filter=fallback_filter)
         matches  = results.get("matches", [])
         was_fallback = True
 
-    if not matches or matches[0]["score"] < 0.35:
+    # Lower threshold when equip filter active — spec chunks score lower than procedure chunks
+    score_threshold = 0.30 if has_equip_filter else 0.35
+    if not matches or matches[0]["score"] < score_threshold:
         def no_ans():
             if mode == "shift":
                 yield "NOANSWER:No shift log events found for this time range. Check that a shift log has been uploaded for this period."

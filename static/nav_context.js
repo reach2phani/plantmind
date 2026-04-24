@@ -1,7 +1,16 @@
 var PlantMindContext = {
 
-  PLANTS: ["Houston Plant", "Deer Park Facility"],
-  LINES:  ["Line 1", "Line 2", "Line 3"],
+  PLANTS: [],
+  LINES:  ["Line 1", "Line 2", "Line 3", "Line 4", "Line 7"],
+
+  loadPlants: function() {
+    return fetch('/api/plant-sites')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        PlantMindContext.PLANTS = (data.plant_sites || []).map(function(ps) { return ps.name; });
+      })
+      .catch(function() {});
+  },
 
   get: function() {
     return {
@@ -55,7 +64,12 @@ var PlantMindContext = {
   buildDropdown: function() {
     var existing = document.getElementById('ctxDropdown');
     if (existing) { existing.remove(); return; }
+    PlantMindContext.loadPlants().then(function() {
+      PlantMindContext._renderDropdown();
+    });
+  },
 
+  _renderDropdown: function() {
     var ctx = PlantMindContext.get();
 
     var dd = document.createElement('div');
@@ -70,12 +84,20 @@ var PlantMindContext = {
       '<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Your context</div>' +
 
       '<div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Plant site</div>' +
-      '<select id="ctxPlantSel" style="width:100%;padding:7px 10px;background:#0f172a;border:1px solid #334155;border-radius:6px;font-size:13px;color:#e2e8f0;margin-bottom:10px;outline:none">' +
+      '<select id="ctxPlantSel" style="width:100%;padding:7px 10px;background:#0f172a;border:1px solid #334155;border-radius:6px;font-size:13px;color:#e2e8f0;margin-bottom:6px;outline:none">' +
         '<option value="">-- select --</option>' +
         PlantMindContext.PLANTS.map(function(p) {
           return '<option value="' + p + '"' + (ctx.plant === p ? ' selected' : '') + '>' + p + '</option>';
         }).join('') +
+        '<option value="__add__">+ Add new plant site</option>' +
       '</select>' +
+      '<div id="ctxAddSiteRow" style="display:none;margin-bottom:10px;flex-direction:column;gap:4px">' +
+        '<input id="ctxNewSiteName" type="text" placeholder="New plant site name" style="width:100%;padding:7px 10px;background:#0f172a;border:1px solid #334155;border-radius:6px;font-size:13px;color:#e2e8f0;outline:none;box-sizing:border-box">' +
+        '<div style="display:flex;gap:4px">' +
+          '<button onclick="PlantMindContext.saveNewSiteFromDropdown()" style="flex:1;padding:6px;background:#4f46e5;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">Add</button>' +
+          '<button onclick="PlantMindContext.cancelAddSite()" style="flex:1;padding:6px;background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:6px;font-size:12px;cursor:pointer">Cancel</button>' +
+        '</div>' +
+      '</div>' +
 
       '<div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Production line</div>' +
       '<select id="ctxLineSel" style="width:100%;padding:7px 10px;background:#0f172a;border:1px solid #334155;border-radius:6px;font-size:13px;color:#e2e8f0;margin-bottom:12px;outline:none">' +
@@ -90,6 +112,14 @@ var PlantMindContext = {
 
     document.body.appendChild(dd);
 
+    document.getElementById('ctxPlantSel').addEventListener('change', function() {
+      if (this.value === '__add__') {
+        this.value = '';
+        document.getElementById('ctxAddSiteRow').style.display = 'flex';
+        document.getElementById('ctxNewSiteName').focus();
+      }
+    });
+
     setTimeout(function() {
       document.addEventListener('click', function handler(e) {
         var pill = document.getElementById('navCtx');
@@ -100,6 +130,35 @@ var PlantMindContext = {
         }
       });
     }, 100);
+  },
+
+  saveNewSiteFromDropdown: function() {
+    var name = (document.getElementById('ctxNewSiteName').value || '').trim();
+    if (!name) return;
+    fetch('/api/plant-sites', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name: name})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) { alert(data.error); return; }
+      PlantMindContext.loadPlants().then(function() {
+        var dd = document.getElementById('ctxDropdown');
+        if (dd) dd.remove();
+        PlantMindContext._renderDropdown();
+        setTimeout(function() {
+          var sel = document.getElementById('ctxPlantSel');
+          if (sel) sel.value = name;
+        }, 50);
+      });
+    })
+    .catch(function() { alert('Failed to save plant site'); });
+  },
+
+  cancelAddSite: function() {
+    document.getElementById('ctxAddSiteRow').style.display = 'none';
+    document.getElementById('ctxNewSiteName').value = '';
   },
 
   saveFromDropdown: function() {

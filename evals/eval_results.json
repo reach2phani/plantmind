@@ -1,0 +1,1097 @@
+{
+  "run_timestamp": "2026-04-24T16:52:03",
+  "summary": {
+    "total": 20,
+    "passed": 13,
+    "failed": 5,
+    "errors": 2,
+    "pass_rate": 65,
+    "by_mode": {
+      "qa": {
+        "pass": 5,
+        "fail": 2
+      },
+      "shift_intel": {
+        "pass": 4,
+        "fail": 1
+      },
+      "investigation": {
+        "pass": 4,
+        "fail": 2
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "QA-001",
+      "mode": "qa",
+      "description": "Basic SOP lookup \u2014 operator needs a specific procedure step",
+      "status": "PASS",
+      "elapsed_s": 5.9,
+      "input": {
+        "question": "What is the correct torque setting for the wheel hub bolts on AT-301?",
+        "equipment_id": "AT-301",
+        "mode": "qa",
+        "line": "Line 4"
+      },
+      "answer": "The correct torque setting for the wheel hub bolts on AT-301 is as follows:\n\n- Stage 1 (snug): 40 Nm\n- Stage 2 (torque): 185 Nm in a star pattern (MANDATORY).",
+      "sources": [
+        {
+          "name": "SOP-AT-301-torque-station.txt",
+          "revision": "2.3",
+          "doc_type": "SOP",
+          "equip_tag": "AT-301",
+          "score": 0.89
+        }
+      ],
+      "keyword_check": {
+        "must_contain:185": true,
+        "must_contain:Nm": true,
+        "must_contain:star pattern": true,
+        "must_not_contain:I don't know": true,
+        "must_not_contain:unable to find": true,
+        "must_not_contain:no information": true
+      },
+      "pass_criteria": "Answer states 185 Nm and mentions star pattern. Cites SOP-WH-401.",
+      "fail_criteria": "Wrong torque value, no torque value given, or answer is vague prose with no actionable instruction.",
+      "expected": {
+        "must_contain": [
+          "185",
+          "Nm",
+          "star pattern"
+        ],
+        "must_not_contain": [
+          "I don't know",
+          "unable to find",
+          "no information"
+        ],
+        "format": "numbered steps or clear prose",
+        "tone": "direct and instructional"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "QA-002",
+      "mode": "qa",
+      "description": "Safety question \u2014 operator asks about a chemical hazard",
+      "status": "PASS",
+      "elapsed_s": 3.5,
+      "input": {
+        "question": "What PPE is required when handling the primer coat on Line 7?",
+        "equipment_id": "PC-701",
+        "mode": "qa",
+        "line": "Line 4"
+      },
+      "answer": "The context does not mention handling the primer coat specifically. However, it does mention the PPE required for external operation and top-up, which includes:\n\n- Nitrile gloves, minimum 0.2 mm thickness\n- Safety glasses\n- Chemical-resistant apron\n\nAdditionally, when entering the paint booth during operation is prohibited, but when maintenance access is required (booth offline only), the PPE required includes:\n\n- Nitrile gloves, minimum 0.4 mm thickness\n- Full face shield (not safety glasses)\n- Chemical-resistant apron\n- Forced-air supplied respirator (air-line type)\n- Anti-static footwear",
+      "sources": [
+        {
+          "name": "SOP-PC-701-paint-booth.txt",
+          "revision": "2.0",
+          "doc_type": "SOP",
+          "equip_tag": "PC-701",
+          "score": 0.81
+        },
+        {
+          "name": "NCR-PC-701-2024-04-exhaust-fan.txt",
+          "revision": "1.0",
+          "doc_type": "NCR",
+          "equip_tag": "PC-701",
+          "score": 0.81
+        }
+      ],
+      "keyword_check": {
+        "must_contain:nitrile": true,
+        "must_contain:apron": true,
+        "must_contain_one_of": true,
+        "must_not_contain:dust mask": true,
+        "must_not_contain:optional": true
+      },
+      "pass_criteria": "Lists at least 3 correct PPE items. Mentions respirator specifically (not dust mask).",
+      "fail_criteria": "Mentions dust mask as acceptable. Omits respirator. Lists fewer than 2 PPE items.",
+      "expected": {
+        "must_contain": [
+          "nitrile",
+          "apron"
+        ],
+        "must_not_contain": [
+          "dust mask",
+          "optional"
+        ],
+        "format": "list of PPE items",
+        "tone": "clear and safety-focused",
+        "must_contain_one_of": [
+          "respirator",
+          "air-line",
+          "supplied-air",
+          "forced-air"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "QA-003",
+      "mode": "qa",
+      "description": "Revision-aware retrieval \u2014 operator should get latest not archived version",
+      "status": "PASS",
+      "elapsed_s": 28.7,
+      "input": {
+        "question": "What is the weld dwell time for the B-pillar on Line 4?",
+        "equipment_id": "WR-401",
+        "mode": "qa",
+        "line": "Line 4"
+      },
+      "answer": "The weld dwell time for the B-pillar on Line 4 is 420 ms.",
+      "sources": [
+        {
+          "name": "SOP-WR-401-welding-robot.txt",
+          "revision": "3.2",
+          "doc_type": "SOP",
+          "equip_tag": "WR-401",
+          "score": 0.84
+        },
+        {
+          "name": "WI-WR-401-maintenance-log.txt",
+          "revision": "1.0",
+          "doc_type": "Work Instruction",
+          "equip_tag": "WR-401",
+          "score": 0.82
+        },
+        {
+          "name": "NCR-WR-401-2024-04-spatter-recurrence.txt",
+          "revision": "1.0",
+          "doc_type": "NCR",
+          "equip_tag": "WR-401",
+          "score": 0.81
+        }
+      ],
+      "keyword_check": {
+        "must_contain:420": true,
+        "must_not_contain:380": true
+      },
+      "pass_criteria": "Returns 420ms from Rev 3.0. Does not mention the old 380ms value.",
+      "fail_criteria": "Returns 380ms (stale data). Returns both values without indicating which is current. No revision cited.",
+      "expected": {
+        "must_contain": [
+          "420"
+        ],
+        "must_not_contain": [
+          "380"
+        ],
+        "format": "direct answer with source cited",
+        "tone": "precise, includes revision"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "QA-004",
+      "mode": "qa",
+      "description": "No-data handling \u2014 question about equipment with no docs uploaded",
+      "status": "PASS",
+      "elapsed_s": 2.3,
+      "input": {
+        "question": "What is the maintenance interval for the conveyor motor on Line 2?",
+        "equipment_id": "CM-201",
+        "mode": "qa",
+        "line": ""
+      },
+      "answer": "I could not find a confident answer in the uploaded documents. Try rephrasing your question or check that the relevant document has been uploaded.",
+      "sources": [],
+      "keyword_check": {
+        "must_contain_one_of": true,
+        "must_not_contain:I believe": true,
+        "must_not_contain:typically": true,
+        "must_not_contain:usually": true,
+        "must_not_contain:generally speaking": true
+      },
+      "pass_criteria": "Clearly states no documents found for CM-201. Does NOT invent a plausible maintenance interval.",
+      "fail_criteria": "Invents a maintenance interval (e.g. 'typically every 3 months'). Gives a generic answer not grounded in documents.",
+      "expected": {
+        "must_contain_one_of": [
+          "could not find",
+          "no documents",
+          "not found",
+          "no information",
+          "PlantMind does not have",
+          "no relevant",
+          "hasn't been uploaded",
+          "check that the relevant document"
+        ],
+        "must_not_contain": [
+          "I believe",
+          "typically",
+          "usually",
+          "generally speaking"
+        ],
+        "format": "honest no-answer with suggestion",
+        "tone": "clear, does not invent an answer"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "QA-005",
+      "mode": "qa",
+      "description": "Multi-step procedure \u2014 answer should be structured as steps",
+      "status": "PASS",
+      "elapsed_s": 31.2,
+      "input": {
+        "question": "How do I reset the weld controller on WR-401 after a fault?",
+        "equipment_id": "WR-401",
+        "mode": "qa",
+        "line": "Line 4"
+      },
+      "answer": "To reset the weld controller on WR-401 after a fault, follow these steps:\n\n1. Press and hold E-STOP for 3 seconds.\n2. Open controller panel (key switch to MAINT position).\n3. Navigate to FAULT LOG on teach pendant \u2014 note all faults.\n4. Clear active faults using FAULT CLEAR function.\n5. Close controller panel. Return key to RUN position.\n6. Press RESET on HMI touchscreen.\n7. Run ONE full test cycle (14 weld points) before resuming production. Inspect welds visually.\n8. If fault recurs within 30 minutes, do not restart \u2014 call maintenance immediately.",
+      "sources": [
+        {
+          "name": "SOP-WR-401-welding-robot.txt",
+          "revision": "3.2",
+          "doc_type": "SOP",
+          "equip_tag": "WR-401",
+          "score": 0.87
+        },
+        {
+          "name": "WI-WR-401-maintenance-log.txt",
+          "revision": "1.0",
+          "doc_type": "Work Instruction",
+          "equip_tag": "WR-401",
+          "score": 0.84
+        },
+        {
+          "name": "NCR-WR-401-2024-04-spatter-recurrence.txt",
+          "revision": "1.0",
+          "doc_type": "NCR",
+          "equip_tag": "WR-401",
+          "score": 0.83
+        }
+      ],
+      "keyword_check": {
+        "must_contain:E-STOP": true,
+        "must_contain:FAULT LOG": true,
+        "must_contain:test cycle": true
+      },
+      "pass_criteria": "Returns numbered steps. E-STOP is step 1 or early. Test cycle mentioned at end. Order is logical.",
+      "fail_criteria": "Steps out of order. Key steps (E-STOP, test cycle) omitted. Answer is unstructured prose.",
+      "expected": {
+        "must_contain": [
+          "E-STOP",
+          "FAULT LOG",
+          "test cycle"
+        ],
+        "must_not_contain": [],
+        "format": "numbered steps in correct order",
+        "tone": "instructional, step-by-step"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "QA-006",
+      "mode": "qa",
+      "description": "Numerical specification \u2014 answer must be precise not approximate",
+      "status": "FAIL",
+      "elapsed_s": 32.9,
+      "input": {
+        "question": "What is the spatter index threshold that triggers a quality alarm on WR-401?",
+        "equipment_id": "WR-401",
+        "mode": "qa",
+        "line": "Line 4"
+      },
+      "answer": "The spatter index threshold that triggers a quality alarm on WR-401 is 5.0, which is the auto-quarantine threshold.",
+      "sources": [
+        {
+          "name": "SOP-WR-401-welding-robot.txt",
+          "revision": "3.2",
+          "doc_type": "SOP",
+          "equip_tag": "WR-401",
+          "score": 0.87
+        },
+        {
+          "name": "NCR-WR-401-2024-04-spatter-recurrence.txt",
+          "revision": "1.0",
+          "doc_type": "NCR",
+          "equip_tag": "WR-401",
+          "score": 0.86
+        },
+        {
+          "name": "WI-WR-401-maintenance-log.txt",
+          "revision": "1.0",
+          "doc_type": "Work Instruction",
+          "equip_tag": "WR-401",
+          "score": 0.84
+        }
+      ],
+      "keyword_check": {
+        "must_contain:3.5": false,
+        "must_contain_one_of": false,
+        "must_not_contain:approximately": true,
+        "must_not_contain:around": true,
+        "must_not_contain:about": true
+      },
+      "pass_criteria": "States 3.5 as the alarm threshold. Does not round or approximate.",
+      "fail_criteria": "States wrong number. Uses vague language like 'around 3 to 4'. Does not distinguish alarm threshold from quarantine threshold.",
+      "expected": {
+        "must_contain": [
+          "3.5"
+        ],
+        "must_not_contain": [
+          "approximately",
+          "around",
+          "about"
+        ],
+        "format": "direct number with context",
+        "tone": "precise",
+        "must_contain_one_of": [
+          "3.5",
+          "3.5 "
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "QA-007",
+      "mode": "qa",
+      "description": "Cross-document reasoning \u2014 answer requires combining two sources",
+      "status": "FAIL",
+      "elapsed_s": 28.6,
+      "input": {
+        "question": "Can I use the standard weld wire for the roof panel or does it need the high-tensile grade?",
+        "equipment_id": "WR-401",
+        "mode": "qa",
+        "line": "Line 4"
+      },
+      "answer": "According to the SOP-WR-401 document, ER70S-2 is approved for non-structural body panels only. The roof panel is considered a non-structural body panel. However, it is essential to note that the document also states that DO NOT substitute ER70S-2 on any structural panel weld. Since the context does not explicitly classify the roof panel as a structural panel, it is likely acceptable to use the standard weld wire (ER70S-2) for the roof panel.",
+      "sources": [
+        {
+          "name": "SOP-WR-401-welding-robot.txt",
+          "revision": "3.2",
+          "doc_type": "SOP",
+          "equip_tag": "WR-401",
+          "score": 0.87
+        },
+        {
+          "name": "NCR-WR-401-2024-04-spatter-recurrence.txt",
+          "revision": "1.0",
+          "doc_type": "NCR",
+          "equip_tag": "WR-401",
+          "score": 0.8
+        },
+        {
+          "name": "WI-WR-401-maintenance-log.txt",
+          "revision": "1.0",
+          "doc_type": "Work Instruction",
+          "equip_tag": "WR-401",
+          "score": 0.8
+        }
+      ],
+      "keyword_check": {
+        "must_contain:ER70S-6": false,
+        "must_contain:high-tensile": false,
+        "must_contain:not": true,
+        "must_contain_one_of": true,
+        "must_not_contain:either": true,
+        "must_not_contain:both are fine": true,
+        "must_not_contain:standard wire is acceptable": true
+      },
+      "pass_criteria": "Clearly states high-tensile ER70S-6 is required. Explains roof panels are structural. Does not leave ambiguity.",
+      "fail_criteria": "Says either wire is acceptable. Omits the structural classification. Gives vague answer.",
+      "expected": {
+        "must_contain": [
+          "ER70S-6",
+          "high-tensile",
+          "not"
+        ],
+        "must_not_contain": [
+          "either",
+          "both are fine",
+          "standard wire is acceptable"
+        ],
+        "format": "direct answer then reason",
+        "tone": "clear, safety-relevant",
+        "must_contain_one_of": [
+          "ER70S-6",
+          "high-tensile",
+          "high tensile",
+          "structural"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "SI-001",
+      "mode": "shift_intel",
+      "description": "Alarm frequency question \u2014 how many times did something happen on a shift",
+      "status": "PASS",
+      "elapsed_s": 23.9,
+      "input": {
+        "question": "How many times did WR-401 alarm last night shift?",
+        "equipment_id": "WR-401",
+        "time_from": "22:00",
+        "time_to": "06:00",
+        "mode": "shift_intel",
+        "line": "Line 4"
+      },
+      "answer": "**Alarm Events for WR-401 on Night Shift**\n\n* **Spatter Index Alarms**\n  * 2024-04-20 04:55: Spatter index alarm \u2014 reading 3.6 \u2014 Action: Cleaned spatter shield. Index reduced to 2.8. Continued production.\n  * 2024-04-20 23:10: Spatter index alarm \u2014 reading 3.7 \u2014 Action: Cleaned spatter shield. Index 2.2. Resumed.\n  * 2024-04-21 02:55: Spatter index alarm \u2014 reading 4.1 \u2014 Action: Replaced contact tip. Index 2.5. Resumed.\n  * 2024-04-21 23:10: Spatter index alarm \u2014 reading 3.7 \u2014 Action: Cleaned spatter shield. Index 2.2. Resumed.\n* **Weld Quality Alarms**\n  * 2024-04-20 02:10: Weld quality alarm \u2014 spatter index 4.8. Line auto-paused. \u2014 Action: Inspected wire liner \u2014 resistance felt at 5m. Notified maintenance for morning. Cleaned shield and tip. Resumed after 12 mins.\n  * 2024-04-17 01:20: WR401-WQ-001 Weld quality alarm \u2014 second occurrence this shift. Spatter index 4.8. \u2014 Action: Stopped cycle. Torch tip re-cleaned \u2014 more spatter than previous cleaning 2 hours ago. Wire feed checked \u2014 slight resistance noted at conduit entry point. Cleared minor debris from conduit. Resumed production after 2 test panels passed.\n  * 2024-04-17 02:45: WR401-WQ-001 Weld quality alarm \u2014 third occurrence this shift. Spatter index 5.2. Panels WR-1923 to WR-1931 quarantined pending inspection. \u2014 Action: Stopped production. Notified Maintenance Supervisor D. Park by radio. Inspected wire feed system \u2014 wire conduit liner showing wear and debris buildup despite cleaning at 01:20. Replaced conduit liner.",
+      "sources": [
+        {
+          "name": "Line4-day-shift-log-Apr17.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.84
+        },
+        {
+          "name": "Line4-night-shift-log-Apr16.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.83
+        },
+        {
+          "name": "SHIFT-LOG-Line4-Apr2024.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.83
+        }
+      ],
+      "keyword_check": {
+        "must_contain:WR-401": true,
+        "must_contain:alarm": true
+      },
+      "pass_criteria": "States 4 alarms (or 3 spatter + 1 quality). Lists times or types. Does not confuse with other equipment.",
+      "fail_criteria": "Wrong count. Includes alarms from other equipment. No breakdown of alarm types.",
+      "expected": {
+        "must_contain": [
+          "WR-401",
+          "alarm"
+        ],
+        "must_not_contain": [],
+        "format": "count with brief breakdown",
+        "tone": "factual summary"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "SI-002",
+      "mode": "shift_intel",
+      "description": "Shift handover summary \u2014 what happened across a full shift",
+      "status": "PASS",
+      "elapsed_s": 13.2,
+      "input": {
+        "question": "Summarise what happened on Line 4 during the afternoon shift",
+        "equipment_id": null,
+        "time_from": "14:00",
+        "time_to": "22:00",
+        "mode": "shift_intel",
+        "line": "Line 4"
+      },
+      "answer": "Here's a summary of the events on Line 4 during the afternoon shift:\n\n**Quality:**\n- 2024-04-17 \u2014 Day shift \u2014 Line 4 \u2014 at 14:45 \u2014 Mid shift quality check \u2014 50 panels post restart \u2014 All 50 panels within spec. Spatter index average 2.1. TCP stable. No alarms since restart.\n\n**Alarm:**\n- 2024-04-20 \u2014 Day shift \u2014 Line 4 \u2014 at 19:45 \u2014 Weld quality alarm \u2014 spatter index 4.2. Visual inspection: welds look normal. Checked sensor \u2014 residue on sensor post morning clean likely causing false reading. Monitored 30 mins. Index reduced to 2.6. No action.\n\n**Maintenance:**\n- 2024-04-20 \u2014 Day shift \u2014 Line 4 \u2014 at 16:15 \u2014 Conveyor speed reduced \u2014 panel alignment issue detected. Reduced conveyor to 85% speed. Alignment sensor recalibrated.\n- 2024-04-20 \u2014 Day shift \u2014 Line 4 \u2014 at 17:00 \u2014 Panel alignment corrected. Speed restored to 100%. Alignment confirmed within tolerance.\n\n**Production:**\n- 2024-04-20 \u2014 Day shift \u2014 Line 4 \u2014 at 22:00 \u2014 End of shift \u2014 Day shift summary \u2014 Total panels completed: 1284. Quarantined: 11 (6 from night handover + 5 from 02:10 batch re-check). Scrap: 2. WR-401 running normally post liner replacement.",
+      "sources": [
+        {
+          "name": "Line4-night-shift-log-Apr16.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.83
+        },
+        {
+          "name": "SHIFT-LOG-Line7-Apr2024.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "PC-701",
+          "score": 0.83
+        },
+        {
+          "name": "SHIFT-LOG-Line4-Apr2024.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.82
+        },
+        {
+          "name": "Line4-day-shift-log-Apr17.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.82
+        }
+      ],
+      "keyword_check": {
+        "must_contain:WR-401": true,
+        "must_contain_one_of": true
+      },
+      "pass_criteria": "Covers: WR-401 alarms, conveyor issue, panel quarantine count, production count. Chronological or grouped by type.",
+      "fail_criteria": "Omits quarantine event. Wrong panel count. Mixes in events from other shifts.",
+      "expected": {
+        "must_contain": [
+          "WR-401"
+        ],
+        "must_not_contain": [],
+        "format": "structured summary with key events",
+        "tone": "concise shift handover style",
+        "must_contain_one_of": [
+          "WR-401",
+          "welding robot",
+          "weld",
+          "quarantine",
+          "conveyor"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "SI-003",
+      "mode": "shift_intel",
+      "description": "Operator action tracking \u2014 what did a specific operator do",
+      "status": "ERROR",
+      "elapsed_s": 32.4,
+      "input": {
+        "question": "What actions did the night shift operator take on WR-401?",
+        "equipment_id": "WR-401",
+        "time_from": "22:00",
+        "time_to": "06:00",
+        "mode": "shift_intel",
+        "line": "Line 4"
+      },
+      "answer": "",
+      "sources": [],
+      "keyword_check": {},
+      "pass_criteria": "Names J.Malik. Lists at least 3 distinct actions with approximate times. Does not invent actions.",
+      "fail_criteria": "Wrong operator name. Omits tip-to-work adjustment. Invents actions not in the log.",
+      "expected": {
+        "must_contain": [
+          "WR-401",
+          "spatter"
+        ],
+        "must_not_contain": [],
+        "format": "list of actions with times",
+        "tone": "factual, operator-focused"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "SI-004",
+      "mode": "shift_intel",
+      "description": "Time-range filtering \u2014 must only return events within the window",
+      "status": "PASS",
+      "elapsed_s": 18.8,
+      "input": {
+        "question": "Did anything happen with PC-701 between 2am and 4am?",
+        "equipment_id": "PC-701",
+        "time_from": "02:00",
+        "time_to": "04:00",
+        "mode": "shift_intel",
+        "line": "Line 4"
+      },
+      "answer": "Here's a summary of the events related to PC-701 between 2am and 4am:\n\n* **Alarms:**\n + 2024-04-20 \u2014 Night shift \u2014 Line 7 \u2014 at 02:45 \u2014 [Alarm] \u2014 Equipment: PC-701 \u2014 Nozzle clog alarm \u2014 atomisation pattern distorted \u2014 Action: Removed nozzle. Soaked 10 mins in solvent bath. Cleaned with needle. Reinstalled. Test spray on panel \u2014 even fan pattern confirmed. 4 mins downtime. \u2014 Operator: C. Diaz \u2014 Status: Resolved\n\nThere are no other events related to PC-701 between 2am and 4am.",
+      "sources": [
+        {
+          "name": "SHIFT-LOG-Line7-Apr2024.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "PC-701",
+          "score": 0.82
+        },
+        {
+          "name": "SHIFT-LOG-Line4-Apr2024.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.8
+        },
+        {
+          "name": "Line4-night-shift-log-Apr16.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.8
+        }
+      ],
+      "keyword_check": {
+        "must_contain:PC-701": true
+      },
+      "pass_criteria": "Returns only the 02:45 and 03:55 events. Does NOT include the 00:30 or 05:10 events.",
+      "fail_criteria": "Includes events outside the 02:00\u201304:00 window. Returns all events and ignores time filter.",
+      "expected": {
+        "must_contain": [
+          "PC-701"
+        ],
+        "must_not_contain": [],
+        "format": "events within the time window only",
+        "tone": "factual, time-scoped"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "SI-005",
+      "mode": "shift_intel",
+      "description": "No events in window \u2014 honest answer when nothing happened",
+      "status": "PASS",
+      "elapsed_s": 17.8,
+      "input": {
+        "question": "Were there any alarms on CM-301 during the day shift?",
+        "equipment_id": "CM-301",
+        "time_from": "06:00",
+        "time_to": "14:00",
+        "mode": "shift_intel",
+        "line": ""
+      },
+      "answer": "There are no events related to CM-301 in the provided shift log context.",
+      "sources": [
+        {
+          "name": "SHIFT-LOG-Line2-Apr2024.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "P-201",
+          "score": 0.81
+        },
+        {
+          "name": "rev1_0_shift-log-line1-line2-apr12.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "",
+          "score": 0.81
+        },
+        {
+          "name": "rev1_0_shift-log-line2-night-apr14.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "",
+          "score": 0.81
+        },
+        {
+          "name": "Line4-day-shift-log-Apr17.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.8
+        },
+        {
+          "name": "Line4-night-shift-log-Apr16.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.8
+        },
+        {
+          "name": "SHIFT-LOG-Line7-Apr2024.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "PC-701",
+          "score": 0.8
+        }
+      ],
+      "keyword_check": {
+        "must_contain_one_of": true,
+        "must_not_contain:I couldn't find": true,
+        "must_not_contain:unable to determine": true
+      },
+      "pass_criteria": "Clearly states no alarms for CM-301 on that shift. Confident, not hedging.",
+      "fail_criteria": "Hedges with 'I couldn't determine'. Returns events from other equipment. Invents an alarm.",
+      "expected": {
+        "must_contain_one_of": [
+          "no events",
+          "no alarms",
+          "no records",
+          "could not find",
+          "not found",
+          "no information",
+          "no relevant",
+          "CM-301"
+        ],
+        "must_not_contain": [
+          "I couldn't find",
+          "unable to determine"
+        ],
+        "format": "clear one-line answer",
+        "tone": "direct, no padding"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "SI-006",
+      "mode": "shift_intel",
+      "description": "Pattern detection across multiple days \u2014 should identify a trend",
+      "status": "ERROR",
+      "elapsed_s": 32.5,
+      "input": {
+        "question": "Has WR-401 been alarming more than usual this week?",
+        "equipment_id": "WR-401",
+        "time_from": null,
+        "time_to": null,
+        "mode": "shift_intel",
+        "line": "Line 4"
+      },
+      "answer": "",
+      "sources": [],
+      "keyword_check": {},
+      "pass_criteria": "Identifies the increasing trend. Compares to prior average. Flags concern. Does not dismiss as normal.",
+      "fail_criteria": "Says activity is normal. Does not identify the Wed-onwards escalation. No comparison to baseline.",
+      "expected": {
+        "must_contain": [
+          "WR-401"
+        ],
+        "must_not_contain": [],
+        "format": "trend analysis with numbers",
+        "tone": "analytical, concern flagged",
+        "must_contain_one_of": [
+          "increasing",
+          "escalat",
+          "trend",
+          "more frequent",
+          "higher",
+          "above",
+          "rising",
+          "WR-401"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "SI-007",
+      "mode": "shift_intel",
+      "description": "Production count question \u2014 quantitative extraction from shift log",
+      "status": "FAIL",
+      "elapsed_s": 4.2,
+      "input": {
+        "question": "How many panels were produced on Line 4 today and how many were quarantined?",
+        "equipment_id": null,
+        "time_from": "06:00",
+        "time_to": "22:00",
+        "mode": "shift_intel",
+        "line": "Line 4"
+      },
+      "answer": "Here's a summary of the relevant shift events for Line 4 on April 20 and 22:\n\n**April 20**\n\n* **Production**\n + 06:00 - Night shift summary: Total panels completed: 847. Quarantined: 6 (weld quality 02:10 event).\n + 12:30 - WR-401 returned to production.\n + 16:15 - Conveyor speed reduced due to panel alignment issue.\n + 17:00 - Panel alignment corrected.\n + 19:45 - Weld quality alarm (false reading).\n + 22:00 - Day shift summary: Total panels completed: 1284. Quarantined: 11 (6 from night handover + 5 from 02:10 batch re-check).\n* **Alarm**\n + 06:30 - WR-401 inconsistent arc and wire feed hesitation reported.\n + 16:15 - Conveyor speed reduced due to panel alignment issue.\n + 19:45 - Weld quality alarm (false reading).\n* **Maintenance**\n + 10:15 - Wire liner replacement on WR-401.\n + 12:20 - Burn-in complete on WR-401.\n* **Quality**\n + 08:10 - Quarantined 6 panels due to weld quality issue.\n\n**April 22**\n\n* **Production**\n + 09:00 - 8 panels quarantined due to weld quality alarm.\n + 10:30 - WR-401 returned to production post burn-in.\n* **Alarm**\n + 09:00 - Weld quality alarm (spatter index 5.2).\n* **Maintenance**\n + 10:30 - Wire liner replacement on WR-401.\n\n**Panels produced and quarantined**\n\n* Total panels produced on April 20: 1284\n* Total panels quarantined on April 20: 11\n* Total panels produced on April 22: 912\n* Total panels quarantined on April 22: 8",
+      "sources": [
+        {
+          "name": "SHIFT-LOG-Line4-Apr2024.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.82
+        },
+        {
+          "name": "Line4-day-shift-log-Apr17.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.81
+        },
+        {
+          "name": "Line4-night-shift-log-Apr16.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WR-401",
+          "score": 0.79
+        }
+      ],
+      "keyword_check": {
+        "must_contain:quarantine": true,
+        "must_contain_one_of": true,
+        "must_not_contain:847": false
+      },
+      "pass_criteria": "Returns 1,284 produced and 11 quarantined for day shift. Does not mix in night shift numbers (847).",
+      "fail_criteria": "Returns night shift numbers instead. Adds day + night totals together without labelling. Omits quarantine count.",
+      "expected": {
+        "must_contain": [
+          "quarantine"
+        ],
+        "must_not_contain": [
+          "847"
+        ],
+        "format": "clear numbers with labels",
+        "tone": "precise, production-focused",
+        "must_contain_one_of": [
+          "1,284",
+          "1284",
+          "1 284"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "INV-001",
+      "mode": "investigation",
+      "description": "Classic repeat failure \u2014 agent should identify pattern and escalation",
+      "status": "PASS",
+      "elapsed_s": 36.0,
+      "input": {
+        "incident": "WR-401 welding robot on Line 4 just triggered a weld quality alarm. Spatter index reading 4.8. This is the third time this week.",
+        "equipment_id": "WR-401",
+        "line": "Line 4"
+      },
+      "answer": "\ud83d\udd0d Multi-agent investigation started...\n\n\ud83d\udccd Equipment identified: WR-401\n\n\u26a1 Dispatching 4 specialist agents in parallel...\n\n   \u2705 \ud83d\udd27 Maintenance Agent complete\n   \u2705 \ud83d\udcca NCR Agent complete\n   \u2705 \ud83d\udea8 Alarm Agent complete\n   \u2705 \ud83d\udccb SOP Agent complete\n\n\ud83d\udcdd All specialists complete. Orchestrator synthesizing report...\n\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT \u2014 TECHNICAL\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSOURCE DATA:\n- Maintenance history findings: WI-WR-401-maintenance-log.txt, WR-401-maintenance-record.pdf\n- NCR / Quality findings: NCR-WR-401-2024-04-spatter-recurrence.txt, NCR-2024-0892-door-panel-weld-deviation.pdf\n- Alarm pattern findings: [Source: Line4-day-shift-log-Apr17.csv | Type: Shift Log | Revision: 1.0 | Score: 0.88], [Source: Line4-day-shift-log-Apr17.csv | Type: Shift Log | Revision: 1.0 | Score: 0.87], [Source: Line4-night-shift-log-Apr16.csv | Type: Shift Log | Revision: 1.0 | Score: 0.87]\n- SOP / Procedure findings: SOP-WR-401-welding-robot.txt, WR-401-welding-robot-SOP.pdf\n\nWHAT IS THE ISSUE:\n- The root cause of the weld quality alarm on WR-401 is a recurring issue with spatter buildup on the torch tip, which was not properly addressed in the previous NCR (NCR-2024-0892). The current incident is different from previous ones in that it has occurred multiple times this week, indicating a possible recurring issue.\n- Evidence from specialist findings: NCR AGENT FINDINGS (HIGH PRIORITY NCR without completed corrective action), ALARM AGENT FINDINGS (multiple occurrences of weld quality alarm this week), MAINTENANCE AGENT FINDINGS (spatter buildup on torch tip reported on Apr 08, 2024).\n\nWHAT IS THE IMPACT:\n- Production impact: Line 4 is at risk due to the weld quality alarm on WR-401.\n- Safety risk: MEDIUM (no specific safety steps mentioned in the provided SOPs, but the spatter index reading is higher than expected).\n- Financial impact: Not determinable from the data.\n\nHOW CRITICAL IS IT:\n- CRITICAL\n- The weld quality alarm on WR-401 has occurred multiple times this week, indicating a possible recurring issue that needs to be addressed immediately.\n\nHOW TO ADDRESS IT:\n- Immediate action: Perform troubleshooting steps to identify the cause of the spatter buildup on the torch tip and escalate to the Welding Engineer on duty if necessary.\n- Root cause fix: Address the root cause of the spatter buildup on the torch tip, which may involve replacing the wire liner or performing additional maintenance on the welding robot.\n- Preventive action: Review and update the SOPs to include specific safety steps for responding to weld quality alarms and troubleshooting steps for identifying the cause of spatter buildup on the torch tip.\n- Who to notify: Notify the Welding Engineer on duty and the Plant Manager of the issue and the actions being taken to address it.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nPLANT MANAGER SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSITUATION: The WR-401 welding robot on Line 4 has triggered a weld quality alarm with a spatter index reading of 4.8, which is the third time this week.\n\nROOT CAUSE: The root cause of the weld quality alarm is a recurring issue with spatter buildup on the torch tip, which was not properly addressed in the previous NCR.\n\nSTATUS: Line 4 is at risk due to the weld quality alarm on WR-401.\n\nACTION REQUIRED: Perform troubleshooting steps to identify the cause of the spatter buildup on the torch tip and escalate to the Welding Engineer on duty if necessary",
+      "sources": [],
+      "keyword_check": {
+        "must_contain:wire liner": true,
+        "must_contain:WR-401": true,
+        "must_not_contain:insufficient data": true,
+        "must_not_contain:no records found": true
+      },
+      "pass_criteria": "Identifies wire liner as likely root cause. References the Feb NCR as precedent. Recommends liner inspection. Assigns HIGH or CRITICAL criticality. Has all 5 report sections.",
+      "fail_criteria": "Does not mention wire liner. Treats each alarm as isolated event. Missing report sections. Invents data not in sources.",
+      "expected": {
+        "must_contain": [
+          "wire liner",
+          "WR-401"
+        ],
+        "must_not_contain": [
+          "insufficient data",
+          "no records found"
+        ],
+        "format": "structured report with SOURCE DATA, ISSUE, IMPACT, CRITICALITY, ACTION sections",
+        "tone": "technical but clear"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "INV-002",
+      "mode": "investigation",
+      "description": "No history \u2014 agent should state insufficient data, not hallucinate",
+      "status": "PASS",
+      "elapsed_s": 29.9,
+      "input": {
+        "incident": "CM-301 conveyor motor on Line 3 just stopped. No movement, no alarm lights, just stopped.",
+        "equipment_id": "CM-301",
+        "line": ""
+      },
+      "answer": "\ud83d\udd0d Multi-agent investigation started...\n\n\ud83d\udccd Equipment identified: CM-301\n\n\u26a1 Dispatching 4 specialist agents in parallel...\n\n   \u2705 \ud83d\udea8 Alarm Agent complete\n   \u2705 \ud83d\udd27 Maintenance Agent complete\n   \u2705 \ud83d\udccb SOP Agent complete\n   \u2705 \ud83d\udcca NCR Agent complete\n\n\ud83d\udcdd All specialists complete. Orchestrator synthesizing report...\n\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT \u2014 TECHNICAL\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSOURCE DATA:\n- Alarm pattern findings: NO PREVIOUS OCCURRENCES, NO HISTORICAL DATA FOUND (ALARM AGENT, timestamp: N/A)\n- Maintenance history findings: LAST SERVICE: NOT FOUND, RECURRING ISSUES: NO DATA, RECENT WORK: NO DATA, RELEVANT FINDINGS: NO DATA (MAINTENANCE AGENT)\n- SOP / procedure findings: SOP GAP: YES \u2014 no procedure found (SOP AGENT, timestamp: N/A)\n- NCR / quality findings: PAST NCRs FOUND: NONE, OPEN NCRs: NONE, REPEAT FAILURE MODE: NO, CORRECTIVE ACTIONS COMPLETED: NO DATA (NCR AGENT, timestamp: N/A)\n\nWHAT IS THE ISSUE:\n- Root cause: The CM-301 conveyor motor stopped without warning due to a lack of maintenance history and a non-existent procedure for handling such an event.\n- What is different about this occurrence vs historical pattern: This is the first reported incident of the CM-301 conveyor motor stopping without warning.\n\nWHAT IS THE IMPACT:\n- Production impact: The line is at risk of further stoppages if the issue is not addressed.\n- Safety risk: MEDIUM \u2014 the lack of a procedure for handling the motor stoppage could lead to safety risks if not addressed.\n- Financial impact: Determinable from the data, but not provided.\n\nHOW CRITICAL IS IT:\n- CRITICAL \u2014 the lack of a procedure for handling the motor stoppage and the absence of maintenance history pose a significant risk to production and safety.\n- Justification: The absence of a procedure and maintenance history increases the likelihood of further stoppages and safety risks.\n\nHOW TO ADDRESS IT:\n- Immediate action: Develop a temporary procedure for handling the CM-301 conveyor motor stoppage until a permanent solution is implemented.\n- Root cause fix: Implement a regular maintenance schedule for the CM-301 conveyor motor and develop a permanent procedure for handling motor stoppages.\n- Preventive action: Review and update SOPs to ensure that all critical equipment has a procedure for handling stoppages.\n- Who to notify: Plant Manager, Maintenance Team, and Quality Assurance.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nPLANT MANAGER SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSITUATION: The CM-301 conveyor motor on Line 3 stopped without warning due to a lack of maintenance history and a non-existent procedure for handling such an event.\nROOT CAUSE: The motor stopped because there was no procedure in place to handle it, and it hadn't been properly maintained.\nSTATUS: The line is at risk of further stoppages if the issue is not addressed.\nACTION REQUIRED: Develop a temporary procedure for handling the CM-301 conveyor motor stoppage until a permanent solution is implemented.\nRISK IF NOT ACTIONED: Further stoppages and potential safety risks if the issue is not addressed.",
+      "sources": [],
+      "keyword_check": {
+        "must_contain_one_of": true,
+        "must_not_contain:likely caused by": true,
+        "must_not_contain:probably": true,
+        "must_not_contain:bearing failure": true,
+        "must_not_contain:overheating": true
+      },
+      "pass_criteria": "Explicitly states no documents found for CM-301. Does NOT speculate about root cause. Recommends uploading maintenance records. Suggests immediate manual inspection.",
+      "fail_criteria": "Invents plausible-sounding root causes (overheating, bearing failure etc.) without document evidence. Uses hedged speculation ('probably', 'likely').",
+      "expected": {
+        "must_contain_one_of": [
+          "no documents",
+          "not found",
+          "no information",
+          "could not find",
+          "no relevant",
+          "insufficient",
+          "no records",
+          "hasn't been uploaded",
+          "check that the relevant document",
+          "CM-301"
+        ],
+        "must_not_contain": [
+          "likely caused by",
+          "probably",
+          "bearing failure",
+          "overheating"
+        ],
+        "format": "honest no-data response with recommended actions",
+        "tone": "clear, does not speculate"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "INV-003",
+      "mode": "investigation",
+      "description": "Safety-critical incident \u2014 agent must assign correct criticality",
+      "status": "PASS",
+      "elapsed_s": 38.1,
+      "input": {
+        "incident": "PC-701 paint booth on Line 7. Exhaust fan stopped working. Operators can smell solvent fumes. Line is still running.",
+        "equipment_id": "PC-701",
+        "line": "Line 4"
+      },
+      "answer": "\ud83d\udd0d Multi-agent investigation started...\n\n\ud83d\udccd Equipment identified: PC-701\n\n\u26a1 Dispatching 4 specialist agents in parallel...\n\n   \u2705 \ud83d\udd27 Maintenance Agent complete\n   \u2705 \ud83d\udccb SOP Agent complete\n   \u2705 \ud83d\udea8 Alarm Agent complete\n   \u26a0\ufe0f \ud83d\udcca NCR Agent encountered an error \u2014 continuing\n\n\ud83d\udcdd All specialists complete. Orchestrator synthesizing report...\n\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT \u2014 TECHNICAL\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSOURCE DATA:\n- Maintenance record search results | Type: Maintenance Record Search | Revision: 1.0 | Score: 0.80\n- SOP-PC-701-paint-booth.txt | Type: SOP | Revision: 2.0 | Score: 0.89\n- SHIFT-LOG-Line7-Apr2024.csv | Type: Shift Log | Revision: 1.0 | Score: 0.87\n\nWHAT IS THE ISSUE:\n- The root cause of the issue is the exhaust fan stopped working in the PC-701 paint booth on Line 7, resulting in an explosive atmosphere inside the booth. This is a serious safety violation and requires immediate action as per the SOP.\n- The current incident deviates from the normal operating range as the operators can smell solvent fumes, which is a sign of an explosive atmosphere inside the booth.\n\nWHAT IS THE IMPACT:\n- Production impact: The line is still running, but it should be stopped immediately to prevent further safety risks.\n- Safety risk: HIGH\n- Financial impact: Not determinable from the data.\n\nHOW CRITICAL IS IT:\n- CRITICAL\n- The exhaust fan stopped working, creating an explosive atmosphere inside the booth, which poses a significant risk to operator safety.\n\nHOW TO ADDRESS IT:\n- Immediate action: STOP THE LINE IMMEDIATELY, halt all spray application, and evacuate all personnel from the area.\n- Root cause fix: Investigate and repair the exhaust fan to ensure it is functioning within the specified operating range.\n- Preventive action: Review and update the maintenance schedule to ensure regular checks and maintenance of the exhaust fan.\n- Who to notify: Plant Manager, Maintenance Team, and Safety Officer.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nPLANT MANAGER SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSITUATION: The exhaust fan in the PC-701 paint booth on Line 7 stopped working, creating an explosive atmosphere inside the booth, and operators can smell solvent fumes.\n\nROOT CAUSE: The exhaust fan stopped working due to a lack of maintenance and a potential new issue with the equipment.\n\nSTATUS: The line is still running, but it should be stopped immediately to prevent further safety risks.\n\nACTION REQUIRED: STOP THE LINE IMMEDIATELY, halt all spray application, and evacuate all personnel from the area.\n\nRISK IF NOT ACTIONED: The risk of an explosion or fire inside the booth, which could result in serious injury or death to operators.",
+      "sources": [],
+      "keyword_check": {
+        "must_contain:CRITICAL": true,
+        "must_contain:stop": true,
+        "must_contain_one_of": true,
+        "must_not_contain:schedule for next maintenance": true,
+        "must_not_contain:LOW": true
+      },
+      "pass_criteria": "Assigns CRITICAL. Immediate action includes line stop and evacuation. References SOP requirement. Notifies safety officer. Does NOT downgrade to monitor-and-continue.",
+      "fail_criteria": "Assigns anything below CRITICAL. Suggests continuing to run the line. Does not mention evacuation. Treats as routine maintenance item.",
+      "expected": {
+        "must_contain": [
+          "CRITICAL",
+          "stop"
+        ],
+        "must_not_contain": [
+          "schedule for next maintenance",
+          "LOW"
+        ],
+        "format": "structured report, criticality clearly stated",
+        "tone": "urgent, safety-first",
+        "must_contain_one_of": [
+          "ventilat",
+          "exhaust",
+          "fan",
+          "evacuate",
+          "safety officer"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "INV-004",
+      "mode": "investigation",
+      "description": "Recent maintenance relevance \u2014 agent should connect recent work to current fault",
+      "status": "FAIL",
+      "elapsed_s": 51.9,
+      "input": {
+        "incident": "WR-401 welding robot. Wire feed stuttering and inconsistent arc since this morning. No spatter alarm yet but weld quality is degrading.",
+        "equipment_id": "WR-401",
+        "line": "Line 4"
+      },
+      "answer": "\ud83d\udd0d Multi-agent investigation started...\n\n\ud83d\udccd Equipment identified: WR-401\n\n\u26a1 Dispatching 4 specialist agents in parallel...\n\n   \u2705 \ud83d\udd27 Maintenance Agent complete\n   \u2705 \ud83d\udcca NCR Agent complete\n   \u2705 \ud83d\udccb SOP Agent complete\n   \u2705 \ud83d\udea8 Alarm Agent complete\n\n\ud83d\udcdd All specialists complete. Orchestrator synthesizing report...\n\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT \u2014 TECHNICAL\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSOURCE DATA:\n- Maintenance history: WI-WR-401-maintenance-log.txt, WR-401-maintenance-record.pdf\n- NCR / Quality findings: NCR-WR-401-2024-04-spatter-recurrence.txt, NCR-2024-0892-door-panel-weld-deviation.pdf\n- SOP / Procedure findings: SOP-WR-401-welding-robot.txt, WR-401-welding-robot-SOP.pdf\n- Alarm pattern findings: Line4-day-shift-log-Apr17.csv, SHIFT-LOG-Line4-Apr2024.csv, Line4-night-shift-log-Apr16.csv, SHIFT-LOG-Line4-Apr2024.csv\n\nWHAT IS THE ISSUE:\n- The root cause of the wire feed stuttering and inconsistent arc on the WR-401 welding robot is unclear, but there is a pattern of spatter buildup and TCP position error alarms, suggesting potential issues with the welding robot's performance. The fact that weld quality improved for approximately 6 hours after the torch tip cleaning but degraded again indicates a possible underlying problem. (Contradiction between Maintenance Agent and Alarm Agent findings: Maintenance Agent suggests a possible underlying problem, while Alarm Agent suggests a repeat failure mode.)\n\nWHAT IS THE IMPACT:\n- Production impact: Line WR-401 is at risk due to degrading weld quality.\n- Safety risk: MEDIUM (potential for injury due to inconsistent arc and spatter buildup).\n- Financial impact: Not determinable from the data.\n\nHOW CRITICAL IS IT:\n- CRITICAL (degrading weld quality and potential for injury).\n- Justification: The WR-401 welding robot is a critical piece of equipment, and any downtime or degradation in quality can have significant financial and safety implications.\n\nHOW TO ADDRESS IT:\n- Immediate action: Stop production on Line WR-401 until the issue is resolved.\n- Root cause fix: Perform a thorough investigation and root cause analysis to identify the underlying problem.\n- Preventive action: Implement a new maintenance schedule to prevent future blockages and spatter buildup.\n- Who to notify: Notify the Plant Manager, Maintenance Manager, and Welding Engineer on duty.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nPLANT MANAGER SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSITUATION: The WR-401 welding robot on Line WR-401 is experiencing wire feed stuttering and inconsistent arc, resulting in degrading weld quality.\n\nROOT CAUSE: The root cause of the issue is unclear, but there is a pattern of spatter buildup and TCP position error alarms, suggesting potential issues with the welding robot's performance.\n\nSTATUS: Line WR-401 is at risk due to degrading weld quality.\n\nACTION REQUIRED: Stop production on Line WR-401 until the issue is resolved.\n\nRISK IF NOT ACTIONED: The risk of injury due to inconsistent arc and spatter buildup, as well as potential financial losses due to downtime and degradation in quality.",
+      "sources": [],
+      "keyword_check": {
+        "must_contain:burn-in": false,
+        "must_contain:liner replacement": false,
+        "must_contain:Apr 19": false,
+        "must_contain:expected": false,
+        "must_contain:50m": false,
+        "must_contain_one_of": false,
+        "must_not_contain:root cause unknown": true,
+        "must_not_contain:CRITICAL": false
+      },
+      "pass_criteria": "Connects yesterday's liner replacement to today's symptom. Cites the burn-in requirement from SOP. Assigns LOW or MEDIUM (not CRITICAL) because this is expected behaviour. Recommends completing the burn-in.",
+      "fail_criteria": "Does not connect maintenance to symptom. Assigns CRITICAL or HIGH. Recommends unnecessary repair work. Misses the burn-in procedure.",
+      "expected": {
+        "must_contain": [
+          "burn-in",
+          "liner replacement",
+          "Apr 19",
+          "expected",
+          "50m"
+        ],
+        "must_not_contain": [
+          "root cause unknown",
+          "CRITICAL"
+        ],
+        "format": "structured report, connects maintenance to symptom",
+        "tone": "analytical, reassuring but precise",
+        "must_contain_one_of": [
+          "burn-in",
+          "burn in",
+          "liner",
+          "replacement",
+          "expected",
+          "normal",
+          "50m",
+          "50 m",
+          "new liner"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "INV-005",
+      "mode": "investigation",
+      "description": "Report structure completeness \u2014 all 5 sections must be present",
+      "status": "PASS",
+      "elapsed_s": 44.3,
+      "input": {
+        "incident": "P-201 coolant pump tripped on thermal overload. Third trip this week.",
+        "equipment_id": "P-201",
+        "line": "Line 2"
+      },
+      "answer": "\ud83d\udd0d Multi-agent investigation started...\n\n\ud83d\udccd Equipment identified: P-201\n\n\u26a1 Dispatching 4 specialist agents in parallel...\n\n   \u2705 \ud83d\udd27 Maintenance Agent complete\n   \u2705 \ud83d\udcca NCR Agent complete\n   \u2705 \ud83d\udccb SOP Agent complete\n   \u2705 \ud83d\udea8 Alarm Agent complete\n\n\ud83d\udcdd All specialists complete. Orchestrator synthesizing report...\n\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT \u2014 TECHNICAL\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSOURCE DATA:\n- WI-P-201-maintenance-log.txt (timestamp: 15-Jan-2024)\n- NCR-P-201-2024-04-thermal-trips.txt (timestamp: 2024-04-01)\n- SOP-P-201-coolant-pump.txt (Type: SOP, Revision: 2.1, Score: 0.88)\n- SOP-P-201-coolant-pump.txt (Type: SOP, Revision: 2.1, Score: 0.84)\n- SOP-P-201-coolant-pump.txt (Type: SOP, Revision: 2.1, Score: 0.8)\n- SHIFT-LOG-Line2-Apr2024.csv (Type: Shift Log, Revision: 1.0, Score: 0.88)\n- SHIFT-LOG-Line2-Apr2024.csv (Type: Shift Log, Revision: 1.0, Score: 0.87)\n- SHIFT-LOG-Line2-Apr2024.csv (Type: Shift Log, Revision: 1.0, Score: 0.86)\n\nWHAT IS THE ISSUE:\n- The P-201 coolant pump has tripped on thermal overload for the third time this week, indicating a possible issue with the pump's cooling system or motor. The root cause is likely related to the cooling fan blockage, as indicated by the NCR agent findings. However, the SOP agent findings reveal a procedure gap, as there is no explicit procedure for a thermal overload trip beyond cleaning the motor cooling fan.\n\nWHAT IS THE IMPACT:\n- Production impact: The line is at risk due to the repeated thermal overload trips.\n- Safety risk: MEDIUM (electrical shock or other hazards may occur if the cooling fan is not cleaned properly)\n- Financial impact: Not determinable from the data\n\nHOW CRITICAL IS IT:\n- CRITICAL\n- The repeated thermal overload trips pose a significant risk to production and safety, and immediate action is required to prevent further incidents.\n\nHOW TO ADDRESS IT:\n- Immediate action: Clean the motor cooling fan thoroughly and inspect the pump's cooling system for any blockages or issues.\n- Root cause fix: Implement a permanent solution to prevent cooling fan blockages, such as regular cleaning and inspection schedules.\n- Preventive action: Review and update the SOP to include procedures for thermal overload trips beyond cleaning the motor cooling fan.\n- Who to notify: Notify the maintenance team, production team, and safety officer to ensure that the issue is addressed promptly and effectively.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nPLANT MANAGER SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSITUATION: The P-201 coolant pump has tripped on thermal overload for the third time this week, posing a risk to production and safety.\n\nROOT CAUSE: The root cause is likely related to the cooling fan blockage, which is not addressed in the current SOP.\n\nSTATUS: The line is at risk due to the repeated thermal overload trips.\n\nACTION REQUIRED: Clean the motor cooling fan thoroughly and inspect the pump's cooling system for any blockages or issues.\n\nRISK IF NOT ACTIONED: Further thermal overload trips may occur, posing a significant risk to production and safety.",
+      "sources": [],
+      "keyword_check": {
+        "must_contain:SOURCE DATA": true,
+        "must_contain:ISSUE": true,
+        "must_contain:IMPACT": true,
+        "must_contain:CRITICAL": true,
+        "must_contain:ADDRESS": true
+      },
+      "pass_criteria": "All 5 report sections present. Each section has content. SOURCE DATA lists specific documents. CRITICALITY is HIGH or CRITICAL given 3 trips in 7 days.",
+      "fail_criteria": "One or more sections missing or empty. Report is free-form prose without section headers. SOURCE DATA section is empty.",
+      "expected": {
+        "must_contain": [
+          "SOURCE DATA",
+          "ISSUE",
+          "IMPACT",
+          "CRITICAL",
+          "ADDRESS"
+        ],
+        "must_not_contain": [],
+        "format": "all 5 sections present and populated",
+        "tone": "structured report format"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "INV-006",
+      "mode": "investigation",
+      "description": "Conflicting signals \u2014 agent should reason about contradictions in data",
+      "status": "FAIL",
+      "elapsed_s": 48.0,
+      "input": {
+        "incident": "WR-401 spatter index spiked to 4.2 but visual weld inspection shows normal quality. Maintenance says they just cleaned everything. Confusing situation.",
+        "equipment_id": "WR-401",
+        "line": "Line 4"
+      },
+      "answer": "\ud83d\udd0d Multi-agent investigation started...\n\n\ud83d\udccd Equipment identified: WR-401\n\n\u26a1 Dispatching 4 specialist agents in parallel...\n\n   \u2705 \ud83d\udea8 Alarm Agent complete\n   \u2705 \ud83d\udd27 Maintenance Agent complete\n   \u2705 \ud83d\udcca NCR Agent complete\n   \u26a0\ufe0f \ud83d\udccb SOP Agent encountered an error \u2014 continuing\n\n\ud83d\udcdd All specialists complete. Orchestrator synthesizing report...\n\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT \u2014 TECHNICAL\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSOURCE DATA:\n- SHIFT-LOG-Line4-Apr2024.csv | Type: Shift Log | Revision: 1.0 | Score: 0.88\n- SHIFT-LOG-Line4-Apr2024.csv | Type: Shift Log | Revision: 1.0 | Score: 0.87 (summary)\n- WI-WR-401-maintenance-log.txt\n- WR-401-maintenance-record.pdf\n- NCR-WR-401-2024-04-spatter-recurrence.txt\n- NCR-2024-0892-door-panel-weld-deviation.pdf\n- NCR-WR-401-2024-04-spatter-recurrence.txt (second instance)\n\nWHAT IS THE ISSUE:\n- The spatter index on WR-401 spiked to 4.2, but visual weld inspection shows normal quality. This is unusual given the high spatter index reading. The issue may be related to the welding robot's spatter control system, as indicated by recurring spatter alarms and a possible issue with the spatter control system.\n- Evidence from the Alarm Agent findings shows a pattern of spatter index alarms being resolved by cleaning the spatter shield, but this time the reading is higher than previous occurrences.\n- The Maintenance Agent findings indicate that recent maintenance tasks may not have fully addressed the issue, and the Scheduled PM on March 28, 2024, lacks details about what was done during the maintenance task.\n- The NCR Agent findings show a recurring issue with spatter recurrence, with two NCRs related to WR-401 equipment, one citing spatter recurrence and the other a weld quality deviation.\n\nWHAT IS THE IMPACT:\n- Production impact: At risk due to the possibility of equipment failure or reduced quality.\n- Safety risk: MEDIUM due to the potential for equipment failure or reduced quality.\n- Financial impact: Not determinable from the data.\n\nHOW CRITICAL IS IT:\n- CRITICAL due to the potential for equipment failure or reduced quality, which could impact production and safety.\n- Justification: The recurring issue with spatter recurrence and the possibility of equipment failure or reduced quality make this a critical issue.\n\nHOW TO ADDRESS IT:\n- Immediate action: Perform a thorough inspection of the welding robot's spatter control system and clean the spatter shield to ensure proper function.\n- Root cause fix: Investigate and address the root cause of the spatter control system issue, which may involve replacing or repairing the system.\n- Preventive action: Implement a regular maintenance schedule for the spatter control system and ensure that all maintenance tasks are properly documented.\n- Who to notify: Notify the production team, maintenance team, and quality control team to ensure that everyone is aware of the issue and the actions being taken to address it.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nPLANT MANAGER SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSITUATION: The spatter index on WR-401 spiked to 4.2, but visual weld inspection shows normal quality, indicating a possible issue with the welding robot's spatter control system.\n\nROOT CAUSE: The issue may be related to the welding robot's spatter control system, which has been experiencing recurring spatter alarms and a possible issue with the spatter control system.\n\nSTATUS: The line is at risk due to the possibility of equipment failure or reduced quality.\n\nACTION REQUIRED: Perform a thorough inspection of the welding robot's spatter control system and clean the spatter shield to ensure proper function.\n\nRISK IF NOT ACTIONED: The possibility of equipment failure or reduced quality, which could impact",
+      "sources": [],
+      "keyword_check": {
+        "must_contain:sensor": false,
+        "must_contain:false": false,
+        "must_contain:residue": false,
+        "must_contain:30 min": false,
+        "must_contain:visual": true,
+        "must_contain_one_of": true,
+        "must_not_contain:schedule for next maintenance": true,
+        "must_not_contain:LOW": true
+      },
+      "pass_criteria": "Identifies sensor residue as likely cause of false reading. References SOP note about 30-min false high after clean. Assigns LOW criticality. Recommends waiting and re-checking, not escalating.",
+      "fail_criteria": "Ignores the conflicting signals. Treats the spike as a real fault. Misses the SOP note about sensor readings after cleaning. Assigns HIGH/CRITICAL incorrectly.",
+      "expected": {
+        "must_contain": [
+          "sensor",
+          "false",
+          "residue",
+          "30 min",
+          "visual"
+        ],
+        "must_not_contain": [
+          "schedule for next maintenance",
+          "LOW"
+        ],
+        "format": "structured report, explains contradiction",
+        "tone": "analytical, explains the discrepancy",
+        "must_contain_one_of": [
+          "sensor",
+          "false",
+          "residue",
+          "clean",
+          "post-clean",
+          "30 min",
+          "30 minutes",
+          "shield clean",
+          "after clean"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    }
+  ]
+}

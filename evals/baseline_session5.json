@@ -1,0 +1,40 @@
+{
+  "session": "Session 5 \u2014 PM-E02",
+  "locked_at": "2026-04-24T21:55:48",
+  "description": "Baseline before any prompt engineering or reflection changes",
+  "summary": {
+    "total": 20,
+    "passed": 13,
+    "errors": 2,
+    "effective_pass_rate": "65% (13/20) or ~72% excluding connection errors",
+    "by_mode": {
+      "qa": {
+        "passed": 5,
+        "total": 7,
+        "rate": "71%"
+      },
+      "shift_intel": {
+        "passed": 4,
+        "total": 5,
+        "rate": "80%"
+      },
+      "investigation": {
+        "passed": 4,
+        "total": 6,
+        "rate": "67%"
+      }
+    }
+  },
+  "known_failures": {
+    "QA-006": "WR-401 spec chunk retrieval intermittent \u2014 top_k borderline",
+    "QA-007": "Cross-doc reasoning \u2014 wire spec not always retrieved",
+    "SI-007": "Answer includes night shift data alongside day shift",
+    "INV-004": "Agent not connecting 19-Apr maintenance log to burn-in SOP requirement",
+    "INV-006": "Agent not identifying sensor residue false reading from SOP note"
+  },
+  "known_errors": {
+    "SI-003": "Groq rate limit \u2014 connection timeout mid-run",
+    "SI-006": "Groq rate limit \u2014 connection timeout mid-run"
+  },
+  "next_session": "Session 6 \u2014 PM-026 reflection pattern. Re-run evals after to measure delta."
+}

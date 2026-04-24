@@ -133,16 +133,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 <div id="pagination" class="pagination"></div>
 <script src="/static/nav_context.js"></script>
 <script>
-var allDocs      = [];
-var showArchived = false;
-var editingId    = null;
-var currentPage  = 1;
-var PAGE_SIZE    = 12;
+var allDocs       = [];
+var allPlantSites = [];
+var showArchived  = false;
+var editingId     = null;
+var currentPage   = 1;
+var PAGE_SIZE     = 12;
 
-fetch('/api/documents')
-  .then(function(r){return r.json()})
-  .then(function(data){
-    allDocs = data.documents||[];
+// Load plant sites then documents
+Promise.all([
+  fetch('/api/plant-sites').then(function(r){return r.json()}),
+  fetch('/api/documents').then(function(r){return r.json()})
+]).then(function(results){
+    allPlantSites = (results[0].plant_sites || []).map(function(ps){return ps.name});
+    allDocs = results[1].documents || [];
     populateFilters();
     updateStats();
     filterDocs();
@@ -272,7 +276,7 @@ function renderEditForm(doc){
         '<span class="edit-label">Plant site</span>' +
         '<select class="edit-input" id="ep-'+doc.id+'">' +
           '<option value="">-- select --</option>' +
-          ['Houston Plant','Deer Park Facility'].map(function(p){return '<option value="'+p+'"'+(doc.plant_site===p?' selected':'')+'>'+p+'</option>'}).join('') +
+          allPlantSites.map(function(p){return '<option value="'+p+'"'+(doc.plant_site===p?' selected':'')+'>'+p+'</option>'}).join('') +
         '</select>' +
       '</div>' +
       '<div class="edit-field">' +
