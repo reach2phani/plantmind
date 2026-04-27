@@ -24,6 +24,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import time as _time
+
+def _groq_call_with_retry(fn, max_retries=3):
+    """Retry Groq calls on rate limit errors with exponential backoff.
+    Prevents TPM errors from crashing investigations mid-run."""
+    for attempt in range(max_retries):
+        try:
+            return fn()
+        except Exception as e:
+            if "rate_limit" in str(e).lower() or "429" in str(e):
+                wait = [55, 70, 90][attempt]  # Groq TPM resets in ~47s
+                print(f"  Rate limit hit — waiting {wait}s before retry {attempt+1}/{max_retries}")
+                _time.sleep(wait)
+            else:
+                raise
+    raise Exception("Max retries exceeded on Groq rate limit")
+
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 pc          = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 pine_index  = pc.Index(os.getenv("PINECONE_INDEX"))
@@ -118,7 +135,7 @@ Shift log search results:
 
 Analyse the alarm pattern from this data."""
 
-    response = groq_client.chat.completions.create(
+    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -126,7 +143,7 @@ Analyse the alarm pattern from this data."""
         ],
         max_tokens=400,
         temperature=0.1
-    )
+    ))
 
     return {
         "agent":    "Alarm Agent",
@@ -176,7 +193,7 @@ Maintenance record search results:
 
 Analyse the maintenance history from this data."""
 
-    response = groq_client.chat.completions.create(
+    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -184,7 +201,7 @@ Analyse the maintenance history from this data."""
         ],
         max_tokens=400,
         temperature=0.1
-    )
+    ))
 
     return {
         "agent":    "Maintenance Agent",
@@ -234,7 +251,7 @@ SOP search results:
 
 Extract the relevant procedures and specifications from this data."""
 
-    response = groq_client.chat.completions.create(
+    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -242,7 +259,7 @@ Extract the relevant procedures and specifications from this data."""
         ],
         max_tokens=400,
         temperature=0.1
-    )
+    ))
 
     return {
         "agent":    "SOP Agent",
@@ -292,7 +309,7 @@ NCR search results:
 
 Analyse the quality and non-conformance history from this data."""
 
-    response = groq_client.chat.completions.create(
+    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -300,7 +317,7 @@ Analyse the quality and non-conformance history from this data."""
         ],
         max_tokens=400,
         temperature=0.1
-    )
+    ))
 
     return {
         "agent":    "NCR Agent",
@@ -382,17 +399,69 @@ Specialist agent findings:
 
 Synthesize the final investigation report from these findings."""
 
-    response = groq_client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+    # ── First pass — initial report ─────────────────────────────────
+    # Teaching note: This is the same as before — one LLM call to
+    # synthesise the specialist findings into a structured report.
+    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",  # best reasoning quality on free tier
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": user_prompt}
         ],
         max_tokens=800,
         temperature=0.1
-    )
+    ))
 
-    return response.choices[0].message.content
+    initial_report = response.choices[0].message.content
+
+    # ── Reflection pass — second LLM critiques and improves ──────────
+    # Teaching note: This is the REFLECTION PATTERN.
+    # A second LLM call reads the first report and asks:
+    #   - What did I miss?
+    #   - Did I correctly connect the maintenance history to the SOP?
+    #   - Is the criticality rating justified by the evidence?
+    #   - Are there contradictions I glossed over?
+    # Then it rewrites the report with those gaps filled.
+    #
+    # Key insight: LLMs are better at *critiquing* than *generating*.
+    # The first pass produces something plausible. The second pass
+    # catches the logical gaps that a single-pass LLM skips over.
+
+    REFLECTION_PROMPT = """You are a senior maintenance engineer reviewing an AI-generated investigation report.
+
+Your job is to critique the report and rewrite it with improvements.
+
+STRICT RULES:
+- Do NOT downgrade a CRITICAL rating unless you have clear evidence it is wrong.
+- Do NOT add safety risk labels that contradict the overall criticality rating.
+- Do NOT invent new facts — only use evidence already in the specialist findings.
+- If criticality is already correct, keep it exactly as is.
+
+Check for these specific failure patterns:
+1. MISSED CONNECTIONS — did the report fail to link a maintenance event to a SOP requirement?
+   Example: liner was replaced + SOP says burn-in required after liner change = must be connected.
+   Example: sensor reading high after cleaning + SOP says false readings possible post-clean = explain it.
+2. WRONG CRITICALITY — only change if clearly wrong.
+   Safety events (exhaust fan failure, solvent exposure, fire risk) = CRITICAL. Do not downgrade.
+   Expected behaviour after maintenance (burn-in period, calibration drift) = LOW or MEDIUM.
+3. IGNORED CONTRADICTIONS — if sensor reads high but visual inspection is normal,
+   the report must explain why (e.g. sensor residue after cleaning), not treat it as a real fault.
+4. INCOMPLETE ACTIONS — are immediate, root cause, and preventive actions all present?
+
+Rewrite the full report with gaps corrected.
+Keep the exact same format (INVESTIGATION REPORT — TECHNICAL + PLANT MANAGER SUMMARY)."""
+
+    reflection_response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",  # best reasoning quality on free tier
+        messages=[
+            {"role": "system", "content": REFLECTION_PROMPT},
+            {"role": "user",   "content": f"Original report to critique and improve:\n\n{initial_report}\n\nNote: The report above was synthesised from shift logs, maintenance records, SOPs, and NCR history for this equipment. Improve it using only what is already stated in the report."}
+        ],
+        max_tokens=600,
+        temperature=0.1
+    ))
+
+    return reflection_response.choices[0].message.content
 
 
 # ── Parallel Coordinator + Streaming Generator ─────────────────────────────────

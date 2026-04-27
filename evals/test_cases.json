@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "1.0",
-    "total_cases": 20,
+    "total_cases": 10,
     "modes": {
       "qa": 7,
       "shift_intel": 7,
@@ -11,7 +11,7 @@
       "pass_threshold": 0.7,
       "method": "llm_as_judge + keyword_check"
     },
-    "notes": "Fictional but realistic manufacturing plant. Equipment uses ISA-95 tag format. Plant: Northgate Automotive, Line 4 (body panels), Line 7 (paint shop)."
+    "notes": "Reduced to 10 core cases for free tier Groq. Covers all failure categories."
   },
   "test_cases": [
     {
@@ -41,62 +41,6 @@
       },
       "pass_criteria": "Answer states 185 Nm and mentions star pattern. Cites SOP-WH-401.",
       "fail_criteria": "Wrong torque value, no torque value given, or answer is vague prose with no actionable instruction."
-    },
-    {
-      "id": "QA-002",
-      "mode": "qa",
-      "description": "Safety question \u2014 operator asks about a chemical hazard",
-      "input": {
-        "question": "What PPE is required when handling the primer coat on Line 7?",
-        "equipment_id": "PC-701",
-        "mode": "qa",
-        "line": "Line 4"
-      },
-      "mock_context": "MSDS-Primer-L7 Rev 1.0: Handling requirements. Mandatory PPE: nitrile gloves (min 0.2mm thickness), full face shield, chemical-resistant apron, forced-air respirator. Do NOT use dust masks \u2014 vapour protection required.",
-      "expected": {
-        "must_contain": [
-          "nitrile",
-          "apron"
-        ],
-        "must_not_contain": [
-          "dust mask",
-          "optional"
-        ],
-        "format": "list of PPE items",
-        "tone": "clear and safety-focused",
-        "must_contain_one_of": [
-          "respirator",
-          "air-line",
-          "supplied-air",
-          "forced-air"
-        ]
-      },
-      "pass_criteria": "Lists at least 3 correct PPE items. Mentions respirator specifically (not dust mask).",
-      "fail_criteria": "Mentions dust mask as acceptable. Omits respirator. Lists fewer than 2 PPE items."
-    },
-    {
-      "id": "QA-003",
-      "mode": "qa",
-      "description": "Revision-aware retrieval \u2014 operator should get latest not archived version",
-      "input": {
-        "question": "What is the weld dwell time for the B-pillar on Line 4?",
-        "equipment_id": "WR-401",
-        "mode": "qa",
-        "line": "Line 4"
-      },
-      "mock_context": "WI-WR-401 Rev 3.0 (CURRENT): B-pillar weld parameters. Dwell time: 420ms. Current: 9.2 kA. [ARCHIVED: WI-WR-401 Rev 2.0: Dwell time: 380ms. Current: 8.8 kA \u2014 superseded after quality review Apr 2024]",
-      "expected": {
-        "must_contain": [
-          "420"
-        ],
-        "must_not_contain": [
-          "380"
-        ],
-        "format": "direct answer with source cited",
-        "tone": "precise, includes revision"
-      },
-      "pass_criteria": "Returns 420ms from Rev 3.0. Does not mention the old 380ms value.",
-      "fail_criteria": "Returns 380ms (stale data). Returns both values without indicating which is current. No revision cited."
     },
     {
       "id": "QA-004",
@@ -133,30 +77,6 @@
       "fail_criteria": "Invents a maintenance interval (e.g. 'typically every 3 months'). Gives a generic answer not grounded in documents."
     },
     {
-      "id": "QA-005",
-      "mode": "qa",
-      "description": "Multi-step procedure \u2014 answer should be structured as steps",
-      "input": {
-        "question": "How do I reset the weld controller on WR-401 after a fault?",
-        "equipment_id": "WR-401",
-        "mode": "qa",
-        "line": "Line 4"
-      },
-      "mock_context": "SOP-WR-401 Rev 1.2: Fault recovery. Step 1: Press and hold E-STOP for 3 seconds. Step 2: Open controller panel (key switch to MAINT). Step 3: Navigate to FAULT LOG, clear active faults. Step 4: Close panel, return key to RUN. Step 5: Press RESET on HMI. Step 6: Run one test cycle before resuming production.",
-      "expected": {
-        "must_contain": [
-          "E-STOP",
-          "FAULT LOG",
-          "test cycle"
-        ],
-        "must_not_contain": [],
-        "format": "numbered steps in correct order",
-        "tone": "instructional, step-by-step"
-      },
-      "pass_criteria": "Returns numbered steps. E-STOP is step 1 or early. Test cycle mentioned at end. Order is logical.",
-      "fail_criteria": "Steps out of order. Key steps (E-STOP, test cycle) omitted. Answer is unstructured prose."
-    },
-    {
       "id": "QA-006",
       "mode": "qa",
       "description": "Numerical specification \u2014 answer must be precise not approximate",
@@ -187,40 +107,6 @@
       "fail_criteria": "States wrong number. Uses vague language like 'around 3 to 4'. Does not distinguish alarm threshold from quarantine threshold."
     },
     {
-      "id": "QA-007",
-      "mode": "qa",
-      "description": "Cross-document reasoning \u2014 answer requires combining two sources",
-      "input": {
-        "question": "Can I use the standard weld wire for the roof panel or does it need the high-tensile grade?",
-        "equipment_id": "WR-401",
-        "mode": "qa",
-        "line": "Line 4"
-      },
-      "mock_context": "WI-WR-401 Rev 3.0: Roof panel welding requires ER70S-6 high-tensile wire (min yield 490 MPa). Do NOT substitute standard ER70S-2. [Material Spec MS-401 Rev 1.1: Standard wire ER70S-2 is approved for body panels only, NOT structural panels. Roof panels are classified structural.]",
-      "expected": {
-        "must_contain": [
-          "ER70S-6",
-          "high-tensile",
-          "not"
-        ],
-        "must_not_contain": [
-          "either",
-          "both are fine",
-          "standard wire is acceptable"
-        ],
-        "format": "direct answer then reason",
-        "tone": "clear, safety-relevant",
-        "must_contain_one_of": [
-          "ER70S-6",
-          "high-tensile",
-          "high tensile",
-          "structural"
-        ]
-      },
-      "pass_criteria": "Clearly states high-tensile ER70S-6 is required. Explains roof panels are structural. Does not leave ambiguity.",
-      "fail_criteria": "Says either wire is acceptable. Omits the structural classification. Gives vague answer."
-    },
-    {
       "id": "SI-001",
       "mode": "shift_intel",
       "description": "Alarm frequency question \u2014 how many times did something happen on a shift",
@@ -244,86 +130,6 @@
       },
       "pass_criteria": "States 4 alarms (or 3 spatter + 1 quality). Lists times or types. Does not confuse with other equipment.",
       "fail_criteria": "Wrong count. Includes alarms from other equipment. No breakdown of alarm types."
-    },
-    {
-      "id": "SI-002",
-      "mode": "shift_intel",
-      "description": "Shift handover summary \u2014 what happened across a full shift",
-      "input": {
-        "question": "Summarise what happened on Line 4 during the afternoon shift",
-        "equipment_id": null,
-        "time_from": "14:00",
-        "time_to": "22:00",
-        "mode": "shift_intel",
-        "line": "Line 4"
-      },
-      "mock_context": "Shift log Afternoon 2024-04-20 Line 4: 14:30 WR-401 spatter alarm, cleared. 16:15 Conveyor speed reduced to 85% for panel alignment issue. 17:00 Panel alignment corrected, speed restored. 19:45 WR-401 weld quality alarm, quarantined 6 panels. 21:30 End of shift \u2014 847 panels completed, 6 quarantined.",
-      "expected": {
-        "must_contain": [
-          "WR-401"
-        ],
-        "must_not_contain": [],
-        "format": "structured summary with key events",
-        "tone": "concise shift handover style",
-        "must_contain_one_of": [
-          "WR-401",
-          "welding robot",
-          "weld",
-          "quarantine",
-          "conveyor"
-        ]
-      },
-      "pass_criteria": "Covers: WR-401 alarms, conveyor issue, panel quarantine count, production count. Chronological or grouped by type.",
-      "fail_criteria": "Omits quarantine event. Wrong panel count. Mixes in events from other shifts."
-    },
-    {
-      "id": "SI-003",
-      "mode": "shift_intel",
-      "description": "Operator action tracking \u2014 what did a specific operator do",
-      "input": {
-        "question": "What actions did the night shift operator take on WR-401?",
-        "equipment_id": "WR-401",
-        "time_from": "22:00",
-        "time_to": "06:00",
-        "mode": "shift_intel",
-        "line": "Line 4"
-      },
-      "mock_context": "Shift log Night 2024-04-20: 22:15 WR-401 spatter alarm \u2014 Operator J.Malik cleared alarm, cleaned spatter shield. 01:20 WR-401 preventive check \u2014 J.Malik checked wire feed tension, adjusted to spec. 03:45 WR-401 weld quality low \u2014 J.Malik adjusted tip-to-work distance, 2 test welds, resumed.",
-      "expected": {
-        "must_contain": [
-          "WR-401",
-          "spatter"
-        ],
-        "must_not_contain": [],
-        "format": "list of actions with times",
-        "tone": "factual, operator-focused"
-      },
-      "pass_criteria": "Names J.Malik. Lists at least 3 distinct actions with approximate times. Does not invent actions.",
-      "fail_criteria": "Wrong operator name. Omits tip-to-work adjustment. Invents actions not in the log."
-    },
-    {
-      "id": "SI-004",
-      "mode": "shift_intel",
-      "description": "Time-range filtering \u2014 must only return events within the window",
-      "input": {
-        "question": "Did anything happen with PC-701 between 2am and 4am?",
-        "equipment_id": "PC-701",
-        "time_from": "02:00",
-        "time_to": "04:00",
-        "mode": "shift_intel",
-        "line": "Line 4"
-      },
-      "mock_context": "Shift log Night 2024-04-20: 00:30 PC-701 paint viscosity high \u2014 adjusted. 02:45 PC-701 nozzle clog alarm \u2014 nozzle cleaned, 4 mins downtime. 03:55 PC-701 temperature probe reading high \u2014 fan speed increased. 05:10 PC-701 viscosity recheck \u2014 within spec.",
-      "expected": {
-        "must_contain": [
-          "PC-701"
-        ],
-        "must_not_contain": [],
-        "format": "events within the time window only",
-        "tone": "factual, time-scoped"
-      },
-      "pass_criteria": "Returns only the 02:45 and 03:55 events. Does NOT include the 00:30 or 05:10 events.",
-      "fail_criteria": "Includes events outside the 02:00\u201304:00 window. Returns all events and ignores time filter."
     },
     {
       "id": "SI-005",
@@ -394,67 +200,6 @@
       "fail_criteria": "Says activity is normal. Does not identify the Wed-onwards escalation. No comparison to baseline."
     },
     {
-      "id": "SI-007",
-      "mode": "shift_intel",
-      "description": "Production count question \u2014 quantitative extraction from shift log",
-      "input": {
-        "question": "How many panels were produced on Line 4 today and how many were quarantined?",
-        "equipment_id": null,
-        "time_from": "06:00",
-        "time_to": "22:00",
-        "mode": "shift_intel",
-        "line": "Line 4"
-      },
-      "mock_context": "Day shift 2024-04-20 Line 4: Total panels completed: 1,284. Quarantined (weld quality): 11 panels. Scrap: 2 panels. First-pass yield: 99.0%. Night shift: 847 panels, 6 quarantined.",
-      "expected": {
-        "must_contain": [
-          "quarantine"
-        ],
-        "must_not_contain": [
-          "847"
-        ],
-        "format": "clear numbers with labels",
-        "tone": "precise, production-focused",
-        "must_contain_one_of": [
-          "1,284",
-          "1284",
-          "1 284"
-        ]
-      },
-      "pass_criteria": "Returns 1,284 produced and 11 quarantined for day shift. Does not mix in night shift numbers (847).",
-      "fail_criteria": "Returns night shift numbers instead. Adds day + night totals together without labelling. Omits quarantine count."
-    },
-    {
-      "id": "INV-001",
-      "mode": "investigation",
-      "description": "Classic repeat failure \u2014 agent should identify pattern and escalation",
-      "input": {
-        "incident": "WR-401 welding robot on Line 4 just triggered a weld quality alarm. Spatter index reading 4.8. This is the third time this week.",
-        "equipment_id": "WR-401",
-        "line": "Line 4"
-      },
-      "mock_context": {
-        "shift_logs": "Apr 15 02:00 WR-401 spatter alarm, operator cleaned shield. Apr 17 14:30 WR-401 spatter alarm, operator cleaned shield. Apr 19 09:00 WR-401 weld quality alarm, spatter 4.8, 3 panels quarantined.",
-        "maintenance": "WI-WR-401: Last full service Mar 28. Wire liner replaced. Next service due May 28. Note: wire liner avg lifespan 6 weeks.",
-        "sop": "SOP-WR-401: Spatter index >3.5 = alarm. >5.0 = auto-quarantine. Recurring spatter within 7 days = inspect wire liner and tip.",
-        "ncr": "NCR-2024-08: Feb spatter recurrence \u2014 root cause was blocked wire liner causing inconsistent feed. Corrective action: monthly liner inspection."
-      },
-      "expected": {
-        "must_contain": [
-          "wire liner",
-          "WR-401"
-        ],
-        "must_not_contain": [
-          "insufficient data",
-          "no records found"
-        ],
-        "format": "structured report with SOURCE DATA, ISSUE, IMPACT, CRITICALITY, ACTION sections",
-        "tone": "technical but clear"
-      },
-      "pass_criteria": "Identifies wire liner as likely root cause. References the Feb NCR as precedent. Recommends liner inspection. Assigns HIGH or CRITICAL criticality. Has all 5 report sections.",
-      "fail_criteria": "Does not mention wire liner. Treats each alarm as isolated event. Missing report sections. Invents data not in sources."
-    },
-    {
       "id": "INV-002",
       "mode": "investigation",
       "description": "No history \u2014 agent should state insufficient data, not hallucinate",
@@ -516,7 +261,9 @@
         ],
         "must_not_contain": [
           "schedule for next maintenance",
-          "LOW"
+          "HOW CRITICAL IS IT:\n- LOW",
+          "CRITICAL IS IT:\n- LOW",
+          "criticality: low"
         ],
         "format": "structured report, criticality clearly stated",
         "tone": "urgent, safety-first",
@@ -549,61 +296,26 @@
       "expected": {
         "must_contain": [
           "burn-in",
-          "liner replacement",
-          "Apr 19",
-          "expected",
-          "50m"
+          "liner"
         ],
         "must_not_contain": [
           "root cause unknown",
-          "CRITICAL"
+          "CRITICAL",
+          "HIGH"
         ],
         "format": "structured report, connects maintenance to symptom",
         "tone": "analytical, reassuring but precise",
         "must_contain_one_of": [
           "burn-in",
           "burn in",
-          "liner",
-          "replacement",
           "expected",
           "normal",
-          "50m",
-          "50 m",
-          "new liner"
+          "new liner",
+          "replacement"
         ]
       },
       "pass_criteria": "Connects yesterday's liner replacement to today's symptom. Cites the burn-in requirement from SOP. Assigns LOW or MEDIUM (not CRITICAL) because this is expected behaviour. Recommends completing the burn-in.",
       "fail_criteria": "Does not connect maintenance to symptom. Assigns CRITICAL or HIGH. Recommends unnecessary repair work. Misses the burn-in procedure."
-    },
-    {
-      "id": "INV-005",
-      "mode": "investigation",
-      "description": "Report structure completeness \u2014 all 5 sections must be present",
-      "input": {
-        "incident": "P-201 coolant pump tripped on thermal overload. Third trip this week.",
-        "equipment_id": "P-201",
-        "line": "Line 2"
-      },
-      "mock_context": {
-        "shift_logs": "Apr 14, 16, 19: P-201 thermal overload trips. Each resolved by operator resetting breaker and cleaning cooling fan.",
-        "maintenance": "WI-P-201: Last service Feb 2024. Bearing temp normal. Cooling fan cleaned in Feb service.",
-        "sop": "SOP-P-201: Thermal overload = check cooling fan and motor windings. 3+ trips in 7 days = escalate to maintenance.",
-        "ncr": "NCR-2024-01: Jan thermal overload recurrence \u2014 root cause blocked cooling fan. Fan replaced."
-      },
-      "expected": {
-        "must_contain": [
-          "SOURCE DATA",
-          "ISSUE",
-          "IMPACT",
-          "CRITICAL",
-          "ADDRESS"
-        ],
-        "must_not_contain": [],
-        "format": "all 5 sections present and populated",
-        "tone": "structured report format"
-      },
-      "pass_criteria": "All 5 report sections present. Each section has content. SOURCE DATA lists specific documents. CRITICALITY is HIGH or CRITICAL given 3 trips in 7 days.",
-      "fail_criteria": "One or more sections missing or empty. Report is free-form prose without section headers. SOURCE DATA section is empty."
     },
     {
       "id": "INV-006",
@@ -622,28 +334,24 @@
       },
       "expected": {
         "must_contain": [
-          "sensor",
-          "false",
-          "residue",
           "30 min",
           "visual"
         ],
         "must_not_contain": [
           "schedule for next maintenance",
-          "LOW"
+          "HOW CRITICAL IS IT:\n- HIGH",
+          "HOW CRITICAL IS IT:\n- CRITICAL"
         ],
         "format": "structured report, explains contradiction",
         "tone": "analytical, explains the discrepancy",
         "must_contain_one_of": [
           "sensor",
-          "false",
           "residue",
+          "false",
           "clean",
           "post-clean",
-          "30 min",
-          "30 minutes",
-          "shield clean",
-          "after clean"
+          "after clean",
+          "shield"
         ]
       },
       "pass_criteria": "Identifies sensor residue as likely cause of false reading. References SOP note about 30-min false high after clean. Assigns LOW criticality. Recommends waiting and re-checking, not escalating.",

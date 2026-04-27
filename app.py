@@ -98,8 +98,7 @@ def filter_shift_chunks(matches, time_from, time_to):
         if kept:
             md["metadata"]["text"] = "\n".join(kept)
             filtered.append(md)
-    # G-09 fix: do NOT silently return all events when time filter produces nothing.
-    # Return empty list — caller will send a "no events in this window" response.
+    # G-09 fix: return empty if no events in window — do not silently return all events
     return filtered
 
 # ── Pages ──────────────────────────────────────────────────────────────
@@ -118,6 +117,23 @@ def library():
     return render_template("library.html")
 
 # ── API ────────────────────────────────────────────────────────────────
+
+@app.route("/api/plant-sites", methods=["GET"])
+def get_plant_sites():
+    result = supabase.table("plant_sites").select("*").order("name").execute()
+    return jsonify({"plant_sites": result.data})
+
+@app.route("/api/plant-sites", methods=["POST"])
+def add_plant_site():
+    data = request.get_json()
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+    existing = supabase.table("plant_sites").select("id").eq("name", name).execute()
+    if existing.data:
+        return jsonify({"error": f"'{name}' already exists"}), 409
+    result = supabase.table("plant_sites").insert({"name": name}).execute()
+    return jsonify({"success": True, "plant_site": result.data[0]})
 
 @app.route("/api/documents")
 def api_documents():
@@ -249,9 +265,7 @@ def ask():
     matches      = results.get("matches", [])
     was_fallback = False
 
-    # Fallback — only relax plant/line filters, NEVER drop equip_tag.
-    # If equip_tag was set and nothing found, we must say no docs found —
-    # not search everything and risk returning docs for the wrong equipment.
+    # Fallback — only relax plant/line filters, NEVER drop equip_tag
     low_confidence   = not matches or matches[0]["score"] < 0.35
     has_equip_filter = bool(filter_dict.get("equip_tag"))
 
