@@ -117,11 +117,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .step-check{font-size:12px}
 .agent-thinking-text{font-size:12px;color:#7c3aed;font-style:italic}
 
-/* Agent zone 2: report */
+/* Agent zone 2: report — structured cards */
 .agent-report{padding:14px;overflow:visible}
-.report-sec{margin-bottom:12px}
+.report-sec{margin-bottom:10px}
 .report-sec-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
 .report-text{font-size:14px;color:#0f172a;line-height:1.8;white-space:pre-wrap}
+/* Criticality card */
+.crit-card{border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.crit-critical{background:#fef2f2;border:1px solid #fca5a5}
+.crit-high{background:#fff7ed;border:1px solid #fed7aa}
+.crit-medium{background:#fffbeb;border:1px solid #fde68a}
+.crit-low{background:#f0fdf4;border:1px solid #86efac}
+.crit-badge{font-size:13px;font-weight:700;padding:4px 12px;border-radius:6px;white-space:nowrap}
+.cb-critical{background:#dc2626;color:#fff}
+.cb-high{background:#ea580c;color:#fff}
+.cb-medium{background:#d97706;color:#fff}
+.cb-low{background:#16a34a;color:#fff}
+.crit-reason{font-size:13px;line-height:1.5}
+.crit-critical .crit-reason{color:#991b1b}
+.crit-high .crit-reason{color:#9a3412}
+.crit-medium .crit-reason{color:#92400e}
+.crit-low .crit-reason{color:#166534}
+/* Immediate action card */
+.action-card{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:12px}
+.action-label{font-size:10px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.action-text{font-size:13px;color:#1e3a8a;line-height:1.6;white-space:pre-wrap}
+/* Collapsible sources */
+.src-toggle{font-size:11px;color:#64748b;cursor:pointer;padding:4px 0;display:flex;align-items:center;gap:4px;border:none;background:none;margin-top:4px}
+.src-toggle:hover{color:#0f172a}
+.src-body{display:none;margin-top:6px}
+.src-body.open{display:block}
 
 /* Agent zone 3: plant manager summary */
 .pm-block{margin:0 14px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:11px 13px}
@@ -166,6 +191,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .btn-shift:hover:not(:disabled){background:#b45309}
 .btn-agent{background:#7c3aed}
 .btn-agent:hover:not(:disabled){background:#6d28d9}
+
+/* ── Context banner ── */
+.ctx-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 14px;margin:8px 20px 0;display:flex;align-items:center;gap:8px;font-size:13px;color:#92400e;cursor:pointer;flex-shrink:0}
+.ctx-banner:hover{background:#fef3c7}
+.ctx-banner-icon{font-size:14px;flex-shrink:0}
+.ctx-banner-text{flex:1;line-height:1.4}
+.ctx-banner-link{font-size:12px;font-weight:600;color:#d97706;white-space:nowrap}
 
 /* ── Mobile responsive ── */
 @media (max-width: 600px) {
@@ -229,17 +261,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 
     <!-- Mode tabs -->
     <div class="mode-bar">
-      <div class="mode-tab active-doc" id="tab-doc" onclick="setMode('doc')">
+      <div class="mode-tab active-doc" id="tab-doc" onclick="setMode('doc')" title="Search SOPs, work instructions, NCRs and maintenance specs">
         <div class="mode-dot md-doc"></div>Documents
       </div>
-      <div class="mode-tab" id="tab-shift" onclick="setMode('shift')">
+      <div class="mode-tab" id="tab-shift" onclick="setMode('shift')" title="Search shift logs for alarms, events and operator actions">
         <div class="mode-dot md-shift"></div>Shift log
       </div>
-      <div class="mode-tab" id="tab-agent" onclick="setMode('agent')">
-        <div class="mode-dot md-agent"></div>&#9889; Agent investigation
+      <div class="mode-tab" id="tab-agent" onclick="setMode('agent')" title="Full AI investigation — searches all sources and generates a structured report">
+        <div class="mode-dot md-agent"></div>&#9889; Investigate
       </div>
       <span class="mode-hint" id="modeHint">Search your uploaded SOPs, work instructions and NCRs</span>
       <button class="sb-clear" id="sbToggle" onclick="toggleSidebar()" style="font-size:11px;margin-left:8px;flex-shrink:0;align-self:center">Show history</button>
+    </div>
+
+    <!-- Context banner — shown when context not set -->
+    <div class="ctx-banner" id="ctxBanner" style="display:none" onclick="document.getElementById('navCtx').click()">
+      <span class="ctx-banner-icon">&#9888;</span>
+      <span class="ctx-banner-text">Set your <strong>plant site and line</strong> for accurate answers — results are filtered by your context</span>
+      <span class="ctx-banner-link">Set context →</span>
     </div>
 
     <!-- Answers -->
@@ -569,6 +608,129 @@ function renderAgentHistory(item, idx, area) {
   card.scrollIntoView({behavior:'smooth'});
 }
 
+function parseReportSections(reportText) {
+  /* Parse investigation report into sections for structured rendering.
+     Looks for section headers: SOURCE DATA, WHAT IS THE ISSUE, etc. */
+  var sections = {};
+  var sectionOrder = [
+    'SOURCE DATA', 'WHAT IS THE ISSUE', 'WHAT IS THE IMPACT',
+    'HOW CRITICAL IS IT', 'HOW TO ADDRESS IT'
+  ];
+  sectionOrder.forEach(function(key, i) {
+    var start = reportText.indexOf(key);
+    if (start === -1) return;
+    var nextKey = null;
+    for (var j = i + 1; j < sectionOrder.length; j++) {
+      if (reportText.indexOf(sectionOrder[j]) > -1) {
+        nextKey = sectionOrder[j];
+        break;
+      }
+    }
+    var end = nextKey ? reportText.indexOf(nextKey) : reportText.length;
+    var body = reportText.substring(start + key.length, end)
+      .replace(/^[:\s─═\n]+/, '').trim();
+    sections[key] = body;
+  });
+  return sections;
+}
+
+function getCriticalityLevel(text) {
+  if (!text) return 'medium';
+  var t = text.toUpperCase();
+  if (t.includes('\n- CRITICAL') || t.startsWith('CRITICAL')) return 'critical';
+  if (t.includes('\n- HIGH') || t.startsWith('HIGH')) return 'high';
+  if (t.includes('\n- LOW') || t.startsWith('LOW')) return 'low';
+  return 'medium';
+}
+
+function renderStructuredReport(reportText, container) {
+  var sections = parseReportSections(reportText);
+  var html = '';
+
+  // 1. Criticality card — FIRST and most prominent
+  if (sections['HOW CRITICAL IS IT']) {
+    var level = getCriticalityLevel(sections['HOW CRITICAL IS IT']);
+    var labels = {critical:'CRITICAL',high:'HIGH',medium:'MEDIUM',low:'LOW'};
+    var lines = sections['HOW CRITICAL IS IT'].split('\n').filter(function(l){return l.trim() && !l.match(/^[-─]+$/);});
+    var reason = lines.slice(1).join(' ').replace(/^[-\s]+/,'').trim() || lines[0];
+    html += '<div class="crit-card crit-' + level + '">' +
+      '<span class="crit-badge cb-' + level + '">' + labels[level] + '</span>' +
+      '<span class="crit-reason">' + escHtml(reason.substring(0, 120)) + '</span>' +
+    '</div>';
+  }
+
+  // 2. Immediate action — highlighted box
+  if (sections['HOW TO ADDRESS IT']) {
+    var actionText = sections['HOW TO ADDRESS IT'];
+    var immIdx = actionText.toLowerCase().indexOf('immediate action');
+    var immText = '';
+    if (immIdx > -1) {
+      var afterImm = actionText.substring(immIdx + 'immediate action'.length).replace(/^[:\s-]+/,'');
+      var nextBullet = afterImm.search(/\n-\s/);
+      immText = nextBullet > -1 ? afterImm.substring(0, nextBullet).trim() : afterImm.split('\n')[0].trim();
+    }
+    if (immText) {
+      html += '<div class="action-card">' +
+        '<div class="action-label">&#9889; Immediate action</div>' +
+        '<div class="action-text">' + escHtml(immText) + '</div>' +
+      '</div>';
+    }
+  }
+
+  // 3. What is the issue
+  if (sections['WHAT IS THE ISSUE']) {
+    html += '<div class="report-sec">' +
+      '<div class="report-sec-label">Root cause</div>' +
+      '<div class="report-text">' + escHtml(sections['WHAT IS THE ISSUE']) + '</div>' +
+    '</div>';
+  }
+
+  // 4. Impact
+  if (sections['WHAT IS THE IMPACT']) {
+    html += '<div class="report-sec">' +
+      '<div class="report-sec-label">Impact</div>' +
+      '<div class="report-text">' + escHtml(sections['WHAT IS THE IMPACT']) + '</div>' +
+    '</div>';
+  }
+
+  // 5. Full actions (collapsible)
+  if (sections['HOW TO ADDRESS IT']) {
+    html += '<div class="report-sec">' +
+      '<div class="report-sec-label">Full action plan</div>' +
+      '<div class="report-text">' + escHtml(sections['HOW TO ADDRESS IT']) + '</div>' +
+    '</div>';
+  }
+
+
+  // Fallback — if parsing failed just render raw text
+  if (!html) {
+    html = '<div class="report-text">' + escHtml(reportText) + '</div>';
+  }
+
+  // Set main HTML first, then append source toggle (avoids innerHTML overwrite)
+  container.innerHTML = html;
+
+  // Now append source toggle if we have source data
+  if (sections['SOURCE DATA']) {
+    var srcLines = sections['SOURCE DATA'].split('\n').filter(function(l){return l.trim();}).length;
+    var srcBtn = document.createElement('button');
+    srcBtn.className = 'src-toggle';
+    srcBtn.textContent = '\u25bc Show ' + srcLines + ' sources used';
+    srcBtn.addEventListener('click', function() {
+      var b = this.nextElementSibling;
+      b.classList.toggle('open');
+      this.textContent = b.classList.contains('open')
+        ? '\u25b2 Hide sources'
+        : '\u25bc Show ' + srcLines + ' sources used';
+    });
+    var srcBody = document.createElement('div');
+    srcBody.className = 'src-body';
+    srcBody.innerHTML = '<div class="report-text" style="font-size:12px;color:#475569">' + escHtml(sections['SOURCE DATA']) + '</div>';
+    container.appendChild(srcBtn);
+    container.appendChild(srcBody);
+  }
+}
+
 function renderSourcesHTML(sources, isShift) {
   if (!sources || !sources.length) return '';
   var html = '<div style="margin-top:12px"><div class="sources-label">Sources</div>';
@@ -801,7 +963,7 @@ function submitInvestigation(incident) {
       '<span class="badge-agent">AGENT</span>' + escHtml(incident) +
     '</div>' +
     '<div class="agent-progress" id="prog-'+bodyId+'">' +
-      '<div class="az-label">Investigation progress</div>' +
+      '<div class="az-label" style="display:flex;justify-content:space-between;align-items:center">Investigation progress<span id="timer-'+bodyId+'" style="font-size:11px;color:#a78bfa;font-weight:400;font-style:italic">0s</span></div>' +
       '<div id="steps-'+bodyId+'"><div class="agent-thinking-text">&#9889; Starting investigation...</div></div>' +
     '</div>' +
     '<div class="agent-report" id="rep-'+bodyId+'" style="display:none">' +
@@ -819,6 +981,14 @@ function submitInvestigation(incident) {
   var reportText      = '';
   var progressLines   = [];
 
+  // Start elapsed timer
+  var _startTime = Date.now();
+  var _timerEl   = document.getElementById('timer-'+bodyId);
+  var _timerInt  = setInterval(function() {
+    var s = Math.round((Date.now() - _startTime) / 1000);
+    if (_timerEl) _timerEl.textContent = s + 's';
+  }, 1000);
+
   fetch('/investigate', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -833,6 +1003,9 @@ function submitInvestigation(incident) {
         if (result.done) {
           btn.disabled    = false;
           btn.textContent = '⚡ Investigate';
+          clearInterval(_timerInt);
+          var totalSecs = Math.round((Date.now() - _startTime) / 1000);
+          if (_timerEl) _timerEl.textContent = 'Done in ' + totalSecs + 's';
 
           // DONE_MARKER: parse from fullContent — reportText may be empty
           var DONE_MARKER = 'INVESTIGATION REPORT';
@@ -856,7 +1029,7 @@ function submitInvestigation(incident) {
                                 .replace(/^[\s\u2550=\n]+/, '').trim();
           }
           repEl.style.display = 'block';
-          rtextEl.textContent = technical;
+          renderStructuredReport(technical, rtextEl);
           if (pmSummary) {
             var pmDiv = document.createElement('div');
             pmDiv.className = 'pm-block';
@@ -868,12 +1041,23 @@ function submitInvestigation(incident) {
           var actDiv = document.createElement('div');
           actDiv.className = 'card-actions';
           actDiv.innerHTML =
+            '<button class="act-btn" id="copy-'+bodyId+'">Copy report</button>' +
             '<button class="act-btn" onclick="reuseQuestion(\''+escHtml(incident).replace(/'/g,"&#39;")+'\')">Re-investigate</button>' +
             '<div class="helpful">Helpful?' +
               '<button class="thumb" onclick="this.style.opacity=1;this.nextElementSibling.style.opacity=0.2">&#128077;</button>' +
               '<button class="thumb" onclick="this.style.opacity=1;this.previousElementSibling.style.opacity=0.2">&#128078;</button>' +
             '</div>';
           card.appendChild(actDiv);
+          var _copyReport = technical + (pmSummary ? '\n\nPLANT MANAGER SUMMARY\n' + pmSummary : '');
+          var _copyBtn = document.getElementById('copy-'+bodyId);
+          if (_copyBtn) {
+            _copyBtn.addEventListener('click', function() {
+              navigator.clipboard.writeText(_copyReport).then(function() {
+                _copyBtn.textContent = 'Copied!';
+                setTimeout(function() { _copyBtn.textContent = 'Copy report'; }, 1500);
+              });
+            });
+          }
           saveToHistory('agent', incident, bodyText, [], plant, line);
           return;
         }
