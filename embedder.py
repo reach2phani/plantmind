@@ -10,6 +10,21 @@ from supabase import create_client
 
 load_dotenv()
 
+import re as _re
+
+def _normalise_equip_tag(tag):
+    """
+    Normalise equipment tag to uppercase hyphenated format.
+    WR401 → WR-401, wr-401 → WR-401, P201 → P-201
+    Ensures consistent matching between upload metadata and query filters.
+    """
+    if not tag:
+        return ""
+    match = _re.match(r'^([A-Za-z]{1,4})-?(\d{2,4})$', tag.strip())
+    if match:
+        return f"{match.group(1).upper()}-{match.group(2)}"
+    return tag.strip().upper()
+
 pc       = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index    = pc.Index(os.getenv("PINECONE_INDEX"))
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
@@ -183,7 +198,7 @@ def _embed_local(doc_id, file_path, ext, metadata):
                     "line":       metadata.get("line",       ""),
                     "revision":   metadata.get("revision",   "1.0"),
                     "file_type":  metadata.get("file_type",  ""),
-                    "equip_tag":  metadata.get("equip_tag",  ""),
+                    "equip_tag":  _normalise_equip_tag(metadata.get("equip_tag", "")),
                 }
             })
             if len(vectors) >= 50:
@@ -224,7 +239,7 @@ def _embed_local(doc_id, file_path, ext, metadata):
                     "line":       metadata.get("line",       ""),
                     "revision":   metadata.get("revision",   "1.0"),
                     "file_type":  "csv",
-                    "equip_tag":  metadata.get("equip_tag",  ""),
+                    "equip_tag":  _normalise_equip_tag(metadata.get("equip_tag", "")),
                 }
             })
             if len(vectors) >= 50:
@@ -264,7 +279,7 @@ def _embed_local(doc_id, file_path, ext, metadata):
                     "line":       metadata.get("line",       ""),
                     "revision":   metadata.get("revision",   "1.0"),
                     "file_type":  "txt",
-                    "equip_tag":  metadata.get("equip_tag",  ""),
+                    "equip_tag":  _normalise_equip_tag(metadata.get("equip_tag", "")),
                 }
             })
             if len(vectors) >= 50:

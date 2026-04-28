@@ -24,17 +24,29 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from llm_logger import log_llm_call
+
 import time as _time
 
-def _groq_call_with_retry(fn, max_retries=3):
-    """Retry Groq calls on rate limit errors with exponential backoff.
-    Prevents TPM errors from crashing investigations mid-run."""
+def _groq_call_with_retry(fn, max_retries=3, call_type="specialist",
+                          model="llama-3.1-8b-instant",
+                          plant_site="", equip_tag=""):
+    """
+    Retry Groq calls on rate limit errors with exponential backoff.
+    Also logs every call (success or failure) to Supabase via llm_logger.
+
+    Teaching note: wrapping retries + logging in one function means
+    every call site gets both behaviours for free.
+    """
     for attempt in range(max_retries):
         try:
-            return fn()
+            return log_llm_call(
+                fn=fn, call_type=call_type, model=model,
+                plant_site=plant_site, equip_tag=equip_tag
+            )
         except Exception as e:
             if "rate_limit" in str(e).lower() or "429" in str(e):
-                wait = [55, 70, 90][attempt]  # Groq TPM resets in ~47s
+                wait = [55, 70, 90][attempt]
                 print(f"  Rate limit hit — waiting {wait}s before retry {attempt+1}/{max_retries}")
                 _time.sleep(wait)
             else:
@@ -141,15 +153,16 @@ Shift log search results:
 
 Analyse the alarm pattern from this data."""
 
-    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": user_prompt}
-        ],
-        max_tokens=400,
-        temperature=0.1
-    ))
+    response = _groq_call_with_retry(
+        lambda: groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": user_prompt}
+            ],
+            max_tokens=400, temperature=0.1),
+        call_type="specialist", model="llama-3.1-8b-instant",
+        equip_tag=equipment_id)
 
     return {
         "agent":    "Alarm Agent",
@@ -199,15 +212,16 @@ Maintenance record search results:
 
 Analyse the maintenance history from this data."""
 
-    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": user_prompt}
-        ],
-        max_tokens=400,
-        temperature=0.1
-    ))
+    response = _groq_call_with_retry(
+        lambda: groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": user_prompt}
+            ],
+            max_tokens=400, temperature=0.1),
+        call_type="specialist", model="llama-3.1-8b-instant",
+        equip_tag=equipment_id)
 
     return {
         "agent":    "Maintenance Agent",
@@ -257,15 +271,16 @@ SOP search results:
 
 Extract the relevant procedures and specifications from this data."""
 
-    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": user_prompt}
-        ],
-        max_tokens=400,
-        temperature=0.1
-    ))
+    response = _groq_call_with_retry(
+        lambda: groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": user_prompt}
+            ],
+            max_tokens=400, temperature=0.1),
+        call_type="specialist", model="llama-3.1-8b-instant",
+        equip_tag=equipment_id)
 
     return {
         "agent":    "SOP Agent",
@@ -315,15 +330,16 @@ NCR search results:
 
 Analyse the quality and non-conformance history from this data."""
 
-    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": user_prompt}
-        ],
-        max_tokens=400,
-        temperature=0.1
-    ))
+    response = _groq_call_with_retry(
+        lambda: groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": user_prompt}
+            ],
+            max_tokens=400, temperature=0.1),
+        call_type="specialist", model="llama-3.1-8b-instant",
+        equip_tag=equipment_id)
 
     return {
         "agent":    "NCR Agent",
@@ -408,15 +424,15 @@ Synthesize the final investigation report from these findings."""
     # ── First pass — initial report ─────────────────────────────────
     # Teaching note: This is the same as before — one LLM call to
     # synthesise the specialist findings into a structured report.
-    response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",  # best reasoning quality on free tier
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": user_prompt}
-        ],
-        max_tokens=800,
-        temperature=0.1
-    ))
+    response = _groq_call_with_retry(
+        lambda: groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": user_prompt}
+            ],
+            max_tokens=800, temperature=0.1),
+        call_type="orchestrator", model="llama-3.3-70b-versatile")
 
     initial_report = response.choices[0].message.content
 
@@ -460,15 +476,15 @@ Check for these specific failure patterns:
 Rewrite the full report with gaps corrected.
 Keep the exact same format (INVESTIGATION REPORT — TECHNICAL + PLANT MANAGER SUMMARY)."""
 
-    reflection_response = _groq_call_with_retry(lambda: groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",  # best reasoning quality on free tier
-        messages=[
-            {"role": "system", "content": REFLECTION_PROMPT},
-            {"role": "user",   "content": f"Original report to critique and improve:\n\n{initial_report}\n\nNote: The report above was synthesised from shift logs, maintenance records, SOPs, and NCR history for this equipment. Improve it using only what is already stated in the report."}
-        ],
-        max_tokens=600,
-        temperature=0.1
-    ))
+    reflection_response = _groq_call_with_retry(
+        lambda: groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": REFLECTION_PROMPT},
+                {"role": "user",   "content": f"Original report to critique and improve:\n\n{initial_report}\n\nNote: The report above was synthesised from shift logs, maintenance records, SOPs, and NCR history for this equipment. Improve it using only what is already stated in the report."}
+            ],
+            max_tokens=600, temperature=0.1),
+        call_type="reflection", model="llama-3.3-70b-versatile")
 
     return reflection_response.choices[0].message.content
 

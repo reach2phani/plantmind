@@ -11,9 +11,44 @@ from embedder import embed_document
 from pinecone import Pinecone
 from groq import Groq
 from multi_agent import investigate_incident
+from llm_logger import log_streaming_call, get_today_stats
 
 load_dotenv()
 app = Flask(__name__)
+
+# ── Equipment ID auto-detection ──────────────────────────────────────
+# Extracts equipment tags from natural language operator input.
+# Pattern: letter prefix + hyphen + numbers (e.g. WR-401, P-201, CV-401)
+# Also handles common variants: WR401, wr-401 → normalised to WR-401
+#
+# Teaching concept: entity extraction as retrieval pre-filter.
+# A simple regex dramatically improves precision — operators shouldn't
+# need to manually set context before every question.
+
+import re as _re
+
+_EQUIP_PATTERN = _re.compile(
+    r'\b([A-Za-z]{1,4})-?(\d{2,4})\b'
+)
+
+def extract_equipment_id(text):
+    """
+    Extract and normalise equipment tag from operator input.
+    Returns uppercase hyphenated tag e.g. "WR-401" or None.
+
+    Examples:
+        "P-201 is making noise"       → "P-201"
+        "check wr401 alarm"           → "WR-401"
+        "WR-401 just tripped"         → "WR-401"
+        "what happened on line 4"     → None
+    """
+    match = _EQUIP_PATTERN.search(text)
+    if match:
+        prefix = match.group(1).upper()
+        number = match.group(2)
+        return f"{prefix}-{number}"
+    return None
+
 
 def get_embedding(text, input_type="query"):
     """Get embedding vector using Pinecone's hosted inference API."""
@@ -152,10 +187,24 @@ def update_document(doc_id):
         return jsonify({"error": "Document not found"}), 404
     saved = result.data[0]
     def run_reembed():
-        base      = os.path.dirname(os.path.abspath(__file__))
+        doc_id       = saved["id"]
         storage_path = saved.get("file_path", "")
-        if storage_path:
-            embed_document(saved["id"], storage_path, saved)
+        if not storage_path:
+            return
+        try:
+            supabase.table("documents").update({
+                "embed_status": "pending"
+            }).eq("id", doc_id).execute()
+            embed_document(doc_id, storage_path, saved)
+            supabase.table("documents").update({
+                "embed_status": "done",
+                "last_embedded_at": datetime.utcnow().isoformat()
+            }).eq("id", doc_id).execute()
+        except Exception as e:
+            supabase.table("documents").update({
+                "embed_status": "failed"
+            }).eq("id", doc_id).execute()
+            print(f"  Re-embed failed for {doc_id}: {e}")
     threading.Thread(target=run_reembed, daemon=True).start()
     return jsonify({"success": True, "document": saved})
 
@@ -223,7 +272,21 @@ def upload():
                if was_sup else f"{filename} uploaded successfully.")
 
     def run_embed():
-        embed_document(saved["id"], storage_path, saved)
+        doc_id = saved["id"]
+        try:
+            supabase.table("documents").update({
+                "embed_status": "pending"
+            }).eq("id", doc_id).execute()
+            embed_document(doc_id, storage_path, saved)
+            supabase.table("documents").update({
+                "embed_status": "done",
+                "last_embedded_at": datetime.utcnow().isoformat()
+            }).eq("id", doc_id).execute()
+        except Exception as e:
+            supabase.table("documents").update({
+                "embed_status": "failed"
+            }).eq("id", doc_id).execute()
+            print(f"  Embed failed for {doc_id}: {e}")
     threading.Thread(target=run_embed, daemon=True).start()
 
     return jsonify({"success": True, "message": message, "document": saved})
@@ -234,7 +297,15 @@ def ask():
     question  = data.get("question",   "").strip()
     plant     = data.get("plant_site", "")
     line      = data.get("line",       "")
-    equip_tag = data.get("equip_tag",  "")
+    equip_tag = data.get("equip_tag", "")
+
+    # Auto-detect equipment ID from question if not explicitly set
+    # Teaching note: operators often mention equipment in natural language
+    # e.g. "P-201 is making noise" — extract and use as Pinecone filter
+    if not equip_tag:
+        detected = extract_equipment_id(question)
+        if detected:
+            equip_tag = detected
     mode      = data.get("mode",       "doc")
     time_from = data.get("time_from",  "")
     time_to   = data.get("time_to",    "")
@@ -349,23 +420,42 @@ def ask():
     sources_json = json.dumps(sources)
 
     def full_stream():
+        import time as _t
         if was_fallback:
             yield "FALLBACK:"
         yield f"SOURCES:{sources_json}\n\n"
-        # 70b has separate 12K TPM pool from specialist agents (8b, 6K TPM)
-        # This prevents /ask calls from exhausting the agent TPM budget
-        stream = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user",   "content": user_prompt}
-            ],
-            stream=True, max_tokens=800, temperature=0.1
-        )
-        for chunk in stream:
-            delta = chunk.choices[0].delta
-            if delta and delta.content:
-                yield delta.content
+        _start = _t.time()
+        _output = []
+        try:
+            stream = groq_client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user",   "content": user_prompt}
+                ],
+                stream=True, max_tokens=800, temperature=0.1
+            )
+            for chunk in stream:
+                delta = chunk.choices[0].delta
+                if delta and delta.content:
+                    _output.append(delta.content)
+                    yield delta.content
+            log_streaming_call(
+                call_type  = data.get("mode", "qa"),
+                model      = "llama-3.1-8b-instant",
+                input_text = system_prompt + user_prompt,
+                output_text= "".join(_output),
+                latency_ms = int((_t.time() - _start) * 1000),
+                plant_site = data.get("plant_site", ""),
+                equip_tag  = data.get("equip_tag", "")
+            )
+        except Exception as e:
+            log_streaming_call(
+                call_type="qa", model="llama-3.1-8b-instant",
+                input_text=system_prompt, output_text="",
+                latency_ms=int((_t.time()-_start)*1000), error=e
+            )
+            yield f"Error: {e}"
 
     return Response(stream_with_context(full_stream()), mimetype="text/plain",
                     headers={"X-Accel-Buffering": "no"})
@@ -410,13 +500,16 @@ def investigate():
     if not incident:
         return jsonify({"error": "Please describe the incident"}), 400
 
+    # Auto-detect equipment if not passed from UI
+    equip = data.get("equip_tag", "") or extract_equipment_id(incident)
+
     if plant or line:
         context  = f"[Plant: {plant}, Line: {line}] "
         incident = context + incident
 
     def stream():
         try:
-            for chunk in investigate_incident(incident):
+            for chunk in investigate_incident(incident, equipment_id=equip):
                 yield chunk
         except Exception as e:
             err = str(e)
@@ -427,6 +520,15 @@ def investigate():
 
     return Response(stream_with_context(stream()), mimetype="text/plain",
                     headers={"X-Accel-Buffering": "no"})
+
+@app.route("/api/llm-stats", methods=["GET"])
+def llm_stats():
+    """
+    Returns today's LLM usage stats.
+    Call this anytime to see token consumption before hitting limits.
+    Example: GET http://localhost:5000/api/llm-stats
+    """
+    return jsonify(get_today_stats())
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

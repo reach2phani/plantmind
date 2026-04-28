@@ -52,6 +52,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 .b-other,.b-archived{background:#f8fafc;color:#64748b}
 .doc-name{font-size:13px;font-weight:500;color:#0f172a;margin-bottom:4px;line-height:1.4;word-break:break-word}
 .doc-meta{font-size:11px;color:#94a3b8;line-height:1.6}
+.embed-status{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500;display:inline-flex;align-items:center;gap:4px}
+.es-done{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.es-pending{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+.es-failed{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
+.es-none{background:#f8fafc;color:#64748b;border:1px solid #e2e8f0}
+.es-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.es-dot-done{background:#16a34a}
+.es-dot-pending{background:#d97706;animation:pulse .8s infinite alternate}
+.es-dot-failed{background:#e11d48}
+.es-dot-none{background:#94a3b8}
+@keyframes pulse{from{opacity:1}to{opacity:.3}}
 .equip-tag{display:inline-block;font-size:10px;font-family:monospace;background:#eef2ff;color:#3730a3;padding:1px 6px;border-radius:4px;margin-top:3px}
 .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9}
 .rev-badge{font-size:10px;font-family:monospace;background:#f1f5f9;color:#64748b;padding:2px 7px;border-radius:4px}
@@ -133,20 +144,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 <div id="pagination" class="pagination"></div>
 <script src="/static/nav_context.js"></script>
 <script>
-var allDocs       = [];
-var allPlantSites = [];
-var showArchived  = false;
-var editingId     = null;
-var currentPage   = 1;
-var PAGE_SIZE     = 12;
+var allDocs      = [];
+var showArchived = false;
+var editingId    = null;
+var currentPage  = 1;
+var PAGE_SIZE    = 12;
 
-// Load plant sites then documents
-Promise.all([
-  fetch('/api/plant-sites').then(function(r){return r.json()}),
-  fetch('/api/documents').then(function(r){return r.json()})
-]).then(function(results){
-    allPlantSites = (results[0].plant_sites || []).map(function(ps){return ps.name});
-    allDocs = results[1].documents || [];
+fetch('/api/documents')
+  .then(function(r){return r.json()})
+  .then(function(data){
+    allDocs = data.documents||[];
     populateFilters();
     updateStats();
     filterDocs();
@@ -183,8 +190,8 @@ function toggleArchived(){
   filterDocs();
 }
 
-function filterDocs(){
-  if(event&&event.type!=='init') currentPage=1;
+function filterDocs(opts){
+  if(!opts || !opts.keepPage) currentPage=1;
   var search=document.getElementById('searchInput').value.toLowerCase();
   var plant=document.getElementById('plantFilter').value;
   var line=document.getElementById('lineFilter').value;
@@ -231,8 +238,20 @@ function renderPagination(page,totalPages,total){
 
 function goPage(p){
   currentPage=p;
-  filterDocs();
+  filterDocs({keepPage:true});
   window.scrollTo(0,0);
+}
+
+function embedStatusBadge(doc) {
+  var s = doc.embed_status;
+  var ts = doc.last_embedded_at ? ' title="Last indexed: ' + new Date(doc.last_embedded_at).toLocaleString() + '"' : '';
+  if (!s || s === 'done')
+    return '<span class="embed-status es-done"' + ts + '><span class="es-dot es-dot-done"></span>Indexed</span>';
+  if (s === 'pending')
+    return '<span class="embed-status es-pending"><span class="es-dot es-dot-pending"></span>Indexing…</span>';
+  if (s === 'failed')
+    return '<span class="embed-status es-failed" title="Re-upload to fix"><span class="es-dot es-dot-failed"></span>Index failed</span>';
+  return '<span class="embed-status es-none"><span class="es-dot es-dot-none"></span>Not indexed</span>';
 }
 
 function renderCard(doc){
@@ -253,6 +272,7 @@ function renderCard(doc){
     '<div class="doc-name">'+escHtml(doc.name)+'</div>' +
     '<div class="doc-meta">'+(doc.plant_site||'')+(doc.line?' &middot; '+doc.line:'')+(date?' &middot; '+date:'')+'</div>' +
     (doc.equip_tag?'<div><span class="equip-tag">'+escHtml(doc.equip_tag)+'</span></div>':'')+
+    (!isArch ? '<div style="margin-top:5px">' + embedStatusBadge(doc) + '</div>' : '') +
     '<div class="card-footer">' +
       '<span class="rev-badge">Rev '+escHtml(doc.revision||'1.0')+'</span>' +
       (isArch
@@ -276,7 +296,7 @@ function renderEditForm(doc){
         '<span class="edit-label">Plant site</span>' +
         '<select class="edit-input" id="ep-'+doc.id+'">' +
           '<option value="">-- select --</option>' +
-          allPlantSites.map(function(p){return '<option value="'+p+'"'+(doc.plant_site===p?' selected':'')+'>'+p+'</option>'}).join('') +
+          ['Houston Plant','Deer Park Facility'].map(function(p){return '<option value="'+p+'"'+(doc.plant_site===p?' selected':'')+'>'+p+'</option>'}).join('') +
         '</select>' +
       '</div>' +
       '<div class="edit-field">' +

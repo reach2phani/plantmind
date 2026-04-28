@@ -16,6 +16,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .nav-ctx{font-size:11px;color:#94a3b8;background:#0f172a;padding:3px 10px;border-radius:5px;display:flex;align-items:center;gap:5px;cursor:pointer}
 .nav-dot{width:5px;height:5px;border-radius:50%;background:#94a3b8;flex-shrink:0}
 .nav-dot.online{background:#22c55e}
+.nav-stats{font-size:11px;color:#64748b;background:#0f172a;padding:3px 10px;border-radius:5px;display:flex;align-items:center;gap:6px;margin-right:6px;cursor:pointer;border:1px solid #1e293b}
+.nav-stats:hover{color:#94a3b8}
+.nav-stats-dot{width:5px;height:5px;border-radius:50%;background:#334155;flex-shrink:0}
+.nav-stats-dot.warn{background:#f59e0b}
+.nav-stats-dot.danger{background:#ef4444}
 
 /* ── Page tabs ── */
 .page-tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
@@ -198,9 +203,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 
 <div class="nav">
   <div class="nav-brand">Plant<span>Mind</span></div>
+  <div style="display:flex;align-items:center;gap:6px">
+    <div class="nav-stats" id="navStats" onclick="toggleStatsPanel()" title="Today's LLM usage">
+      <div class="nav-stats-dot" id="statsDot"></div>
+      <span id="statsText">usage</span>
+    </div>
   <div class="nav-ctx" id="navCtx">
     <div class="nav-dot" id="navDot"></div>
     <span id="navCtxText">Set your context</span>
+  </div>
   </div>
 </div>
 
@@ -933,6 +944,109 @@ function submitInvestigation(incident) {
   });
 }
 </script>
+
+<script>
+// ── LLM Stats widget ─────────────────────────────────────────────────
+var statsOpen = false;
+var statsTimer = null;
+
+async function loadStats() {
+  try {
+    var res = await fetch('/api/llm-stats');
+    var d = await res.json();
+    if (d.error) { updateStatsUI(null); return; }
+
+    // Update header pill
+    var total = (d.total_tokens || 0).toLocaleString();
+    var calls = d.total_calls || 0;
+    document.getElementById('statsText').textContent = total + ' tokens · ' + calls + ' calls';
+
+    // Colour dot based on 70b usage (100K TPD limit)
+    var dot = document.getElementById('statsDot');
+    var b70 = (d.by_model || {})['llama-3.3-70b-versatile'] || {};
+    var used70 = (b70.input_tokens || 0) + (b70.output_tokens || 0);
+    var pct70 = (used70 / 100000) * 100;
+    dot.className = 'nav-stats-dot' + (pct70 > 80 ? ' danger' : pct70 > 50 ? ' warn' : '');
+
+    // Update panel if open
+    if (statsOpen) renderStatsPanel(d);
+  } catch(e) {
+    document.getElementById('statsText').textContent = 'usage';
+  }
+}
+
+function renderStatsPanel(d) {
+  var models = d.by_model || {};
+  var limits = {'llama-3.3-70b-versatile': 100000, 'llama-3.1-8b-instant': 500000};
+  var labels = {'llama-3.3-70b-versatile': '70b versatile', 'llama-3.1-8b-instant': '8b instant'};
+  var rows = '';
+
+  Object.keys(models).forEach(function(m) {
+    var info = models[m];
+    var total = (info.input_tokens || 0) + (info.output_tokens || 0);
+    var limit = limits[m] || 100000;
+    var pct = Math.min(100, Math.round((total / limit) * 100));
+    var colour = pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#22c55e';
+    var label = labels[m] || m;
+    rows += '<div style="margin-bottom:10px">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:3px">' +
+        '<span style="color:#e2e8f0">' + label + '</span>' +
+        '<span style="color:#64748b">' + total.toLocaleString() + ' / ' + limit.toLocaleString() + '</span>' +
+      '</div>' +
+      '<div style="background:#0f172a;border-radius:3px;height:4px">' +
+        '<div style="width:' + pct + '%;height:100%;border-radius:3px;background:' + colour + '"></div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;margin-top:2px">' +
+        '<span style="color:#475569;font-size:11px">' + (info.calls || 0) + ' calls</span>' +
+        '<span style="color:' + colour + ';font-size:11px">' + pct + '% used</span>' +
+      '</div>' +
+    '</div>';
+  });
+
+  if (d.errors > 0) {
+    rows += '<div style="color:#ef4444;font-size:12px;margin-top:6px">⚠ ' + d.errors + ' error(s) today</div>';
+  }
+
+  document.getElementById('statsPanelContent').innerHTML = rows || '<span style="color:#475569">No calls yet today</span>';
+}
+
+function toggleStatsPanel() {
+  statsOpen = !statsOpen;
+  var panel = document.getElementById('statsPanel');
+  if (statsOpen) {
+    panel.style.display = 'block';
+    loadStats();
+    setTimeout(function() {
+      document.addEventListener('click', closePanelOutside);
+    }, 100);
+  } else {
+    panel.style.display = 'none';
+    document.removeEventListener('click', closePanelOutside);
+  }
+}
+
+function closePanelOutside(e) {
+  var panel = document.getElementById('statsPanel');
+  var pill  = document.getElementById('navStats');
+  if (panel && !panel.contains(e.target) && pill && !pill.contains(e.target)) {
+    statsOpen = false;
+    panel.style.display = 'none';
+    document.removeEventListener('click', closePanelOutside);
+  }
+}
+
+// Load on page open + refresh every 60s
+document.addEventListener('DOMContentLoaded', function() {
+  loadStats();
+  statsTimer = setInterval(loadStats, 60000);
+});
+</script>
+
+<div id="statsPanel" style="display:none;position:fixed;top:58px;right:16px;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px;z-index:9999;min-width:260px;box-shadow:0 8px 24px rgba(0,0,0,.4)">
+  <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Today's LLM usage</div>
+  <div id="statsPanelContent" style="font-size:13px;color:#94a3b8">Loading...</div>
+  <div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;font-size:11px;color:#475569">Auto-refreshes every 60s · <a href="/api/llm-stats" target="_blank" style="color:#818cf8">full JSON</a></div>
+</div>
 
 </body>
 </html>
