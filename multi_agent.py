@@ -489,35 +489,146 @@ Keep the exact same format (INVESTIGATION REPORT — TECHNICAL + PLANT MANAGER S
     return reflection_response.choices[0].message.content
 
 
+# ── Supervisor Agent ──────────────────────────────────────────────────────────
+#
+# Teaching concept: dynamic agent orchestration.
+# The supervisor reads the incident and decides which specialists to call.
+# This replaces the fixed fan-out (always run all 4) with intelligent routing.
+#
+# Benefits:
+#   - Fewer tokens: a first-time failure needs 2 agents, not 4
+#   - Better reports: orchestrator gets focused findings, not empty results
+#   - More investigations per day on free tier
+#
+# Routing logic:
+#   RECURRING / PATTERN  → Alarm + Maintenance + NCR  (history matters)
+#   QUALITY / WELD       → Alarm + NCR + SOP          (spec + history)
+#   SAFETY / URGENT      → SOP only                   (procedure first)
+#   MAINTENANCE / REPAIR → Maintenance + SOP           (what was done + spec)
+#   UNKNOWN / GENERAL    → all 4                      (safe default)
+
+SUPERVISOR_PROMPT = """You are a maintenance investigation supervisor at a manufacturing plant.
+
+Read the incident description and decide which specialist agents to dispatch.
+Choose the MINIMUM set needed — do not dispatch agents that will find nothing.
+
+Available agents:
+  alarm       — searches shift logs for alarm history and patterns
+  maintenance — searches maintenance records and service history
+  sop         — searches SOPs for procedures and specifications
+  ncr         — searches non-conformance reports for quality incidents
+
+Routing rules:
+  - Recurring alarm or "third time this week" → alarm + maintenance + ncr
+  - Weld quality or spatter issue → alarm + ncr + sop
+  - Safety event (exhaust fan, fumes, fire risk) → sop (urgent procedure first)
+  - Wire feed, liner, or maintenance-related → maintenance + sop
+  - First-time failure, no history → maintenance + sop
+  - Conflicting sensor readings → sop (check spec and sensor notes)
+  - Unknown or general → all four agents
+
+Respond with ONLY a JSON object, nothing else:
+{"agents": ["alarm", "maintenance"], "reason": "one sentence explanation"}
+
+Valid agent names: alarm, maintenance, sop, ncr"""
+
+
+def supervisor_route(incident, equipment_id=None):
+    """
+    Classify the incident and return which agents to dispatch.
+    Returns a list of agent names and a routing reason.
+
+    Falls back to all 4 agents if classification fails — safe default.
+    """
+    user_msg = f"Incident: {incident}"
+    if equipment_id:
+        user_msg += "\nEquipment: " + str(equipment_id)
+
+    try:
+        response = _groq_call_with_retry(
+            lambda: groq_client.chat.completions.create(
+                model="llama-3.1-8b-instant",   # 8b is fine for classification
+                messages=[
+                    {"role": "system", "content": SUPERVISOR_PROMPT},
+                    {"role": "user",   "content": user_msg}
+                ],
+                max_tokens=100,
+                temperature=0.0   # deterministic routing
+            ),
+            call_type="supervisor",
+            model="llama-3.1-8b-instant"
+        )
+
+        raw = response.choices[0].message.content.strip()
+
+        # Strip markdown fences if model adds them
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+
+        data = json.loads(raw)
+        agents = data.get("agents", [])
+        reason = data.get("reason", "")
+
+        # Validate — only accept known agent names
+        valid = {"alarm", "maintenance", "sop", "ncr"}
+        agents = [a for a in agents if a in valid]
+
+        # Always need at least 2 agents — fall back to all 4 if routing fails
+        if len(agents) < 1:
+            agents = ["alarm", "maintenance", "sop", "ncr"]
+            reason = "fallback — routing returned empty list"
+
+        return agents, reason
+
+    except Exception as e:
+        print(f"  Supervisor routing failed: {e} — using all agents")
+        return ["alarm", "maintenance", "sop", "ncr"], "fallback — routing error"
+
+
 # ── Parallel Coordinator + Streaming Generator ─────────────────────────────────
 
-def investigate_incident(incident):
+def investigate_incident(incident, equipment_id=None):
     """
-    Generator — runs 4 specialist agents in parallel, then orchestrates.
+    Generator — supervisor routes to relevant agents, then orchestrates.
     Yields progress updates and the final report for streaming to the UI.
 
-    This is the function called by app.py's /investigate route.
-    It replaces the single-agent investigate_incident() from agent_v2.py.
+    Architecture change from PM-037:
+      Before: always runs all 4 agents (fixed fan-out)
+      After:  supervisor reads incident → selects 1-4 agents (dynamic routing)
+
+    Benefits: fewer tokens, better focused reports, more investigations/day.
+    Falls back to all 4 agents if supervisor classification fails.
     """
 
-    # Extract equipment ID from incident text if present (e.g. P-201, WR-401)
-    import re
-    equipment_match = re.search(r'\b([A-Z]{1,3}-\d{2,4})\b', incident)
-    equipment_id    = equipment_match.group(1) if equipment_match else None
+    # Use passed equipment_id or extract from incident text as fallback
+    if not equipment_id:
+        import re
+        equipment_match = re.search(r'\b([A-Z]{1,3}-\d{2,4})\b', incident)
+        equipment_id = equipment_match.group(1) if equipment_match else None
 
     yield "🔍 Multi-agent investigation started...\n\n"
     if equipment_id:
         yield f"📍 Equipment identified: {equipment_id}\n\n"
 
-    yield "⚡ Dispatching 4 specialist agents in parallel...\n\n"
+    # ── Supervisor routing — decide which agents to call ─────────────────────
+    # Teaching note: this is the key change from fixed fan-out to dynamic routing.
+    # The supervisor reads the incident and returns only the agents needed.
+    routed_agents, routing_reason = supervisor_route(incident, equipment_id)
 
-    # ── Run all four specialists simultaneously ────────────────────────────────
-    specialist_functions = [
-        ("🚨 Alarm Agent",       run_alarm_agent),
-        ("🔧 Maintenance Agent", run_maintenance_agent),
-        ("📋 SOP Agent",         run_sop_agent),
-        ("📊 NCR Agent",         run_ncr_agent),
-    ]
+    agent_map = {
+        "alarm":       ("🚨 Alarm Agent",       run_alarm_agent),
+        "maintenance": ("🔧 Maintenance Agent", run_maintenance_agent),
+        "sop":         ("📋 SOP Agent",         run_sop_agent),
+        "ncr":         ("📊 NCR Agent",         run_ncr_agent),
+    }
+
+    specialist_functions = [agent_map[a] for a in routed_agents if a in agent_map]
+    agent_count = len(specialist_functions)
+
+    yield f"⚡ Dispatching {agent_count} specialist agent{'s' if agent_count != 1 else ''} in parallel...\n"
+    yield f"   Routing: {routing_reason}\n\n"
 
     specialist_results = []
     completed_names    = []

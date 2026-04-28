@@ -71,7 +71,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .answers{flex:1;min-height:0;height:0;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
 
 /* ── Q&A card ── */
-.answer-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.answer-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:visible}
 .answer-q{padding:10px 14px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px}
 .answer-q.doc-q{background:#eef2ff;color:#3730a3;border-bottom:1px solid #c7d2fe}
 .answer-q.shift-q{background:#fff3cd;color:#92400e;border-bottom:1px solid #fbbf24}
@@ -106,7 +106,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .no-answer-hint{font-size:12px;color:#b45309}
 
 /* ── Agent card ── */
-.agent-card{background:#fff;border:1px solid #ddd6fe;border-radius:12px;overflow:hidden}
+.agent-card{background:#fff;border:1px solid #ddd6fe;border-radius:12px;overflow:visible}
 .agent-q{background:#ede9fe;border-bottom:1px solid #ddd6fe;padding:10px 14px;font-size:13px;font-weight:500;color:#5b21b6;display:flex;align-items:center;gap:7px}
 .badge-agent{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600;background:#7c3aed;color:#fff;flex-shrink:0}
 
@@ -118,7 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .agent-thinking-text{font-size:12px;color:#7c3aed;font-style:italic}
 
 /* Agent zone 2: report */
-.agent-report{padding:14px}
+.agent-report{padding:14px;overflow:visible}
 .report-sec{margin-bottom:12px}
 .report-sec-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
 .report-text{font-size:14px;color:#0f172a;line-height:1.8;white-space:pre-wrap}
@@ -218,6 +218,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 <div class="page-tabs">
   <a class="page-tab active" href="/chat">Ask a question</a>
   <a class="page-tab" href="/library">Document library</a>
+  <a class="page-tab" href="/gaps">Knowledge gaps</a>
   <a class="page-tab" href="/">Upload <span class="tab-badge">admin</span></a>
 </div>
 
