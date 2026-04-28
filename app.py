@@ -244,7 +244,13 @@ def ask():
             yield "NOANSWER:Please enter a question."
         return Response(stream_with_context(err()), mimetype="text/plain")
 
-    question_vec = get_embedding(question)
+    try:
+        question_vec = get_embedding(question)
+    except Exception as e:
+        def err_stream():
+            yield "NOANSWER:Search service temporarily unavailable. Please try again in a few seconds."
+        return Response(stream_with_context(err_stream()), mimetype="text/plain",
+                        headers={"X-Accel-Buffering": "no"})
 
     # Build filter — shift mode only searches CSVs, doc mode excludes CSVs
     filter_dict = {}
@@ -346,8 +352,10 @@ def ask():
         if was_fallback:
             yield "FALLBACK:"
         yield f"SOURCES:{sources_json}\n\n"
+        # 70b has separate 12K TPM pool from specialist agents (8b, 6K TPM)
+        # This prevents /ask calls from exhausting the agent TPM budget
         stream = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_prompt}
@@ -407,8 +415,15 @@ def investigate():
         incident = context + incident
 
     def stream():
-        for chunk in investigate_incident(incident):
-            yield chunk
+        try:
+            for chunk in investigate_incident(incident):
+                yield chunk
+        except Exception as e:
+            err = str(e)
+            if "rate_limit" in err.lower() or "429" in err:
+                yield "\n\nRate limit reached — Groq TPM limit hit. Please wait 60 seconds and try again."
+            else:
+                yield f"\n\nInvestigation error: {err}"
 
     return Response(stream_with_context(stream()), mimetype="text/plain",
                     headers={"X-Accel-Buffering": "no"})

@@ -42,6 +42,12 @@ def _groq_call_with_retry(fn, max_retries=3):
     raise Exception("Max retries exceeded on Groq rate limit")
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# ── Feature flag — disable for eval runs to avoid rate limits ─────────────────
+# Set to True for production/manual testing, False for automated eval runs.
+# Reflection adds 1 LLM call per investigation — on free tier this reliably
+# hits the 6,000 TPM limit when running multiple investigations back to back.
+ENABLE_REFLECTION = os.getenv("ENABLE_REFLECTION", "false").lower() == "true"
 pc          = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 pine_index  = pc.Index(os.getenv("PINECONE_INDEX"))
 
@@ -415,6 +421,9 @@ Synthesize the final investigation report from these findings."""
     initial_report = response.choices[0].message.content
 
     # ── Reflection pass — second LLM critiques and improves ──────────
+    # Only runs when ENABLE_REFLECTION=true (set in .env or environment)
+    if not ENABLE_REFLECTION:
+        return initial_report
     # Teaching note: This is the REFLECTION PATTERN.
     # A second LLM call reads the first report and asks:
     #   - What did I miss?
@@ -501,6 +510,9 @@ def investigate_incident(incident):
     # Run all four specialists in parallel.
     # IMPORTANT: do NOT yield inside the with-block — collect results first,
     # yield progress after the executor has cleanly closed.
+    # Run all four specialists in parallel (max_workers=4)
+    # Safe without reflection — 4 x 400 tokens = 1,600 tokens well under 6,000 TPM
+    # If reflection is enabled, consider max_workers=2 to avoid TPM spikes
     with ThreadPoolExecutor(max_workers=4) as executor:
         future_to_name = {
             executor.submit(fn, incident, equipment_id): label

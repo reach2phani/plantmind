@@ -103,8 +103,8 @@ def call_shift_intel(test_case):
         "line":       inp.get("line", ""),
         "equip_tag":  inp.get("equipment_id", ""),
         "mode":       "shift",
-        "time_from":  inp.get("time_from", ""),
-        "time_to":    inp.get("time_to", "")
+        "time_from":  inp.get("time_from") or "",
+        "time_to":    inp.get("time_to") or ""
     }
 
     try:
@@ -112,7 +112,7 @@ def call_shift_intel(test_case):
             f"{BASE_URL}/ask",
             json=payload,
             stream=True,
-            timeout=30
+            timeout=60
         )
 
         full_text = ""
@@ -226,7 +226,7 @@ def keyword_check(answer, expected):
 
 # ── Main runner ───────────────────────────────────────────────────────
 
-def run_evals():
+def run_evals(mode_filter=None):
     print(f"\n{'='*60}")
     print("PlantMind Eval Runner — PM-E02")
     print(f"{'='*60}\n")
@@ -236,7 +236,11 @@ def run_evals():
         data = json.load(f)
 
     test_cases = data["test_cases"]
-    print(f"Loaded {len(test_cases)} test cases\n")
+    if mode_filter:
+        test_cases = [tc for tc in test_cases if tc["mode"] == mode_filter]
+        print(f"Running {mode_filter} cases only: {len(test_cases)} cases\n")
+    else:
+        print(f"Loaded {len(test_cases)} test cases\n")
 
     # Check Flask is reachable before running
     try:
@@ -317,9 +321,12 @@ def run_evals():
             "llm_reasoning":None    # filled in by PM-E03
         })
 
-        # Longer delays to avoid Groq free tier rate limits
+        # Free tier rate limit delays
+        # Investigation (no reflection) = 5 LLM calls: 4x 8b agents + 1x 70b orchestrator
+        # 4 agents at 400 tokens each = 1,600 tokens on 8b (under 6,000 TPM)
+        # 20s gap is enough for TPM window to clear between investigations
         if mode == "investigation":
-            time.sleep(8)
+            time.sleep(20)
         else:
             time.sleep(3)
 
@@ -363,4 +370,20 @@ def run_evals():
 
 
 if __name__ == "__main__":
-    run_evals()
+    import sys
+    # Usage:
+    #   python eval_runner.py           — run all 20 cases
+    #   python eval_runner.py qa        — run Q&A only (7 cases)
+    #   python eval_runner.py shift     — run Shift Intel only (7 cases)
+    #   python eval_runner.py inv       — run Investigation only (6 cases)
+    #
+    # On Groq free tier, run one mode at a time with 5 min gap between batches
+    # to avoid rate limit timeouts.
+
+    mode_filter = sys.argv[1] if len(sys.argv) > 1 else None
+    mode_map = {"qa": "qa", "shift": "shift_intel", "inv": "investigation"}
+
+    if mode_filter and mode_filter in mode_map:
+        run_evals(mode_filter=mode_map[mode_filter])
+    else:
+        run_evals()

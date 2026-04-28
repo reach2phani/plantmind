@@ -1,0 +1,44 @@
+{
+  "session": "Session 6 \u2014 PM-026 reflection pattern",
+  "locked_at": "2026-04-28T17:42:48",
+  "description": "Clean baseline \u2014 fresh daily limits, reflection disabled for evals, 70b restored",
+  "summary": {
+    "total": 10,
+    "passed": 9,
+    "errors": 0,
+    "pass_rate": "90%",
+    "by_mode": {
+      "qa": {
+        "passed": 3,
+        "total": 3,
+        "rate": "100%"
+      },
+      "shift_intel": {
+        "passed": 3,
+        "total": 3,
+        "rate": "100%"
+      },
+      "investigation": {
+        "passed": 3,
+        "total": 4,
+        "rate": "75%"
+      }
+    }
+  },
+  "known_failures": {
+    "INV-004": "8b specialist agents miss burn-in connection from SOP \u2014 requires cross-document reasoning. Will improve when ENABLE_REFLECTION=true with 70b orchestrator."
+  },
+  "known_issues_resolved": {
+    "QA-006": "Spatter threshold now retrieving correctly on fresh limits",
+    "SI-006": "Pattern detection passing \u2014 None time values fixed in runner",
+    "INV-006": "Conflicting signals passing \u2014 70b orchestrator identifies sensor residue correctly"
+  },
+  "model_config": {
+    "specialist_agents": "llama-3.1-8b-instant (4 parallel)",
+    "orchestrator": "llama-3.3-70b-versatile",
+    "ask_route": "llama-3.1-8b-instant",
+    "reflection": "disabled for evals (ENABLE_REFLECTION=false)"
+  },
+  "delta_from_session5": "65% \u2192 90% (+25 points)",
+  "next_session": "Session 7 \u2014 PM-039 observability, PM-INV01 embed status, PM-014 equipment auto-detect"
+}

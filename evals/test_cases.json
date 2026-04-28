@@ -300,8 +300,10 @@
         ],
         "must_not_contain": [
           "root cause unknown",
-          "CRITICAL",
-          "HIGH"
+          "HOW CRITICAL IS IT:\n- CRITICAL",
+          "HOW CRITICAL IS IT:\n- HIGH",
+          "CRITICAL IS IT:\n- CRITICAL",
+          "CRITICAL IS IT:\n- HIGH"
         ],
         "format": "structured report, connects maintenance to symptom",
         "tone": "analytical, reassuring but precise",
