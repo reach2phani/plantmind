@@ -1,0 +1,38 @@
+{
+  "session": "Session 8 \u2014 PM-037 supervisor agent",
+  "locked_at": "2026-04-28T21:20:29",
+  "description": "Supervisor agent replacing fixed fan-out. Dynamic routing based on incident type.",
+  "summary": {
+    "total": 10,
+    "passed": 9,
+    "errors": 0,
+    "pass_rate": "90%",
+    "by_mode": {
+      "qa": {
+        "passed": 3,
+        "total": 3,
+        "rate": "100%"
+      },
+      "shift_intel": {
+        "passed": 3,
+        "total": 3,
+        "rate": "100%"
+      },
+      "investigation": {
+        "passed": 3,
+        "total": 4,
+        "rate": "75%"
+      }
+    }
+  },
+  "known_failures": {
+    "INV-004": "Supervisor occasionally routes away from maintenance agent for wire/arc issues \u2014 routing prompt updated, needs re-test"
+  },
+  "delta_from_session7": "90% maintained \u2014 no regression from supervisor addition",
+  "supervisor_routing": {
+    "INV-002": "fallback \u2014 no equipment history",
+    "INV-003": "sop \u2014 safety event",
+    "INV-006": "sop + maintenance \u2014 conflicting sensor"
+  },
+  "next_session": "Session 9 \u2014 PM-038 agent memory, PM-015 Whisper transcription"
+}

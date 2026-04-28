@@ -522,9 +522,10 @@ Routing rules:
   - Recurring alarm or "third time this week" → alarm + maintenance + ncr
   - Weld quality or spatter issue → alarm + ncr + sop
   - Safety event (exhaust fan, fumes, fire risk) → sop (urgent procedure first)
-  - Wire feed, liner, or maintenance-related → maintenance + sop
+  - Wire feed, liner, arc, or stuttering → maintenance + sop (recent work matters)
+  - Any issue where recent maintenance could be relevant → always include maintenance
   - First-time failure, no history → maintenance + sop
-  - Conflicting sensor readings → sop (check spec and sensor notes)
+  - Conflicting sensor readings → sop + maintenance (spec + recent work)
   - Unknown or general → all four agents
 
 Respond with ONLY a JSON object, nothing else:
