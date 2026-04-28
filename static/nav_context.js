@@ -29,6 +29,8 @@ var PlantMindContext = {
     var ctx = PlantMindContext.get();
     var el  = document.getElementById('navCtxText');
     var dot = document.getElementById('navDot');
+    var banner = document.getElementById('ctxBanner');
+    if (banner) banner.style.display = (!ctx.plant) ? 'flex' : 'none';
     if (!el) return;
     if (ctx.plant && ctx.line) {
       el.textContent = ctx.plant + ' \u00b7 ' + ctx.line;

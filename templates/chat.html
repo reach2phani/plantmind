@@ -171,6 +171,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .ex-agent .ex-label{color:#7c3aed}
 .ex-agent{grid-column:1/-1}
 
+/* ── Shift time bar ── */
+.shift-bar{padding:6px 10px 2px;display:none;gap:6px;flex-wrap:wrap;align-items:center}
+.shift-bar.visible{display:flex}
+.preset-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s}
+.preset-btn:hover{border-color:#fbbf24;color:#92400e}
+.preset-btn.active{background:#d97706;color:#fff;border-color:#d97706}
+.time-sep{font-size:11px;color:#94a3b8}
+.time-input{font-size:11px;padding:3px 6px;border:1px solid #e2e8f0;border-radius:4px;color:#0f172a;width:72px}
+
 /* ── Input area ── */
 .input-area{padding:10px 20px 14px;flex-shrink:0;background:#fff;border-top:1px solid #e2e8f0}
 .input-wrap{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;transition:border-color .2s}
@@ -317,6 +326,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
         <textarea class="input-ta" id="questionInput"
           placeholder="e.g. What should I check first when P-201 shows high vibration alarm?"
           onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <div class="shift-bar" id="shiftBar">
+          <button class="preset-btn" id="preset-night" onclick="setPreset('night')">Night</button>
+          <button class="preset-btn" id="preset-day"   onclick="setPreset('day')">Day</button>
+          <button class="preset-btn" id="preset-afternoon" onclick="setPreset('afternoon')">Afternoon</button>
+          <span class="time-sep">or</span>
+          <input class="time-input" type="time" id="timeFromInput" onchange="setCustomTime()">
+          <span class="time-sep">to</span>
+          <input class="time-input" type="time" id="timeToInput" onchange="setCustomTime()">
+        </div>
         <div class="input-footer" id="inputFooter">
           <span class="ctx-pill ctx-doc" id="ctxPill" style="display:none"></span>
           <button class="send-btn btn-doc" id="sendBtn" onclick="submitQuestion()">Ask PlantMind</button>
@@ -393,6 +411,14 @@ function setMode(mode) {
   currentMode = mode;
   var cfg = MODE_CONFIG[mode];
 
+  // Clear answers when switching modes — prevents content bleed
+  var area = document.getElementById('answersArea');
+  var emp  = document.getElementById('emptyState');
+  if (area) {
+    area.innerHTML = '';
+    if (emp) { area.appendChild(emp); emp.style.display = 'flex'; }
+  }
+
   ['doc','shift','agent'].forEach(function(m) {
     document.getElementById('tab-'+m).className = 'mode-tab';
   });
@@ -410,16 +436,51 @@ function setMode(mode) {
 
   updateCtxPill();
 
-  if (mode === 'shift' && !activePreset) {
-    // Auto-select shift based on current time
-    // Day: 06:00-14:00, Afternoon: 14:00-22:00, Night: 22:00-06:00
-    var nowHour = new Date().getHours();
-    var autoShift = nowHour >= 6 && nowHour < 14 ? 'day'
-                  : nowHour >= 14 && nowHour < 22 ? 'afternoon'
-                  : 'night';
-    activePreset = autoShift;
-    timeFrom     = PRESETS[autoShift].from;
-    timeTo       = PRESETS[autoShift].to;
+  // Show/hide shift bar
+  var shiftBar = document.getElementById('shiftBar');
+  if (shiftBar) shiftBar.className = 'shift-bar' + (mode === 'shift' ? ' visible' : '');
+
+  if (mode === 'shift') {
+    if (!activePreset) {
+      var nowHour = new Date().getHours();
+      var autoShift = nowHour >= 6 && nowHour < 14 ? 'day'
+                    : nowHour >= 14 && nowHour < 22 ? 'afternoon'
+                    : 'night';
+      setPreset(autoShift);
+    } else {
+      highlightPreset(activePreset);
+    }
+  }
+}
+
+function setPreset(name) {
+  activePreset = name;
+  timeFrom = PRESETS[name].from;
+  timeTo   = PRESETS[name].to;
+  var fi = document.getElementById('timeFromInput');
+  var ti = document.getElementById('timeToInput');
+  if (fi) fi.value = timeFrom;
+  if (ti) ti.value = timeTo;
+  highlightPreset(name);
+  updateCtxPill();
+}
+
+function highlightPreset(name) {
+  ['night','day','afternoon'].forEach(function(p) {
+    var btn = document.getElementById('preset-'+p);
+    if (btn) btn.className = 'preset-btn' + (p === name ? ' active' : '');
+  });
+}
+
+function setCustomTime() {
+  var fi = document.getElementById('timeFromInput');
+  var ti = document.getElementById('timeToInput');
+  if (fi && ti) {
+    timeFrom = fi.value;
+    timeTo   = ti.value;
+    activePreset = null;
+    highlightPreset('');
+    updateCtxPill();
   }
 }
 
