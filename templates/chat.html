@@ -411,9 +411,15 @@ function setMode(mode) {
   updateCtxPill();
 
   if (mode === 'shift' && !activePreset) {
-    activePreset = 'night';
-    timeFrom     = PRESETS.night.from;
-    timeTo       = PRESETS.night.to;
+    // Auto-select shift based on current time
+    // Day: 06:00-14:00, Afternoon: 14:00-22:00, Night: 22:00-06:00
+    var nowHour = new Date().getHours();
+    var autoShift = nowHour >= 6 && nowHour < 14 ? 'day'
+                  : nowHour >= 14 && nowHour < 22 ? 'afternoon'
+                  : 'night';
+    activePreset = autoShift;
+    timeFrom     = PRESETS[autoShift].from;
+    timeTo       = PRESETS[autoShift].to;
   }
 }
 
@@ -790,7 +796,9 @@ function submitQuestion() {
   var ctx      = (typeof PlantMindContext !== 'undefined') ? PlantMindContext.get() : {};
   var plant    = isShift ? '' : (ctx.plant || '');
   var line     = isShift ? (ctx.line || '') : (ctx.line || '');
-  var equip    = '';
+  // Auto-detect equipment tag from question for gaps link
+  var _equipMatch = q.match(/\b([A-Za-z]{1,4})-?(\d{2,4})\b/);
+  var equip = _equipMatch ? (_equipMatch[1].toUpperCase() + '-' + _equipMatch[2]) : '';
   var tFrom    = isShift ? timeFrom : '';
   var tTo      = isShift ? timeTo   : '';
 
@@ -874,6 +882,7 @@ function submitQuestion() {
               '<div class="no-answer-body">' +
                 '<div class="no-answer-msg">'+escHtml(msg)+'</div>' +
                 '<div class="no-answer-hint">'+(isShift?'Check that a shift log has been uploaded for this time period.':'Try rephrasing, or upload a document covering this topic.')+'</div>' +
+              (equip ? '<div style="margin-top:8px"><a href="/gaps" style="font-size:12px;color:#4f46e5;text-decoration:none;padding:4px 10px;border:1px solid #c7d2fe;border-radius:6px;background:#eef2ff">Check document coverage for '+escHtml(equip)+' →</a></div>' : '') +
               '</div>';
             btn.disabled    = false;
             btn.textContent = isShift ? 'Search shift log' : 'Ask PlantMind';

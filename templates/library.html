@@ -107,6 +107,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 <div class="tabs">
   <a class="tab" href="/chat">Ask a question</a>
   <a class="tab active" href="/library">Document library</a>
+  <a class="tab" href="/gaps">Knowledge gaps</a>
   <a class="tab" href="/">Upload <span class="tab-badge">admin</span></a>
 </div>
 <div class="main">
@@ -156,6 +157,15 @@ fetch('/api/documents')
     allDocs = data.documents||[];
     populateFilters();
     updateStats();
+    // Restore saved filter state
+    try {
+      var savedSearch = localStorage.getItem('pm_lib_search');
+      var savedPlant  = localStorage.getItem('pm_lib_plant');
+      var savedLine   = localStorage.getItem('pm_lib_line');
+      if (savedSearch) document.getElementById('searchInput').value = savedSearch;
+      if (savedPlant)  document.getElementById('plantFilter').value = savedPlant;
+      if (savedLine)   document.getElementById('lineFilter').value  = savedLine;
+    } catch(e) {}
     filterDocs();
   })
   .catch(function(){
@@ -195,6 +205,12 @@ function filterDocs(opts){
   var search=document.getElementById('searchInput').value.toLowerCase();
   var plant=document.getElementById('plantFilter').value;
   var line=document.getElementById('lineFilter').value;
+  // Save filter state to localStorage so it survives page refresh
+  try {
+    localStorage.setItem('pm_lib_search', search);
+    localStorage.setItem('pm_lib_plant',  plant);
+    localStorage.setItem('pm_lib_line',   line);
+  } catch(e) {}
   var type=document.getElementById('typeFilter').value;
   var equip=document.getElementById('equipFilter').value;
   var filtered=allDocs.filter(function(d){
