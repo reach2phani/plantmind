@@ -41,8 +41,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ── Supabase client ────────────────────────────────────────────────────
-_supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+# ── Supabase client — lazy init ────────────────────────────────────────
+# Created on first use rather than at import time.
+# Avoids conflicts when imported after Flask initialisation.
+_supabase = None
+
+def _get_supabase():
+    global _supabase
+    if _supabase is None:
+        _supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+    return _supabase
 
 # ── Token estimation ───────────────────────────────────────────────────
 # Groq returns exact token counts for non-streaming calls.
@@ -56,7 +64,7 @@ def _write_log(model, call_type, input_tokens, output_tokens,
                latency_ms, error=None, plant_site="", equip_tag=""):
     """Write one log entry to Supabase. Runs in background thread — never blocks."""
     try:
-        _supabase.table("llm_logs").insert({
+        _get_supabase().table("llm_logs").insert({
             "model":          model,
             "call_type":      call_type,
             "input_tokens":   input_tokens,
@@ -180,7 +188,7 @@ def get_today_stats():
     try:
         from datetime import datetime, timezone
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        rows = _supabase.table("llm_logs")\
+        rows = _get_supabase().table("llm_logs")\
             .select("model,call_type,input_tokens,output_tokens,latency_ms,error,created_at")\
             .gte("created_at", f"{today}T00:00:00Z")\
             .execute()

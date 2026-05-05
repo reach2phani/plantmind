@@ -4,8 +4,9 @@ import threading
 import json
 import tempfile
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template, Response, stream_with_context
 from dotenv import load_dotenv
+load_dotenv()  # load env vars FIRST before any module that needs them
+from flask import Flask, request, jsonify, render_template, Response, stream_with_context
 from supabase import create_client
 from embedder import embed_document
 from pinecone import Pinecone
@@ -13,7 +14,6 @@ from groq import Groq
 from multi_agent import investigate_incident
 from llm_logger import log_streaming_call, get_today_stats
 
-load_dotenv()
 app = Flask(__name__)
 
 # ── Equipment ID auto-detection ──────────────────────────────────────
@@ -152,6 +152,94 @@ def library():
     return render_template("library.html")
 
 # ── API ────────────────────────────────────────────────────────────────
+
+@app.route("/gaps")
+def gaps():
+    return render_template("gaps.html")
+
+@app.route("/api/gaps")
+def api_gaps():
+    """
+    Knowledge gap analysis — which equipment has coverage gaps.
+    Groups documents by equip_tag and shows which doc_types are missing.
+
+    Teaching note: this is a pure Supabase aggregation — no LLM needed.
+    The query answers "what can PlantMind actually investigate?" before
+    an operator wastes time asking a question with no data behind it.
+    """
+    docs = supabase.table("documents")        .select("equip_tag,doc_type,plant_site,line,name,embed_status")        .eq("status", "uploaded")        .execute()
+
+    # Derive required types dynamically from what exists in the index.
+    # Any doc_type uploaded for at least 2 different equipment tags is
+    # considered a "standard" type expected across all equipment.
+    # This means adding a new category automatically updates gap analysis
+    # without any code change.
+    all_type_counts = {}
+    for doc in (docs.data or []):
+        tag   = (doc.get("equip_tag") or "").strip()
+        dtype = doc.get("doc_type", "")
+        if tag and dtype:
+            if dtype not in all_type_counts:
+                all_type_counts[dtype] = set()
+            all_type_counts[dtype].add(tag)
+
+    # A type is "required" if it appears for 2+ equipment tags
+    # (avoids one-off uploads creating phantom requirements)
+    required_types = sorted([
+        dt for dt, tags in all_type_counts.items()
+        if len(tags) >= 2
+    ])
+
+    # Always include core types even if only 1 equipment has them
+    core_types = ["SOP", "Work Instruction", "Shift Log", "NCR"]
+    for ct in core_types:
+        if ct not in required_types:
+            required_types.append(ct)
+
+    # Group by equip_tag
+    coverage = {}
+    for doc in (docs.data or []):
+        tag   = (doc.get("equip_tag") or "").strip()
+        dtype = doc.get("doc_type", "Other")
+        if not tag:
+            continue
+        if tag not in coverage:
+            coverage[tag] = {
+                "equip_tag":   tag,
+                "plant_site":  doc.get("plant_site", ""),
+                "line":        doc.get("line", ""),
+                "doc_types":   [],
+                "docs":        [],
+                "missing":     []
+            }
+        if dtype not in coverage[tag]["doc_types"]:
+            coverage[tag]["doc_types"].append(dtype)
+        coverage[tag]["docs"].append(doc.get("name", ""))
+
+    # Calculate missing doc types per equipment
+    for tag, info in coverage.items():
+        info["missing"] = [t for t in required_types if t not in info["doc_types"]]
+        info["coverage_pct"] = round(
+            (len([t for t in required_types if t in info["doc_types"]]) / len(required_types)) * 100
+        )
+        info["status"] = (
+            "full"    if info["coverage_pct"] == 100 else
+            "partial" if info["coverage_pct"] >= 50  else
+            "minimal"
+        )
+
+    # Also find equipment mentioned in investigations with no documents
+    equipment_list = list(coverage.values())
+    equipment_list.sort(key=lambda x: x["coverage_pct"])
+
+    return jsonify({
+        "equipment":       equipment_list,
+        "total_equipment": len(equipment_list),
+        "full_coverage":   sum(1 for e in equipment_list if e["status"] == "full"),
+        "partial":         sum(1 for e in equipment_list if e["status"] == "partial"),
+        "minimal":         sum(1 for e in equipment_list if e["status"] == "minimal"),
+        "required_types":  required_types
+    })
 
 @app.route("/api/plant-sites", methods=["GET"])
 def get_plant_sites():
@@ -480,9 +568,66 @@ def save_history():
         "sources":    json.dumps(data.get("sources", [])),
         "plant_site": data.get("plant_site", ""),
         "line":       data.get("line",       ""),
+        "equip_tag":  data.get("equip_tag",  ""),
     }
     result = supabase.table("chat_history").insert(record).execute()
     return jsonify({"success": True, "id": result.data[0]["id"] if result.data else None})
+
+@app.route("/api/recent-equipment")
+def recent_equipment():
+    """
+    Returns the 4 most recently investigated equipment tags
+    for the current plant site, from chat_history.
+
+    Falls back to all equipment tags from documents table
+    if no investigation history exists yet.
+    """
+    plant = request.args.get("plant_site", "")
+    line  = request.args.get("line", "")
+
+    # Try chat_history first — most recently used equipment
+    try:
+        query = supabase.table("chat_history")            .select("equip_tag, created_at")            .eq("mode", "agent")            .neq("equip_tag", "")            .order("created_at", desc=True)            .limit(50)            .execute()
+
+        seen = []
+        recent = []
+        for row in (query.data or []):
+            tag = (row.get("equip_tag") or "").strip()
+            if tag and tag not in seen:
+                seen.append(tag)
+                recent.append({"equip_tag": tag, "source": "history"})
+            if len(recent) >= 4:
+                break
+
+        if recent:
+            return jsonify({"equipment": recent, "source": "history"})
+    except Exception as e:
+        print(f"  recent-equipment history query failed: {e}")
+
+    # Fallback — equipment from documents table filtered by context
+    docs_query = supabase.table("documents")        .select("equip_tag, line, plant_site")        .eq("status", "uploaded")        .neq("equip_tag", "")
+
+    if plant:
+        docs_query = docs_query.eq("plant_site", plant)
+    if line:
+        docs_query = docs_query.eq("line", line)
+
+    docs = docs_query.execute()
+    seen = []
+    fallback = []
+    for doc in (docs.data or []):
+        tag = (doc.get("equip_tag") or "").strip()
+        if tag and tag not in seen:
+            seen.append(tag)
+            fallback.append({
+                "equip_tag": tag,
+                "line":      doc.get("line", ""),
+                "source":    "documents"
+            })
+        if len(fallback) >= 4:
+            break
+
+    return jsonify({"equipment": fallback, "source": "documents"})
 
 @app.route("/api/history", methods=["GET"])
 def get_history():

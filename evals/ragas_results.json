@@ -1,0 +1,35 @@
+{
+  "run_at": "2026-05-05T15:43:14",
+  "judge": "llama-3.1-8b via Groq OpenAI-compat",
+  "cases": 2,
+  "scores": {
+    "faithfulness": 0.111,
+    "context_recall": 0.875
+  },
+  "per_case": [
+    {
+      "user_input": "What spatter index value triggers the initial alarm on WR-401 (not the auto-quarantine threshold)?",
+      "retrieved_contexts": [
+        "SOP-WR-401-welding-robot.txt",
+        "NCR-WR-401-2024-04-spatter-recurrence.txt",
+        "WI-WR-401-maintenance-log.txt"
+      ],
+      "response": "The spatter index value that triggers the initial alarm on WR-401 is 3.5.",
+      "reference": "The initial spatter index alarm threshold for WR-401 is 3.5. When the spatter index exceeds 3.5 a quality alarm is triggered. A separate higher threshold of 5.0 triggers automatic panel quarantine. These are two distinct thresholds: 3.5 for the initial alarm, 5.0 for auto-quarantine.",
+      "faithfulness": 0.0,
+      "context_recall": 1.0
+    },
+    {
+      "user_input": "WR-401 had a wire liner replaced yesterday and is showing wire feed stuttering. What is causing this and what should the operator do?",
+      "retrieved_contexts": [
+        "NCR-WR-401-2024-04-spatter-recurrence.txt",
+        "WI-WR-401-maintenance-log.txt",
+        "SOP-WR-401-welding-robot.txt"
+      ],
+      "response": "Based on the provided context, the wire feed stuttering on WR-401 is likely caused by the new wire liner burn-in behavior. The maintenance log entry from 19-Apr-2024 states that the wire liner was replaced due to blockage discovered during inspection, and the new liner was fitted at 10:15. The note also mentions that the first 50m of wire feed may be inconsistent due to burn-in, and production should not resume until burn-in is complete.\n\nThe operator should wait for the burn-in to be completed, which is estimated to take around 2 hours. Once the burn-in is complete, the operator should verify the tip-to-work distance and run 3 quality test welds before resuming full production.",
+      "reference": "Wire feed stuttering after a liner replacement is expected behaviour during the burn-in period. The SOP for WR-401 requires a mandatory burn-in procedure after any wire liner replacement. The operator should complete the burn-in procedure before resuming production. This is LOW criticality \u2014 expected post-maintenance behaviour, not an equipment failure.",
+      "faithfulness": 0.2222222222222222,
+      "context_recall": 0.75
+    }
+  ]
+}
