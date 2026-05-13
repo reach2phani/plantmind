@@ -16,11 +16,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .nav-ctx{font-size:11px;color:#94a3b8;background:#0f172a;padding:3px 10px;border-radius:5px;display:flex;align-items:center;gap:5px;cursor:pointer}
 .nav-dot{width:5px;height:5px;border-radius:50%;background:#94a3b8;flex-shrink:0}
 .nav-dot.online{background:#22c55e}
-.nav-stats{font-size:11px;color:#64748b;background:#0f172a;padding:3px 10px;border-radius:5px;display:flex;align-items:center;gap:6px;margin-right:6px;cursor:pointer;border:1px solid #1e293b}
-.nav-stats:hover{color:#94a3b8}
-.nav-stats-dot{width:5px;height:5px;border-radius:50%;background:#334155;flex-shrink:0}
-.nav-stats-dot.warn{background:#f59e0b}
-.nav-stats-dot.danger{background:#ef4444}
 
 /* ── Page tabs ── */
 .page-tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
@@ -71,7 +66,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .answers{flex:1;min-height:0;height:0;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
 
 /* ── Q&A card ── */
-.answer-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:visible}
+.answer-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
 .answer-q{padding:10px 14px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px}
 .answer-q.doc-q{background:#eef2ff;color:#3730a3;border-bottom:1px solid #c7d2fe}
 .answer-q.shift-q{background:#fff3cd;color:#92400e;border-bottom:1px solid #fbbf24}
@@ -106,7 +101,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .no-answer-hint{font-size:12px;color:#b45309}
 
 /* ── Agent card ── */
-.agent-card{background:#fff;border:1px solid #ddd6fe;border-radius:12px;overflow:visible}
+.agent-card{background:#fff;border:1px solid #ddd6fe;border-radius:12px;overflow:hidden}
 .agent-q{background:#ede9fe;border-bottom:1px solid #ddd6fe;padding:10px 14px;font-size:13px;font-weight:500;color:#5b21b6;display:flex;align-items:center;gap:7px}
 .badge-agent{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600;background:#7c3aed;color:#fff;flex-shrink:0}
 
@@ -117,36 +112,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .step-check{font-size:12px}
 .agent-thinking-text{font-size:12px;color:#7c3aed;font-style:italic}
 
-/* Agent zone 2: report — structured cards */
-.agent-report{padding:14px;overflow:visible}
-.report-sec{margin-bottom:10px}
+/* Agent zone 2: report */
+.agent-report{padding:14px}
+.report-sec{margin-bottom:12px}
 .report-sec-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
 .report-text{font-size:14px;color:#0f172a;line-height:1.8;white-space:pre-wrap}
-/* Criticality card */
-.crit-card{border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
-.crit-critical{background:#fef2f2;border:1px solid #fca5a5}
-.crit-high{background:#fff7ed;border:1px solid #fed7aa}
-.crit-medium{background:#fffbeb;border:1px solid #fde68a}
-.crit-low{background:#f0fdf4;border:1px solid #86efac}
-.crit-badge{font-size:13px;font-weight:700;padding:4px 12px;border-radius:6px;white-space:nowrap}
-.cb-critical{background:#dc2626;color:#fff}
-.cb-high{background:#ea580c;color:#fff}
-.cb-medium{background:#d97706;color:#fff}
-.cb-low{background:#16a34a;color:#fff}
-.crit-reason{font-size:13px;line-height:1.5}
-.crit-critical .crit-reason{color:#991b1b}
-.crit-high .crit-reason{color:#9a3412}
-.crit-medium .crit-reason{color:#92400e}
-.crit-low .crit-reason{color:#166534}
-/* Immediate action card */
-.action-card{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:12px}
-.action-label{font-size:10px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px}
-.action-text{font-size:13px;color:#1e3a8a;line-height:1.6;white-space:pre-wrap}
-/* Collapsible sources */
-.src-toggle{font-size:11px;color:#64748b;cursor:pointer;padding:4px 0;display:flex;align-items:center;gap:4px;border:none;background:none;margin-top:4px}
-.src-toggle:hover{color:#0f172a}
-.src-body{display:none;margin-top:6px}
-.src-body.open{display:block}
 
 /* Agent zone 3: plant manager summary */
 .pm-block{margin:0 14px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:11px 13px}
@@ -171,15 +141,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .ex-agent .ex-label{color:#7c3aed}
 .ex-agent{grid-column:1/-1}
 
-/* ── Shift time bar ── */
-.shift-bar{padding:6px 10px 2px;display:none;gap:6px;flex-wrap:wrap;align-items:center}
-.shift-bar.visible{display:flex}
-.preset-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s}
-.preset-btn:hover{border-color:#fbbf24;color:#92400e}
-.preset-btn.active{background:#d97706;color:#fff;border-color:#d97706}
-.time-sep{font-size:11px;color:#94a3b8}
-.time-input{font-size:11px;padding:3px 6px;border:1px solid #e2e8f0;border-radius:4px;color:#0f172a;width:72px}
-
 /* ── Input area ── */
 .input-area{padding:10px 20px 14px;flex-shrink:0;background:#fff;border-top:1px solid #e2e8f0}
 .input-wrap{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;transition:border-color .2s}
@@ -200,13 +161,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .btn-shift:hover:not(:disabled){background:#b45309}
 .btn-agent{background:#7c3aed}
 .btn-agent:hover:not(:disabled){background:#6d28d9}
-
-/* ── Context banner ── */
-.ctx-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 14px;margin:8px 20px 0;display:flex;align-items:center;gap:8px;font-size:13px;color:#92400e;cursor:pointer;flex-shrink:0}
-.ctx-banner:hover{background:#fef3c7}
-.ctx-banner-icon{font-size:14px;flex-shrink:0}
-.ctx-banner-text{flex:1;line-height:1.4}
-.ctx-banner-link{font-size:12px;font-weight:600;color:#d97706;white-space:nowrap}
 
 /* ── Mobile responsive ── */
 @media (max-width: 600px) {
@@ -244,22 +198,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 
 <div class="nav">
   <div class="nav-brand">Plant<span>Mind</span></div>
-  <div style="display:flex;align-items:center;gap:6px">
-    <div class="nav-stats" id="navStats" onclick="toggleStatsPanel()" title="Today's LLM usage">
-      <div class="nav-stats-dot" id="statsDot"></div>
-      <span id="statsText">usage</span>
-    </div>
   <div class="nav-ctx" id="navCtx">
     <div class="nav-dot" id="navDot"></div>
     <span id="navCtxText">Set your context</span>
-  </div>
   </div>
 </div>
 
 <div class="page-tabs">
   <a class="page-tab active" href="/chat">Ask a question</a>
   <a class="page-tab" href="/library">Document library</a>
-  <a class="page-tab" href="/gaps">Knowledge gaps</a>
   <a class="page-tab" href="/">Upload <span class="tab-badge">admin</span></a>
 </div>
 
@@ -270,24 +217,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 
     <!-- Mode tabs -->
     <div class="mode-bar">
-      <div class="mode-tab active-doc" id="tab-doc" onclick="setMode('doc')" title="Search SOPs, work instructions, NCRs and maintenance specs">
+      <div class="mode-tab active-doc" id="tab-doc" onclick="setMode('doc')">
         <div class="mode-dot md-doc"></div>Documents
       </div>
-      <div class="mode-tab" id="tab-shift" onclick="setMode('shift')" title="Search shift logs for alarms, events and operator actions">
+      <div class="mode-tab" id="tab-shift" onclick="setMode('shift')">
         <div class="mode-dot md-shift"></div>Shift log
       </div>
-      <div class="mode-tab" id="tab-agent" onclick="setMode('agent')" title="Full AI investigation — searches all sources and generates a structured report">
-        <div class="mode-dot md-agent"></div>&#9889; Investigate
+      <div class="mode-tab" id="tab-agent" onclick="setMode('agent')">
+        <div class="mode-dot md-agent"></div>&#9889; Agent investigation
       </div>
       <span class="mode-hint" id="modeHint">Search your uploaded SOPs, work instructions and NCRs</span>
       <button class="sb-clear" id="sbToggle" onclick="toggleSidebar()" style="font-size:11px;margin-left:8px;flex-shrink:0;align-self:center">Show history</button>
-    </div>
-
-    <!-- Context banner — shown when context not set -->
-    <div class="ctx-banner" id="ctxBanner" style="display:none" onclick="document.getElementById('navCtx').click()">
-      <span class="ctx-banner-icon">&#9888;</span>
-      <span class="ctx-banner-text">Set your <strong>plant site and line</strong> for accurate answers — results are filtered by your context</span>
-      <span class="ctx-banner-link">Set context →</span>
     </div>
 
     <!-- Answers -->
@@ -326,15 +266,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
         <textarea class="input-ta" id="questionInput"
           placeholder="e.g. What should I check first when P-201 shows high vibration alarm?"
           onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-        <div class="shift-bar" id="shiftBar">
-          <button class="preset-btn" id="preset-night" onclick="setPreset('night')">Night</button>
-          <button class="preset-btn" id="preset-day"   onclick="setPreset('day')">Day</button>
-          <button class="preset-btn" id="preset-afternoon" onclick="setPreset('afternoon')">Afternoon</button>
-          <span class="time-sep">or</span>
-          <input class="time-input" type="time" id="timeFromInput" onchange="setCustomTime()">
-          <span class="time-sep">to</span>
-          <input class="time-input" type="time" id="timeToInput" onchange="setCustomTime()">
-        </div>
         <div class="input-footer" id="inputFooter">
           <span class="ctx-pill ctx-doc" id="ctxPill" style="display:none"></span>
           <button class="send-btn btn-doc" id="sendBtn" onclick="submitQuestion()">Ask PlantMind</button>
@@ -411,14 +342,6 @@ function setMode(mode) {
   currentMode = mode;
   var cfg = MODE_CONFIG[mode];
 
-  // Clear answers when switching modes — prevents content bleed
-  var area = document.getElementById('answersArea');
-  var emp  = document.getElementById('emptyState');
-  if (area) {
-    area.innerHTML = '';
-    if (emp) { area.appendChild(emp); emp.style.display = 'flex'; }
-  }
-
   ['doc','shift','agent'].forEach(function(m) {
     document.getElementById('tab-'+m).className = 'mode-tab';
   });
@@ -436,51 +359,10 @@ function setMode(mode) {
 
   updateCtxPill();
 
-  // Show/hide shift bar
-  var shiftBar = document.getElementById('shiftBar');
-  if (shiftBar) shiftBar.className = 'shift-bar' + (mode === 'shift' ? ' visible' : '');
-
-  if (mode === 'shift') {
-    if (!activePreset) {
-      var nowHour = new Date().getHours();
-      var autoShift = nowHour >= 6 && nowHour < 14 ? 'day'
-                    : nowHour >= 14 && nowHour < 22 ? 'afternoon'
-                    : 'night';
-      setPreset(autoShift);
-    } else {
-      highlightPreset(activePreset);
-    }
-  }
-}
-
-function setPreset(name) {
-  activePreset = name;
-  timeFrom = PRESETS[name].from;
-  timeTo   = PRESETS[name].to;
-  var fi = document.getElementById('timeFromInput');
-  var ti = document.getElementById('timeToInput');
-  if (fi) fi.value = timeFrom;
-  if (ti) ti.value = timeTo;
-  highlightPreset(name);
-  updateCtxPill();
-}
-
-function highlightPreset(name) {
-  ['night','day','afternoon'].forEach(function(p) {
-    var btn = document.getElementById('preset-'+p);
-    if (btn) btn.className = 'preset-btn' + (p === name ? ' active' : '');
-  });
-}
-
-function setCustomTime() {
-  var fi = document.getElementById('timeFromInput');
-  var ti = document.getElementById('timeToInput');
-  if (fi && ti) {
-    timeFrom = fi.value;
-    timeTo   = ti.value;
-    activePreset = null;
-    highlightPreset('');
-    updateCtxPill();
+  if (mode === 'shift' && !activePreset) {
+    activePreset = 'night';
+    timeFrom     = PRESETS.night.from;
+    timeTo       = PRESETS.night.to;
   }
 }
 
@@ -675,129 +557,6 @@ function renderAgentHistory(item, idx, area) {
   card.scrollIntoView({behavior:'smooth'});
 }
 
-function parseReportSections(reportText) {
-  /* Parse investigation report into sections for structured rendering.
-     Looks for section headers: SOURCE DATA, WHAT IS THE ISSUE, etc. */
-  var sections = {};
-  var sectionOrder = [
-    'SOURCE DATA', 'WHAT IS THE ISSUE', 'WHAT IS THE IMPACT',
-    'HOW CRITICAL IS IT', 'HOW TO ADDRESS IT'
-  ];
-  sectionOrder.forEach(function(key, i) {
-    var start = reportText.indexOf(key);
-    if (start === -1) return;
-    var nextKey = null;
-    for (var j = i + 1; j < sectionOrder.length; j++) {
-      if (reportText.indexOf(sectionOrder[j]) > -1) {
-        nextKey = sectionOrder[j];
-        break;
-      }
-    }
-    var end = nextKey ? reportText.indexOf(nextKey) : reportText.length;
-    var body = reportText.substring(start + key.length, end)
-      .replace(/^[:\s─═\n]+/, '').trim();
-    sections[key] = body;
-  });
-  return sections;
-}
-
-function getCriticalityLevel(text) {
-  if (!text) return 'medium';
-  var t = text.toUpperCase();
-  if (t.includes('\n- CRITICAL') || t.startsWith('CRITICAL')) return 'critical';
-  if (t.includes('\n- HIGH') || t.startsWith('HIGH')) return 'high';
-  if (t.includes('\n- LOW') || t.startsWith('LOW')) return 'low';
-  return 'medium';
-}
-
-function renderStructuredReport(reportText, container) {
-  var sections = parseReportSections(reportText);
-  var html = '';
-
-  // 1. Criticality card — FIRST and most prominent
-  if (sections['HOW CRITICAL IS IT']) {
-    var level = getCriticalityLevel(sections['HOW CRITICAL IS IT']);
-    var labels = {critical:'CRITICAL',high:'HIGH',medium:'MEDIUM',low:'LOW'};
-    var lines = sections['HOW CRITICAL IS IT'].split('\n').filter(function(l){return l.trim() && !l.match(/^[-─]+$/);});
-    var reason = lines.slice(1).join(' ').replace(/^[-\s]+/,'').trim() || lines[0];
-    html += '<div class="crit-card crit-' + level + '">' +
-      '<span class="crit-badge cb-' + level + '">' + labels[level] + '</span>' +
-      '<span class="crit-reason">' + escHtml(reason.substring(0, 120)) + '</span>' +
-    '</div>';
-  }
-
-  // 2. Immediate action — highlighted box
-  if (sections['HOW TO ADDRESS IT']) {
-    var actionText = sections['HOW TO ADDRESS IT'];
-    var immIdx = actionText.toLowerCase().indexOf('immediate action');
-    var immText = '';
-    if (immIdx > -1) {
-      var afterImm = actionText.substring(immIdx + 'immediate action'.length).replace(/^[:\s-]+/,'');
-      var nextBullet = afterImm.search(/\n-\s/);
-      immText = nextBullet > -1 ? afterImm.substring(0, nextBullet).trim() : afterImm.split('\n')[0].trim();
-    }
-    if (immText) {
-      html += '<div class="action-card">' +
-        '<div class="action-label">&#9889; Immediate action</div>' +
-        '<div class="action-text">' + escHtml(immText) + '</div>' +
-      '</div>';
-    }
-  }
-
-  // 3. What is the issue
-  if (sections['WHAT IS THE ISSUE']) {
-    html += '<div class="report-sec">' +
-      '<div class="report-sec-label">Root cause</div>' +
-      '<div class="report-text">' + escHtml(sections['WHAT IS THE ISSUE']) + '</div>' +
-    '</div>';
-  }
-
-  // 4. Impact
-  if (sections['WHAT IS THE IMPACT']) {
-    html += '<div class="report-sec">' +
-      '<div class="report-sec-label">Impact</div>' +
-      '<div class="report-text">' + escHtml(sections['WHAT IS THE IMPACT']) + '</div>' +
-    '</div>';
-  }
-
-  // 5. Full actions (collapsible)
-  if (sections['HOW TO ADDRESS IT']) {
-    html += '<div class="report-sec">' +
-      '<div class="report-sec-label">Full action plan</div>' +
-      '<div class="report-text">' + escHtml(sections['HOW TO ADDRESS IT']) + '</div>' +
-    '</div>';
-  }
-
-
-  // Fallback — if parsing failed just render raw text
-  if (!html) {
-    html = '<div class="report-text">' + escHtml(reportText) + '</div>';
-  }
-
-  // Set main HTML first, then append source toggle (avoids innerHTML overwrite)
-  container.innerHTML = html;
-
-  // Now append source toggle if we have source data
-  if (sections['SOURCE DATA']) {
-    var srcLines = sections['SOURCE DATA'].split('\n').filter(function(l){return l.trim();}).length;
-    var srcBtn = document.createElement('button');
-    srcBtn.className = 'src-toggle';
-    srcBtn.textContent = '\u25bc Show ' + srcLines + ' sources used';
-    srcBtn.addEventListener('click', function() {
-      var b = this.nextElementSibling;
-      b.classList.toggle('open');
-      this.textContent = b.classList.contains('open')
-        ? '\u25b2 Hide sources'
-        : '\u25bc Show ' + srcLines + ' sources used';
-    });
-    var srcBody = document.createElement('div');
-    srcBody.className = 'src-body';
-    srcBody.innerHTML = '<div class="report-text" style="font-size:12px;color:#475569">' + escHtml(sections['SOURCE DATA']) + '</div>';
-    container.appendChild(srcBtn);
-    container.appendChild(srcBody);
-  }
-}
-
 function renderSourcesHTML(sources, isShift) {
   if (!sources || !sources.length) return '';
   var html = '<div style="margin-top:12px"><div class="sources-label">Sources</div>';
@@ -857,9 +616,7 @@ function submitQuestion() {
   var ctx      = (typeof PlantMindContext !== 'undefined') ? PlantMindContext.get() : {};
   var plant    = isShift ? '' : (ctx.plant || '');
   var line     = isShift ? (ctx.line || '') : (ctx.line || '');
-  // Auto-detect equipment tag from question for gaps link
-  var _equipMatch = q.match(/\b([A-Za-z]{1,4})-?(\d{2,4})\b/);
-  var equip = _equipMatch ? (_equipMatch[1].toUpperCase() + '-' + _equipMatch[2]) : '';
+  var equip    = '';
   var tFrom    = isShift ? timeFrom : '';
   var tTo      = isShift ? timeTo   : '';
 
@@ -943,7 +700,6 @@ function submitQuestion() {
               '<div class="no-answer-body">' +
                 '<div class="no-answer-msg">'+escHtml(msg)+'</div>' +
                 '<div class="no-answer-hint">'+(isShift?'Check that a shift log has been uploaded for this time period.':'Try rephrasing, or upload a document covering this topic.')+'</div>' +
-              (equip ? '<div style="margin-top:8px"><a href="/gaps" style="font-size:12px;color:#4f46e5;text-decoration:none;padding:4px 10px;border:1px solid #c7d2fe;border-radius:6px;background:#eef2ff">Check document coverage for '+escHtml(equip)+' →</a></div>' : '') +
               '</div>';
             btn.disabled    = false;
             btn.textContent = isShift ? 'Search shift log' : 'Ask PlantMind';
@@ -1033,7 +789,7 @@ function submitInvestigation(incident) {
       '<span class="badge-agent">AGENT</span>' + escHtml(incident) +
     '</div>' +
     '<div class="agent-progress" id="prog-'+bodyId+'">' +
-      '<div class="az-label" style="display:flex;justify-content:space-between;align-items:center">Investigation progress<span id="timer-'+bodyId+'" style="font-size:11px;color:#a78bfa;font-weight:400;font-style:italic">0s</span></div>' +
+      '<div class="az-label">Investigation progress</div>' +
       '<div id="steps-'+bodyId+'"><div class="agent-thinking-text">&#9889; Starting investigation...</div></div>' +
     '</div>' +
     '<div class="agent-report" id="rep-'+bodyId+'" style="display:none">' +
@@ -1051,14 +807,6 @@ function submitInvestigation(incident) {
   var reportText      = '';
   var progressLines   = [];
 
-  // Start elapsed timer
-  var _startTime = Date.now();
-  var _timerEl   = document.getElementById('timer-'+bodyId);
-  var _timerInt  = setInterval(function() {
-    var s = Math.round((Date.now() - _startTime) / 1000);
-    if (_timerEl) _timerEl.textContent = s + 's';
-  }, 1000);
-
   fetch('/investigate', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -1073,9 +821,6 @@ function submitInvestigation(incident) {
         if (result.done) {
           btn.disabled    = false;
           btn.textContent = '⚡ Investigate';
-          clearInterval(_timerInt);
-          var totalSecs = Math.round((Date.now() - _startTime) / 1000);
-          if (_timerEl) _timerEl.textContent = 'Done in ' + totalSecs + 's';
 
           // DONE_MARKER: parse from fullContent — reportText may be empty
           var DONE_MARKER = 'INVESTIGATION REPORT';
@@ -1099,7 +844,7 @@ function submitInvestigation(incident) {
                                 .replace(/^[\s\u2550=\n]+/, '').trim();
           }
           repEl.style.display = 'block';
-          renderStructuredReport(technical, rtextEl);
+          rtextEl.textContent = technical;
           if (pmSummary) {
             var pmDiv = document.createElement('div');
             pmDiv.className = 'pm-block';
@@ -1111,23 +856,12 @@ function submitInvestigation(incident) {
           var actDiv = document.createElement('div');
           actDiv.className = 'card-actions';
           actDiv.innerHTML =
-            '<button class="act-btn" id="copy-'+bodyId+'">Copy report</button>' +
             '<button class="act-btn" onclick="reuseQuestion(\''+escHtml(incident).replace(/'/g,"&#39;")+'\')">Re-investigate</button>' +
             '<div class="helpful">Helpful?' +
               '<button class="thumb" onclick="this.style.opacity=1;this.nextElementSibling.style.opacity=0.2">&#128077;</button>' +
               '<button class="thumb" onclick="this.style.opacity=1;this.previousElementSibling.style.opacity=0.2">&#128078;</button>' +
             '</div>';
           card.appendChild(actDiv);
-          var _copyReport = technical + (pmSummary ? '\n\nPLANT MANAGER SUMMARY\n' + pmSummary : '');
-          var _copyBtn = document.getElementById('copy-'+bodyId);
-          if (_copyBtn) {
-            _copyBtn.addEventListener('click', function() {
-              navigator.clipboard.writeText(_copyReport).then(function() {
-                _copyBtn.textContent = 'Copied!';
-                setTimeout(function() { _copyBtn.textContent = 'Copy report'; }, 1500);
-              });
-            });
-          }
           saveToHistory('agent', incident, bodyText, [], plant, line);
           return;
         }
@@ -1199,109 +933,6 @@ function submitInvestigation(incident) {
   });
 }
 </script>
-
-<script>
-// ── LLM Stats widget ─────────────────────────────────────────────────
-var statsOpen = false;
-var statsTimer = null;
-
-async function loadStats() {
-  try {
-    var res = await fetch('/api/llm-stats');
-    var d = await res.json();
-    if (d.error) { updateStatsUI(null); return; }
-
-    // Update header pill
-    var total = (d.total_tokens || 0).toLocaleString();
-    var calls = d.total_calls || 0;
-    document.getElementById('statsText').textContent = total + ' tokens · ' + calls + ' calls';
-
-    // Colour dot based on 70b usage (100K TPD limit)
-    var dot = document.getElementById('statsDot');
-    var b70 = (d.by_model || {})['llama-3.3-70b-versatile'] || {};
-    var used70 = (b70.input_tokens || 0) + (b70.output_tokens || 0);
-    var pct70 = (used70 / 100000) * 100;
-    dot.className = 'nav-stats-dot' + (pct70 > 80 ? ' danger' : pct70 > 50 ? ' warn' : '');
-
-    // Update panel if open
-    if (statsOpen) renderStatsPanel(d);
-  } catch(e) {
-    document.getElementById('statsText').textContent = 'usage';
-  }
-}
-
-function renderStatsPanel(d) {
-  var models = d.by_model || {};
-  var limits = {'llama-3.3-70b-versatile': 100000, 'llama-3.1-8b-instant': 500000};
-  var labels = {'llama-3.3-70b-versatile': '70b versatile', 'llama-3.1-8b-instant': '8b instant'};
-  var rows = '';
-
-  Object.keys(models).forEach(function(m) {
-    var info = models[m];
-    var total = (info.input_tokens || 0) + (info.output_tokens || 0);
-    var limit = limits[m] || 100000;
-    var pct = Math.min(100, Math.round((total / limit) * 100));
-    var colour = pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#22c55e';
-    var label = labels[m] || m;
-    rows += '<div style="margin-bottom:10px">' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:3px">' +
-        '<span style="color:#e2e8f0">' + label + '</span>' +
-        '<span style="color:#64748b">' + total.toLocaleString() + ' / ' + limit.toLocaleString() + '</span>' +
-      '</div>' +
-      '<div style="background:#0f172a;border-radius:3px;height:4px">' +
-        '<div style="width:' + pct + '%;height:100%;border-radius:3px;background:' + colour + '"></div>' +
-      '</div>' +
-      '<div style="display:flex;justify-content:space-between;margin-top:2px">' +
-        '<span style="color:#475569;font-size:11px">' + (info.calls || 0) + ' calls</span>' +
-        '<span style="color:' + colour + ';font-size:11px">' + pct + '% used</span>' +
-      '</div>' +
-    '</div>';
-  });
-
-  if (d.errors > 0) {
-    rows += '<div style="color:#ef4444;font-size:12px;margin-top:6px">⚠ ' + d.errors + ' error(s) today</div>';
-  }
-
-  document.getElementById('statsPanelContent').innerHTML = rows || '<span style="color:#475569">No calls yet today</span>';
-}
-
-function toggleStatsPanel() {
-  statsOpen = !statsOpen;
-  var panel = document.getElementById('statsPanel');
-  if (statsOpen) {
-    panel.style.display = 'block';
-    loadStats();
-    setTimeout(function() {
-      document.addEventListener('click', closePanelOutside);
-    }, 100);
-  } else {
-    panel.style.display = 'none';
-    document.removeEventListener('click', closePanelOutside);
-  }
-}
-
-function closePanelOutside(e) {
-  var panel = document.getElementById('statsPanel');
-  var pill  = document.getElementById('navStats');
-  if (panel && !panel.contains(e.target) && pill && !pill.contains(e.target)) {
-    statsOpen = false;
-    panel.style.display = 'none';
-    document.removeEventListener('click', closePanelOutside);
-  }
-}
-
-// Load on page open + refresh every 60s
-document.addEventListener('DOMContentLoaded', function() {
-  loadStats();
-  statsTimer = setInterval(loadStats, 60000);
-});
-</script>
-
-<div id="statsPanel" style="display:none;position:fixed;top:58px;right:16px;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px;z-index:9999;min-width:260px;box-shadow:0 8px 24px rgba(0,0,0,.4)">
-  <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Today's LLM usage</div>
-  <div id="statsPanelContent" style="font-size:13px;color:#94a3b8">Loading...</div>
-  <div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;font-size:11px;color:#475569">Auto-refreshes every 60s · <a href="/api/llm-stats" target="_blank" style="color:#818cf8">full JSON</a></div>
-</div>
 
 </body>
 </html>
