@@ -501,3 +501,98 @@ MQTT integration (Session 10):
 6. PM-040 proactive pattern detection on top of live events
 
 *PlantMind · Session 9 complete · Update this file at end of each session*
+
+---
+
+## Session 10 — UX Rebuild + Plant Setup
+
+### New Supabase tables
+```sql
+-- Lines table
+create table lines (
+  id uuid primary key default gen_random_uuid(),
+  name text not null, plant_site text not null,
+  active bool default true, created_at timestamptz default now()
+);
+-- Equipment table
+create table equipment (
+  id uuid primary key default gen_random_uuid(),
+  equip_tag text not null unique, name text not null,
+  type text, plant_site text not null, line text not null,
+  manufacturer text, active bool default true,
+  created_at timestamptz default now()
+);
+-- RLS policies needed:
+create policy "Allow all" on lines for all using (true) with check (true);
+create policy "Allow all" on equipment for all using (true) with check (true);
+-- Seed data already inserted for Northgate Automotive
+```
+
+### New Flask routes added to app.py
+```
+GET  /plant-setup              → plant_setup.html template
+GET  /api/lines                → all lines, ?plant_site=X to filter
+POST /api/lines                → create line {name, plant_site}
+PATCH /api/lines/<id>          → update line
+DELETE /api/lines/<id>         → delete line
+GET  /api/equipment            → all equipment, ?plant_site=X&line=Y
+POST /api/equipment            → create equipment {equip_tag, name, type, plant_site, line, manufacturer}
+PATCH /api/equipment/<id>      → update equipment / toggle active
+DELETE /api/equipment/<id>     → delete equipment
+PATCH /api/plant-sites/<id>    → update site name
+DELETE /api/plant-sites/<id>   → delete site
+```
+
+### New templates
+- `templates/plant_setup.html` — full CRUD for sites, lines, equipment
+  - Hierarchy tree sidebar (site → line → equipment)
+  - Detail panel with stats, fields, edit forms
+  - Confirmation dialog for all deletes
+  - Inline add/edit forms — no modals
+  - Full CRUD: Create, Read, Update, Delete, Activate/Deactivate
+
+### Nav changes (all pages)
+- Upload tab removed from nav — upload now lives inside Library as inline panel
+- Plant setup button added top right on all pages
+- GP G. Phani user badge replaces context pill
+- chat.html: Ask tab is now a `<span>` not an `<a>` — prevents page reload on click
+- library.html: nav height fixed to 50px (was 54px), matching chat.html
+
+### Chat page — unified input component
+- Mode tabs bar removed — replaced with mode pills inside input box
+- Context selectors (site/line/equipment) moved inside input box as breadcrumb
+- Breadcrumb format: Northgate Automotive › Line 4 › WR-401 ▾
+- Site, Line, Equipment now load dynamically from Supabase via API
+- Lines filter by selected plant, Equipment filters by selected line
+- Input area has grey background (#f8fafc) to visually separate from answers
+- Input wrap has purple-tinted border (#ddd6fe) at rest, stronger on focus
+
+### Known remaining issues
+- FIX-001: library.html knowledge gaps tab — already removed in nav but check
+- FIX-002: no-answer card gaps link in chat.html — may still reference /gaps
+- Library upload inline panel — context bar added but needs testing end-to-end
+- eval_runner.py — confirm 90% baseline after laptop setup before MQTT
+
+### Next session — MQTT integration (Session 11)
+Priority order:
+1. Run eval_runner.py — confirm 90% baseline
+2. Install Mosquitto: mosquitto.org/download
+3. pip install paho-mqtt simpy (add to requirements.txt after)
+4. Build Simpy plant simulator — publishes to plant/northgate/line4/WR-401/alarm
+5. Build PlantMind MQTT subscriber — writes to Supabase live_events table
+6. Create live_events table in Supabase
+7. PM-040 proactive pattern detection on top of live events
+
+### live_events table SQL (run before Session 11)
+```sql
+create table live_events (
+  id uuid primary key default gen_random_uuid(),
+  plant_site text, line text, equip_tag text,
+  event_type text, value float, unit text,
+  severity text, message text,
+  created_at timestamptz default now()
+);
+create policy "Allow all" on live_events for all using (true) with check (true);
+```
+
+*PlantMind · Session 10 complete · Update this file at end of each session*

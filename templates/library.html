@@ -121,8 +121,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
     <div class="search-wrap">
       <input type="text" id="searchInput" placeholder="Search by name, equipment tag, or keyword..." oninput="filterDocs()">
     </div>
-    <select class="filter-select" id="plantFilter" onchange="filterDocs()"><option value="">All plant sites</option></select>
-    <select class="filter-select" id="lineFilter"  onchange="filterDocs()"><option value="">All lines</option></select>
+    <select class="filter-select" id="plantFilter" onchange="onLibPlantChange()"><option value="">All plant sites</option></select>
+    <select class="filter-select" id="lineFilter"  onchange="onLibLineChange()"><option value="">All lines</option></select>
     <select class="filter-select" id="typeFilter"  onchange="filterDocs()"><option value="">All types</option></select>
     <select class="filter-select" id="equipFilter" onchange="filterDocs()"><option value="">All equipment</option></select>
     <button class="toggle-archived" id="archivedToggle" onclick="toggleArchived()">Show archived</button>
@@ -157,28 +157,87 @@ fetch('/api/documents')
     allDocs = data.documents||[];
     populateFilters();
     updateStats();
-    // Restore saved filter state
+    // Restore search — filter state restored after API loads in populateFilters
     try {
       var savedSearch = localStorage.getItem('pm_lib_search');
-      var savedPlant  = localStorage.getItem('pm_lib_plant');
-      var savedLine   = localStorage.getItem('pm_lib_line');
       if (savedSearch) document.getElementById('searchInput').value = savedSearch;
-      if (savedPlant)  document.getElementById('plantFilter').value = savedPlant;
-      if (savedLine)   document.getElementById('lineFilter').value  = savedLine;
     } catch(e) {}
-    filterDocs();
   })
   .catch(function(){
     document.getElementById('docGrid').innerHTML='<div class="empty"><div class="empty-title">Could not load documents</div></div>';
   });
 
 function populateFilters(){
-  var plants=[...new Set(allDocs.map(function(d){return d.plant_site}).filter(Boolean))];
-  var lines=[...new Set(allDocs.map(function(d){return d.line}).filter(Boolean))];
+  // Doc types still derived from documents
   var types=[...new Set(allDocs.map(function(d){return d.doc_type}).filter(Boolean))];
-  var equips=[...new Set(allDocs.map(function(d){return d.equip_tag}).filter(Boolean))];
-  function populate(id,items){var s=document.getElementById(id);items.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o)})}
-  populate('plantFilter',plants);populate('lineFilter',lines);populate('typeFilter',types);populate('equipFilter',equips);
+  function populate(id,items){
+    var s=document.getElementById(id);
+    if(!s) return;
+    items.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o)});
+  }
+  populate('typeFilter',types);
+
+  // Load plants, lines, equipment from API
+  fetch('/api/plant-sites')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var sites = data.plant_sites||[];
+      var pSel = document.getElementById('plantFilter');
+      if(pSel) sites.forEach(function(s){
+        var o=document.createElement('option');o.value=s.name;o.textContent=s.name;pSel.appendChild(o);
+      });
+      return fetch('/api/lines');
+    })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      window._libLines = data.lines||[];
+      populateLibLines();
+      return fetch('/api/equipment');
+    })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      window._libEquipment = data.equipment||[];
+      populateLibEquip();
+      // Restore saved filter state after dropdowns populated
+      try {
+        var savedPlant = localStorage.getItem('pm_lib_plant')||localStorage.getItem('pm_plant')||'';
+        var savedLine  = localStorage.getItem('pm_lib_line') ||localStorage.getItem('pm_line') ||'';
+        if(savedPlant){document.getElementById('plantFilter').value=savedPlant;}
+        if(savedLine) {document.getElementById('lineFilter').value=savedLine;}
+        populateLibLines(savedPlant);
+        populateLibEquip(savedPlant, savedLine);
+      } catch(e){}
+      filterDocs();
+    })
+    .catch(function(){filterDocs();});
+}
+
+function populateLibLines(plant){
+  var sel = document.getElementById('lineFilter');
+  if(!sel) return;
+  var current = sel.value;
+  sel.innerHTML = '<option value="">All lines</option>';
+  var lines = (window._libLines||[]).filter(function(l){return !plant||l.plant_site===plant;});
+  lines.forEach(function(l){
+    var o=document.createElement('option');o.value=l.name;o.textContent=l.name;
+    if(l.name===current) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+
+function populateLibEquip(plant, line){
+  var sel = document.getElementById('equipFilter');
+  if(!sel) return;
+  var current = sel.value;
+  sel.innerHTML = '<option value="">All equipment</option>';
+  var equip = (window._libEquipment||[]).filter(function(e){
+    return e.active!==false && (!plant||e.plant_site===plant) && (!line||e.line===line);
+  });
+  equip.forEach(function(e){
+    var o=document.createElement('option');o.value=e.equip_tag;o.textContent=e.equip_tag+' — '+e.name;
+    if(e.equip_tag===current) o.selected=true;
+    sel.appendChild(o);
+  });
 }
 
 function updateStats(){
@@ -197,6 +256,22 @@ function toggleArchived(){
   var btn=document.getElementById('archivedToggle');
   btn.classList.toggle('on',showArchived);
   btn.textContent=showArchived?'Hide archived':'Show archived';
+  filterDocs();
+}
+
+function onLibPlantChange(){
+  var plant = document.getElementById('plantFilter').value;
+  localStorage.setItem('pm_lib_plant', plant);
+  populateLibLines(plant);
+  populateLibEquip(plant, '');
+  filterDocs();
+}
+
+function onLibLineChange(){
+  var plant = document.getElementById('plantFilter').value;
+  var line  = document.getElementById('lineFilter').value;
+  localStorage.setItem('pm_lib_line', line);
+  populateLibEquip(plant, line);
   filterDocs();
 }
 

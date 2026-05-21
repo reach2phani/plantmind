@@ -153,6 +153,94 @@ def library():
 
 # ── API ────────────────────────────────────────────────────────────────
 
+@app.route("/gaps")
+def gaps():
+    return render_template("gaps.html")
+
+@app.route("/api/gaps")
+def api_gaps():
+    """
+    Knowledge gap analysis — which equipment has coverage gaps.
+    Groups documents by equip_tag and shows which doc_types are missing.
+
+    Teaching note: this is a pure Supabase aggregation — no LLM needed.
+    The query answers "what can PlantMind actually investigate?" before
+    an operator wastes time asking a question with no data behind it.
+    """
+    docs = supabase.table("documents")        .select("equip_tag,doc_type,plant_site,line,name,embed_status")        .eq("status", "uploaded")        .execute()
+
+    # Derive required types dynamically from what exists in the index.
+    # Any doc_type uploaded for at least 2 different equipment tags is
+    # considered a "standard" type expected across all equipment.
+    # This means adding a new category automatically updates gap analysis
+    # without any code change.
+    all_type_counts = {}
+    for doc in (docs.data or []):
+        tag   = (doc.get("equip_tag") or "").strip()
+        dtype = doc.get("doc_type", "")
+        if tag and dtype:
+            if dtype not in all_type_counts:
+                all_type_counts[dtype] = set()
+            all_type_counts[dtype].add(tag)
+
+    # A type is "required" if it appears for 2+ equipment tags
+    # (avoids one-off uploads creating phantom requirements)
+    required_types = sorted([
+        dt for dt, tags in all_type_counts.items()
+        if len(tags) >= 2
+    ])
+
+    # Always include core types even if only 1 equipment has them
+    core_types = ["SOP", "Work Instruction", "Shift Log", "NCR"]
+    for ct in core_types:
+        if ct not in required_types:
+            required_types.append(ct)
+
+    # Group by equip_tag
+    coverage = {}
+    for doc in (docs.data or []):
+        tag   = (doc.get("equip_tag") or "").strip()
+        dtype = doc.get("doc_type", "Other")
+        if not tag:
+            continue
+        if tag not in coverage:
+            coverage[tag] = {
+                "equip_tag":   tag,
+                "plant_site":  doc.get("plant_site", ""),
+                "line":        doc.get("line", ""),
+                "doc_types":   [],
+                "docs":        [],
+                "missing":     []
+            }
+        if dtype not in coverage[tag]["doc_types"]:
+            coverage[tag]["doc_types"].append(dtype)
+        coverage[tag]["docs"].append(doc.get("name", ""))
+
+    # Calculate missing doc types per equipment
+    for tag, info in coverage.items():
+        info["missing"] = [t for t in required_types if t not in info["doc_types"]]
+        info["coverage_pct"] = round(
+            (len([t for t in required_types if t in info["doc_types"]]) / len(required_types)) * 100
+        )
+        info["status"] = (
+            "full"    if info["coverage_pct"] == 100 else
+            "partial" if info["coverage_pct"] >= 50  else
+            "minimal"
+        )
+
+    # Also find equipment mentioned in investigations with no documents
+    equipment_list = list(coverage.values())
+    equipment_list.sort(key=lambda x: x["coverage_pct"])
+
+    return jsonify({
+        "equipment":       equipment_list,
+        "total_equipment": len(equipment_list),
+        "full_coverage":   sum(1 for e in equipment_list if e["status"] == "full"),
+        "partial":         sum(1 for e in equipment_list if e["status"] == "partial"),
+        "minimal":         sum(1 for e in equipment_list if e["status"] == "minimal"),
+        "required_types":  required_types
+    })
+
 @app.route("/api/plant-sites", methods=["GET"])
 def get_plant_sites():
     result = supabase.table("plant_sites").select("*").order("name").execute()
@@ -169,6 +257,123 @@ def add_plant_site():
         return jsonify({"error": f"'{name}' already exists"}), 409
     result = supabase.table("plant_sites").insert({"name": name}).execute()
     return jsonify({"success": True, "plant_site": result.data[0]})
+
+
+@app.route("/plant-setup")
+def plant_setup():
+    return render_template("plant_setup.html")
+
+# ── Lines API ──────────────────────────────────────────────────────────────────
+
+@app.route("/api/lines", methods=["GET"])
+def get_lines():
+    plant_site = request.args.get("plant_site", "")
+    q = supabase.table("lines").select("*").order("name")
+    if plant_site:
+        q = q.eq("plant_site", plant_site)
+    result = q.execute()
+    return jsonify({"lines": result.data})
+
+@app.route("/api/lines", methods=["POST"])
+def add_line():
+    data = request.get_json()
+    name       = (data.get("name") or "").strip()
+    plant_site = (data.get("plant_site") or "").strip()
+    if not name or not plant_site:
+        return jsonify({"error": "Name and plant_site are required"}), 400
+    existing = supabase.table("lines").select("id").eq("name", name).eq("plant_site", plant_site).execute()
+    if existing.data:
+        return jsonify({"error": f"'{name}' already exists for this site"}), 409
+    result = supabase.table("lines").insert({"name": name, "plant_site": plant_site, "active": True}).execute()
+    return jsonify({"success": True, "line": result.data[0]})
+
+@app.route("/api/lines/<line_id>", methods=["PATCH"])
+def update_line(line_id):
+    data = request.get_json()
+    allowed = {"name", "plant_site", "active"}
+    updates = {k: v for k, v in data.items() if k in allowed}
+    if not updates:
+        return jsonify({"error": "No valid fields"}), 400
+    result = supabase.table("lines").update(updates).eq("id", line_id).execute()
+    return jsonify({"success": True, "line": result.data[0]})
+
+# ── Equipment API ──────────────────────────────────────────────────────────────
+
+@app.route("/api/equipment", methods=["GET"])
+def get_equipment():
+    plant_site = request.args.get("plant_site", "")
+    line       = request.args.get("line", "")
+    q = supabase.table("equipment").select("*").order("equip_tag")
+    if plant_site:
+        q = q.eq("plant_site", plant_site)
+    if line:
+        q = q.eq("line", line)
+    result = q.execute()
+    return jsonify({"equipment": result.data})
+
+@app.route("/api/equipment", methods=["POST"])
+def add_equipment():
+    data = request.get_json()
+    equip_tag    = (data.get("equip_tag") or "").strip().upper().replace(" ", "-")
+    name         = (data.get("name") or "").strip()
+    plant_site   = (data.get("plant_site") or "").strip()
+    line         = (data.get("line") or "").strip()
+    eq_type      = (data.get("type") or "").strip()
+    manufacturer = (data.get("manufacturer") or "").strip()
+    if not equip_tag or not name or not plant_site or not line:
+        return jsonify({"error": "equip_tag, name, plant_site and line are required"}), 400
+    existing = supabase.table("equipment").select("id").eq("equip_tag", equip_tag).execute()
+    if existing.data:
+        return jsonify({"error": f"'{equip_tag}' already exists"}), 409
+    result = supabase.table("equipment").insert({
+        "equip_tag": equip_tag, "name": name, "plant_site": plant_site,
+        "line": line, "type": eq_type, "manufacturer": manufacturer, "active": True
+    }).execute()
+    return jsonify({"success": True, "equipment": result.data[0]})
+
+@app.route("/api/equipment/<equip_id>", methods=["PATCH"])
+def update_equipment(equip_id):
+    data = request.get_json()
+    allowed = {"name", "type", "plant_site", "line", "manufacturer", "active"}
+    updates = {k: v for k, v in data.items() if k in allowed}
+    if not updates:
+        return jsonify({"error": "No valid fields"}), 400
+    result = supabase.table("equipment").update(updates).eq("id", equip_id).execute()
+    return jsonify({"success": True, "equipment": result.data[0]})
+
+
+@app.route("/api/plant-sites/<site_id>", methods=["PATCH"])
+def update_plant_site(site_id):
+    data = request.get_json()
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+    result = supabase.table("plant_sites").update({"name": name}).eq("id", site_id).execute()
+    return jsonify({"success": True, "plant_site": result.data[0]})
+
+@app.route("/api/plant-sites/<site_id>", methods=["DELETE"])
+def delete_plant_site(site_id):
+    try:
+        supabase.table("plant_sites").delete().eq("id", site_id).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/lines/<line_id>", methods=["DELETE"])
+def delete_line(line_id):
+    try:
+        supabase.table("lines").delete().eq("id", line_id).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/equipment/<equip_id>", methods=["DELETE"])
+def delete_equipment(equip_id):
+    try:
+        supabase.table("equipment").delete().eq("id", equip_id).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/documents")
 def api_documents():

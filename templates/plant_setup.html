@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantMind — Plant Setup</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100vh;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;color:#0f172a}
+
+/* Nav */
+.nav{background:#1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.nav-brand{font-size:17px;font-weight:700;color:#fff}.nav-brand span{color:#a5b4fc}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-back{font-size:12px;color:#94a3b8;padding:5px 10px;border-radius:6px;border:1px solid #334155;text-decoration:none;transition:all .15s}
+.nav-back:hover{color:#fff;border-color:#475569}
+.setup-label{font-size:11px;color:#a5b4fc;padding:4px 10px;border-radius:6px;border:1px solid #4f46e5;background:rgba(79,70,229,.2)}
+.user-badge{display:flex;align-items:center;gap:6px;background:#0f172a;padding:4px 10px;border-radius:6px}
+.user-avatar{width:22px;height:22px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
+.user-name{font-size:11px;color:#e2e8f0;font-weight:500}
+
+/* Page tabs */
+.page-tabs{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
+.page-tab{padding:11px 18px;font-size:13px;font-weight:500;color:#94a3b8;text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-2px;display:block}
+.page-tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
+
+/* Layout */
+.layout{display:flex;height:calc(100vh - 100px);overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:280px;background:#fff;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;flex-shrink:0}
+.sb-head{padding:12px 14px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px}
+.sb-title{font-size:13px;font-weight:600;color:#0f172a}
+.sb-add-btns{display:flex;gap:4px}
+.btn-sm{font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer;border:1px solid #e2e8f0;background:#fff;color:#475569;transition:all .15s;white-space:nowrap}
+.btn-sm:hover{border-color:#a5b4fc;color:#7c3aed}
+.btn-sm.purple{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.btn-sm.purple:hover{background:#6d28d9}
+.sb-search{padding:8px 12px;border-bottom:1px solid #e2e8f0;flex-shrink:0}
+.search-wrap{position:relative}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:#94a3b8}
+.search-input{width:100%;padding:6px 10px 6px 28px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;color:#0f172a;background:#f8fafc;outline:none;transition:border-color .15s}
+.search-input:focus{border-color:#a5b4fc;background:#fff}
+.tree{flex:1;overflow-y:auto;padding:4px 0}
+
+/* Tree nodes */
+.t-site{padding:8px 14px;display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;transition:background .1s;border-radius:0}
+.t-site:hover,.t-site.selected{background:#f8fafc}
+.t-site.selected{background:#faf5ff;border-right:2px solid #7c3aed}
+.t-chevron{font-size:10px;color:#cbd5e1;transition:transform .2s;width:12px;flex-shrink:0}
+.t-chevron.open{transform:rotate(90deg)}
+.t-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.t-site-icon{background:#ede9fe}
+.t-label{font-size:12px;font-weight:600;color:#0f172a;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-count{font-size:10px;color:#94a3b8;background:#f1f5f9;padding:1px 6px;border-radius:20px;border:1px solid #e2e8f0;flex-shrink:0}
+
+.t-line{padding:7px 14px 7px 28px;display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;transition:background .1s}
+.t-line:hover{background:#f8fafc}
+.t-line.selected{background:#faf5ff;border-right:2px solid #7c3aed}
+.t-line-icon{background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b}
+.t-line-label{font-size:12px;color:#475569;flex:1}
+.t-line.selected .t-line-label{color:#0f172a;font-weight:500}
+
+.t-equip{padding:6px 14px 6px 44px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:background .1s}
+.t-equip:hover{background:#f8fafc}
+.t-equip.selected{background:#ede9fe}
+.t-etag{font-size:10px;font-family:monospace;font-weight:600;background:#f1f5f9;color:#475569;padding:2px 5px;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0}
+.t-equip.selected .t-etag{background:#ede9fe;color:#7c3aed;border-color:#ddd6fe}
+.t-ename{font-size:11px;color:#94a3b8;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-equip.selected .t-ename{color:#64748b}
+.t-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dot-on{background:#22c55e}.dot-off{background:#cbd5e1}
+
+/* Detail */
+.detail{flex:1;overflow-y:auto;padding:20px;background:#f8fafc}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;gap:12px}
+.empty-icon{font-size:40px;opacity:.25}
+
+/* Cards */
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:14px;overflow:hidden}
+.card-head{padding:16px 18px;border-bottom:1px solid #f1f5f9;display:flex;align-items:flex-start;gap:12px}
+.card-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.icon-site{background:#ede9fe}.icon-line{background:#e0f2fe}.icon-equip{background:#fff7ed}
+.card-title{font-size:16px;font-weight:600;color:#0f172a;margin-bottom:2px}
+.card-sub{font-size:12px;color:#64748b}
+.card-actions{display:flex;gap:6px;margin-left:auto;flex-shrink:0;flex-wrap:wrap}
+.btn{padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;font-weight:500;transition:all .15s;border:1px solid #e2e8f0;background:#fff;color:#475569;white-space:nowrap}
+.btn:hover{border-color:#a5b4fc;color:#7c3aed}
+.btn-primary{background:#7c3aed;color:#fff;border-color:#7c3aed}.btn-primary:hover{background:#6d28d9}
+.btn-success{background:#16a34a;color:#fff;border-color:#16a34a}.btn-success:hover{background:#15803d}
+.btn-danger{color:#dc2626;border-color:#fecaca}.btn-danger:hover{background:#fef2f2}
+.btn-warn{color:#d97706;border-color:#fde68a}.btn-warn:hover{background:#fffbeb}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 18px;border-bottom:1px solid #f1f5f9}
+.stat-box{background:#f8fafc;border-radius:8px;padding:10px;text-align:center}
+.stat-num{font-size:22px;font-weight:600}
+.stat-purple{color:#7c3aed}.stat-green{color:#16a34a}.stat-amber{color:#d97706}
+.stat-lbl{font-size:11px;color:#94a3b8;margin-top:1px}
+
+/* Fields */
+.fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 18px;border-bottom:1px solid #f1f5f9}
+.field-box{background:#f8fafc;border-radius:7px;padding:10px 12px}
+.field-lbl{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.field-val{font-size:13px;font-weight:500;color:#0f172a}
+.field-val.mono{font-family:monospace}
+.status-active{color:#16a34a;display:flex;align-items:center;gap:4px}
+.status-inactive{color:#94a3b8;display:flex;align-items:center;gap:4px}
+.sdot{width:6px;height:6px;border-radius:50%}
+.sdot-g{background:#22c55e}.sdot-gr{background:#cbd5e1}
+
+/* Items list */
+.items-section{padding:14px 18px}
+.section-lbl{font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.item-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f8fafc;cursor:pointer;transition:background .1s}
+.item-row:last-child{border-bottom:none}
+.item-row:hover{background:#faf5ff;margin:0 -18px;padding:8px 18px}
+.item-tag{font-size:11px;font-family:monospace;font-weight:600;background:#f1f5f9;color:#475569;padding:2px 6px;border-radius:4px}
+.item-name{font-size:12px;color:#0f172a;flex:1}
+.item-sub{font-size:11px;color:#94a3b8}
+.no-items{font-size:12px;color:#94a3b8;font-style:italic;padding:8px 0}
+
+/* Form */
+.form-card{background:#fff;border:1.5px solid #ddd6fe;border-radius:12px;padding:18px;margin-bottom:14px}
+.form-title{font-size:14px;font-weight:600;color:#0f172a;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+.form-lbl{font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+.form-lbl .req{color:#dc2626}
+.form-input{padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;color:#0f172a;background:#f8fafc;outline:none;transition:border-color .15s;width:100%;font-family:inherit}
+.form-input:focus{border-color:#a5b4fc;background:#fff}
+.form-btns{display:flex;gap:8px;align-items:center}
+.form-error{font-size:11px;color:#dc2626;margin-top:8px;display:none;padding:6px 10px;background:#fef2f2;border-radius:5px}
+
+/* Confirm dialog */
+.confirm-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.confirm-overlay.show{display:flex}
+.confirm-box{background:#fff;border-radius:14px;padding:0;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;animation:confirmIn .15s ease}
+@keyframes confirmIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.confirm-icon{width:44px;height:44px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.confirm-head{padding:24px 24px 0;display:flex;flex-direction:column;align-items:center;text-align:center}
+.confirm-title{font-size:16px;font-weight:600;color:#0f172a;margin-bottom:6px}
+.confirm-msg{font-size:13px;color:#64748b;line-height:1.6}
+.confirm-btns{display:flex;gap:8px;padding:20px 24px 24px;justify-content:flex-end;border-top:1px solid #f1f5f9;margin-top:20px}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:500;z-index:400;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;color:#fff;max-width:280px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-success{background:#16a34a}.toast-error{background:#dc2626}
+
+/* FAB */
+
+
+@media(max-width:700px){
+  .layout{flex-direction:column;height:auto}
+  .sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid #e2e8f0}
+  .tree{max-height:260px}
+  .detail{padding:12px}
+  .form-grid{grid-template-columns:1fr}
+  .fields-grid{grid-template-columns:1fr 1fr}
+  .stats-row{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">Plant<span>Mind</span></div>
+  <div class="nav-right">
+    <a href="/chat" class="nav-back">← Back to Ask</a>
+    <span class="setup-label">⚙ Plant setup</span>
+    <div class="user-badge">
+      <div class="user-avatar">GP</div>
+      <span class="user-name">G. Phani</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-tabs">
+  <a class="page-tab" href="/chat">Ask</a>
+  <a class="page-tab" href="/library">Library</a>
+  <a class="page-tab active" href="/plant-setup">Plant setup</a>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-head">
+      <span class="sb-title">Plant hierarchy</span>
+      <div class="sb-add-btns">
+        <button class="btn-sm" onclick="showForm('line')">+ Line</button>
+        <button class="btn-sm purple" onclick="showForm('site')">+ Site</button>
+      </div>
+    </div>
+    <div class="sb-search">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search..." oninput="filterTree(this.value)">
+      </div>
+    </div>
+    <div class="tree" id="tree"></div>
+  </div>
+
+  <div class="detail" id="detail">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🏭</div>
+      <div style="font-size:13px">Select an item from the tree<br>to view details</div>
+      <button class="btn btn-primary" onclick="showForm('site')" style="margin-top:4px">+ Add your first site</button>
+    </div>
+    <div id="detailContent" style="display:none"></div>
+  </div>
+</div>
+
+
+<!-- Confirm dialog — outside layout to avoid overflow:hidden clipping -->
+<div class="confirm-overlay" id="confirmOverlay" onclick="handleOverlayClick(event)">
+  <div class="confirm-box">
+    <div class="confirm-head">
+      <div class="confirm-icon">🗑</div>
+      <div class="confirm-title" id="confirmTitle">Delete this item?</div>
+      <div class="confirm-msg" id="confirmMsg"></div>
+    </div>
+    <div class="confirm-btns">
+      <button class="btn" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmOkBtn" onclick="execConfirm()">Yes, delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+var S = { sites:[], lines:[], equipment:[] };
+var openSites = {};
+var openLines = {};
+var sel = null; // {type, id}
+var confirmFn = null;
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+window.addEventListener('load', loadAll);
+
+function loadAll(keepSel) {
+  return Promise.all([
+    api('GET','/api/plant-sites'),
+    api('GET','/api/lines'),
+    api('GET','/api/equipment')
+  ]).then(function(r){
+    S.sites     = r[0].plant_sites || [];
+    S.lines     = r[1].lines       || [];
+    S.equipment = r[2].equipment   || [];
+    if (!keepSel && S.sites.length) openSites[S.sites[0].name] = true;
+    renderTree();
+  }).catch(function(){ toast('Failed to load data','error'); });
+}
+
+// ── API helper ────────────────────────────────────────────────────────────────
+function api(method, url, body) {
+  var opts = { method:method, headers:{'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(url, opts).then(function(r){
+    var ct = r.headers.get('content-type')||'';
+    if (ct.includes('application/json')) return r.json();
+    return r.ok ? {success:true} : {error:'Server error '+r.status};
+  });
+}
+
+// ── Tree ──────────────────────────────────────────────────────────────────────
+function renderTree(filter) {
+  filter = (filter||'').toLowerCase().trim();
+  var html = '';
+
+  S.sites.forEach(function(site) {
+    var sLines = S.lines.filter(function(l){ return l.plant_site === site.name; });
+    var sEquip = S.equipment.filter(function(e){ return e.plant_site === site.name; });
+
+    if (filter) {
+      var match = sEquip.some(function(e){
+        return (e.equip_tag+e.name).toLowerCase().includes(filter);
+      });
+      if (!match) return;
+    }
+
+    var isOpen = openSites[site.name];
+    var isSel  = sel && sel.type==='site' && sel.id===site.id;
+    html += '<div class="t-site'+(isSel?' selected':'')+'" onclick="clickSite(\''+esc(site.id)+'\',\''+esc(site.name)+'\')">' +
+      '<span class="t-chevron'+(isOpen?' open':'')+'">▶</span>' +
+      '<div class="t-icon t-site-icon">🏭</div>' +
+      '<span class="t-label">'+esc(site.name)+'</span>' +
+      '<span class="t-count">'+sEquip.length+'</span>' +
+    '</div>';
+
+    if (isOpen) {
+      sLines.forEach(function(line) {
+        var lEquip = S.equipment.filter(function(e){ return e.plant_site===site.name && e.line===line.name; });
+        var visible = filter ? lEquip.filter(function(e){ return (e.equip_tag+e.name).toLowerCase().includes(filter); }) : lEquip;
+        if (filter && !visible.length) return;
+
+        var lOpen = openLines[line.id] || filter;
+        var lSel  = sel && sel.type==='line' && sel.id===line.id;
+        html += '<div class="t-line'+(lSel?' selected':'')+'" onclick="clickLine(\''+esc(line.id)+'\',\''+esc(site.name)+'\',\''+esc(line.name)+'\')">' +
+          '<span class="t-chevron'+(lOpen?' open':'')+'">▶</span>' +
+          '<div class="t-icon t-line-icon">↔</div>' +
+          '<span class="t-line-label">'+esc(line.name)+'</span>' +
+          '<span class="t-count">'+lEquip.length+'</span>' +
+        '</div>';
+
+        if (lOpen) {
+          (filter ? visible : lEquip).forEach(function(eq) {
+            var eSel = sel && sel.type==='equipment' && sel.id===eq.id;
+            html += '<div class="t-equip'+(eSel?' selected':'')+'" onclick="clickEquip(\''+esc(eq.id)+'\')">' +
+              '<div class="t-dot '+(eq.active?'dot-on':'dot-off')+'"></div>' +
+              '<span class="t-etag">'+esc(eq.equip_tag)+'</span>' +
+              '<span class="t-ename">'+esc(eq.name)+'</span>' +
+            '</div>';
+          });
+        }
+      });
+
+      // Show equipment not assigned to any known line
+      var assignedLines = sLines.map(function(l){ return l.name; });
+      var unassigned = sEquip.filter(function(e){ return !assignedLines.includes(e.line); });
+      if (unassigned.length) {
+        html += '<div style="padding:6px 14px 4px 28px;font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">Other</div>';
+        unassigned.forEach(function(eq) {
+          var eSel = sel && sel.type==='equipment' && sel.id===eq.id;
+          html += '<div class="t-equip'+(eSel?' selected':'')+'" onclick="clickEquip(\''+esc(eq.id)+'\')">' +
+            '<div class="t-dot '+(eq.active?'dot-on':'dot-off')+'"></div>' +
+            '<span class="t-etag">'+esc(eq.equip_tag)+'</span>' +
+            '<span class="t-ename">'+esc(eq.name)+'</span>' +
+          '</div>';
+        });
+      }
+    }
+  });
+
+  document.getElementById('tree').innerHTML = html || '<div style="padding:20px;text-align:center;font-size:12px;color:#94a3b8">'+(filter?'No results':'No data. Add a site to start.')+'</div>';
+}
+
+function clickSite(id, name) {
+  if (sel && sel.type==='site' && sel.id===id) {
+    openSites[name] = !openSites[name];
+  } else {
+    openSites[name] = true;
+    sel = {type:'site', id:id, name:name};
+    showSiteDetail(id, name);
+  }
+  renderTree();
+}
+
+function clickLine(id, siteName, lineName) {
+  openLines[id] = !openLines[id];
+  sel = {type:'line', id:id, siteName:siteName, lineName:lineName};
+  renderTree();
+  showLineDetail(id, siteName, lineName);
+}
+
+function clickEquip(id) {
+  sel = {type:'equipment', id:id};
+  renderTree();
+  showEquipDetail(id);
+}
+
+function filterTree(val) { renderTree(val); }
+
+// ── Detail panels ─────────────────────────────────────────────────────────────
+function showDetail(html) {
+  document.getElementById('emptyState').style.display = 'none';
+  var dc = document.getElementById('detailContent');
+  dc.style.display = 'block';
+  dc.innerHTML = html;
+}
+
+function showSiteDetail(id, name) {
+  var site   = S.sites.find(function(s){ return s.id===id; });
+  if (!site) return;
+  var lines  = S.lines.filter(function(l){ return l.plant_site===name; });
+  var equip  = S.equipment.filter(function(e){ return e.plant_site===name; });
+  var active = equip.filter(function(e){ return e.active; }).length;
+
+  showDetail(
+    '<div class="card">' +
+      '<div class="card-head">' +
+        '<div class="card-icon icon-site">🏭</div>' +
+        '<div style="flex:1"><div class="card-title">'+esc(name)+'</div><div class="card-sub">Plant site</div></div>' +
+        '<div class="card-actions">' +
+          '<button class="btn" onclick="showForm(\'line\',\''+esc(name)+'\')">+ Add line</button>' +
+          '<button class="btn" onclick="showEditSite(\''+esc(id)+'\',\''+esc(name)+'\')">✏ Edit</button>' +
+          '<button class="btn btn-danger" onclick="confirmDelete(\'site\',\''+esc(id)+'\',\''+esc(name)+'\')">🗑 Delete</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="stats-row">' +
+        '<div class="stat-box"><div class="stat-num stat-purple">'+lines.length+'</div><div class="stat-lbl">Lines</div></div>' +
+        '<div class="stat-box"><div class="stat-num stat-green">'+active+'</div><div class="stat-lbl">Active equip</div></div>' +
+        '<div class="stat-box"><div class="stat-num stat-amber">'+equip.length+'</div><div class="stat-lbl">Total equip</div></div>' +
+      '</div>' +
+      '<div class="items-section">' +
+        '<div class="section-lbl">Production lines <button class="btn-sm" onclick="showForm(\'line\',\''+esc(name)+'\')">+ Add line</button></div>' +
+        (lines.length ? lines.map(function(l){
+          var lc = S.equipment.filter(function(e){ return e.line===l.name && e.plant_site===name; }).length;
+          return '<div class="item-row" onclick="clickLine(\''+esc(l.id)+'\',\''+esc(name)+'\',\''+esc(l.name)+'\')">' +
+            '<div class="t-icon t-line-icon" style="width:24px;height:24px;font-size:11px">↔</div>' +
+            '<span class="item-name">'+esc(l.name)+'</span>' +
+            '<span class="item-sub">'+lc+' equipment</span>' +
+          '</div>';
+        }).join('') : '<div class="no-items">No lines yet — click "+ Add line" to create one</div>') +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function showLineDetail(id, siteName, lineName) {
+  var line  = S.lines.find(function(l){ return l.id===id; });
+  if (!line) return;
+  var equip  = S.equipment.filter(function(e){ return e.plant_site===siteName && e.line===lineName; });
+  var active = equip.filter(function(e){ return e.active; }).length;
+
+  showDetail(
+    '<div class="card">' +
+      '<div class="card-head">' +
+        '<div class="card-icon icon-line">↔</div>' +
+        '<div style="flex:1"><div class="card-title">'+esc(lineName)+'</div><div class="card-sub">'+esc(siteName)+'</div></div>' +
+        '<div class="card-actions">' +
+          '<button class="btn btn-primary" onclick="showForm(\'equipment\',\''+esc(siteName)+'\',\''+esc(lineName)+'\')">+ Add equipment</button>' +
+          '<button class="btn" onclick="showEditLine(\''+esc(id)+'\',\''+esc(lineName)+'\',\''+esc(siteName)+'\')">✏ Edit</button>' +
+          '<button class="btn btn-danger" onclick="confirmDelete(\'line\',\''+esc(id)+'\',\''+esc(lineName)+'\')">🗑 Delete</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="stats-row">' +
+        '<div class="stat-box"><div class="stat-num stat-purple">'+equip.length+'</div><div class="stat-lbl">Total</div></div>' +
+        '<div class="stat-box"><div class="stat-num stat-green">'+active+'</div><div class="stat-lbl">Active</div></div>' +
+        '<div class="stat-box"><div class="stat-num stat-amber">'+(equip.length-active)+'</div><div class="stat-lbl">Inactive</div></div>' +
+      '</div>' +
+      '<div class="items-section">' +
+        '<div class="section-lbl">Equipment <button class="btn-sm" onclick="showForm(\'equipment\',\''+esc(siteName)+'\',\''+esc(lineName)+'\')">+ Add</button></div>' +
+        (equip.length ? equip.map(function(eq){
+          return '<div class="item-row" onclick="clickEquip(\''+esc(eq.id)+'\')">' +
+            '<div class="t-dot '+(eq.active?'dot-on':'dot-off')+'" style="width:6px;height:6px;border-radius:50%;flex-shrink:0"></div>' +
+            '<span class="item-tag">'+esc(eq.equip_tag)+'</span>' +
+            '<span class="item-name">'+esc(eq.name)+'</span>' +
+            '<span class="item-sub">'+esc(eq.type||'')+'</span>' +
+          '</div>';
+        }).join('') : '<div class="no-items">No equipment on this line — click "+ Add" to add some</div>') +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function showEquipDetail(id) {
+  var eq = S.equipment.find(function(e){ return e.id===id; });
+  if (!eq) return;
+
+  showDetail(
+    '<div class="card">' +
+      '<div class="card-head">' +
+        '<div class="card-icon icon-equip">⚙</div>' +
+        '<div style="flex:1">' +
+          '<div class="card-title">'+esc(eq.equip_tag)+' — '+esc(eq.name)+'</div>' +
+          '<div class="card-sub">'+esc(eq.line)+' · '+esc(eq.plant_site)+'</div>' +
+        '</div>' +
+        '<div class="card-actions">' +
+          (eq.active
+            ? '<button class="btn btn-warn" onclick="toggleActive(\''+esc(eq.id)+'\',false)">⊘ Deactivate</button>'
+            : '<button class="btn btn-success" onclick="toggleActive(\''+esc(eq.id)+'\',true)">✓ Activate</button>') +
+          '<button class="btn" onclick="showEditEquip(\''+esc(eq.id)+'\')">✏ Edit</button>' +
+          '<button class="btn btn-danger" onclick="confirmDelete(\'equipment\',\''+esc(eq.id)+'\',\''+esc(eq.equip_tag)+'\')">🗑 Delete</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="fields-grid">' +
+        fld('Tag',     eq.equip_tag, true) +
+        fld('Name',    eq.name) +
+        fld('Type',    eq.type||'—') +
+        fld('Line',    eq.line) +
+        fld('Manufacturer', eq.manufacturer||'—') +
+        '<div class="field-box"><div class="field-lbl">Status</div>' +
+          '<div class="field-val '+(eq.active?'status-active':'status-inactive')+'">' +
+            '<div class="sdot '+(eq.active?'sdot-g':'sdot-gr')+'"></div>'+(eq.active?'Active':'Inactive')+'</div></div>' +
+      '</div>' +
+
+    '</div>'
+  );
+}
+
+function fld(label, val, mono) {
+  return '<div class="field-box"><div class="field-lbl">'+esc(label)+'</div><div class="field-val'+(mono?' mono':'')+'">'+(esc(val)||'—')+'</div></div>';
+}
+
+// ── Forms ─────────────────────────────────────────────────────────────────────
+function showForm(type, defaultSite, defaultLine) {
+  var siteOpts = S.sites.map(function(s){
+    return '<option value="'+esc(s.name)+'"'+(defaultSite===s.name?' selected':'')+'>'+esc(s.name)+'</option>';
+  }).join('');
+
+  var lineOpts = S.lines.filter(function(l){ return !defaultSite || l.plant_site===defaultSite; }).map(function(l){
+    return '<option value="'+esc(l.name)+'"'+(defaultLine===l.name?' selected':'')+'>'+esc(l.name)+'</option>';
+  }).join('');
+
+  var inner = '';
+  if (type === 'site') {
+    inner =
+      '<div class="form-title">🏭 Add plant site</div>' +
+      '<div class="form-grid">' +
+        '<div class="form-field full"><div class="form-lbl">Site name <span class="req">*</span></div>' +
+        '<input class="form-input" id="f0" placeholder="e.g. Detroit Assembly"></div>' +
+      '</div>' +
+      '<div class="form-btns">' +
+        '<button class="btn btn-primary" onclick="doSave(\'site\')">Save site</button>' +
+        '<button class="btn" onclick="cancelForm()">Cancel</button>' +
+      '</div>';
+  } else if (type === 'line') {
+    inner =
+      '<div class="form-title">↔ Add production line</div>' +
+      '<div class="form-grid">' +
+        '<div class="form-field"><div class="form-lbl">Line name <span class="req">*</span></div>' +
+        '<input class="form-input" id="f0" placeholder="e.g. Line 5"></div>' +
+        '<div class="form-field"><div class="form-lbl">Plant site <span class="req">*</span></div>' +
+        '<select class="form-input" id="f1"><option value="">-- select --</option>'+siteOpts+'</select></div>' +
+      '</div>' +
+      '<div class="form-btns">' +
+        '<button class="btn btn-primary" onclick="doSave(\'line\')">Save line</button>' +
+        '<button class="btn" onclick="cancelForm()">Cancel</button>' +
+      '</div>';
+  } else {
+    // When adding from a line context both defaultSite and defaultLine are known
+    // Show them as read-only labels — no need to choose
+    var ctxFixed = defaultSite && defaultLine;
+    var siteLineFields = ctxFixed
+      ? '<div class="form-field"><div class="form-lbl">Plant site</div>' +
+        '<div style="padding:8px 10px;background:#f1f5f9;border-radius:7px;font-size:13px;color:#64748b">'+esc(defaultSite)+'</div>' +
+        '<input type="hidden" id="f3" value="'+esc(defaultSite)+'"></div>' +
+        '<div class="form-field"><div class="form-lbl">Production line</div>' +
+        '<div style="padding:8px 10px;background:#f1f5f9;border-radius:7px;font-size:13px;color:#64748b">'+esc(defaultLine)+'</div>' +
+        '<input type="hidden" id="f4" value="'+esc(defaultLine)+'"></div>'
+      : '<div class="form-field"><div class="form-lbl">Plant site <span class="req">*</span></div>' +
+        '<select class="form-input" id="f3" onchange="refreshLines()"><option value="">-- select --</option>'+siteOpts+'</select></div>' +
+        '<div class="form-field"><div class="form-lbl">Production line <span class="req">*</span></div>' +
+        '<select class="form-input" id="f4"><option value="">-- select --</option>'+lineOpts+'</select></div>';
+
+    inner =
+      '<div class="form-title">⚙ Add equipment' + (defaultLine ? ' to <strong>'+esc(defaultLine)+'</strong>' : '') + '</div>' +
+      '<div class="form-grid">' +
+        '<div class="form-field"><div class="form-lbl">Equipment tag <span class="req">*</span></div>' +
+        '<input class="form-input" id="f0" placeholder="e.g. WR-501" oninput="this.value=this.value.toUpperCase()"></div>' +
+        '<div class="form-field"><div class="form-lbl">Name <span class="req">*</span></div>' +
+        '<input class="form-input" id="f1" placeholder="e.g. Welding Robot 2"></div>' +
+        '<div class="form-field"><div class="form-lbl">Type</div>' +
+        '<select class="form-input" id="f2"><option value="">-- select --</option>' +
+        ['Robot','Pump','Conveyor','Paint Booth','Assembly Tool','Sensor','Other'].map(function(t){ return '<option>'+t+'</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="form-field"><div class="form-lbl">Manufacturer</div>' +
+        '<input class="form-input" id="f5" placeholder="e.g. Fanuc"></div>' +
+        siteLineFields +
+      '</div>' +
+      '<div class="form-btns">' +
+        '<button class="btn btn-primary" onclick="doSave(\'equipment\')">Save equipment</button>' +
+        '<button class="btn" onclick="cancelForm()">Cancel</button>' +
+      '</div>';
+  }
+
+  document.getElementById('emptyState').style.display = 'none';
+  var dc = document.getElementById('detailContent');
+  dc.style.display = 'block';
+  dc.innerHTML = '<div class="form-card">' + inner + '<div class="form-error" id="fErr"></div></div>';
+  setTimeout(function(){ var i=document.getElementById('f0'); if(i) i.focus(); }, 50);
+}
+
+function showEditSite(id, name) {
+  document.getElementById('emptyState').style.display = 'none';
+  var dc = document.getElementById('detailContent');
+  dc.style.display = 'block';
+  dc.innerHTML = '<div class="form-card">' +
+    '<div class="form-title">✏ Edit site</div>' +
+    '<div class="form-grid"><div class="form-field full"><div class="form-lbl">Site name <span class="req">*</span></div>' +
+    '<input class="form-input" id="f0" value="'+esc(name)+'"></div></div>' +
+    '<div class="form-btns">' +
+      '<button class="btn btn-primary" onclick="doUpdate(\'site\',\''+esc(id)+'\')">Save changes</button>' +
+      '<button class="btn" onclick="clickSite(\''+esc(id)+'\',\''+esc(name)+'\')">Cancel</button>' +
+    '</div>' +
+    '<div class="form-error" id="fErr"></div>' +
+  '</div>';
+  document.getElementById('f0').focus();
+}
+
+function showEditLine(id, name, siteName) {
+  var siteOpts = S.sites.map(function(s){
+    return '<option value="'+esc(s.name)+'"'+(siteName===s.name?' selected':'')+'>'+esc(s.name)+'</option>';
+  }).join('');
+  document.getElementById('emptyState').style.display = 'none';
+  var dc = document.getElementById('detailContent');
+  dc.style.display = 'block';
+  dc.innerHTML = '<div class="form-card">' +
+    '<div class="form-title">✏ Edit line</div>' +
+    '<div class="form-grid">' +
+      '<div class="form-field"><div class="form-lbl">Line name <span class="req">*</span></div><input class="form-input" id="f0" value="'+esc(name)+'"></div>' +
+      '<div class="form-field"><div class="form-lbl">Plant site <span class="req">*</span></div><select class="form-input" id="f1"><option value="">-- select --</option>'+siteOpts+'</select></div>' +
+    '</div>' +
+    '<div class="form-btns">' +
+      '<button class="btn btn-primary" onclick="doUpdate(\'line\',\''+esc(id)+'\')">Save changes</button>' +
+      '<button class="btn" onclick="clickLine(\''+esc(id)+'\',\''+esc(siteName)+'\',\''+esc(name)+'\')">Cancel</button>' +
+    '</div>' +
+    '<div class="form-error" id="fErr"></div>' +
+  '</div>';
+  document.getElementById('f0').focus();
+}
+
+function showEditEquip(id) {
+  var eq = S.equipment.find(function(e){ return e.id===id; });
+  if (!eq) return;
+  var siteOpts = S.sites.map(function(s){
+    return '<option value="'+esc(s.name)+'"'+(eq.plant_site===s.name?' selected':'')+'>'+esc(s.name)+'</option>';
+  }).join('');
+  var lineOpts = S.lines.filter(function(l){ return l.plant_site===eq.plant_site; }).map(function(l){
+    return '<option value="'+esc(l.name)+'"'+(eq.line===l.name?' selected':'')+'>'+esc(l.name)+'</option>';
+  }).join('');
+
+  document.getElementById('emptyState').style.display = 'none';
+  var dc = document.getElementById('detailContent');
+  dc.style.display = 'block';
+  dc.innerHTML = '<div class="form-card">' +
+    '<div class="form-title">✏ Edit '+esc(eq.equip_tag)+'</div>' +
+    '<div class="form-grid">' +
+      '<div class="form-field"><div class="form-lbl">Name <span class="req">*</span></div><input class="form-input" id="f0" value="'+esc(eq.name)+'"></div>' +
+      '<div class="form-field"><div class="form-lbl">Type</div><select class="form-input" id="f1">' +
+        ['','Robot','Pump','Conveyor','Paint Booth','Assembly Tool','Sensor','Other'].map(function(t){ return '<option value="'+t+'"'+(eq.type===t?' selected':'')+'>'+esc(t||'-- select --')+'</option>'; }).join('')+'</select></div>' +
+      '<div class="form-field"><div class="form-lbl">Plant site <span class="req">*</span></div><select class="form-input" id="f2" onchange="refreshLines()">'+siteOpts+'</select></div>' +
+      '<div class="form-field"><div class="form-lbl">Production line <span class="req">*</span></div><select class="form-input" id="f3">'+lineOpts+'</select></div>' +
+      '<div class="form-field full"><div class="form-lbl">Manufacturer</div><input class="form-input" id="f4" value="'+esc(eq.manufacturer||'')+'"></div>' +
+    '</div>' +
+    '<div class="form-btns">' +
+      '<button class="btn btn-primary" onclick="doUpdate(\'equipment\',\''+esc(id)+'\')">Save changes</button>' +
+      '<button class="btn" onclick="clickEquip(\''+esc(id)+'\')">Cancel</button>' +
+    '</div>' +
+    '<div class="form-error" id="fErr"></div>' +
+  '</div>';
+  document.getElementById('f0').focus();
+}
+
+function refreshLines() {
+  var siteEl = document.getElementById('f3') || document.getElementById('f2');
+  var lineEl = document.getElementById('f4') || document.getElementById('f3');
+  if (!siteEl || !lineEl) return;
+  var site = siteEl.value;
+  var lines = S.lines.filter(function(l){ return !site || l.plant_site===site; });
+  lineEl.innerHTML = '<option value="">-- select --</option>' + lines.map(function(l){
+    return '<option value="'+esc(l.name)+'">'+esc(l.name)+'</option>';
+  }).join('');
+}
+
+function cancelForm() {
+  var dc = document.getElementById('detailContent');
+  dc.style.display = 'none';
+  document.getElementById('emptyState').style.display = 'flex';
+  sel = null;
+  renderTree();
+}
+
+function fErr(msg) {
+  var el = document.getElementById('fErr');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ── Save / Update ─────────────────────────────────────────────────────────────
+function doSave(type) {
+  var f = function(id){ return (document.getElementById(id)||{}).value||''; };
+  if (type==='site') {
+    var name = f('f0').trim();
+    if (!name) { fErr('Site name is required'); return; }
+    api('POST','/api/plant-sites',{name:name}).then(function(d){
+      if (d.error) { fErr(d.error); return; }
+      toast('Site "'+name+'" added');
+      loadAll(true).then(function(){ sel={type:'site',id:d.plant_site.id,name:name}; renderTree(); showSiteDetail(d.plant_site.id,name); });
+    });
+  } else if (type==='line') {
+    var name=f('f0').trim(), site=f('f1').trim();
+    if (!name||!site) { fErr('Name and plant site are required'); return; }
+    api('POST','/api/lines',{name:name,plant_site:site}).then(function(d){
+      if (d.error) { fErr(d.error); return; }
+      toast('Line "'+name+'" added');
+      loadAll(true).then(function(){ sel={type:'line',id:d.line.id,siteName:site,lineName:name}; openSites[site]=true; openLines[d.line.id]=true; renderTree(); showLineDetail(d.line.id,site,name); });
+    });
+  } else {
+    var tag=f('f0').trim().toUpperCase().replace(/\s/g,'-'), name=f('f1').trim(), type2=f('f2'), site=f('f3').trim(), line=f('f4').trim(), maker=f('f5').trim();
+    if (!tag||!name||!site||!line) { fErr('Tag, name, site and line are required'); return; }
+    api('POST','/api/equipment',{equip_tag:tag,name:name,type:type2,plant_site:site,line:line,manufacturer:maker}).then(function(d){
+      if (d.error) { fErr(d.error); return; }
+      toast(tag+' added');
+      loadAll(true).then(function(){ sel={type:'equipment',id:d.equipment.id}; openSites[site]=true; renderTree(); showEquipDetail(d.equipment.id); });
+    });
+  }
+}
+
+function doUpdate(type, id) {
+  var f = function(fid){ return (document.getElementById(fid)||{}).value||''; };
+  if (type==='site') {
+    var name=f('f0').trim();
+    if (!name) { fErr('Name required'); return; }
+    api('PATCH','/api/plant-sites/'+id,{name:name}).then(function(d){
+      if (d.error) { fErr(d.error); return; }
+      toast('Site updated');
+      loadAll(true).then(function(){ sel={type:'site',id:id,name:name}; renderTree(); showSiteDetail(id,name); });
+    });
+  } else if (type==='line') {
+    var name=f('f0').trim(), site=f('f1').trim();
+    if (!name||!site) { fErr('Name and site required'); return; }
+    api('PATCH','/api/lines/'+id,{name:name,plant_site:site}).then(function(d){
+      if (d.error) { fErr(d.error); return; }
+      toast('Line updated');
+      loadAll(true).then(function(){ sel={type:'line',id:id,siteName:site,lineName:name}; renderTree(); showLineDetail(id,site,name); });
+    });
+  } else {
+    var name=f('f0').trim(), type2=f('f1'), site=f('f2').trim(), line=f('f3').trim(), maker=f('f4').trim();
+    if (!name||!site||!line) { fErr('Name, site and line required'); return; }
+    api('PATCH','/api/equipment/'+id,{name:name,type:type2,plant_site:site,line:line,manufacturer:maker}).then(function(d){
+      if (d.error) { fErr(d.error); return; }
+      toast('Equipment updated');
+      var idx=S.equipment.findIndex(function(e){ return e.id===id; });
+      if (idx>-1) S.equipment[idx]=d.equipment;
+      renderTree(); showEquipDetail(id);
+    });
+  }
+}
+
+function toggleActive(id, active) {
+  api('PATCH','/api/equipment/'+id,{active:active}).then(function(d){
+    if (d.error) { toast(d.error,'error'); return; }
+    toast(active?'Equipment activated':'Equipment deactivated');
+    var idx=S.equipment.findIndex(function(e){ return e.id===id; });
+    if (idx>-1) S.equipment[idx].active=active;
+    renderTree(); showEquipDetail(id);
+  });
+}
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+function confirmDelete(type, id, name) {
+  var msgs = {
+    site:      'Lines and equipment belonging to "'+name+'" will remain but become unlinked from this site.',
+    line:      'Equipment on "'+name+'" will remain but may appear unassigned.',
+    equipment: 'This will permanently remove '+name+' from PlantMind. This action cannot be undone.'
+  };
+  var titles = {
+    site:      'Delete site "'+name+'"?',
+    line:      'Delete line "'+name+'"?',
+    equipment: 'Delete '+name+'?'
+  };
+  document.getElementById('confirmTitle').textContent = titles[type];
+  document.getElementById('confirmMsg').textContent   = msgs[type];
+  confirmFn = function(){ doDelete(type, id, name); };
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  confirmFn = null;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('confirmOverlay')) closeConfirm();
+}
+
+function execConfirm() {
+  var fn = confirmFn;
+  closeConfirm();
+  if (fn) fn();
+}
+
+function doDelete(type, id, name) {
+  var urls = {site:'/api/plant-sites/'+id, line:'/api/lines/'+id, equipment:'/api/equipment/'+id};
+  console.log('DELETE', urls[type]);
+  api('DELETE', urls[type]).then(function(d){
+    console.log('DELETE response', d);
+    if (!d || d.error) { toast((d&&d.error)||'Delete failed','error'); return; }
+    toast(name+' deleted');
+    sel = null;
+    loadAll(true).then(function(){
+      renderTree();
+      document.getElementById('detailContent').style.display='none';
+      document.getElementById('emptyState').style.display='flex';
+    });
+  }).catch(function(e){ console.error('DELETE error',e); toast('Delete failed — check console','error'); });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function esc(t) {
+  return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast toast-'+(type||'success')+' show';
+  clearTimeout(t._t);
+  t._t = setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+</script>
+</body>
+</html>

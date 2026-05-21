@@ -487,12 +487,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
             <span class="ctx-chip empty" id="chipLine">
               <span class="ctx-chip-label" id="chipLineLabel">All lines</span>
               <span class="ctx-chip-caret">▾</span>
-              <select id="ctxLineSel" onchange="saveCtxSelectors()">
+              <select id="ctxLineSel" onchange="saveCtxSelectors();loadEquipmentOpts()">
                 <option value="">All lines</option>
-                <option value="Line 1">Line 1</option>
-                <option value="Line 2">Line 2</option>
-                <option value="Line 3">Line 3</option>
-                <option value="Line 4">Line 4</option>
               </select>
             </span>
             <span class="ctx-sep">›</span>
@@ -501,11 +497,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
               <span class="ctx-chip-caret">▾</span>
               <select id="ctxEquipSel" onchange="saveCtxSelectors()">
                 <option value="">All equipment</option>
-                <option value="WR-401">WR-401</option>
-                <option value="PC-701">PC-701</option>
-                <option value="P-201">P-201</option>
-                <option value="CV-401">CV-401</option>
-                <option value="AT-301">AT-301</option>
               </select>
             </span>
           </div>
@@ -577,7 +568,7 @@ window.addEventListener('load', function() {
 });
 
 function initCtxSelectors() {
-  // Load plant sites dynamically
+  // Load plant sites
   fetch('/api/plant-sites')
     .then(function(r){ return r.json(); })
     .then(function(data){
@@ -589,9 +580,64 @@ function initCtxSelectors() {
         o.value = s.name; o.textContent = s.name;
         sel.appendChild(o);
       });
+    })
+    .catch(function(){})
+    .then(function(){
+      // Load lines after sites
+      return fetch('/api/lines').then(function(r){ return r.json(); });
+    })
+    .then(function(data){
+      window._allLines = data.lines || [];
+      loadLineOpts();
+    })
+    .catch(function(){})
+    .then(function(){
+      // Load equipment after lines
+      return fetch('/api/equipment').then(function(r){ return r.json(); });
+    })
+    .then(function(data){
+      window._allEquipment = data.equipment || [];
+      loadEquipmentOpts();
       restoreCtxSelectors();
     })
     .catch(function(){ restoreCtxSelectors(); });
+}
+
+function loadLineOpts() {
+  var plant = (document.getElementById('ctxPlantSel')||{}).value || '';
+  var sel   = document.getElementById('ctxLineSel');
+  if (!sel) return;
+  var lines = (window._allLines||[]).filter(function(l){
+    return !plant || l.plant_site === plant;
+  });
+  var current = sel.value;
+  sel.innerHTML = '<option value="">All lines</option>';
+  lines.forEach(function(l){
+    var o = document.createElement('option');
+    o.value = l.name; o.textContent = l.name;
+    if (l.name === current) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function loadEquipmentOpts() {
+  var plant = (document.getElementById('ctxPlantSel')||{}).value || '';
+  var line  = (document.getElementById('ctxLineSel')||{}).value  || '';
+  var sel   = document.getElementById('ctxEquipSel');
+  if (!sel) return;
+  var equip = (window._allEquipment||[]).filter(function(e){
+    return e.active !== false &&
+           (!plant || e.plant_site === plant) &&
+           (!line  || e.line === line);
+  });
+  var current = sel.value;
+  sel.innerHTML = '<option value="">All equipment</option>';
+  equip.forEach(function(e){
+    var o = document.createElement('option');
+    o.value = e.equip_tag; o.textContent = e.equip_tag + ' — ' + e.name;
+    if (e.equip_tag === current) o.selected = true;
+    sel.appendChild(o);
+  });
 }
 
 function restoreCtxSelectors() {
@@ -618,19 +664,19 @@ function saveCtxSelectors() {
     localStorage.setItem('pm_plant', plant);
     localStorage.setItem('pm_line',  line);
     localStorage.setItem('pm_equip', equip);
-    // Update visual state using CSS class
     ['ctxPlantSel','ctxLineSel','ctxEquipSel'].forEach(function(id){
       var el = document.getElementById(id);
       if (!el) return;
       el.classList.toggle('is-set', !!el.value);
     });
-    // Sync to PlantMindContext for query routing
     if (typeof PlantMindContext !== 'undefined') {
       PlantMindContext.set(plant, line);
     }
-    // Update input placeholder and chips
     updateInputPlaceholder();
     updateCtxChips();
+    // Reload dependent dropdowns when plant changes
+    loadLineOpts();
+    loadEquipmentOpts();
   } catch(e) {}
 }
 
