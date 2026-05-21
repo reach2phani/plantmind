@@ -1,8 +1,5 @@
-# PlantMind — all dependencies
-# Install: pip install -r requirements.txt
-
-# Core app
 flask
+gunicorn
 groq
 pinecone
 supabase
@@ -13,8 +10,5 @@ langchain-groq
 pypdf
 requests
 openai
-
-# Evals and Ragas
 ragas
 datasets
-"gunicorn" 
