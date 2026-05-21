@@ -7,15 +7,14 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
-.nav{background:#1e293b;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.nav{background:#1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
 .nav-brand{font-size:18px;font-weight:700;color:#fff}
 .nav-brand span{color:#a5b4fc}
-.nav-ctx{font-size:12px;color:#94a3b8;background:#0f172a;padding:4px 12px;border-radius:6px;display:flex;align-items:center;gap:6px;cursor:pointer}
-.nav-dot{width:6px;height:6px;border-radius:50%;background:#94a3b8;flex-shrink:0}
-.tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 24px;display:flex}
-.tab{padding:13px 20px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
-.tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
-.tab-badge{font-size:10px;background:#fee2e2;color:#b91c1c;padding:1px 6px;border-radius:999px;margin-left:5px}
+
+
+.page-tabs{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
+.page-tab{padding:11px 18px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
+.page-tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
 .main{max-width:960px;margin:0 auto;padding:24px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 .stat{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px}
@@ -99,16 +98,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 <body>
 <div class="nav">
   <div class="nav-brand">Plant<span>Mind</span></div>
-  <div class="nav-ctx" id="navCtx">
-    <div class="nav-dot" id="navDot"></div>
-    <span id="navCtxText">Set your context</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="/plant-setup" style="font-size:11px;color:#a5b4fc;padding:4px 10px;border-radius:6px;border:1px solid #4f46e5;background:rgba(79,70,229,.15);text-decoration:none;white-space:nowrap">⚙ Plant setup</a>
+    <div style="display:flex;align-items:center;gap:6px;background:#0f172a;padding:4px 10px;border-radius:6px">
+      <div style="width:22px;height:22px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">GP</div>
+      <span style="font-size:11px;color:#e2e8f0;font-weight:500;white-space:nowrap">G. Phani</span>
+    </div>
   </div>
 </div>
-<div class="tabs">
-  <a class="tab" href="/chat">Ask a question</a>
-  <a class="tab active" href="/library">Document library</a>
-  <a class="tab" href="/gaps">Knowledge gaps</a>
-  <a class="tab" href="/">Upload <span class="tab-badge">admin</span></a>
+<div class="page-tabs">
+  <a class="page-tab" href="/chat">Ask</a>
+  <a class="page-tab active" href="/library">Library</a>
 </div>
 <div class="main">
   <div class="stats">

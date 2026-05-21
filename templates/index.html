@@ -92,18 +92,23 @@ select:focus,input[type=text]:focus{border-color:#4f46e5}
 <body>
 <div class="nav">
   <div class="nav-brand">Plant<span>Mind</span></div>
-  <div class="nav-ctx" id="navCtx">
-    <div class="nav-dot" id="navDot"></div>
-    <span id="navCtxText">Select your context</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="/plant-setup" style="font-size:11px;color:#a5b4fc;padding:4px 10px;border-radius:6px;border:1px solid #4f46e5;background:rgba(79,70,229,.15);text-decoration:none;white-space:nowrap">⚙ Plant setup</a>
+    <div style="display:flex;align-items:center;gap:6px;background:#0f172a;padding:4px 10px;border-radius:6px">
+      <div style="width:22px;height:22px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">GP</div>
+      <span style="font-size:11px;color:#e2e8f0;font-weight:500;white-space:nowrap">G. Phani</span>
+    </div>
   </div>
 </div>
-<div class="tabs">
-  <a class="tab" href="/chat">Ask a question</a>
-  <a class="tab" href="/library">Document library</a>
-  <a class="tab active" href="/">Upload <span class="badge">admin</span></a>
+<div class="tabs" style="justify-content:space-between;align-items:center">
+  <div style="display:flex">
+    <a class="tab" href="/chat">Ask</a>
+    <a class="tab" href="/library">Library</a>
+  </div>
+  <a href="/library" style="font-size:12px;color:#64748b;padding:8px 14px;display:flex;align-items:center;gap:4px;text-decoration:none;border-left:1px solid #e2e8f0">← Back to Library</a>
 </div>
 <div class="main">
-  <div class="page-title">Upload documents</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Upload documents</div><a href="/library" style="font-size:12px;color:#7c3aed;text-decoration:none;display:flex;align-items:center;gap:4px">← Back to Library</a></div>
   <div class="page-sub">Add SOPs, work instructions, batch records, or training videos to the knowledge base</div>
   <div class="upload-zone" id="uploadZone">
     <div class="uz-title">Drag and drop files here</div>

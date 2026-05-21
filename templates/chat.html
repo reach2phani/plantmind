@@ -7,7 +7,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100vh;overflow:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
 /* ── Nav ── */
 .nav{background:#1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
@@ -18,7 +18,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .nav-dot.online{background:#22c55e}
 
 /* ── Page tabs ── */
-.page-tabs{background:#fff;border-bottom:2px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
+.page-tabs{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
 .page-tab{padding:11px 18px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
 .page-tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
 .tab-badge{font-size:10px;background:#fee2e2;color:#b91c1c;padding:1px 5px;border-radius:999px;margin-left:4px}
@@ -49,24 +49,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 /* ── Chat main ── */
 .chat-main{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
-/* ── Mode tabs ── */
-.mode-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 20px;display:flex;align-items:center;flex-shrink:0}
-.mode-tab{padding:10px 16px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:#94a3b8;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:color .15s}
-.mode-tab:hover{color:#475569}
-.mode-tab.active-doc{color:#4f46e5;border-bottom-color:#4f46e5}
-.mode-tab.active-shift{color:#d97706;border-bottom-color:#d97706}
-.mode-tab.active-agent{color:#7c3aed;border-bottom-color:#7c3aed}
-.mode-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.md-doc{background:#4f46e5}
-.md-shift{background:#d97706}
-.md-agent{background:#7c3aed}
-.mode-hint{margin-left:auto;font-size:11px;color:#94a3b8;padding-right:4px;align-self:center}
+/* ── Mode tabs — kept for JS compatibility, hidden visually ── */
+.mode-bar{display:none}
+.mode-dot{display:none}
 
 /* ── Answers area ── */
-.answers{flex:1;min-height:0;height:0;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
+.answers{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 24px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch;background:#fff;scroll-behavior:smooth}
 
 /* ── Q&A card ── */
-.answer-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.answer-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:visible}
 .answer-q{padding:10px 14px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px}
 .answer-q.doc-q{background:#eef2ff;color:#3730a3;border-bottom:1px solid #c7d2fe}
 .answer-q.shift-q{background:#fff3cd;color:#92400e;border-bottom:1px solid #fbbf24}
@@ -94,14 +85,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .thumb-thanks{font-size:11px;color:#16a34a;display:none}
 
 /* ── No answer card ── */
-.no-answer-card{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;overflow:hidden}
+.no-answer-card{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;overflow:visible}
 .no-answer-q{background:#fef3c7;border-bottom:1px solid #fde68a;padding:10px 14px;font-size:13px;color:#92400e;font-weight:500}
 .no-answer-body{padding:14px}
 .no-answer-msg{font-size:14px;color:#92400e;line-height:1.7;margin-bottom:4px}
 .no-answer-hint{font-size:12px;color:#b45309}
 
 /* ── Agent card ── */
-.agent-card{background:#fff;border:1px solid #ddd6fe;border-radius:12px;overflow:hidden}
+.agent-card{background:#fff;border:1px solid #ddd6fe;border-radius:12px;overflow:visible}
 .agent-q{background:#ede9fe;border-bottom:1px solid #ddd6fe;padding:10px 14px;font-size:13px;font-weight:500;color:#5b21b6;display:flex;align-items:center;gap:7px}
 .badge-agent{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600;background:#7c3aed;color:#fff;flex-shrink:0}
 
@@ -129,38 +120,255 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 .src-chip{font-size:10px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;color:#475569}
 
 /* ── Empty state ── */
-.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center}
-.empty-title{font-size:16px;font-weight:500;color:#0f172a;margin-bottom:6px}
-.empty-sub{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:20px;max-width:400px}
-.example-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:520px}
-.ex-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:12px;color:#64748b;cursor:pointer;text-align:left;line-height:1.5;transition:all .15s}
-.ex-card:hover{border-color:#a5b4fc;color:#0f172a;background:#fafafa}
-.ex-label{font-size:10px;font-weight:600;margin-bottom:3px}
-.ex-doc .ex-label{color:#4f46e5}
-.ex-shift .ex-label{color:#d97706}
-.ex-agent .ex-label{color:#7c3aed}
-.ex-agent{grid-column:1/-1}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px 32px;text-align:center;min-height:100%;}
+.empty-title{font-size:15px;font-weight:500;color:#0f172a;margin-bottom:4px}
+.empty-sub{font-size:12px;color:#94a3b8;line-height:1.5;margin-bottom:16px;max-width:380px}
+/* example-grid defined below in unified input section */
 
-/* ── Input area ── */
-.input-area{padding:10px 20px 14px;flex-shrink:0;background:#fff;border-top:1px solid #e2e8f0}
-.input-wrap{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;transition:border-color .2s}
-.input-wrap:focus-within{border-color:#a5b4fc;background:#fff}
-.input-wrap.iw-shift:focus-within{border-color:#fbbf24}
-.input-wrap.iw-agent:focus-within{border-color:#c4b5fd}
-.input-ta{width:100%;padding:10px 14px 4px;font-size:14px;border:none;background:transparent;resize:none;outline:none;color:#0f172a;font-family:inherit;line-height:1.5;min-height:48px;max-height:120px}
-.input-footer{padding:5px 10px 6px;display:flex;align-items:center;gap:6px}
-.ctx-pill{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid}
-.ctx-doc{background:#eef2ff;border-color:#c7d2fe;color:#3730a3}
-.ctx-shift{background:#fff3cd;border-color:#fbbf24;color:#92400e}
-.ctx-agent{background:#ede9fe;border-color:#ddd6fe;color:#5b21b6}
-.send-btn{margin-left:auto;padding:6px 18px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;color:#fff;transition:background .15s}
-.send-btn:disabled{background:#94a3b8;cursor:not-allowed}
-.btn-doc{background:#4f46e5}
-.btn-doc:hover:not(:disabled){background:#4338ca}
-.btn-shift{background:#d97706}
-.btn-shift:hover:not(:disabled){background:#b45309}
-.btn-agent{background:#7c3aed}
-.btn-agent:hover:not(:disabled){background:#6d28d9}
+/* ── Unified input component ── */
+.input-area{
+  padding:10px 16px 14px;
+  flex-shrink:0;
+  background:#f8fafc;
+  border-top:2px solid #e2e8f0;
+}
+.input-wrap{
+  background:#fff;
+  border:1.5px solid #ddd6fe;
+  border-radius:12px;
+  overflow:hidden;
+  transition:border-color .2s, box-shadow .2s;
+  box-shadow:0 2px 8px rgba(124,58,237,.08);
+}
+.input-wrap:focus-within{
+  border-color:#a5b4fc;
+  box-shadow:0 0 0 3px rgba(165,180,252,.15);
+}
+.input-wrap.iw-shift:focus-within{ border-color:#fbbf24; box-shadow:0 0 0 3px rgba(251,191,36,.12); }
+.input-wrap.iw-agent:focus-within{ border-color:#c4b5fd; box-shadow:0 0 0 3px rgba(167,139,250,.15); }
+
+/* Input header — breadcrumb left, mode pills right */
+.input-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 14px 0;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.ctx-chips{
+  display:flex;
+  align-items:center;
+  gap:0;
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+}
+/* breadcrumb separator */
+.ctx-sep{
+  font-size:12px;
+  color:#cbd5e1;
+  margin:0 2px;
+  flex-shrink:0;
+  user-select:none;
+}
+.ctx-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  font-size:12px;
+  font-weight:500;
+  padding:3px 7px;
+  border-radius:6px;
+  border:none;
+  background:transparent;
+  color:#7c3aed;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:all .15s;
+  position:relative;
+  max-width:160px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.ctx-chip:hover{ background:#ede9fe; }
+.ctx-chip.empty{
+  color:#94a3b8;
+  font-weight:400;
+}
+.ctx-chip.empty:hover{ background:#f1f5f9; color:#64748b; }
+.ctx-chip-caret{
+  font-size:9px;
+  opacity:.5;
+  flex-shrink:0;
+}
+.ctx-chip select{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  width:100%;
+  font-size:13px;
+}
+.mode-pills{
+  display:flex;
+  align-items:center;
+  gap:3px;
+  flex-shrink:0;
+}
+.mode-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:11px;
+  font-weight:500;
+  padding:4px 10px;
+  border-radius:20px;
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  color:#94a3b8;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:all .15s;
+  user-select:none;
+}
+.mode-pill:hover{ border-color:#cbd5e1; color:#475569; }
+.mode-pill.pill-doc.active{ background:#eef2ff; border-color:#c7d2fe; color:#4338ca; }
+.mode-pill.pill-shift.active{ background:#fff3cd; border-color:#fbbf24; color:#92400e; }
+.mode-pill.pill-agent.active{ background:#faf5ff; border-color:#ddd6fe; color:#7c3aed; font-weight:600; }
+.pill-dot{ width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.pill-doc .pill-dot{ background:#4f46e5; }
+.pill-shift .pill-dot{ background:#d97706; }
+.pill-agent .pill-dot{ background:#7c3aed; }
+
+/* Textarea */
+.input-ta{
+  width:100%;
+  padding:10px 14px 6px;
+  font-size:14px;
+  border:none;
+  background:transparent;
+  resize:none;
+  outline:none;
+  color:#0f172a;
+  font-family:inherit;
+  line-height:1.6;
+  min-height:52px;
+  max-height:160px;
+  display:block;
+}
+
+/* Footer — hint left, actions right */
+.input-footer{
+  padding:6px 12px 8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.input-hint{
+  font-size:11px;
+  color:#94a3b8;
+  flex:1;
+}
+.input-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+.history-btn{
+  font-size:11px;
+  color:#64748b;
+  background:#fff;
+  border:1px solid #ddd6fe;
+  border-radius:6px;
+  padding:5px 10px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  transition:all .15s;
+  white-space:nowrap;
+}
+.history-btn:hover{ color:#7c3aed; border-color:#a5b4fc; background:#faf5ff; }
+.history-btn.active{ color:#7c3aed; border-color:#a5b4fc; background:#faf5ff; }
+.send-btn{
+  padding:7px 20px;
+  border-radius:8px;
+  border:none;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  color:#fff;
+  transition:background .15s, transform .1s;
+}
+.send-btn:active:not(:disabled){ transform:scale(.98); }
+.send-btn:disabled{ background:#94a3b8; cursor:not-allowed; }
+.btn-doc{ background:#4f46e5; }
+.btn-doc:hover:not(:disabled){ background:#4338ca; }
+.btn-shift{ background:#d97706; }
+.btn-shift:hover:not(:disabled){ background:#b45309; }
+.btn-agent{ background:#7c3aed; }
+.btn-agent:hover:not(:disabled){ background:#6d28d9; }
+/* Legacy — keep for compat */
+.ctx-pill{ display:none; }
+.ctx-doc,.ctx-shift,.ctx-agent{}
+
+/* dead CSS removed */
+
+/* ── Example cards redesign ── */
+.example-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  width:100%;
+  max-width:520px;
+}
+.ex-group{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.ex-agent-group{
+  grid-column:1/-1;
+  flex-direction:column;
+}
+.ex-group-label{
+  font-size:11px;
+  font-weight:600;
+  text-transform:none;
+  letter-spacing:0;
+  padding:0 2px;
+  margin-bottom:2px;
+}
+.ex-doc-label{ color:#4f46e5; }
+.ex-shift-label{ color:#d97706; }
+.ex-agent-label{ color:#7c3aed; }
+.ex-card{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:7px;
+  padding:8px 10px;
+  font-size:12px;
+  color:#64748b;
+  cursor:pointer;
+  text-align:left;
+  line-height:1.45;
+  transition:all .15s;
+  display:block;
+  width:100%;
+}
+.ex-card:hover{ border-color:#a5b4fc; color:#0f172a; background:#fafafa; }
+.ex-doc:hover{ border-color:#c7d2fe; }
+.ex-shift:hover{ border-color:#fbbf24; }
+.ex-agent{
+  border-color:#ddd6fe;
+  background:#faf5ff;
+  color:#5b21b6;
+}
+.ex-agent:hover{ border-color:#a78bfa; background:#f5f3ff; }
+/* remove old ex-label since we replaced with ex-group-label */
+.ex-label{ display:none; }
 
 /* ── Mobile responsive ── */
 @media (max-width: 600px) {
@@ -171,15 +379,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
   .mode-bar{padding:0 8px;overflow-x:auto;gap:0}
   .mode-hint{display:none}
   .mode-tab{padding:9px 10px;font-size:11px;gap:4px;flex-shrink:0}
+  .mode-tab-agent{padding:9px 8px}
   .mode-dot{width:6px;height:6px}
-  #sbToggle{display:none}
+  .history-label{display:none}
+  .ctx-sel-row{height:auto;flex-wrap:wrap}
+  .ctx-sel-group{padding:6px 10px;flex:1;min-width:120px}
+  .ctx-sel-divider{display:none}
+  .ctx-sel{font-size:13px}
+  .example-grid{grid-template-columns:1fr}
+  .ex-agent-group{grid-column:1}
   .answers-wrap{-webkit-overflow-scrolling:touch}
-  .answers{padding:10px 12px;gap:8px}
-  .input-area{padding:8px 10px 12px}
-  .input-ta{font-size:16px;min-height:44px}
-  .input-footer{padding:4px 8px 5px}
-  .send-btn{padding:8px 14px;font-size:12px;white-space:nowrap;flex-shrink:0}
-  .ctx-pill{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .answers{padding:10px 12px;gap:10px}
+  .input-area{padding:8px 10px 10px}
+  .input-header{padding:6px 10px 0;gap:6px}
+  .ctx-chips{gap:4px}
+  .ctx-chip{font-size:10px;padding:2px 7px}
+  .mode-pills{gap:2px}
+  .mode-pill{font-size:10px;padding:3px 7px}
+  .input-ta{font-size:16px;min-height:44px;padding:8px 12px 4px}
+  .input-footer{padding:4px 8px 6px}
+  .input-hint{display:none}
+  .history-btn{display:flex;font-size:10px;padding:4px 8px}
+  .send-btn{padding:7px 14px;font-size:12px;white-space:nowrap}
   .agent-q{font-size:12px;padding:8px 10px}
   .agent-progress{padding:8px 10px}
   .agent-report{padding:10px}
@@ -198,16 +419,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
 
 <div class="nav">
   <div class="nav-brand">Plant<span>Mind</span></div>
-  <div class="nav-ctx" id="navCtx">
-    <div class="nav-dot" id="navDot"></div>
-    <span id="navCtxText">Set your context</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="/plant-setup" style="font-size:11px;color:#a5b4fc;padding:4px 10px;border-radius:6px;border:1px solid #4f46e5;background:rgba(79,70,229,.15);text-decoration:none;white-space:nowrap">⚙ Plant setup</a>
+    <div style="display:flex;align-items:center;gap:6px;background:#0f172a;padding:4px 10px;border-radius:6px">
+      <div style="width:22px;height:22px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">GP</div>
+      <span style="font-size:11px;color:#e2e8f0;font-weight:500;white-space:nowrap">G. Phani</span>
+    </div>
   </div>
 </div>
 
 <div class="page-tabs">
-  <a class="page-tab active" href="/chat">Ask a question</a>
-  <a class="page-tab" href="/library">Document library</a>
-  <a class="page-tab" href="/">Upload <span class="tab-badge">admin</span></a>
+  <span class="page-tab active">Ask</span>
+  <a class="page-tab" href="/library">Library</a>
 </div>
 
 <div class="body">
@@ -215,19 +438,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
   <!-- ── MAIN ── -->
   <div class="chat-main">
 
-    <!-- Mode tabs -->
-    <div class="mode-bar">
-      <div class="mode-tab active-doc" id="tab-doc" onclick="setMode('doc')">
-        <div class="mode-dot md-doc"></div>Documents
-      </div>
-      <div class="mode-tab" id="tab-shift" onclick="setMode('shift')">
-        <div class="mode-dot md-shift"></div>Shift log
-      </div>
-      <div class="mode-tab" id="tab-agent" onclick="setMode('agent')">
-        <div class="mode-dot md-agent"></div>&#9889; Agent investigation
-      </div>
-      <span class="mode-hint" id="modeHint">Search your uploaded SOPs, work instructions and NCRs</span>
-      <button class="sb-clear" id="sbToggle" onclick="toggleSidebar()" style="font-size:11px;margin-left:8px;flex-shrink:0;align-self:center">Show history</button>
+    <!-- Mode tabs — hidden, kept for JS compat -->
+    <div class="mode-bar" style="display:none">
+      <div class="mode-tab active-doc" id="tab-doc"></div>
+      <div class="mode-tab" id="tab-shift"></div>
+      <div class="mode-tab mode-tab-agent" id="tab-agent"></div>
     </div>
 
     <!-- Answers -->
@@ -236,39 +451,91 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;
         <div class="empty-title">Ask PlantMind anything about your plant</div>
         <div class="empty-sub">Search across SOPs, work instructions, NCRs, and shift logs — or run a full agent investigation on any incident</div>
         <div class="example-grid">
-          <div class="ex-card ex-doc" onclick="useExample(this,'doc')">
-            <div class="ex-label">Documents</div>
-            What should I check first when P-201 shows high vibration alarm?
+          <div class="ex-group">
+            <div class="ex-group-label ex-doc-label">● Documents</div>
+            <div class="ex-card ex-doc" onclick="useExample(this,'doc')">What should I check first when P-201 shows high vibration alarm?</div>
+            <div class="ex-card ex-doc" onclick="useExample(this,'doc')">What is the torque spec for the Line 3 filler head clamps?</div>
           </div>
-          <div class="ex-card ex-doc" onclick="useExample(this,'doc')">
-            <div class="ex-label">Documents</div>
-            What is the torque spec for the Line 3 filler head clamps?
+          <div class="ex-group">
+            <div class="ex-group-label ex-shift-label">● Shift log</div>
+            <div class="ex-card ex-shift" onclick="useExample(this,'shift')">What alarms occurred during the night shift?</div>
+            <div class="ex-card ex-shift" onclick="useExample(this,'shift')">Any maintenance work done on Line 2 last shift?</div>
           </div>
-          <div class="ex-card ex-shift" onclick="useExample(this,'shift')">
-            <div class="ex-label">Shift log</div>
-            What alarms occurred during the night shift?
-          </div>
-          <div class="ex-card ex-shift" onclick="useExample(this,'shift')">
-            <div class="ex-label">Shift log</div>
-            Any maintenance work done on Line 2 last shift?
-          </div>
-          <div class="ex-card ex-agent" onclick="useExample(this,'agent')">
-            <div class="ex-label">Agent investigation</div>
-            WR-401 weld quality alarm on Line 4, third time this week, spatter index 4.8 — investigate root cause
+          <div class="ex-group ex-agent-group">
+            <div class="ex-group-label ex-agent-label">⚡ Agent investigation</div>
+            <div class="ex-card ex-agent" onclick="useExample(this,'agent')">WR-401 weld quality alarm on Line 4, third time this week, spatter index 4.8 — investigate root cause</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Input -->
+    <!-- Unified input component -->
     <div class="input-area">
       <div class="input-wrap" id="inputWrap">
+
+        <!-- Header: context chips left, mode pills right -->
+        <div class="input-header">
+          <div class="ctx-chips" id="ctxChips">
+            <span class="ctx-chip empty" id="chipSite">
+              <span class="ctx-chip-label" id="chipSiteLabel">All sites</span>
+              <span class="ctx-chip-caret">▾</span>
+              <select id="ctxPlantSel" onchange="saveCtxSelectors()">
+                <option value="">All sites</option>
+              </select>
+            </span>
+            <span class="ctx-sep">›</span>
+            <span class="ctx-chip empty" id="chipLine">
+              <span class="ctx-chip-label" id="chipLineLabel">All lines</span>
+              <span class="ctx-chip-caret">▾</span>
+              <select id="ctxLineSel" onchange="saveCtxSelectors()">
+                <option value="">All lines</option>
+                <option value="Line 1">Line 1</option>
+                <option value="Line 2">Line 2</option>
+                <option value="Line 3">Line 3</option>
+                <option value="Line 4">Line 4</option>
+              </select>
+            </span>
+            <span class="ctx-sep">›</span>
+            <span class="ctx-chip empty" id="chipEquip">
+              <span class="ctx-chip-label" id="chipEquipLabel">All equipment</span>
+              <span class="ctx-chip-caret">▾</span>
+              <select id="ctxEquipSel" onchange="saveCtxSelectors()">
+                <option value="">All equipment</option>
+                <option value="WR-401">WR-401</option>
+                <option value="PC-701">PC-701</option>
+                <option value="P-201">P-201</option>
+                <option value="CV-401">CV-401</option>
+                <option value="AT-301">AT-301</option>
+              </select>
+            </span>
+          </div>
+          <div class="mode-pills" id="modePills">
+            <span class="mode-pill pill-doc active" id="pill-doc" onclick="setMode('doc')">
+              <span class="pill-dot"></span>Docs
+            </span>
+            <span class="mode-pill pill-shift" id="pill-shift" onclick="setMode('shift')">
+              <span class="pill-dot"></span>Shift
+            </span>
+            <span class="mode-pill pill-agent" id="pill-agent" onclick="setMode('agent')">
+              ⚡ Investigate
+            </span>
+          </div>
+        </div>
+
+        <!-- Textarea -->
         <textarea class="input-ta" id="questionInput"
-          placeholder="e.g. What should I check first when P-201 shows high vibration alarm?"
+          placeholder="Ask about your plant..."
           onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+
+        <!-- Footer: hint left, history + send right -->
         <div class="input-footer" id="inputFooter">
-          <span class="ctx-pill ctx-doc" id="ctxPill" style="display:none"></span>
-          <button class="send-btn btn-doc" id="sendBtn" onclick="submitQuestion()">Ask PlantMind</button>
+          <span class="input-hint" id="inputHint">↵ Enter to ask · Shift+Enter new line</span>
+          <div class="input-actions">
+            <button class="history-btn" id="sbToggle" onclick="toggleSidebar()">
+              🕐 History
+            </button>
+            <button class="send-btn btn-doc" id="sendBtn" onclick="submitQuestion()">Ask PlantMind</button>
+          </div>
         </div>
       </div>
     </div>
@@ -303,12 +570,140 @@ var PRESETS = {
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 window.addEventListener('load', function() {
-  if (typeof PlantMindContext !== 'undefined') {
-    PlantMindContext.syncToSelects('','');
-  }
   loadHistory();
   updateCtxPill();
+  initCtxSelectors();
+  updateModePills(currentMode);
 });
+
+function initCtxSelectors() {
+  // Load plant sites dynamically
+  fetch('/api/plant-sites')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var sites = data.plant_sites || [];
+      var sel = document.getElementById('ctxPlantSel');
+      if (!sel) return;
+      sites.forEach(function(s){
+        var o = document.createElement('option');
+        o.value = s.name; o.textContent = s.name;
+        sel.appendChild(o);
+      });
+      restoreCtxSelectors();
+    })
+    .catch(function(){ restoreCtxSelectors(); });
+}
+
+function restoreCtxSelectors() {
+  try {
+    var plant = localStorage.getItem('pm_plant') || '';
+    var line  = localStorage.getItem('pm_line')  || '';
+    var equip = localStorage.getItem('pm_equip') || '';
+    var pSel = document.getElementById('ctxPlantSel');
+    var lSel = document.getElementById('ctxLineSel');
+    var eSel = document.getElementById('ctxEquipSel');
+    if (pSel && plant) { pSel.value = plant; pSel.classList.add('is-set'); }
+    if (lSel && line)  { lSel.value = line;  lSel.classList.add('is-set'); }
+    if (eSel && equip) { eSel.value = equip; eSel.classList.add('is-set'); }
+    updateInputPlaceholder();
+    updateCtxChips();
+  } catch(e) {}
+}
+
+function saveCtxSelectors() {
+  try {
+    var plant = document.getElementById('ctxPlantSel').value;
+    var line  = document.getElementById('ctxLineSel').value;
+    var equip = document.getElementById('ctxEquipSel').value;
+    localStorage.setItem('pm_plant', plant);
+    localStorage.setItem('pm_line',  line);
+    localStorage.setItem('pm_equip', equip);
+    // Update visual state using CSS class
+    ['ctxPlantSel','ctxLineSel','ctxEquipSel'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('is-set', !!el.value);
+    });
+    // Sync to PlantMindContext for query routing
+    if (typeof PlantMindContext !== 'undefined') {
+      PlantMindContext.set(plant, line);
+    }
+    // Update input placeholder and chips
+    updateInputPlaceholder();
+    updateCtxChips();
+  } catch(e) {}
+}
+
+function updateInputPlaceholder() {
+  var plant = (document.getElementById('ctxPlantSel')||{}).value || '';
+  var line  = (document.getElementById('ctxLineSel')||{}).value  || '';
+  var equip = (document.getElementById('ctxEquipSel')||{}).value || '';
+  var ta    = document.getElementById('questionInput');
+  if (!ta) return;
+  var scope = equip ? equip : (line ? (plant ? plant.split(' ')[0]+' '+line : line) : (plant || null));
+  var cfg = typeof currentMode !== 'undefined' ? (MODE_CONFIG||{})[currentMode] : null;
+  if (scope && cfg) {
+    ta.placeholder = 'Ask about ' + scope + '...';
+  } else if (cfg) {
+    ta.placeholder = cfg.ph || '';
+  }
+}
+
+// ── Mode pills ──────────────────────────────────────────────────────────────────
+function updateModePills(mode) {
+  ['doc','shift','agent'].forEach(function(m) {
+    var pill = document.getElementById('pill-'+m);
+    if (!pill) return;
+    pill.classList.toggle('active', m === mode);
+  });
+  // Update send button text and input wrap class
+  var wrap = document.getElementById('inputWrap');
+  var btn  = document.getElementById('sendBtn');
+  var hint = document.getElementById('inputHint');
+  if (wrap) {
+    wrap.className = 'input-wrap' + (mode !== 'doc' ? ' iw-'+mode : '');
+  }
+  if (btn) {
+    btn.className = 'send-btn btn-' + mode;
+    var labels = {doc:'Ask PlantMind', shift:'Search shift log', agent:'⚡ Investigate'};
+    btn.textContent = labels[mode] || 'Ask PlantMind';
+  }
+  if (hint) {
+    var hints = {
+      doc: '↵ Enter to ask · Shift+Enter new line',
+      shift: '↵ Enter to search shift logs',
+      agent: '↵ Enter to start investigation'
+    };
+    hint.textContent = hints[mode] || hints.doc;
+  }
+}
+
+// ── Context chips ─────────────────────────────────────────────────────────────
+function updateCtxChips() {
+  var plant = localStorage.getItem('pm_plant') || '';
+  var line  = localStorage.getItem('pm_line')  || '';
+  var equip = localStorage.getItem('pm_equip') || '';
+
+  var siteLabel  = document.getElementById('chipSiteLabel');
+  var lineLabel  = document.getElementById('chipLineLabel');
+  var equipLabel = document.getElementById('chipEquipLabel');
+  var chipSite   = document.getElementById('chipSite');
+  var chipLine   = document.getElementById('chipLine');
+  var chipEquip  = document.getElementById('chipEquip');
+
+  if (siteLabel)  siteLabel.textContent  = plant || 'All sites';
+  if (lineLabel)  lineLabel.textContent  = line  || 'All lines';
+  if (equipLabel) equipLabel.textContent = equip || 'All equipment';
+
+  if (chipSite)  chipSite.classList.toggle('empty',  !plant);
+  if (chipLine)  chipLine.classList.toggle('empty',  !line);
+  if (chipEquip) chipEquip.classList.toggle('empty', !equip);
+
+  // Show separators always
+  document.querySelectorAll('.ctx-sep').forEach(function(s){
+    s.style.display = 'inline';
+  });
+}
 
 // ── Mode switching ─────────────────────────────────────────────────────────────
 var MODE_CONFIG = {
@@ -341,24 +736,20 @@ var MODE_CONFIG = {
 function setMode(mode) {
   currentMode = mode;
   var cfg = MODE_CONFIG[mode];
+  if (!cfg) return;
 
+  // Update hidden compat tabs (for any legacy JS that reads them)
   ['doc','shift','agent'].forEach(function(m) {
-    document.getElementById('tab-'+m).className = 'mode-tab';
+    var t = document.getElementById('tab-'+m);
+    if (t) t.className = 'mode-tab' + (m===mode?' active-'+mode:'') + (m==='agent'?' mode-tab-agent':'');
   });
-  document.getElementById('tab-'+mode).className = 'mode-tab active-'+mode;
-  document.getElementById('modeHint').textContent = cfg.hint;
 
-  var ta  = document.getElementById('questionInput');
-  var btn = document.getElementById('sendBtn');
-  var iw  = document.getElementById('inputWrap');
-
-  ta.placeholder  = cfg.ph;
-  btn.className   = 'send-btn ' + cfg.btnCls;
-  btn.textContent = cfg.btnText;
-  iw.className    = 'input-wrap ' + cfg.wrapCls;
-
+  // Update mode pills, send button, input wrap, placeholder
+  updateModePills(mode);
+  updateInputPlaceholder();
   updateCtxPill();
 
+  // Set default shift preset
   if (mode === 'shift' && !activePreset) {
     activePreset = 'night';
     timeFrom     = PRESETS.night.from;
@@ -367,20 +758,9 @@ function setMode(mode) {
 }
 
 function updateCtxPill() {
-  var ctx  = (typeof PlantMindContext !== 'undefined') ? PlantMindContext.get() : {};
-  var pill = document.getElementById('ctxPill');
-  var cfg  = MODE_CONFIG[currentMode];
-  var parts = [];
-  if (ctx.plant) parts.push(ctx.plant);
-  if (ctx.line)  parts.push(ctx.line);
-  if (currentMode === 'shift' && activePreset) parts.push(PRESETS[activePreset].label);
-  if (parts.length > 0) {
-    pill.textContent = parts.join(' · ');
-    pill.className   = 'ctx-pill ' + cfg.pillCls;
-    pill.style.display = 'inline-block';
-  } else {
-    pill.style.display = 'none';
-  }
+  // ctxPill element removed — function kept for compatibility
+  // Just update the input placeholder
+  updateInputPlaceholder();
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -409,9 +789,16 @@ function handleKey(e) {
 
 function useExample(el, mode) {
   setMode(mode);
-  var txt = el.querySelector('.ex-label') ? el.textContent.replace(el.querySelector('.ex-label').textContent,'').trim() : el.textContent.trim();
-  document.getElementById('questionInput').value = txt;
-  document.getElementById('emptyState').style.display = 'none';
+  // Cards now contain only the question text directly — no child elements
+  var txt = el.textContent.trim();
+  var input = document.getElementById('questionInput');
+  if (input) {
+    input.value = txt;
+    autoResize(input);
+    input.focus();
+  }
+  var empty = document.getElementById('emptyState');
+  if (empty) empty.style.display = 'none';
 }
 
 function formatRelTime(iso) {
@@ -587,8 +974,9 @@ function toggleSidebar() {
   var sb  = document.getElementById('historySidebar');
   var btn = document.getElementById('sbToggle');
   var isHidden = window.getComputedStyle(sb).display === 'none';
-  sb.style.display  = isHidden ? 'flex' : 'none';
-  btn.textContent   = isHidden ? 'Hide history' : 'Show history';
+  sb.style.display = isHidden ? 'flex' : 'none';
+  btn.classList.toggle('active', isHidden);
+  btn.innerHTML = isHidden ? '🕐 History ✕' : '🕐 History';
 }
 
 // ── Save to history (called after stream completes) ────────────────────────────
@@ -615,8 +1003,9 @@ function submitQuestion() {
   var isShift  = currentMode === 'shift';
   var ctx      = (typeof PlantMindContext !== 'undefined') ? PlantMindContext.get() : {};
   var plant    = isShift ? '' : (ctx.plant || '');
-  var line     = isShift ? (ctx.line || '') : (ctx.line || '');
-  var equip    = '';
+  var line     = ctx.line || '';
+  var _eqSel   = document.getElementById('ctxEquipSel');
+  var equip    = (_eqSel && _eqSel.value) ? _eqSel.value : (localStorage.getItem('pm_equip') || '');
   var tFrom    = isShift ? timeFrom : '';
   var tTo      = isShift ? timeTo   : '';
 
@@ -653,6 +1042,7 @@ function submitQuestion() {
       '</div>' +
     '</div>';
   area.insertBefore(card, area.firstChild);
+  setTimeout(function(){ area.scrollTop = 0; }, 50);
 
   var ansEl    = document.getElementById('ans-'+idx);
   var srcEl    = document.getElementById('src-'+idx);
@@ -764,6 +1154,84 @@ function rate(idx, val) {
   });
 }
 
+// ── Report renderer ───────────────────────────────────────────────────────────
+// The backend yields: progress + separator + "INVESTIGATION REPORT\n" + separator + final_report
+// final_report itself contains section headers like "INVESTIGATION REPORT — TECHNICAL",
+// "SOURCE DATA:", "WHAT IS THE ISSUE:", etc.
+// This function receives the text AFTER the JS split on "INVESTIGATION REPORT",
+// so it may start with "\n═══...\n═══INVESTIGATION REPORT — TECHNICAL═══..."
+// We strip all decoration and parse real sections.
+
+function renderReport(text) {
+  if (!text || !text.trim()) return '<div class="report-text" style="color:#94a3b8;font-style:italic">Report generating...</div>';
+
+  // Known section headers from orchestrator prompt
+  var SECTION_HEADERS = [
+    'INVESTIGATION REPORT — TECHNICAL',
+    'SOURCE DATA',
+    'WHAT IS THE ISSUE',
+    'WHAT IS THE IMPACT',
+    'HOW CRITICAL IS IT',
+    'IMMEDIATE ACTION',
+    'RECOMMENDED ACTIONS',
+    'PLANT MANAGER SUMMARY',
+    'INVESTIGATION REPORT',
+  ];
+
+  // Split into lines, strip decoration
+  var lines = text.split('\n').filter(function(l) {
+    var t = l.trim();
+    return t && !/^[═=\-─]{3,}$/.test(t);
+  });
+
+  if (!lines.length) return '<div class="report-text" style="color:#94a3b8;font-style:italic">Report generating...</div>';
+
+  var html = '';
+  var i = 0;
+  var inSection = false;
+  var sectionContent = [];
+
+  function flushSection(label, lines) {
+    var body = lines.join('\n').trim();
+    if (!body && !label) return '';
+    if (!label) return '<div class="report-sec"><div class="report-text">' + escHtml(body) + '</div></div>';
+    return '<div class="report-sec"><div class="report-sec-label">' + escHtml(label) + '</div>' +
+           (body ? '<div class="report-text">' + escHtml(body) + '</div>' : '') + '</div>';
+  }
+
+  var currentLabel = '';
+  var currentLines = [];
+
+  while (i < lines.length) {
+    var line = lines[i];
+    var trimmed = line.trim();
+
+    // Check if this line is a known section header
+    var isHeader = SECTION_HEADERS.some(function(h) {
+      return trimmed.toUpperCase().indexOf(h) === 0 || trimmed.toUpperCase() === h;
+    });
+
+    // Also treat short ALL-CAPS lines ending in : as headers
+    if (!isHeader && trimmed.endsWith(':') && trimmed === trimmed.toUpperCase() && trimmed.length > 4) {
+      isHeader = true;
+    }
+
+    if (isHeader) {
+      // Flush previous section
+      html += flushSection(currentLabel, currentLines);
+      currentLabel = trimmed.replace(/:$/, '');
+      currentLines = [];
+    } else {
+      currentLines.push(line);
+    }
+    i++;
+  }
+  // Flush last section
+  html += flushSection(currentLabel, currentLines);
+
+  return html || '<div class="report-text">' + escHtml(text.trim()) + '</div>';
+}
+
 // ── Agent investigation ────────────────────────────────────────────────────────
 function submitInvestigation(incident) {
   var btn = document.getElementById('sendBtn');
@@ -773,6 +1241,13 @@ function submitInvestigation(incident) {
   var ctx   = (typeof PlantMindContext !== 'undefined') ? PlantMindContext.get() : {};
   var plant = ctx.plant || '';
   var line  = ctx.line  || '';
+
+  // Equipment: check selector first, then extract from incident text, then quick panel
+  var _eqSel  = document.getElementById('ctxEquipSel');
+  var _eqFromSel  = (_eqSel && _eqSel.value) ? _eqSel.value : '';
+  var _eqTextMatch = incident.match(/\b([A-Za-z]{1,4})-(\d{2,4})\b/);
+  var _eqFromText  = _eqTextMatch ? (_eqTextMatch[1].toUpperCase()+'-'+_eqTextMatch[2]) : '';
+  var equipment_id_used = _eqFromText || _eqFromSel || (typeof qpEquip!=='undefined' ? qpEquip : '') || '';
 
   var area = document.getElementById('answersArea');
   var emp  = document.getElementById('emptyState');
@@ -796,6 +1271,8 @@ function submitInvestigation(incident) {
       '<div class="report-text" id="rtext-'+bodyId+'"></div>' +
     '</div>';
   area.insertBefore(card, area.firstChild);
+  // Scroll to show new card
+  setTimeout(function(){ area.scrollTop = 0; }, 50);
 
   var stepsEl  = document.getElementById('steps-'+bodyId);
   var repEl    = document.getElementById('rep-'+bodyId);
@@ -844,7 +1321,7 @@ function submitInvestigation(incident) {
                                 .replace(/^[\s\u2550=\n]+/, '').trim();
           }
           repEl.style.display = 'block';
-          rtextEl.textContent = technical;
+          rtextEl.innerHTML = renderReport(technical);
           if (pmSummary) {
             var pmDiv = document.createElement('div');
             pmDiv.className = 'pm-block';
@@ -896,7 +1373,7 @@ function submitInvestigation(incident) {
             });
             if (stepsHtml) stepsEl.innerHTML = stepsHtml;
             repEl.style.display = 'block';
-            rtextEl.textContent = reportText;
+            rtextEl.innerHTML = renderReport(reportText);
           } else {
             // Still streaming progress — update steps live
             var lines = fullContent.split('\n').filter(function(l){ return l.trim(); });
@@ -918,7 +1395,7 @@ function submitInvestigation(incident) {
             fullContent.indexOf(REPORT_MARKER) + REPORT_MARKER.length
           );
           reportText = rawReport.replace(/^[\s═=\n]+/, '');
-          rtextEl.textContent = reportText;
+          rtextEl.innerHTML = renderReport(reportText);
         }
 
         read();
