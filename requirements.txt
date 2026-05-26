@@ -12,3 +12,5 @@ requests
 openai
 ragas
 datasets
+paho-mqtt
+simpy

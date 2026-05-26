@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantMind - Alerts</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
+
+/* ── Nav ── */
+.nav{background:#1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.nav-brand{font-size:17px;font-weight:700;color:#fff}
+.nav-brand span{color:#a5b4fc}
+
+/* ── Page tabs ── */
+.page-tabs{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
+.page-tab{padding:11px 18px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
+.page-tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
+.page-tab:hover:not(.active){color:#64748b}
+.tab-badge{font-size:10px;background:#fee2e2;color:#b91c1c;padding:1px 5px;border-radius:999px;margin-left:4px;display:none}
+
+/* ── Main content ── */
+.main{max-width:860px;margin:0 auto;padding:24px 20px 48px}
+
+/* ── Section headers ── */
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em}
+.refresh-btn{font-size:11px;color:#94a3b8;cursor:pointer;background:none;border:none;padding:0}
+.refresh-btn:hover{color:#64748b}
+.section-gap{margin-bottom:28px}
+
+/* ── Live feed ── */
+.live-event-row{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:8px;background:#fff;border:1px solid #f1f5f9;font-size:12px;margin-bottom:4px}
+.live-event-row.sev-high{background:#fff5f5;border-color:#fecaca}
+.live-event-row.sev-medium{background:#fffbeb;border-color:#fde68a}
+.live-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#94a3b8}
+.sev-high .live-dot{background:#dc2626}
+.sev-medium .live-dot{background:#d97706}
+.live-equip{font-weight:600;color:#0f172a;min-width:56px}
+.live-metric{color:#475569;flex:1}
+.live-sev{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;flex-shrink:0;background:#f1f5f9;color:#475569}
+.sev-high .live-sev{background:#fee2e2;color:#b91c1c}
+.sev-medium .live-sev{background:#fef3c7;color:#92400e}
+.live-time{font-size:11px;color:#94a3b8;flex-shrink:0}
+.feed-empty{padding:24px;text-align:center;color:#94a3b8;font-size:13px;background:#fff;border-radius:8px;border:1px dashed #e2e8f0}
+
+/* ── Alert cards ── */
+.alert-card{border-radius:12px;border:1px solid #ddd6fe;overflow:hidden;margin-bottom:10px;background:#fff}
+.alert-card-hd{padding:10px 14px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;background:#faf5ff}
+.alert-card-hd.sev-HIGH{background:#fff5f5;border-bottom-color:#fecaca}
+.alert-card-hd.sev-MEDIUM{background:#fffbeb;border-bottom-color:#fde68a}
+.alert-sev-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#e0e7ff;color:#3730a3}
+.alert-card-hd.sev-HIGH .alert-sev-badge{background:#fee2e2;color:#b91c1c}
+.alert-card-hd.sev-MEDIUM .alert-sev-badge{background:#fef3c7;color:#92400e}
+.alert-equip{font-size:13px;font-weight:600;color:#0f172a}
+.alert-line-label{font-size:12px;color:#64748b;margin-left:auto}
+.alert-card-body{padding:12px 14px;font-size:13px;color:#334155;line-height:1.75}
+.alert-sop-box{background:#f8fafc;border-radius:6px;padding:9px 11px;margin-top:8px;font-size:12px;color:#475569;line-height:1.7;border-left:3px solid #a5b4fc}
+.alert-sop-label{font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.alert-card-ft{padding:9px 14px;border-top:1px solid #f1f5f9;display:flex;align-items:center;gap:8px}
+.alert-time{font-size:11px;color:#94a3b8;flex:1}
+.btn-investigate{font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500;background:#7c3aed;color:#fff;border:none;transition:background .15s}
+.btn-investigate:hover{background:#6d28d9}
+.btn-dismiss{font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500;background:#fff;color:#64748b;border:1px solid #e2e8f0;transition:all .15s}
+.btn-dismiss:hover{border-color:#cbd5e1;color:#475569}
+.alerts-empty{padding:48px 24px;text-align:center;color:#94a3b8;font-size:13px;line-height:1.8;background:#fff;border-radius:12px;border:1px solid #e2e8f0}
+.alerts-empty-icon{font-size:32px;margin-bottom:8px}
+
+/* ── Filter pills ── */
+.filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.filter-pill{font-size:11px;font-weight:500;padding:4px 12px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;user-select:none}
+.filter-pill:hover{border-color:#cbd5e1;color:#334155}
+.filter-pill.active{border-color:#4f46e5;background:#eef2ff;color:#4338ca}
+.filter-pill.fp-high.active{border-color:#dc2626;background:#fff5f5;color:#b91c1c}
+.filter-pill.fp-medium.active{border-color:#d97706;background:#fffbeb;color:#92400e}
+.filter-pill.fp-low.active{border-color:#16a34a;background:#f0fdf4;color:#166534}
+.dismiss-all-btn{font-size:11px;font-weight:500;padding:4px 12px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;margin-left:auto;transition:all .15s;white-space:nowrap}
+.dismiss-all-btn:hover{border-color:#fca5a5;color:#dc2626;background:#fff5f5}
+.alerts-count{font-size:11px;color:#94a3b8;margin-left:4px}
+
+/* ── Mobile ── */
+@media(max-width:600px){
+  .nav{padding:0 12px}
+  .page-tabs{padding:0 8px}
+  .page-tab{padding:9px 10px;font-size:12px}
+  .main{padding:14px 12px 32px}
+  .filter-bar{gap:4px}
+  .filter-pill{font-size:10px;padding:3px 9px}
+  .dismiss-all-btn{font-size:10px;padding:3px 9px}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">Plant<span>Mind</span></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="/plant-setup" style="font-size:11px;color:#a5b4fc;padding:4px 10px;border-radius:6px;border:1px solid #4f46e5;background:rgba(79,70,229,.15);text-decoration:none;white-space:nowrap">&#9881; Plant setup</a>
+    <div style="display:flex;align-items:center;gap:6px;background:#0f172a;padding:4px 10px;border-radius:6px">
+      <div style="width:22px;height:22px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">GP</div>
+      <span style="font-size:11px;color:#e2e8f0;font-weight:500;white-space:nowrap">G. Phani</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-tabs">
+  <a class="page-tab" href="/chat">Ask</a>
+  <a class="page-tab" href="/library">Library</a>
+  <a class="page-tab active" href="/alerts">Alerts</a>
+</div>
+
+<div class="main">
+
+  <!-- Live Equipment Feed -->
+  <div class="section-gap">
+    <div class="section-hd">
+      <span class="section-label">&#9889; Live Equipment Feed</span>
+      <button class="refresh-btn" onclick="refresh()">&#8635; Refresh</button>
+    </div>
+    <div id="liveFeed">
+      <div class="feed-empty">Waiting for live data&#8230; Start the simulator: <code>python simulator.py</code></div>
+    </div>
+  </div>
+
+  <!-- Pattern Alerts -->
+  <div>
+    <div class="section-hd" style="margin-bottom:10px">
+      <span class="section-label">&#128308; Pattern Alerts <span class="alerts-count" id="alertsCount"></span></span>
+    </div>
+    <!-- Filter bar -->
+    <div class="filter-bar" style="margin-bottom:12px">
+      <button class="filter-pill active" id="fp-all"    onclick="setFilter('ALL')">All</button>
+      <button class="filter-pill fp-high"   id="fp-high"   onclick="setFilter('HIGH')">&#128308; High</button>
+      <button class="filter-pill fp-medium" id="fp-medium" onclick="setFilter('MEDIUM')">&#128992; Medium</button>
+      <button class="filter-pill fp-low"    id="fp-low"    onclick="setFilter('LOW')">&#128994; Low</button>
+      <button class="dismiss-all-btn" id="dismissAllBtn" onclick="dismissAll()" style="display:none">Dismiss all</button>
+    </div>
+    <div id="alertCards">
+      <div class="alerts-empty">
+        <div class="alerts-empty-icon">&#10003;</div>
+        <div>No pattern alerts</div>
+        <div style="font-size:12px;margin-top:4px">All equipment within normal parameters</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/static/nav_context.js"></script>
+<script>
+
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function timeAgo(iso) {
+  if (!iso) return '';
+  try {
+    var diff = Math.floor((new Date() - new Date(iso)) / 1000);
+    if (diff < 60)    return 'just now';
+    if (diff < 3600)  return Math.floor(diff/60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    return new Date(iso).toLocaleDateString();
+  } catch(e) { return ''; }
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var _allAlerts    = [];   // full list from API
+var _activeFilter = 'ALL'; // current severity filter
+
+// ── Filter pills ──────────────────────────────────────────────────────────────
+function setFilter(sev) {
+  _activeFilter = sev;
+  // Update pill active states
+  ['ALL','HIGH','MEDIUM','LOW'].forEach(function(s) {
+    var el = document.getElementById('fp-' + s.toLowerCase());
+    if (el) el.classList.toggle('active', s === sev);
+  });
+  applyFilter();
+}
+
+function applyFilter() {
+  var filtered = _activeFilter === 'ALL'
+    ? _allAlerts
+    : _allAlerts.filter(function(a) {
+        var sev = (a.answer||'').indexOf('HIGH') > -1 ? 'HIGH'
+                : (a.answer||'').indexOf('MEDIUM') > -1 ? 'MEDIUM' : 'LOW';
+        return sev === _activeFilter;
+      });
+
+  // Update count label
+  var countEl = document.getElementById('alertsCount');
+  if (countEl) {
+    countEl.textContent = filtered.length > 0
+      ? '(' + filtered.length + ')'
+      : '';
+  }
+
+  // Show/hide dismiss all button
+  var btn = document.getElementById('dismissAllBtn');
+  if (btn) btn.style.display = filtered.length > 0 ? 'block' : 'none';
+
+  renderAlertCards(filtered);
+}
+
+// ── Dismiss all ───────────────────────────────────────────────────────────────
+function dismissAll() {
+  var filtered = _activeFilter === 'ALL'
+    ? _allAlerts
+    : _allAlerts.filter(function(a) {
+        var sev = (a.answer||'').indexOf('HIGH') > -1 ? 'HIGH'
+                : (a.answer||'').indexOf('MEDIUM') > -1 ? 'MEDIUM' : 'LOW';
+        return sev === _activeFilter;
+      });
+
+  if (!filtered.length) return;
+
+  // Confirm if dismissing all
+  var label = _activeFilter === 'ALL' ? 'all alerts' : 'all ' + _activeFilter + ' alerts';
+  if (!confirm('Dismiss ' + label + '? This cannot be undone.')) return;
+
+  // Fade the whole card section
+  var el = document.getElementById('alertCards');
+  if (el) { el.style.opacity = '0.4'; el.style.pointerEvents = 'none'; }
+
+  // Fire dismiss requests for all filtered alerts
+  var promises = filtered.map(function(a) {
+    return fetch('/api/alerts/' + a.id + '/dismiss', { method: 'POST' })
+      .catch(function() {});
+  });
+
+  Promise.all(promises).then(function() {
+    setTimeout(function() {
+      if (el) { el.style.opacity = '1'; el.style.pointerEvents = ''; }
+      loadAlerts();
+    }, 500);
+  });
+}
+
+// ── Live Feed ─────────────────────────────────────────────────────────────────
+function loadLiveFeed() {
+  fetch('/api/live-events?limit=15')
+    .then(function(r) { return r.json(); })
+    .then(function(d) { renderLiveFeed(d.events || []); })
+    .catch(function() {});
+}
+
+function renderLiveFeed(events) {
+  var el = document.getElementById('liveFeed');
+  if (!el) return;
+  if (!events.length) {
+    el.innerHTML = '<div class="feed-empty">Waiting for live data&#8230; Start the simulator: <code>python simulator.py</code></div>';
+    return;
+  }
+  var html = '';
+  events.forEach(function(ev) {
+    var sev    = (ev.severity || '').toLowerCase();
+    var cls    = sev ? 'sev-' + sev : '';
+    var val    = ev.value != null ? parseFloat(ev.value).toFixed(2) : '—';
+    var metric = ev.unit ? val + ' ' + ev.unit : ev.message || val;
+    html +=
+      '<div class="live-event-row ' + cls + '">' +
+        '<div class="live-dot"></div>' +
+        '<span class="live-equip">' + escHtml(ev.equip_tag || '?') + '</span>' +
+        '<span class="live-metric">' + escHtml((metric || '').substring(0, 80)) + '</span>' +
+        (ev.severity ? '<span class="live-sev">' + escHtml(ev.severity) + '</span>' : '') +
+        '<span class="live-time">' + timeAgo(ev.created_at) + '</span>' +
+      '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ── Alert Cards ───────────────────────────────────────────────────────────────
+function loadAlerts() {
+  fetch('/api/alerts')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      _allAlerts = d.alerts || [];
+      applyFilter();
+    })
+    .catch(function() {});
+}
+
+function renderAlertCards(alerts) {
+  var el = document.getElementById('alertCards');
+  if (!el) return;
+  if (!alerts.length) {
+    var msg = _activeFilter === 'ALL'
+      ? '<div>No pattern alerts</div><div style="font-size:12px;margin-top:4px">All equipment within normal parameters</div>'
+      : '<div>No ' + _activeFilter + ' alerts</div><div style="font-size:12px;margin-top:4px">Try a different filter</div>';
+    el.innerHTML =
+      '<div class="alerts-empty">' +
+        '<div class="alerts-empty-icon">&#10003;</div>' +
+        msg +
+      '</div>';
+    return;
+  }
+  var html = '';
+  alerts.forEach(function(a) {
+    var sev     = (a.answer||'').indexOf('HIGH') > -1 ? 'HIGH' : (a.answer||'').indexOf('MEDIUM') > -1 ? 'MEDIUM' : 'LOW';
+    var clean   = (a.answer||'').replace(/\*\*/g, '');
+    var sopIdx  = clean.indexOf('SOP Guidance:');
+    var summary = sopIdx > -1 ? clean.substring(0, sopIdx).trim() : clean;
+    summary     = summary.replace(/^Proactive Pattern Alert[^]*?\n/, '').trim().substring(0, 300);
+    var sop     = sopIdx > -1 ? clean.substring(sopIdx + 13).trim().substring(0, 400) : '';
+    var id      = escHtml(a.id || '');
+    var eq      = escHtml(a.equip_tag || '');
+    var ln      = escHtml(a.line || '');
+    var t       = timeAgo(a.created_at);
+    var investigateUrl = '/chat?equip=' + encodeURIComponent(a.equip_tag || '') +
+                         '&incident=' + encodeURIComponent((eq + ' — ' + summary).substring(0, 400));
+    html +=
+      '<div class="alert-card" id="ac-' + id + '">' +
+        '<div class="alert-card-hd sev-' + sev + '">' +
+          '<span class="alert-sev-badge">' + sev + '</span>' +
+          '<span class="alert-equip">' + eq + '</span>' +
+          (ln ? '<span class="alert-line-label">' + ln + '</span>' : '') +
+        '</div>' +
+        '<div class="alert-card-body">' +
+          escHtml(summary) +
+          (sop ?
+            '<div class="alert-sop-box">' +
+              '<div class="alert-sop-label">SOP Guidance</div>' +
+              escHtml(sop) +
+            '</div>'
+          : '') +
+        '</div>' +
+        '<div class="alert-card-ft">' +
+          '<span class="alert-time">' + t + '</span>' +
+          '<a class="btn-investigate" href="' + investigateUrl + '">&#9889; Investigate</a>' +
+          '<button class="btn-dismiss" data-id="' + id + '" onclick="dismissAlert(this.dataset.id)">Dismiss</button>' +
+        '</div>' +
+      '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function dismissAlert(id) {
+  var card = document.getElementById('ac-' + id);
+  if (card) { card.style.opacity = '0.4'; card.style.pointerEvents = 'none'; }
+  fetch('/api/alerts/' + id + '/dismiss', { method: 'POST' })
+    .then(function() {
+      // Remove from local state and re-render without API call
+      _allAlerts = _allAlerts.filter(function(a) { return a.id !== id; });
+      setTimeout(function() { applyFilter(); }, 300);
+    })
+    .catch(function() {
+      if (card) { card.style.opacity = '1'; card.style.pointerEvents = ''; }
+    });
+}
+
+function refresh() { loadAlerts(); loadLiveFeed(); }
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('load', function() {
+  loadAlerts();
+  loadLiveFeed();
+  setInterval(loadAlerts,   30000);
+  setInterval(loadLiveFeed, 10000);
+});
+
+</script>
+</body>
+</html>

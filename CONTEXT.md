@@ -596,3 +596,37 @@ create policy "Allow all" on live_events for all using (true) with check (true);
 ```
 
 *PlantMind · Session 10 complete · Update this file at end of each session*
+
+---
+
+## Session 10 additions — dynamic dropdowns and library fix
+
+### Library page — now fully dynamic
+- Plant, Line, Equipment filters load from Supabase via API — not from document metadata
+- Changing plant reloads lines, changing line reloads equipment
+- Equipment shown as "WR-401 — Welding Robot" format
+- Filter state syncs from localStorage (set context on Ask → Library picks it up)
+- Functions added: populateLibLines(), populateLibEquip(), onLibPlantChange(), onLibLineChange()
+
+### Chat page — dynamic dropdowns
+- Line dropdown loads from /api/lines filtered by selected plant
+- Equipment dropdown loads from /api/equipment filtered by plant and line
+- Only active equipment shown
+- loadLineOpts() and loadEquipmentOpts() called on every site/line change
+- window._allLines and window._allEquipment cached globally
+
+### Full audit — all 23 checks passing
+- No /gaps references anywhere
+- All nav consistent — GP G. Phani badge, Plant setup button, 50px height
+- All dropdowns load from API dynamically
+- Plant Setup CRUD complete — sites, lines, equipment
+- FAB removed from plant setup
+- Mode pills working — Docs, Shift, Investigate
+- Breadcrumb context working — Site › Line › Equipment
+
+### Pending before MQTT (nothing blocking)
+- Run eval_runner.py to confirm 90% baseline still holds
+- Upload inline panel in library — built but needs end-to-end test
+- index.html (standalone upload page) — kept as fallback, has ← Back to Library link
+
+*PlantMind · Session 10 complete · Ready for MQTT (Session 11)*

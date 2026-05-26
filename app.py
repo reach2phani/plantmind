@@ -151,6 +151,10 @@ def chat():
 def library():
     return render_template("library.html")
 
+@app.route("/alerts")
+def alerts():
+    return render_template("alerts.html")
+
 # ── API ────────────────────────────────────────────────────────────────
 
 @app.route("/gaps")
@@ -791,6 +795,101 @@ def llm_stats():
     Example: GET http://localhost:5000/api/llm-stats
     """
     return jsonify(get_today_stats())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MQTT ALERTS ROUTES — Session 11
+# These routes power the Alerts tab in chat.html.
+# Data is written by mqtt_subscriber.py (separate process).
+# Flask only reads from Supabase — never touches MQTT directly.
+# This keeps Flask stateless and Render-compatible.
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.route("/api/alerts", methods=["GET"])
+def get_alerts():
+    """
+    Returns unread proactive alerts from chat_history.
+    Created by mqtt_subscriber.py when pattern threshold is crossed.
+    Polled by Alerts tab on page load and after dismiss.
+    """
+    try:
+        result = supabase.table("chat_history")\
+            .select("*")\
+            .eq("mode", "proactive")\
+            .eq("read", False)\
+            .order("created_at", desc=True)\
+            .limit(20)\
+            .execute()
+        return jsonify({"alerts": result.data or []})
+    except Exception as e:
+        print(f"  [alerts] get_alerts error: {e}")
+        return jsonify({"alerts": [], "error": str(e)})
+
+
+@app.route("/api/alerts/count", methods=["GET"])
+def get_alerts_count():
+    """
+    Lightweight badge count — returns only the number of unread alerts.
+    Polled every 30 seconds by chat.html nav badge.
+    Returns {"count": 0} on any error so badge never breaks the UI.
+    """
+    try:
+        result = supabase.table("chat_history")\
+            .select("id", count="exact")\
+            .eq("mode", "proactive")\
+            .eq("read", False)\
+            .execute()
+        count = result.count if result.count is not None else 0
+        return jsonify({"count": count})
+    except Exception as e:
+        print(f"  [alerts] get_alerts_count error: {e}")
+        return jsonify({"count": 0})
+
+
+@app.route("/api/alerts/<alert_id>/dismiss", methods=["POST"])
+def dismiss_alert(alert_id):
+    """
+    Marks a proactive alert as read.
+    Called when operator clicks Dismiss on an alert card.
+    """
+    try:
+        supabase.table("chat_history")\
+            .update({"read": True})\
+            .eq("id", alert_id)\
+            .execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"  [alerts] dismiss_alert error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/live-events", methods=["GET"])
+def get_live_events():
+    """
+    Returns recent alarm events from live_events table.
+    Powers the Live Equipment Feed panel in the Alerts tab.
+    Query params:
+      ?equip_tag=WR-401  — filter by equipment (optional)
+      ?limit=20          — max rows (default 20)
+    """
+    try:
+        equip_tag = request.args.get("equip_tag", "")
+        limit     = int(request.args.get("limit", 20))
+
+        q = supabase.table("live_events")\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(limit)
+
+        if equip_tag:
+            q = q.eq("equip_tag", equip_tag)
+
+        result = q.execute()
+        return jsonify({"events": result.data or []})
+    except Exception as e:
+        print(f"  [alerts] get_live_events error: {e}")
+        return jsonify({"events": []})
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

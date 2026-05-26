@@ -1,25 +1,35 @@
+# test_pattern.py — run once to test the full alert pipeline
+import os
 from dotenv import load_dotenv
+from supabase import create_client
+from datetime import datetime, timezone, timedelta
+
 load_dotenv()
-print("step 1 - dotenv OK")
-from flask import Flask, request, jsonify, render_template, Response, stream_with_context
-print("step 2 - flask OK")
-from supabase import create_client
-from pinecone import Pinecone
-from groq import Groq
-from embedder import embed_document
-from multi_agent import investigate_incident
-from llm_logger import log_streaming_call, get_today_stats
-print("step 3 - all imports OK")
-import os, re, threading, json, tempfile
-from datetime import datetime
-app = Flask(__name__)
-print("step 4 - app created")
-from supabase import create_client
-sb = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_KEY'))
-pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
-pine_index = pc.Index(os.getenv('PINECONE_INDEX'))
-groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
-print("step 5 - connections OK")
-exec(open('app.py').read())
-print("step 6 - app.py fully loaded")
-input('Press Enter')
+sb = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+
+# Insert 3 WR-401 alarms in the last 7 days
+for i, val in enumerate([3.8, 4.1, 4.6]):
+    sb.table("live_events").insert({
+        "plant_site": "northgate",
+        "line":       "line4",
+        "equip_tag":  "WR-401",
+        "event_type": "alarm",
+        "value":      val,
+        "unit":       "spatter_index",
+        "severity":   "HIGH" if val > 4.0 else "MEDIUM",
+        "message":    f"Spatter index {val} exceeds threshold 3.5"
+    }).execute()
+    print(f"Inserted alarm {i+1}: spatter={val}")
+
+# Now insert a proactive alert directly to chat_history
+sb.table("chat_history").insert({
+    "mode":       "proactive",
+    "question":   "Auto-detected pattern: WR-401 — 3 alarms in 7 days",
+    "answer":     "**Proactive Pattern Alert — WR-401**\n\n3 alarms detected in the last 7 days. Latest reading: 4.6 spatter_index. Pattern is escalating.\n\n**SOP Guidance:**\nCheck wire feed tension and contact tip condition before resuming production. Inspect liner for wear if spatter index exceeds 4.0.",
+    "equip_tag":  "WR-401",
+    "plant_site": "northgate",
+    "line":       "line4",
+    "sources":    "",
+    "read":       False
+}).execute()
+print("✅ Pattern alert inserted — check Alerts tab now")

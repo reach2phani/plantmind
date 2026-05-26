@@ -413,6 +413,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
   .example-grid{grid-template-columns:1fr}
   .ex-agent{grid-column:1}
 }
+
 </style>
 </head>
 <body>
@@ -431,6 +432,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
 <div class="page-tabs">
   <span class="page-tab active">Ask</span>
   <a class="page-tab" href="/library">Library</a>
+  <a class="page-tab" href="/alerts">Alerts <span id="alertsTabBadge" style="display:none;font-size:10px;background:#dc2626;color:#fff;padding:1px 6px;border-radius:999px;margin-left:2px;font-weight:700"></span></a>
 </div>
 
 <div class="body">
@@ -544,6 +546,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
     </div>
   </div>
 
+
 </div>
 
 <script src="/static/nav_context.js"></script>
@@ -565,6 +568,33 @@ window.addEventListener('load', function() {
   updateCtxPill();
   initCtxSelectors();
   updateModePills(currentMode);
+  // Handle ?incident= and ?equip= from Alerts page Investigate button
+  try {
+    var params   = new URLSearchParams(window.location.search);
+    var incident = params.get('incident');
+    var equip    = params.get('equip');
+    if (incident) {
+      setMode('agent');
+      var ta = document.getElementById('questionInput');
+      if (ta) { ta.value = incident; autoResize(ta); ta.focus(); }
+      // Set equipment context if passed
+      if (equip) {
+        var eSel = document.getElementById('ctxEquipSel');
+        if (eSel) {
+          // Options may not be loaded yet — wait for initCtxSelectors to finish
+          setTimeout(function() {
+            for (var i = 0; i < eSel.options.length; i++) {
+              if (eSel.options[i].value === equip) { eSel.value = equip; break; }
+            }
+            saveCtxSelectors();
+          }, 800);
+        }
+      }
+      // Hide empty state
+      var emp = document.getElementById('emptyState');
+      if (emp) emp.style.display = 'none';
+    }
+  } catch(e) {}
 });
 
 function initCtxSelectors() {
@@ -1455,7 +1485,28 @@ function submitInvestigation(incident) {
     btn.textContent = '⚡ Investigate';
   });
 }
+
+
+
 </script>
 
+
+<script>
+// ── Alert badge polling ───────────────────────────────────────────────────────
+function updateAlertBadge() {
+  fetch('/api/alerts/count')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var badge = document.getElementById('alertsTabBadge');
+      if (!badge) return;
+      var n = d.count || 0;
+      badge.textContent  = n;
+      badge.style.display = n > 0 ? 'inline' : 'none';
+    })
+    .catch(function() {});
+}
+updateAlertBadge();
+setInterval(updateAlertBadge, 30000);
+</script>
 </body>
 </html>
