@@ -431,8 +431,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
 
 <div class="page-tabs">
   <span class="page-tab active">Ask</span>
-  <a class="page-tab" href="/library">Library</a>
-  <a class="page-tab" href="/alerts">Alerts <span id="alertsTabBadge" style="display:none;font-size:10px;background:#dc2626;color:#fff;padding:1px 6px;border-radius:999px;margin-left:2px;font-weight:700"></span></a>
+  <a class="page-tab" href="/library" onclick="saveConversation()">Library</a>
+  <a class="page-tab" href="/alerts" onclick="saveConversation()">Alerts <span id="alertsTabBadge" style="display:none;font-size:10px;background:#dc2626;color:#fff;padding:1px 6px;border-radius:999px;margin-left:2px;font-weight:700"></span></a>
 </div>
 
 <div class="body">
@@ -563,11 +563,48 @@ var PRESETS = {
 };
 
 // ── Init ───────────────────────────────────────────────────────────────────────
+// ── Conversation save/restore across tab navigation ──────────────────────────
+function saveConversation() {
+  try {
+    var area = document.getElementById('answersArea');
+    if (area && area.innerHTML.trim()) {
+      sessionStorage.setItem('pm_conversation', area.innerHTML);
+      sessionStorage.setItem('pm_conversation_mode', currentMode);
+    }
+  } catch(e) {}
+}
+
+function restoreConversation() {
+  try {
+    var saved = sessionStorage.getItem('pm_conversation');
+    if (!saved) return;
+    var area = document.getElementById('answersArea');
+    if (!area) return;
+    area.innerHTML = saved;
+    // Restore mode
+    var savedMode = sessionStorage.getItem('pm_conversation_mode');
+    if (savedMode) setMode(savedMode);
+    // Clear saved so fresh page load does not restore stale state
+    sessionStorage.removeItem('pm_conversation');
+    sessionStorage.removeItem('pm_conversation_mode');
+    // Hide empty state if conversation restored
+    var emp = document.getElementById('emptyState');
+    if (emp) emp.style.display = 'none';
+    // Scroll to bottom
+    setTimeout(function() { area.scrollTop = area.scrollHeight; }, 100);
+  } catch(e) {}
+}
+
+// Also save on Library tab click
 window.addEventListener('load', function() {
+  // Restore conversation if returning from Alerts or Library
+  restoreConversation();
+
   loadHistory();
   updateCtxPill();
   initCtxSelectors();
   updateModePills(currentMode);
+
   // Handle ?incident= and ?equip= from Alerts page Investigate button
   try {
     var params   = new URLSearchParams(window.location.search);
@@ -577,11 +614,9 @@ window.addEventListener('load', function() {
       setMode('agent');
       var ta = document.getElementById('questionInput');
       if (ta) { ta.value = incident; autoResize(ta); ta.focus(); }
-      // Set equipment context if passed
       if (equip) {
         var eSel = document.getElementById('ctxEquipSel');
         if (eSel) {
-          // Options may not be loaded yet — wait for initCtxSelectors to finish
           setTimeout(function() {
             for (var i = 0; i < eSel.options.length; i++) {
               if (eSel.options[i].value === equip) { eSel.value = equip; break; }
@@ -590,7 +625,6 @@ window.addEventListener('load', function() {
           }, 800);
         }
       }
-      // Hide empty state
       var emp = document.getElementById('emptyState');
       if (emp) emp.style.display = 'none';
     }

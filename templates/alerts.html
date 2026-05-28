@@ -246,6 +246,58 @@ function loadLiveFeed() {
     .catch(function() {});
 }
 
+// Plain English labels for sensor unit keys
+var UNIT_LABELS = {
+  'wire_feed_m_min':        'Wire feed speed',
+  'arc_voltage_v':          'Arc voltage',
+  'tip_temp_c':             'Contact tip temp',
+  'oxygen_pressure_bar':    'Oxygen pressure',
+  'cut_speed_pct':          'Cut speed',
+  'furnace_temp_c':         'Furnace temperature',
+  'target_temp_c':          'Target temperature',
+  'tc_resistance_ohm':      'Thermocouple resistance',
+  'hydraulic_pressure_bar': 'Hydraulic pressure',
+  'oil_temp_c':             'Oil temperature',
+  'cycle_time_s':           'Cycle time',
+  'spatter_index':          'Spatter index',
+  'belt_speed_ms':          'Belt speed',
+  'motor_temp_c':           'Motor temperature',
+  'pressure_bar':           'Pressure',
+  'torque_nm':              'Torque'
+};
+
+// Human-readable unit suffixes
+var UNIT_SUFFIX = {
+  'wire_feed_m_min':        'm/min',
+  'arc_voltage_v':          'V',
+  'tip_temp_c':             '°C',
+  'oxygen_pressure_bar':    'bar',
+  'cut_speed_pct':          '%',
+  'furnace_temp_c':         '°C',
+  'target_temp_c':          '°C',
+  'tc_resistance_ohm':      'Ω',
+  'hydraulic_pressure_bar': 'bar',
+  'oil_temp_c':             '°C',
+  'cycle_time_s':           's',
+  'spatter_index':          '',
+  'belt_speed_ms':          'm/s',
+  'motor_temp_c':           '°C',
+  'pressure_bar':           'bar',
+  'torque_nm':              'Nm'
+};
+
+function formatMetric(ev) {
+  var val  = ev.value != null ? parseFloat(ev.value).toFixed(2) : '—';
+  var unit = ev.unit || '';
+  var label  = UNIT_LABELS[unit]  || unit.replace(/_/g, ' ');
+  var suffix = UNIT_SUFFIX[unit] !== undefined ? UNIT_SUFFIX[unit] : unit;
+  // If we have a plain English message from alarm use that instead
+  if (ev.message && ev.message.length > 0 && ev.message.length < 90) {
+    return ev.message;
+  }
+  return label + ': ' + val + (suffix ? ' ' + suffix : '');
+}
+
 function renderLiveFeed(events) {
   var el = document.getElementById('liveFeed');
   if (!el) return;
@@ -257,13 +309,12 @@ function renderLiveFeed(events) {
   events.forEach(function(ev) {
     var sev    = (ev.severity || '').toLowerCase();
     var cls    = sev ? 'sev-' + sev : '';
-    var val    = ev.value != null ? parseFloat(ev.value).toFixed(2) : '—';
-    var metric = ev.unit ? val + ' ' + ev.unit : ev.message || val;
+    var metric = formatMetric(ev);
     html +=
       '<div class="live-event-row ' + cls + '">' +
         '<div class="live-dot"></div>' +
         '<span class="live-equip">' + escHtml(ev.equip_tag || '?') + '</span>' +
-        '<span class="live-metric">' + escHtml((metric || '').substring(0, 80)) + '</span>' +
+        '<span class="live-metric">' + escHtml(metric.substring(0, 90)) + '</span>' +
         (ev.severity ? '<span class="live-sev">' + escHtml(ev.severity) + '</span>' : '') +
         '<span class="live-time">' + timeAgo(ev.created_at) + '</span>' +
       '</div>';
