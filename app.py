@@ -22,18 +22,38 @@ def _load_knowledge_graph():
     try:
         from knowledge_graph import load_graph, get_graph_stats
         import os
-        graph_file = os.path.join(os.path.dirname(__file__), "wm101_graph.json")
-        if os.path.exists(graph_file):
-            stats = get_graph_stats(equip_tag="WM-101")
-            if stats.get("nodes", 0) == 0:
-                print("[app] Knowledge graph empty — loading from wm101_graph.json...")
-                load_graph(graph_file)
-            else:
-                print(f"[app] Knowledge graph ready — {stats['nodes']} nodes, {stats['edges']} edges")
+
+        # Try multiple paths — works locally and on Render
+        base_dir   = os.path.dirname(os.path.abspath(__file__))
+        candidates = [
+            os.path.join(base_dir, "wm101_graph.json"),
+            os.path.join(base_dir, "data", "wm101_graph.json"),
+            "wm101_graph.json",
+        ]
+        graph_file = next((p for p in candidates if os.path.exists(p)), None)
+
+        print(f"[app] Graph file search: {candidates}")
+
+        if not graph_file:
+            print("[app] wm101_graph.json not found in any expected location")
+            print(f"[app] Current dir: {os.getcwd()}")
+            print(f"[app] Dir contents: {os.listdir(base_dir)[:20]}")
+            return
+
+        print(f"[app] Found graph file: {graph_file}")
+        stats = get_graph_stats(equip_tag="WM-101")
+        if stats.get("nodes", 0) == 0:
+            print("[app] Knowledge graph empty — loading...")
+            success = load_graph(graph_file)
+            if success:
+                stats = get_graph_stats(equip_tag="WM-101")
+                print(f"[app] Graph loaded — {stats.get('nodes',0)} nodes, {stats.get('edges',0)} edges")
         else:
-            print("[app] wm101_graph.json not found — skipping graph load")
+            print(f"[app] Graph already loaded — {stats['nodes']} nodes, {stats['edges']} edges")
     except Exception as e:
-        print(f"[app] Knowledge graph unavailable: {e}")
+        import traceback
+        print(f"[app] Knowledge graph error: {e}")
+        print(traceback.format_exc())
 
 # Load graph in background thread so startup is not blocked
 import threading
@@ -924,6 +944,30 @@ def graph_nodes():
     except Exception as e:
         print(f"  [graph] nodes error: {e}")
         return jsonify({"nodes": [], "edges": [], "count": {"nodes": 0, "edges": 0}})
+
+
+@app.route("/api/graph/debug", methods=["GET"])
+def graph_debug():
+    """Debug endpoint to check graph status on Render."""
+    import os
+    results = {}
+    # Check JSON file
+    graph_file = os.path.join(os.path.dirname(__file__), "wm101_graph.json")
+    results["json_path"]   = graph_file
+    results["json_exists"] = os.path.exists(graph_file)
+    # Check Neo4j env vars
+    results["neo4j_uri"]      = bool(os.getenv("NEO4J_URI"))
+    results["neo4j_username"] = bool(os.getenv("NEO4J_USERNAME"))
+    results["neo4j_password"] = bool(os.getenv("NEO4J_PASSWORD"))
+    # Check graph stats
+    try:
+        from knowledge_graph import get_graph_stats, get_graphed_equipment
+        stats = get_graph_stats(equip_tag="WM-101")
+        results["graph_stats"] = stats
+        results["graphed_equipment"] = get_graphed_equipment()
+    except Exception as e:
+        results["graph_error"] = str(e)
+    return jsonify(results)
 
 
 @app.route("/api/graph/equipment", methods=["GET"])
