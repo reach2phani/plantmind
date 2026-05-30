@@ -93,8 +93,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
 
 .empty{text-align:center;padding:48px 24px;color:#94a3b8;grid-column:1/-1}
 .empty-title{font-size:15px;font-weight:500;color:#475569;margin-bottom:6px}
-.upload-toggle-btn{padding:7px 14px;background:#4f46e5;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
-.upload-toggle-btn:hover{background:#4338ca}
 </style>
 </head>
 <body>
@@ -112,6 +110,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
   <a class="page-tab" href="/chat">Ask</a>
   <a class="page-tab active" href="/library">Library</a>
   <a class="page-tab" href="/alerts">Alerts <span id="alertsTabBadge" style="display:none;font-size:10px;background:#dc2626;color:#fff;padding:1px 6px;border-radius:999px;margin-left:2px;font-weight:700"></span></a>
+  <a class="page-tab" href="/graph">Graph</a>
 </div>
 <div class="main">
   <div class="stats">
@@ -132,80 +131,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
   </div>
   <div class="results-header">
     <span class="results-count" id="resultsCount"></span>
-    <button class="upload-toggle-btn" onclick="toggleUpload()" id="uploadToggleBtn">+ Upload document</button>
   </div>
-
-  <!-- Upload panel -->
-  <div id="uploadPanel" style="display:none;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:16px">
-    <div style="font-size:14px;font-weight:600;color:#0f172a;margin-bottom:14px">Upload Document</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-      <div>
-        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px">Document name *</div>
-        <input id="upName" type="text" placeholder="e.g. WM-101 SOP Rev 1.0" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none">
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px">Document type *</div>
-        <select id="upType" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none;background:#fff">
-          <option value="">-- select --</option>
-          <option>SOP</option><option>Work Instruction</option>
-          <option>NCR</option><option>Shift Log</option>
-          <option>Batch Record</option><option>Training</option><option>Other</option>
-        </select>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px">Plant site *</div>
-        <select id="upPlant" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none;background:#fff" onchange="loadUploadLines()">
-          <option value="">-- select --</option>
-        </select>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px">Line</div>
-        <select id="upLine" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none;background:#fff" onchange="loadUploadEquip()">
-          <option value="">-- select --</option>
-        </select>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px">Equipment tag</div>
-        <select id="upEquip" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none;background:#fff">
-          <option value="">-- select --</option>
-        </select>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px">Revision</div>
-        <input id="upRev" type="text" value="1.0" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none">
-      </div>
-    </div>
-    <div style="margin-bottom:12px">
-      <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px">File * (PDF, TXT, CSV)</div>
-      <input id="upFile" type="file" accept=".pdf,.txt,.csv" style="font-size:13px;color:#475569">
-    </div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <button onclick="submitUpload()" style="padding:9px 20px;background:#4f46e5;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer">Upload and index</button>
-      <button onclick="toggleUpload()" style="padding:9px 14px;background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;cursor:pointer">Cancel</button>
-      <span id="upStatus" style="font-size:12px;color:#64748b"></span>
-    </div>
-  </div>
-
   <div class="doc-grid" id="docGrid">
     <div class="empty"><div class="empty-title">Loading documents...</div></div>
   </div>
 </div>
 <style>
-.load-more-wrap{display:none;justify-content:center;padding:20px 0 8px}
-.load-more-btn{padding:10px 28px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#475569;transition:all .15s}
-.load-more-btn:hover{border-color:#a5b4fc;color:#4f46e5;background:#fafafe}
+.pagination{display:none;align-items:center;justify-content:center;gap:12px;margin-top:20px;padding:4px 0}
+.pg-btn{padding:7px 16px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#475569;transition:all .15s}
+.pg-btn:hover:not([disabled]){border-color:#a5b4fc;color:#4f46e5}
+.pg-btn[disabled]{opacity:.4;cursor:not-allowed}
+.pg-info{font-size:13px;color:#64748b}
+.pg-info strong{color:#0f172a}
 </style>
-<div id="loadMoreWrap" class="load-more-wrap">
-  <button id="loadMoreBtn" class="load-more-btn" onclick="loadMore()">Load more</button>
-</div>
+<div id="pagination" class="pagination"></div>
 <script src="/static/nav_context.js"></script>
 <script>
-var allDocs        = [];
-var showArchived   = false;
-var editingId      = null;
-var visibleCount   = 20;   // how many shown in default (no filter) state
-var LOAD_MORE_STEP = 20;   // how many to add each time Load More is clicked
-var _lastFiltered  = [];   // cache of last filtered result for load more
+var allDocs      = [];
+var showArchived = false;
+var editingId    = null;
+var currentPage  = 1;
+var PAGE_SIZE    = 12;
 
 fetch('/api/documents')
   .then(function(r){return r.json()})
@@ -331,89 +277,62 @@ function onLibLineChange(){
   filterDocs();
 }
 
-function isFiltered() {
-  var search = document.getElementById('searchInput').value.trim();
-  var plant  = document.getElementById('plantFilter').value;
-  var line   = document.getElementById('lineFilter').value;
-  var type   = document.getElementById('typeFilter').value;
-  var equip  = document.getElementById('equipFilter').value;
-  return !!(search || plant || line || type || equip);
-}
-
-function filterDocs() {
-  visibleCount = 20; // reset on every new filter action
-  applyFilter();
-}
-
-function applyFilter() {
-  var search = document.getElementById('searchInput').value.toLowerCase().trim();
-  var plant  = document.getElementById('plantFilter').value;
-  var line   = document.getElementById('lineFilter').value;
-  var type   = document.getElementById('typeFilter').value;
-  var equip  = document.getElementById('equipFilter').value;
-
-  // Save filter state to localStorage
+function filterDocs(opts){
+  if(!opts || !opts.keepPage) currentPage=1;
+  var search=document.getElementById('searchInput').value.toLowerCase();
+  var plant=document.getElementById('plantFilter').value;
+  var line=document.getElementById('lineFilter').value;
+  // Save filter state to localStorage so it survives page refresh
   try {
     localStorage.setItem('pm_lib_search', search);
     localStorage.setItem('pm_lib_plant',  plant);
     localStorage.setItem('pm_lib_line',   line);
   } catch(e) {}
-
-  var filtered = allDocs.filter(function(d) {
-    if (!showArchived && d.status === 'archived') return false;
-    if (plant && d.plant_site !== plant) return false;
-    if (line  && d.line !== line)        return false;
-    if (type  && d.doc_type !== type)    return false;
-    if (equip && d.equip_tag !== equip)  return false;
-    if (search) {
-      var hay = (d.name+' '+(d.plant_site||'')+' '+(d.line||'')+' '+(d.doc_type||'')+' '+(d.equip_tag||'')).toLowerCase();
-      if (!hay.includes(search)) return false;
+  var type=document.getElementById('typeFilter').value;
+  var equip=document.getElementById('equipFilter').value;
+  var filtered=allDocs.filter(function(d){
+    if(!showArchived&&d.status==='archived') return false;
+    if(plant&&d.plant_site!==plant) return false;
+    if(line&&d.line!==line) return false;
+    if(type&&d.doc_type!==type) return false;
+    if(equip&&d.equip_tag!==equip) return false;
+    if(search){
+      var hay=(d.name+' '+(d.plant_site||'')+' '+(d.line||'')+' '+(d.doc_type||'')+' '+(d.equip_tag||'')).toLowerCase();
+      if(!hay.includes(search)) return false;
     }
     return true;
   });
-
-  _lastFiltered = filtered;
-  var grid = document.getElementById('docGrid');
-  var loadMoreEl = document.getElementById('loadMoreWrap');
-
-  if (filtered.length === 0) {
-    document.getElementById('resultsCount').innerHTML = '<strong>0</strong> documents match';
-    grid.innerHTML = '<div class="empty"><div class="empty-title">No documents match</div></div>';
-    if (loadMoreEl) loadMoreEl.style.display = 'none';
+  var total=allDocs.filter(function(d){return showArchived||d.status!=='archived'}).length;
+  var totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+  if(currentPage>totalPages) currentPage=1;
+  var start=(currentPage-1)*PAGE_SIZE;
+  var pageItems=filtered.slice(start,start+PAGE_SIZE);
+  document.getElementById('resultsCount').innerHTML=
+    'Showing <strong>'+(filtered.length===0?0:start+1)+'&ndash;'+Math.min(start+PAGE_SIZE,filtered.length)+'</strong> of <strong>'+filtered.length+'</strong> documents';
+  var grid=document.getElementById('docGrid');
+  if(filtered.length===0){
+    document.getElementById('pagination').style.display='none';
+    grid.innerHTML='<div class="empty"><div class="empty-title">No documents match</div></div>';
     return;
   }
-
-  // If filters are active — show ALL results (search already narrows the list)
-  // If no filters — show first visibleCount with Load More
-  var hasFilter = isFiltered();
-  var toShow    = hasFilter ? filtered : filtered.slice(0, visibleCount);
-  var hasMore   = !hasFilter && filtered.length > visibleCount;
-
-  document.getElementById('resultsCount').innerHTML =
-    hasFilter
-      ? 'Showing all <strong>' + filtered.length + '</strong> documents'
-      : 'Showing <strong>' + toShow.length + '</strong> of <strong>' + filtered.length + '</strong> documents';
-
-  grid.innerHTML = toShow.map(function(doc) { return renderCard(doc); }).join('');
-
-  // Load more button
-  if (loadMoreEl) {
-    if (hasMore) {
-      loadMoreEl.style.display = 'flex';
-      var btn = document.getElementById('loadMoreBtn');
-      if (btn) btn.textContent = 'Load more (' + (filtered.length - toShow.length) + ' remaining)';
-    } else {
-      loadMoreEl.style.display = 'none';
-    }
-  }
+  grid.innerHTML=pageItems.map(function(doc){return renderCard(doc)}).join('');
+  renderPagination(currentPage,totalPages,filtered.length);
 }
 
-function loadMore() {
-  visibleCount += LOAD_MORE_STEP;
-  applyFilter();
-  // Smooth scroll to show new cards
-  var grid = document.getElementById('docGrid');
-  if (grid) grid.lastElementChild && grid.lastElementChild.scrollIntoView({behavior:'smooth', block:'nearest'});
+function renderPagination(page,totalPages,total){
+  var pg=document.getElementById('pagination');
+  if(totalPages<=1){pg.style.display='none';return;}
+  pg.style.display='flex';
+  pg.innerHTML=
+    '<button class="pg-btn" onclick="goPage('+page+'-1)" '+(page<=1?'disabled':'')+'>&#8592; Previous</button>'+
+    '<span class="pg-info">Page <strong>'+page+'</strong> of <strong>'+totalPages+'</strong></span>'+
+    '<button class="pg-btn" onclick="goPage('+page+'+1)" '+(page>=totalPages?'disabled':'')+'>Next &#8594;</button>';
+}
+
+function goPage(p){
+  currentPage=p;
+  filterDocs({keepPage:true});
+  window.scrollTo(0,0);
 }
 
 function embedStatusBadge(doc) {
@@ -539,137 +458,6 @@ function saveEdit(docId){
 }
 
 function escHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-
-// ── Upload panel ──────────────────────────────────────────────────────────────
-
-function toggleUpload() {
-  var panel = document.getElementById('uploadPanel');
-  var btn   = document.getElementById('uploadToggleBtn');
-  var open  = panel.style.display === 'none';
-  panel.style.display = open ? 'block' : 'none';
-  btn.textContent = open ? '✕ Close upload' : '+ Upload document';
-  if (open) loadUploadPlants();
-}
-
-function loadUploadPlants() {
-  fetch('/api/plant-sites')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var sel = document.getElementById('upPlant');
-      sel.innerHTML = '<option value="">-- select --</option>';
-      (data.plant_sites || []).forEach(function(s) {
-        var o = document.createElement('option');
-        o.value = s.name; o.textContent = s.name;
-        sel.appendChild(o);
-      });
-    })
-    .catch(function() {});
-}
-
-function loadUploadLines() {
-  var plant = document.getElementById('upPlant').value;
-  var lSel  = document.getElementById('upLine');
-  var eSel  = document.getElementById('upEquip');
-  lSel.innerHTML  = '<option value="">-- select --</option>';
-  eSel.innerHTML  = '<option value="">-- select --</option>';
-  if (!plant) return;
-  fetch('/api/lines')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var lines = (data.lines || []).filter(function(l) { return l.plant_site === plant; });
-      lines.forEach(function(l) {
-        var o = document.createElement('option');
-        o.value = l.name; o.textContent = l.name;
-        lSel.appendChild(o);
-      });
-    })
-    .catch(function() {});
-}
-
-function loadUploadEquip() {
-  var plant = document.getElementById('upPlant').value;
-  var line  = document.getElementById('upLine').value;
-  var eSel  = document.getElementById('upEquip');
-  eSel.innerHTML = '<option value="">-- select --</option>';
-  if (!plant) return;
-  fetch('/api/equipment')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var equip = (data.equipment || []).filter(function(e) {
-        return e.active !== false &&
-               (!plant || e.plant_site === plant) &&
-               (!line  || e.line === line);
-      });
-      equip.forEach(function(e) {
-        var o = document.createElement('option');
-        o.value = e.equip_tag;
-        o.textContent = e.equip_tag + ' — ' + e.name;
-        eSel.appendChild(o);
-      });
-    })
-    .catch(function() {});
-}
-
-function submitUpload() {
-  var name  = document.getElementById('upName').value.trim();
-  var type  = document.getElementById('upType').value;
-  var plant = document.getElementById('upPlant').value;
-  var line  = document.getElementById('upLine').value;
-  var equip = document.getElementById('upEquip').value;
-  var rev   = document.getElementById('upRev').value.trim() || '1.0';
-  var file  = document.getElementById('upFile').files[0];
-  var status = document.getElementById('upStatus');
-
-  if (!name)  { status.textContent = 'Please enter a document name.';  status.style.color='#dc2626'; return; }
-  if (!type)  { status.textContent = 'Please select a document type.'; status.style.color='#dc2626'; return; }
-  if (!plant) { status.textContent = 'Please select a plant site.';    status.style.color='#dc2626'; return; }
-  if (!file)  { status.textContent = 'Please choose a file.';          status.style.color='#dc2626'; return; }
-
-  var fd = new FormData();
-  fd.append('file',       file);
-  fd.append('name',       name);
-  fd.append('doc_type',   type);
-  fd.append('plant_site', plant);
-  fd.append('line',       line);
-  fd.append('equip_tag',  equip);
-  fd.append('revision',   rev);
-
-  status.textContent = 'Uploading...';
-  status.style.color = '#64748b';
-
-  fetch('/upload', { method: 'POST', body: fd })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.success || data.doc_id) {
-        status.textContent = 'Uploaded successfully — indexing in background...';
-        status.style.color = '#16a34a';
-        // Reset form
-        document.getElementById('upName').value  = '';
-        document.getElementById('upFile').value  = '';
-        document.getElementById('upType').value  = '';
-        document.getElementById('upEquip').value = '';
-        document.getElementById('upRev').value   = '1.0';
-        // Reload document list after short delay
-        setTimeout(function() {
-          fetch('/api/documents')
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-              allDocs = d.documents || [];
-              updateStats();
-              filterDocs();
-              status.textContent = 'Done — document added to library.';
-            });
-        }, 2000);
-      } else {
-        status.textContent = 'Upload failed: ' + (data.error || 'unknown error');
-        status.style.color = '#dc2626';
-      }
-    })
-    .catch(function(e) {
-      status.textContent = 'Upload failed — check server is running.';
-      status.style.color = '#dc2626';
-    });
-}
 </script>
 
 <script>

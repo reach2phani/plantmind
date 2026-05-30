@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantMind - Knowledge Graph</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
+
+/* ── Nav ── */
+.nav{background:#1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.nav-brand{font-size:17px;font-weight:700;color:#fff}
+.nav-brand span{color:#a5b4fc}
+
+/* ── Page tabs ── */
+.page-tabs{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
+.page-tab{padding:11px 18px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
+.page-tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
+.page-tab:hover:not(.active){color:#64748b}
+.tab-badge{font-size:10px;background:#fee2e2;color:#b91c1c;padding:1px 5px;border-radius:999px;margin-left:4px;display:none}
+
+/* ── Main layout ── */
+.main{max-width:1100px;margin:0 auto;padding:20px 20px 40px;display:flex;flex-direction:column;gap:16px}
+
+/* ── Graph header ── */
+.graph-hd{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.graph-hd-left{}
+.graph-title{font-size:18px;font-weight:600;color:#0f172a}
+.graph-sub{font-size:12px;color:#64748b;margin-top:3px}
+
+/* ── Controls bar ── */
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl-group{display:flex;flex-direction:column;gap:3px}
+.ctrl-label{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
+.ctrl-select{padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#0f172a;background:#fff;outline:none;cursor:pointer;min-width:180px}
+.ctrl-select:focus{border-color:#a5b4fc}
+
+/* ── Type filter pills ── */
+.type-filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.type-pill{font-size:11px;font-weight:500;padding:5px 12px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;user-select:none}
+.type-pill:hover{border-color:#cbd5e1;color:#334155}
+.type-pill.active{border-color:#4f46e5;background:#eef2ff;color:#4338ca}
+.type-pill.tp-fault.active{border-color:#dc2626;background:#fff5f5;color:#b91c1c}
+.type-pill.tp-comp.active{border-color:#d97706;background:#fffbeb;color:#92400e}
+.type-pill.tp-proc.active{border-color:#16a34a;background:#f0fdf4;color:#166534}
+.type-pill.tp-doc.active{border-color:#64748b;background:#f8fafc;color:#334155}
+.type-pill.tp-pattern.active{border-color:#7c3aed;background:#faf5ff;color:#6d28d9}
+.pill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ── Legend ── */
+.legend{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ── Graph canvas ── */
+.graph-wrap{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff;position:relative}
+#graphCanvas{width:100%;display:block;cursor:grab}
+#graphCanvas:active{cursor:grabbing}
+.graph-hint{position:absolute;bottom:10px;right:14px;font-size:11px;color:#94a3b8;pointer-events:none}
+.graph-empty{display:flex;align-items:center;justify-content:center;height:440px;color:#94a3b8;font-size:13px;flex-direction:column;gap:8px}
+.graph-loading{display:flex;align-items:center;justify-content:center;height:440px;color:#94a3b8;font-size:13px}
+
+/* ── Node detail panel ── */
+.detail-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px}
+.detail-empty{font-size:13px;color:#94a3b8;text-align:center;padding:16px 0}
+.detail-title{font-size:15px;font-weight:600;color:#0f172a;margin-bottom:4px}
+.detail-type-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;margin-bottom:12px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-row{padding:8px 10px;background:#f8fafc;border-radius:8px}
+.detail-row.full{grid-column:1/-1}
+.detail-row.warn{background:#fffbeb;border-left:3px solid #f59e0b;grid-column:1/-1}
+.detail-row.critical{background:#fff5f5;border-left:3px solid #ef4444;grid-column:1/-1}
+.detail-row-label{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
+.detail-row-value{font-size:12px;color:#334155;line-height:1.5}
+
+/* ── Stats bar ── */
+.stats-bar{display:flex;gap:16px;flex-wrap:wrap}
+.stat-item{font-size:12px;color:#64748b;display:flex;align-items:center;gap:6px}
+.stat-dot{width:8px;height:8px;border-radius:50%}
+.stat-num{font-weight:600;color:#0f172a}
+
+/* ── Context bar ── */
+.ctx-bar{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:0;display:flex;align-items:stretch;flex-wrap:wrap;margin-bottom:4px}
+.ctx-group{display:flex;flex-direction:column;padding:8px 16px;border-right:1px solid #e2e8f0;flex:1;min-width:160px}
+.ctx-group:last-child{border-right:none}
+.ctx-label{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.ctx-select{font-size:13px;font-weight:500;color:#0f172a;background:none;border:none;outline:none;cursor:pointer;padding:0;appearance:none;-webkit-appearance:none;width:100%}
+.ctx-select:disabled{color:#94a3b8;cursor:default}
+
+/* ── Mobile ── */
+@media(max-width:600px){
+  .nav{padding:0 12px}
+  .page-tabs{padding:0 8px}
+  .page-tab{padding:9px 10px;font-size:12px}
+  .main{padding:12px 12px 32px}
+  .controls{gap:6px}
+  .ctrl-select{min-width:140px;font-size:12px}
+  .detail-grid{grid-template-columns:1fr}
+  .detail-row.full{grid-column:1}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<div class="nav">
+  <div class="nav-brand">Plant<span>Mind</span></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="/plant-setup" style="font-size:11px;color:#a5b4fc;padding:4px 10px;border-radius:6px;border:1px solid #4f46e5;background:rgba(79,70,229,.15);text-decoration:none;white-space:nowrap">&#9881; Plant setup</a>
+  </div>
+</div>
+
+<!-- Page tabs -->
+<div class="page-tabs">
+  <a class="page-tab" href="/chat">Ask</a>
+  <a class="page-tab" href="/library">Library</a>
+  <a class="page-tab" href="/alerts">Alerts <span class="tab-badge" id="alertsTabBadge"></span></a>
+  <span class="page-tab active">Graph</span>
+</div>
+
+<div class="main">
+
+  <!-- Header -->
+  <div class="graph-hd">
+    <div class="graph-hd-left">
+      <div class="graph-title">Knowledge Graph</div>
+      <div class="graph-sub" id="graphSub">Select equipment to explore fault chains and relationships</div>
+    </div>
+    <div class="stats-bar" id="statsBar" style="display:none">
+      <div class="stat-item"><div class="stat-dot" style="background:#378ADD"></div>Equipment <span class="stat-num" id="statEquip">0</span></div>
+      <div class="stat-item"><div class="stat-dot" style="background:#E24B4A"></div>Faults <span class="stat-num" id="statFault">0</span></div>
+      <div class="stat-item"><div class="stat-dot" style="background:#EF9F27"></div>Components <span class="stat-num" id="statComp">0</span></div>
+      <div class="stat-item"><div class="stat-dot" style="background:#639922"></div>Procedures <span class="stat-num" id="statProc">0</span></div>
+      <div class="stat-item"><div class="stat-dot" style="background:#888780"></div>Documents <span class="stat-num" id="statDoc">0</span></div>
+    </div>
+  </div>
+
+  <!-- Context bar — Plant → Line → Equipment -->
+  <div class="ctx-bar">
+    <div class="ctx-group">
+      <div class="ctx-label">Plant site</div>
+      <select class="ctx-select" id="siteSel" onchange="onSiteChange()">
+        <option value="">— select site —</option>
+      </select>
+    </div>
+    <div class="ctx-group">
+      <div class="ctx-label">Line</div>
+      <select class="ctx-select" id="lineSel" onchange="onLineChange()">
+        <option value="">— all lines —</option>
+      </select>
+    </div>
+    <div class="ctx-group">
+      <div class="ctx-label">Equipment</div>
+      <select class="ctx-select" id="equipSel" onchange="onEquipChange()">
+        <option value="">— select equipment —</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Type filters + legend -->
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div class="type-filters">
+      <span style="font-size:11px;color:#94a3b8;margin-right:4px">Show:</span>
+      <button class="type-pill active"     id="tp-all"     onclick="setTypeFilter('all',this)">All</button>
+      <button class="type-pill tp-fault"   id="tp-fault"   onclick="setTypeFilter('Fault',this)"><div class="pill-dot" style="background:#E24B4A"></div>Faults</button>
+      <button class="type-pill tp-comp"    id="tp-comp"    onclick="setTypeFilter('Component',this)"><div class="pill-dot" style="background:#EF9F27"></div>Components</button>
+      <button class="type-pill tp-proc"    id="tp-proc"    onclick="setTypeFilter('Procedure',this)"><div class="pill-dot" style="background:#639922"></div>Procedures</button>
+      <button class="type-pill tp-doc"     id="tp-doc"     onclick="setTypeFilter('Document',this)"><div class="pill-dot" style="background:#888780"></div>Documents</button>
+      <button class="type-pill tp-pattern" id="tp-pattern" onclick="setTypeFilter('Pattern',this)"><div class="pill-dot" style="background:#7c3aed"></div>Patterns</button>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#378ADD"></div>Equipment</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#E24B4A"></div>Fault</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#EF9F27"></div>Component</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#639922"></div>Procedure</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#888780"></div>Document</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Pattern</div>
+    </div>
+  </div>
+
+  <!-- Graph canvas -->
+  <div class="graph-wrap" id="graphWrap">
+    <div class="graph-empty" id="graphEmpty">
+      <div style="font-size:32px">🔗</div>
+      <div>Select equipment above to explore its knowledge graph</div>
+    </div>
+    <canvas id="graphCanvas" style="display:none" height="480"></canvas>
+    <div class="graph-hint">Drag nodes · Scroll to zoom · Click for details</div>
+  </div>
+
+  <!-- Node detail panel -->
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-empty">Click any node to see its details</div>
+  </div>
+
+</div><!-- end .main -->
+
+<script src="/static/nav_context.js"></script>
+<script>
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var allNodes    = [];
+var allEdges    = [];
+var visNodes    = [];
+var visEdges    = [];
+var activeFilter = 'all';
+var selectedId   = null;
+var scale        = 1;
+var pan          = {x: 0, y: 0};
+var drag         = null;
+var dragOff      = {x: 0, y: 0};
+var isPanning    = false;
+var panStart     = {x: 0, y: 0};
+
+// Node colours by type
+var NODE_COLORS = {
+  'Equipment': '#378ADD',
+  'Fault':     '#E24B4A',
+  'Component': '#EF9F27',
+  'Procedure': '#639922',
+  'Document':  '#888780',
+  'Safety':    '#F97316',
+  'Parameter': '#06B6D4',
+  'Pattern':   '#7c3aed',
+  'Part':      '#64748b'
+};
+
+function nodeColor(type) {
+  return NODE_COLORS[type] || '#94a3b8';
+}
+
+function nodeRadius(type) {
+  return type === 'Equipment' ? 30 : 22;
+}
+
+// ── Context selectors ────────────────────────────────────────────────────────
+
+// Store all data for filtering
+var _allPlants = [];
+var _allLines  = [];
+var _allEquip  = [];
+var _graphEquipIds = []; // equipment IDs that have graph data
+
+function loadContextData() {
+  // Load plant sites
+  fetch('/api/plant-sites')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      _allPlants = d.plant_sites || [];
+      var sel = document.getElementById('siteSel');
+      sel.innerHTML = '<option value="">— all sites —</option>';
+      _allPlants.forEach(function(s) {
+        var o = document.createElement('option');
+        o.value = s.name; o.textContent = s.name;
+        sel.appendChild(o);
+      });
+    });
+
+  // Load lines
+  fetch('/api/lines')
+    .then(function(r) { return r.json(); })
+    .then(function(d) { _allLines = d.lines || []; });
+
+  // Load equipment
+  fetch('/api/equipment')
+    .then(function(r) { return r.json(); })
+    .then(function(d) { _allEquip = d.equipment || []; });
+
+  // Load equipment with graph data
+  fetch('/api/graph/equipment')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      _graphEquipIds = (d.equipment || []).map(function(e) { return e.id; });
+      // Populate equipment dropdown with graph-enabled equipment initially
+      populateEquipment('', '');
+    });
+}
+
+function onSiteChange() {
+  var site = document.getElementById('siteSel').value;
+  // Update lines
+  var lineSel = document.getElementById('lineSel');
+  lineSel.innerHTML = '<option value="">— all lines —</option>';
+  var filteredLines = site
+    ? _allLines.filter(function(l) { return l.plant_site === site; })
+    : _allLines;
+  filteredLines.forEach(function(l) {
+    var o = document.createElement('option');
+    o.value = l.name; o.textContent = l.name;
+    lineSel.appendChild(o);
+  });
+  // Update equipment
+  populateEquipment(site, '');
+  clearGraph();
+}
+
+function onLineChange() {
+  var site = document.getElementById('siteSel').value;
+  var line = document.getElementById('lineSel').value;
+  populateEquipment(site, line);
+  clearGraph();
+}
+
+function populateEquipment(site, line) {
+  var sel = document.getElementById('equipSel');
+  sel.innerHTML = '<option value="">— select equipment —</option>';
+
+  var filtered = _allEquip.filter(function(e) {
+    if (site && e.plant_site !== site) return false;
+    if (line && e.line !== line) return false;
+    return true;
+  });
+
+  filtered.forEach(function(e) {
+    var hasGraph = _graphEquipIds.indexOf(e.equip_tag) > -1;
+    var o = document.createElement('option');
+    o.value       = e.equip_tag;
+    o.textContent = e.equip_tag + ' — ' + e.name + (hasGraph ? ' ✓' : ' (no graph)');
+    if (!hasGraph) o.style.color = '#94a3b8';
+    sel.appendChild(o);
+  });
+}
+
+function clearGraph() {
+  allNodes = []; allEdges = [];
+  document.getElementById('graphEmpty').innerHTML =
+    '<div style="font-size:32px">🔗</div><div>Select equipment above to explore its knowledge graph</div>';
+  document.getElementById('graphEmpty').style.display  = 'flex';
+  document.getElementById('graphCanvas').style.display = 'none';
+  document.getElementById('statsBar').style.display    = 'none';
+  document.getElementById('graphSub').textContent      = 'Select equipment to explore fault chains and relationships';
+  clearDetail();
+}
+
+// ── Load graph data ───────────────────────────────────────────────────────────
+function onEquipChange() {
+  var equip = document.getElementById('equipSel').value;
+  if (!equip) {
+    allNodes = []; allEdges = [];
+    document.getElementById('graphEmpty').style.display = 'flex';
+    document.getElementById('graphCanvas').style.display = 'none';
+    document.getElementById('statsBar').style.display = 'none';
+    document.getElementById('graphSub').textContent = 'Select equipment to explore fault chains and relationships';
+    clearDetail();
+    return;
+  }
+  document.getElementById('graphEmpty').innerHTML = '<div style="font-size:24px">⏳</div><div>Loading graph...</div>';
+  document.getElementById('graphEmpty').style.display = 'flex';
+  document.getElementById('graphCanvas').style.display = 'none';
+
+  fetch('/api/graph/nodes?equip=' + encodeURIComponent(equip))
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      allNodes = d.nodes || [];
+      allEdges = d.edges || [];
+      layoutNodes();
+      updateStats();
+      applyFilter();
+      document.getElementById('graphSub').textContent =
+        equip + ' — ' + allNodes.length + ' nodes · ' + allEdges.length + ' relationships';
+      document.getElementById('statsBar').style.display = 'flex';
+      clearDetail();
+    })
+    .catch(function() {
+      document.getElementById('graphEmpty').innerHTML = '<div>Failed to load graph data</div>';
+    });
+}
+
+// ── Auto layout ───────────────────────────────────────────────────────────────
+function layoutNodes() {
+  // Arrange nodes in layers by type
+  var layers = {
+    'Equipment': [], 'Fault': [], 'Component': [],
+    'Procedure': [], 'Document': [], 'Pattern': [],
+    'Safety': [], 'Parameter': [], 'Part': []
+  };
+  allNodes.forEach(function(n) {
+    var t = n.type || 'Part';
+    if (!layers[t]) layers[t] = [];
+    layers[t].push(n);
+  });
+
+  var layerOrder = ['Equipment','Fault','Component','Procedure','Pattern','Safety','Document','Parameter','Part'];
+  var c   = document.getElementById('graphCanvas');
+  var cw  = c.parentElement.clientWidth || 900;
+  var cy  = 60;
+
+  layerOrder.forEach(function(type) {
+    var group = layers[type] || [];
+    if (!group.length) return;
+    var count   = group.length;
+    var spacing = Math.min(160, (cw * 0.85) / (count + 1));
+    var totalW  = spacing * (count - 1);
+    var startX  = (cw - totalW) / 2;
+    group.forEach(function(n, i) {
+      n.x = startX + i * spacing;
+      n.y = cy;
+    });
+    cy += 120;
+  });
+
+  // Reset pan and scale so full graph is visible
+  pan   = {x: 0, y: 10};
+  scale = 1.0;
+}
+
+// ── Update stats ──────────────────────────────────────────────────────────────
+function updateStats() {
+  var counts = {};
+  allNodes.forEach(function(n) {
+    counts[n.type] = (counts[n.type] || 0) + 1;
+  });
+  document.getElementById('statEquip').textContent  = counts['Equipment']  || 0;
+  document.getElementById('statFault').textContent  = counts['Fault']      || 0;
+  document.getElementById('statComp').textContent   = counts['Component']  || 0;
+  document.getElementById('statProc').textContent   = counts['Procedure']  || 0;
+  document.getElementById('statDoc').textContent    = counts['Document']   || 0;
+}
+
+// ── Type filter ───────────────────────────────────────────────────────────────
+function setTypeFilter(type, el) {
+  activeFilter = type;
+  document.querySelectorAll('.type-pill').forEach(function(p) { p.classList.remove('active'); });
+  el.classList.add('active');
+  applyFilter();
+}
+
+function applyFilter() {
+  if (activeFilter === 'all') {
+    visNodes = allNodes.slice();
+  } else {
+    // Always include Equipment nodes as anchors
+    visNodes = allNodes.filter(function(n) {
+      return n.type === 'Equipment' || n.type === activeFilter;
+    });
+  }
+  var visIds = visNodes.map(function(n) { return n.id; });
+  visEdges = allEdges.filter(function(e) {
+    return visIds.indexOf(e.from) > -1 && visIds.indexOf(e.to) > -1;
+  });
+
+  if (visNodes.length > 0) {
+    document.getElementById('graphEmpty').style.display  = 'none';
+    document.getElementById('graphCanvas').style.display = 'block';
+    drawGraph();
+  } else {
+    document.getElementById('graphEmpty').innerHTML = '<div>No nodes match this filter</div>';
+    document.getElementById('graphEmpty').style.display  = 'flex';
+    document.getElementById('graphCanvas').style.display = 'none';
+  }
+}
+
+// ── Draw graph ────────────────────────────────────────────────────────────────
+function drawGraph() {
+  var c   = document.getElementById('graphCanvas');
+  var w   = c.parentElement.clientWidth;
+  var h   = 480;
+  c.width  = w * 2; c.height = h * 2;
+  c.style.width = w + 'px'; c.style.height = h + 'px';
+  var ctx = c.getContext('2d');
+  ctx.scale(2, 2);
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  ctx.translate(pan.x, pan.y);
+  ctx.scale(scale, scale);
+
+  // Draw edges
+  visEdges.forEach(function(e) {
+    var fn = visNodes.find(function(n) { return n.id === e.from; });
+    var tn = visNodes.find(function(n) { return n.id === e.to; });
+    if (!fn || !tn) return;
+
+    var dx   = tn.x - fn.x, dy = tn.y - fn.y;
+    var len  = Math.sqrt(dx*dx + dy*dy) || 1;
+    var rf   = nodeRadius(fn.type), rt = nodeRadius(tn.type);
+    var sx   = fn.x + dx/len*rf, sy = fn.y + dy/len*rf;
+    var ex   = tn.x - dx/len*(rt+7), ey = tn.y - dy/len*(rt+7);
+
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.strokeStyle = e.warning ? '#d97706' : '#cbd5e1';
+    ctx.lineWidth   = e.warning ? 1.5 : 1;
+    if (e.warning) ctx.setLineDash([5, 3]);
+    else ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Arrow
+    var angle = Math.atan2(dy, dx);
+    ctx.beginPath();
+    ctx.moveTo(ex, ey);
+    ctx.lineTo(ex - 9*Math.cos(angle-0.4), ey - 9*Math.sin(angle-0.4));
+    ctx.lineTo(ex - 9*Math.cos(angle+0.4), ey - 9*Math.sin(angle+0.4));
+    ctx.closePath();
+    ctx.fillStyle = e.warning ? '#d97706' : '#cbd5e1';
+    ctx.fill();
+
+    // Edge label
+    var mx = (fn.x + tn.x) / 2, my = (fn.y + tn.y) / 2;
+    ctx.font = '9px sans-serif';
+    ctx.fillStyle = e.warning ? '#d97706' : '#94a3b8';
+    ctx.textAlign = 'center';
+    ctx.fillText((e.label || '').substring(0, 20), mx, my - 5);
+  });
+
+  // Draw nodes
+  visNodes.forEach(function(n) {
+    var r     = nodeRadius(n.type);
+    var color = nodeColor(n.type);
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // Selection ring
+    if (selectedId === n.id) {
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth   = 3;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r + 4, 0, Math.PI * 2);
+      ctx.strokeStyle = '#4f46e5';
+      ctx.lineWidth   = 2;
+      ctx.stroke();
+    }
+
+    // Node label
+    var label = (n.label || n.id).replace(' MIG Welder','').replace(' Welding Robot','');
+    var words = label.split(' ');
+    var lines = [];
+    var cur   = '';
+    words.forEach(function(w) {
+      if ((cur + ' ' + w).trim().length > 12 && cur) {
+        lines.push(cur.trim()); cur = w;
+      } else { cur = (cur + ' ' + w).trim(); }
+    });
+    if (cur) lines.push(cur);
+    lines = lines.slice(0, 3);
+
+    ctx.font      = n.type === 'Equipment' ? 'bold 10px sans-serif' : '9px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    var ly = n.y - (lines.length - 1) * 6;
+    lines.forEach(function(l, i) {
+      ctx.fillText(l, n.x, ly + i * 11);
+    });
+  });
+
+  ctx.restore();
+}
+
+// ── Canvas interaction ────────────────────────────────────────────────────────
+function canvasPos(e, c) {
+  var rect = c.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) / rect.width  * c.width  / 2,
+    y: (e.clientY - rect.top)  / rect.height * c.height / 2
+  };
+}
+
+function toGraph(pos) {
+  return { x: (pos.x - pan.x) / scale, y: (pos.y - pan.y) / scale };
+}
+
+function hitNode(gpos) {
+  // Search in reverse so top-rendered nodes are hit first
+  for (var i = visNodes.length - 1; i >= 0; i--) {
+    var n = visNodes[i];
+    var r = nodeRadius(n.type);
+    if (Math.sqrt(Math.pow(n.x - gpos.x, 2) + Math.pow(n.y - gpos.y, 2)) < r) {
+      return n;
+    }
+  }
+  return null;
+}
+
+function initCanvas() {
+  var c = document.getElementById('graphCanvas');
+
+  c.addEventListener('mousedown', function(e) {
+    var pos  = canvasPos(e, c);
+    var gpos = toGraph(pos);
+    var hit  = hitNode(gpos);
+    if (hit) {
+      drag    = hit;
+      dragOff = { x: gpos.x - hit.x, y: gpos.y - hit.y };
+      showDetail(hit);
+    } else {
+      isPanning = true;
+      panStart  = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+    }
+  });
+
+  c.addEventListener('mousemove', function(e) {
+    if (drag) {
+      var gpos = toGraph(canvasPos(e, c));
+      drag.x   = gpos.x - dragOff.x;
+      drag.y   = gpos.y - dragOff.y;
+      drawGraph();
+    } else if (isPanning) {
+      pan.x = e.clientX - panStart.x;
+      pan.y = e.clientY - panStart.y;
+      drawGraph();
+    }
+  });
+
+  c.addEventListener('mouseup',    function() { drag = null; isPanning = false; });
+  c.addEventListener('mouseleave', function() { drag = null; isPanning = false; });
+
+  c.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var factor = e.deltaY < 0 ? 1.1 : 0.9;
+    scale = Math.min(Math.max(scale * factor, 0.2), 4);
+    drawGraph();
+  });
+
+  // Touch support
+  var lastTouchDist = null;
+  c.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+      var t    = e.touches[0];
+      var pos  = canvasPos(t, c);
+      var gpos = toGraph(pos);
+      var hit  = hitNode(gpos);
+      if (hit) { drag = hit; dragOff = {x: gpos.x - hit.x, y: gpos.y - hit.y}; showDetail(hit); }
+      else { isPanning = true; panStart = {x: t.clientX - pan.x, y: t.clientY - pan.y}; }
+    }
+    if (e.touches.length === 2) {
+      lastTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX,
+                                  e.touches[0].clientY - e.touches[1].clientY);
+    }
+  }, {passive: true});
+
+  c.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 1) {
+      var t = e.touches[0];
+      if (drag) {
+        var gpos = toGraph(canvasPos(t, c));
+        drag.x   = gpos.x - dragOff.x; drag.y = gpos.y - dragOff.y; drawGraph();
+      } else if (isPanning) {
+        pan.x = t.clientX - panStart.x; pan.y = t.clientY - panStart.y; drawGraph();
+      }
+    }
+    if (e.touches.length === 2 && lastTouchDist) {
+      var d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX,
+                          e.touches[0].clientY - e.touches[1].clientY);
+      scale = Math.min(Math.max(scale * (d / lastTouchDist), 0.2), 4);
+      lastTouchDist = d; drawGraph();
+    }
+  }, {passive: true});
+
+  c.addEventListener('touchend', function() {
+    drag = null; isPanning = false; lastTouchDist = null;
+  });
+}
+
+// ── Node detail panel ─────────────────────────────────────────────────────────
+function showDetail(node) {
+  selectedId = node.id;
+  drawGraph();
+
+  var el    = document.getElementById('detailPanel');
+  var props = node.properties || {};
+  var color = nodeColor(node.type);
+
+  var badge = '<span class="detail-type-badge" style="background:' + color + '20;color:' + color + '">' + node.type + '</span>';
+  var title = '<div class="detail-title">' + escHtml(node.label || node.id) + '</div>' + badge;
+
+  // Build property rows — skip internal _* props
+  var skipKeys = ['_id','_label','_type','equip_tag','plant_site','line'];
+  var importantKeys = ['alarm_message','frequency_trigger','wrong_response','correct_response',
+                       'mandatory','important_note','criticality','total_with_burnin',
+                       'part_number_08mm','part_number_10mm','service_interval',
+                       'steps','trigger_1','trigger_2','trigger_3'];
+
+  var rows = '';
+  var shownKeys = new Set();
+
+  // Show important keys first
+  importantKeys.forEach(function(k) {
+    if (props[k] && !shownKeys.has(k)) {
+      shownKeys.add(k);
+      var isWarn = k === 'wrong_response' || k === 'mandatory';
+      var isCrit = k === 'criticality' && props[k] === 'CRITICAL';
+      var cls    = isCrit ? 'critical' : isWarn ? 'warn' : 'full';
+      rows += '<div class="detail-row ' + cls + '">' +
+        '<div class="detail-row-label">' + k.replace(/_/g,' ') + '</div>' +
+        '<div class="detail-row-value">' + escHtml(String(props[k])) + '</div>' +
+        '</div>';
+    }
+  });
+
+  // Show remaining keys
+  Object.keys(props).forEach(function(k) {
+    if (skipKeys.indexOf(k) > -1 || shownKeys.has(k) || k.startsWith('_')) return;
+    shownKeys.add(k);
+    rows += '<div class="detail-row">' +
+      '<div class="detail-row-label">' + k.replace(/_/g,' ') + '</div>' +
+      '<div class="detail-row-value">' + escHtml(String(props[k])) + '</div>' +
+      '</div>';
+  });
+
+  el.innerHTML = title + '<div class="detail-grid">' + rows + '</div>';
+}
+
+function clearDetail() {
+  selectedId = null;
+  document.getElementById('detailPanel').innerHTML = '<div class="detail-empty">Click any node to see its details</div>';
+}
+
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Alert badge ───────────────────────────────────────────────────────────────
+function updateAlertBadge() {
+  fetch('/api/alerts/count')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var badge = document.getElementById('alertsTabBadge');
+      if (!badge) return;
+      var n = d.count || 0;
+      badge.textContent   = n;
+      badge.style.display = n > 0 ? 'inline' : 'none';
+    })
+    .catch(function() {});
+}
+
+function saveGraphState() {
+  try {
+    var site  = document.getElementById('siteSel').value;
+    var line  = document.getElementById('lineSel').value;
+    var equip = document.getElementById('equipSel').value;
+    sessionStorage.setItem('pm_graph_site',  site);
+    sessionStorage.setItem('pm_graph_line',  line);
+    sessionStorage.setItem('pm_graph_equip', equip);
+  } catch(e) {}
+}
+
+function restoreGraphState() {
+  try {
+    var site  = sessionStorage.getItem('pm_graph_site');
+    var line  = sessionStorage.getItem('pm_graph_line');
+    var equip = sessionStorage.getItem('pm_graph_equip');
+    if (!site && !equip) return;
+
+    // Step 1: set site
+    if (site) {
+      var siteSel = document.getElementById('siteSel');
+      siteSel.value = site;
+      // Rebuild lines for this site
+      var lineSel = document.getElementById('lineSel');
+      lineSel.innerHTML = '<option value="">— all lines —</option>';
+      _allLines.filter(function(l) { return l.plant_site === site; })
+        .forEach(function(l) {
+          var o = document.createElement('option');
+          o.value = l.name; o.textContent = l.name;
+          lineSel.appendChild(o);
+        });
+    }
+
+    // Step 2: set line and rebuild equipment
+    if (line) {
+      document.getElementById('lineSel').value = line;
+    }
+    if (site || line) {
+      populateEquipment(site || '', line || '');
+    }
+
+    // Step 3: set equipment and load graph
+    if (equip) {
+      document.getElementById('equipSel').value = equip;
+      onEquipChange();
+    }
+  } catch(e) {}
+}
+
+function saveConversation() {
+  saveGraphState();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('load', function() {
+  loadContextData();
+  initCanvas();
+  updateAlertBadge();
+  setInterval(updateAlertBadge, 30000);
+  window.addEventListener('resize', function() {
+    if (visNodes.length) { layoutNodes(); drawGraph(); }
+  });
+  // Check URL param ?equip=WM-101 — auto-load if present
+  // Otherwise restore saved state
+  var urlParams  = new URLSearchParams(window.location.search);
+  var urlEquip   = urlParams.get('equip');
+
+  var restoreAttempts = 0;
+  function tryRestore() {
+    restoreAttempts++;
+    if ((_allPlants.length > 0 && _allLines.length > 0 && _allEquip.length > 0) || restoreAttempts > 8) {
+      if (urlEquip) {
+        // Auto-select equipment from URL param
+        populateEquipment('', '');
+        setTimeout(function() {
+          document.getElementById('equipSel').value = urlEquip;
+          onEquipChange();
+        }, 200);
+      } else {
+        restoreGraphState();
+      }
+    } else {
+      setTimeout(tryRestore, 400);
+    }
+  }
+  setTimeout(tryRestore, 400);
+});
+
+</script>
+</body>
+</html>

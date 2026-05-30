@@ -151,10 +151,6 @@ def chat():
 def library():
     return render_template("library.html")
 
-@app.route("/alerts")
-def alerts():
-    return render_template("alerts.html")
-
 # ── API ────────────────────────────────────────────────────────────────
 
 @app.route("/gaps")
@@ -796,99 +792,130 @@ def llm_stats():
     """
     return jsonify(get_today_stats())
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ALERTS ROUTES — Session 11
+# ─────────────────────────────────────────────────────────────────────────────
 
-# ─────────────────────────────────────────────────────────────────────────────
-# MQTT ALERTS ROUTES — Session 11
-# These routes power the Alerts tab in chat.html.
-# Data is written by mqtt_subscriber.py (separate process).
-# Flask only reads from Supabase — never touches MQTT directly.
-# This keeps Flask stateless and Render-compatible.
-# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/alerts")
+def alerts_page():
+    return render_template("alerts.html")
 
 @app.route("/api/alerts", methods=["GET"])
 def get_alerts():
-    """
-    Returns unread proactive alerts from chat_history.
-    Created by mqtt_subscriber.py when pattern threshold is crossed.
-    Polled by Alerts tab on page load and after dismiss.
-    """
     try:
-        result = supabase.table("chat_history")\
-            .select("*")\
-            .eq("mode", "proactive")\
-            .eq("read", False)\
-            .order("created_at", desc=True)\
-            .limit(20)\
-            .execute()
+        result = supabase.table("chat_history")            .select("*")            .eq("mode", "proactive")            .eq("read", False)            .order("created_at", desc=True)            .limit(20)            .execute()
         return jsonify({"alerts": result.data or []})
     except Exception as e:
-        print(f"  [alerts] get_alerts error: {e}")
         return jsonify({"alerts": [], "error": str(e)})
-
 
 @app.route("/api/alerts/count", methods=["GET"])
 def get_alerts_count():
-    """
-    Lightweight badge count — returns only the number of unread alerts.
-    Polled every 30 seconds by chat.html nav badge.
-    Returns {"count": 0} on any error so badge never breaks the UI.
-    """
     try:
-        result = supabase.table("chat_history")\
-            .select("id", count="exact")\
-            .eq("mode", "proactive")\
-            .eq("read", False)\
-            .execute()
-        count = result.count if result.count is not None else 0
-        return jsonify({"count": count})
+        result = supabase.table("chat_history")            .select("id", count="exact")            .eq("mode", "proactive")            .eq("read", False)            .execute()
+        return jsonify({"count": result.count or 0})
     except Exception as e:
-        print(f"  [alerts] get_alerts_count error: {e}")
         return jsonify({"count": 0})
-
 
 @app.route("/api/alerts/<alert_id>/dismiss", methods=["POST"])
 def dismiss_alert(alert_id):
-    """
-    Marks a proactive alert as read.
-    Called when operator clicks Dismiss on an alert card.
-    """
     try:
-        supabase.table("chat_history")\
-            .update({"read": True})\
-            .eq("id", alert_id)\
-            .execute()
+        supabase.table("chat_history")            .update({"read": True})            .eq("id", alert_id)            .execute()
         return jsonify({"success": True})
     except Exception as e:
-        print(f"  [alerts] dismiss_alert error: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route("/api/live-events", methods=["GET"])
 def get_live_events():
-    """
-    Returns recent alarm events from live_events table.
-    Powers the Live Equipment Feed panel in the Alerts tab.
-    Query params:
-      ?equip_tag=WR-401  — filter by equipment (optional)
-      ?limit=20          — max rows (default 20)
-    """
     try:
-        equip_tag = request.args.get("equip_tag", "")
-        limit     = int(request.args.get("limit", 20))
-
-        q = supabase.table("live_events")\
-            .select("*")\
-            .order("created_at", desc=True)\
-            .limit(limit)
-
-        if equip_tag:
-            q = q.eq("equip_tag", equip_tag)
-
+        equip = request.args.get("equip_tag", "")
+        limit = int(request.args.get("limit", 20))
+        q = supabase.table("live_events")            .select("*")            .order("created_at", desc=True)            .limit(limit)
+        if equip:
+            q = q.eq("equip_tag", equip)
         result = q.execute()
         return jsonify({"events": result.data or []})
     except Exception as e:
-        print(f"  [alerts] get_live_events error: {e}")
         return jsonify({"events": []})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# KNOWLEDGE GRAPH ROUTES
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.route("/graph")
+def graph_page():
+    """Serves the graph explorer page."""
+    return render_template("graph.html")
+
+
+@app.route("/api/graph/fault-chain", methods=["GET"])
+def graph_fault_chain():
+    """
+    Returns fault chain for an equipment and optional fault type.
+    Used by chat.html to render the fault chain below investigation report.
+    Used by multi_agent.py to enrich orchestrator context.
+
+    Query params:
+      ?equip=WM-101
+      ?fault=wire_feed_overload (optional)
+    """
+    equip = request.args.get("equip", "").strip()
+    fault = request.args.get("fault", "").strip()
+
+    if not equip:
+        return jsonify({"error": "equip parameter required"}), 400
+
+    try:
+        from knowledge_graph import get_fault_chain
+        chain = get_fault_chain(equip, fault or None)
+        return jsonify(chain)
+    except Exception as e:
+        print(f"  [graph] fault-chain error: {e}")
+        return jsonify({"has_data": False, "chain_nodes": [], "chain_edges": [],
+                        "chain_text": "", "warnings": [], "downtime": ""})
+
+
+@app.route("/api/graph/nodes", methods=["GET"])
+def graph_nodes():
+    """
+    Returns all nodes and edges for the graph explorer.
+    Used by graph.html to render the vis.js interactive diagram.
+
+    Query params:
+      ?equip=WM-101       (optional — filter by equipment)
+      ?plant=greenfield   (optional — filter by plant)
+      ?type=Fault         (optional — filter by node type)
+    """
+    equip      = request.args.get("equip", "").strip() or None
+    plant_site = request.args.get("plant", "").strip() or None
+    node_type  = request.args.get("type", "").strip()  or None
+
+    try:
+        from knowledge_graph import get_full_graph
+        graph = get_full_graph(
+            equip_tag  = equip,
+            plant_site = plant_site,
+            node_type  = node_type
+        )
+        return jsonify(graph)
+    except Exception as e:
+        print(f"  [graph] nodes error: {e}")
+        return jsonify({"nodes": [], "edges": [], "count": {"nodes": 0, "edges": 0}})
+
+
+@app.route("/api/graph/equipment", methods=["GET"])
+def graph_equipment():
+    """
+    Returns list of equipment that have graph data.
+    Used by graph.html to populate the equipment dropdown.
+    """
+    try:
+        from knowledge_graph import get_graphed_equipment
+        equipment = get_graphed_equipment()
+        return jsonify({"equipment": equipment})
+    except Exception as e:
+        print(f"  [graph] equipment error: {e}")
+        return jsonify({"equipment": []})
 
 
 if __name__ == "__main__":

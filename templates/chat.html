@@ -370,6 +370,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
 /* remove old ex-label since we replaced with ex-group-label */
 .ex-label{ display:none; }
 
+/* ── Fault chain panel ── */
+.fault-chain-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;margin:0 20px 12px;overflow:hidden}
+.fcp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f1f5f9;background:#faf5ff}
+.fcp-title{font-size:12px;font-weight:600;color:#4f46e5;display:flex;align-items:center;gap:6px}
+.fcp-toggle{font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;padding:2px 6px}
+.fcp-body{padding:14px 16px}
+.fcp-explore{font-size:11px;color:#7c3aed;text-decoration:none;padding:4px 8px;border:1px solid #ddd6fe;border-radius:6px;background:#faf5ff;white-space:nowrap}
+.fcp-explore:hover{background:#ede9fe}
+.fc-svg-wrap{overflow-x:auto;padding-bottom:4px}
+.fc-node{display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;white-space:nowrap}
+.fc-node-equip{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd}
+.fc-node-fault{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}
+.fc-node-comp{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.fc-node-proc{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+.fc-node-doc{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
+.fc-node-pattern{background:#faf5ff;color:#6d28d9;border:1px solid #ddd6fe}
+.fc-arrow{display:flex;flex-direction:column;align-items:center;padding:2px 0}
+.fc-arrow-line{width:1px;height:14px;background:#cbd5e1}
+.fc-arrow-label{font-size:10px;color:#94a3b8;white-space:nowrap}
+.fc-arrow-warn .fc-arrow-line{background:#d97706;border-left:1px dashed #d97706;width:0}
+.fc-arrow-warn .fc-arrow-label{color:#d97706;font-weight:500}
+.fc-downtime{font-size:11px;color:#64748b;margin-top:10px;padding-top:8px;border-top:1px solid #f1f5f9}
+
 /* ── Mobile responsive ── */
 @media (max-width: 600px) {
   .nav{padding:0 12px;height:46px}
@@ -413,7 +436,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
   .example-grid{grid-template-columns:1fr}
   .ex-agent{grid-column:1}
 }
-
 </style>
 </head>
 <body>
@@ -433,6 +455,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
   <span class="page-tab active">Ask</span>
   <a class="page-tab" href="/library" onclick="saveConversation()">Library</a>
   <a class="page-tab" href="/alerts" onclick="saveConversation()">Alerts <span id="alertsTabBadge" style="display:none;font-size:10px;background:#dc2626;color:#fff;padding:1px 6px;border-radius:999px;margin-left:2px;font-weight:700"></span></a>
+  <a class="page-tab" href="/graph"  onclick="saveConversation()">Graph</a>
 </div>
 
 <div class="body">
@@ -546,7 +569,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
     </div>
   </div>
 
-
 </div>
 
 <script src="/static/nav_context.js"></script>
@@ -563,72 +585,11 @@ var PRESETS = {
 };
 
 // ── Init ───────────────────────────────────────────────────────────────────────
-// ── Conversation save/restore across tab navigation ──────────────────────────
-function saveConversation() {
-  try {
-    var area = document.getElementById('answersArea');
-    if (area && area.innerHTML.trim()) {
-      sessionStorage.setItem('pm_conversation', area.innerHTML);
-      sessionStorage.setItem('pm_conversation_mode', currentMode);
-    }
-  } catch(e) {}
-}
-
-function restoreConversation() {
-  try {
-    var saved = sessionStorage.getItem('pm_conversation');
-    if (!saved) return;
-    var area = document.getElementById('answersArea');
-    if (!area) return;
-    area.innerHTML = saved;
-    // Restore mode
-    var savedMode = sessionStorage.getItem('pm_conversation_mode');
-    if (savedMode) setMode(savedMode);
-    // Clear saved so fresh page load does not restore stale state
-    sessionStorage.removeItem('pm_conversation');
-    sessionStorage.removeItem('pm_conversation_mode');
-    // Hide empty state if conversation restored
-    var emp = document.getElementById('emptyState');
-    if (emp) emp.style.display = 'none';
-    // Scroll to bottom
-    setTimeout(function() { area.scrollTop = area.scrollHeight; }, 100);
-  } catch(e) {}
-}
-
-// Also save on Library tab click
 window.addEventListener('load', function() {
-  // Restore conversation if returning from Alerts or Library
-  restoreConversation();
-
   loadHistory();
   updateCtxPill();
   initCtxSelectors();
   updateModePills(currentMode);
-
-  // Handle ?incident= and ?equip= from Alerts page Investigate button
-  try {
-    var params   = new URLSearchParams(window.location.search);
-    var incident = params.get('incident');
-    var equip    = params.get('equip');
-    if (incident) {
-      setMode('agent');
-      var ta = document.getElementById('questionInput');
-      if (ta) { ta.value = incident; autoResize(ta); ta.focus(); }
-      if (equip) {
-        var eSel = document.getElementById('ctxEquipSel');
-        if (eSel) {
-          setTimeout(function() {
-            for (var i = 0; i < eSel.options.length; i++) {
-              if (eSel.options[i].value === equip) { eSel.value = equip; break; }
-            }
-            saveCtxSelectors();
-          }, 800);
-        }
-      }
-      var emp = document.getElementById('emptyState');
-      if (emp) emp.style.display = 'none';
-    }
-  } catch(e) {}
 });
 
 function initCtxSelectors() {
@@ -1450,6 +1411,10 @@ function submitInvestigation(incident) {
             '</div>';
           card.appendChild(actDiv);
           saveToHistory('agent', incident, bodyText, [], plant, line);
+          // Inject fault chain panel if equipment has graph data
+          if (equipment_id_used) {
+            injectFaultChain(card, equipment_id_used);
+          }
           return;
         }
 
@@ -1520,13 +1485,134 @@ function submitInvestigation(incident) {
   });
 }
 
+// ── FAULT CHAIN PANEL ─────────────────────────────────────────────────────────
 
+function injectFaultChain(card, equipTag) {
+  fetch('/api/graph/fault-chain?equip=' + encodeURIComponent(equipTag))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.has_data || !data.chain_nodes || data.chain_nodes.length < 2) return;
+      var panel = buildFaultChainPanel(data, equipTag);
+      if (panel) card.appendChild(panel);
+    })
+    .catch(function() {}); // silent fail — graph is optional enrichment
+}
 
-</script>
+function buildFaultChainPanel(data, equipTag) {
+  var nodes  = data.chain_nodes || [];
+  var edges  = data.chain_edges || [];
+  var down   = data.downtime   || '';
 
+  // Build a simple linear chain: Equipment → Fault → Component → Procedure → Procedure
+  // Follow the main path by priority
+  var typeOrder = ['Equipment','Fault','Component','Procedure','Document'];
+  var chainItems = []; // [{node, edge_to_next}]
 
-<script>
-// ── Alert badge polling ───────────────────────────────────────────────────────
+  // Start with equipment
+  var equip = nodes.find(function(n) { return n.type === 'Equipment'; });
+  if (!equip) return null;
+
+  // Build main chain by following FIXED_BY and REQUIRES edges
+  var chain   = [equip];
+  var visited = new Set([equip.id]);
+  var MAX_HOPS = 6;
+
+  function nextNode(fromId) {
+    // Priority: CAUSED_BY > FIXED_BY > REQUIRES > DOCUMENTED_IN
+    var priority = ['HAS_FAULT','CAUSED_BY','FIXED_BY','REQUIRES','DOCUMENTED_IN'];
+    for (var p = 0; p < priority.length; p++) {
+      var rel = priority[p];
+      var edge = edges.find(function(e) {
+        return e.from === fromId && e.type === rel && !visited.has(e.to);
+      });
+      if (edge) {
+        var target = nodes.find(function(n) { return n.id === edge.to; });
+        if (target) return {node: target, edge: edge};
+      }
+    }
+    return null;
+  }
+
+  var current = equip;
+  for (var i = 0; i < MAX_HOPS; i++) {
+    var next = nextNode(current.id);
+    if (!next) break;
+    visited.add(next.node.id);
+    chain.push(next.node);
+    chain._lastEdge = next.edge;
+    current = next.node;
+  }
+
+  if (chain.length < 2) return null;
+
+  // Build edge map for labels
+  var edgeMap = {};
+  edges.forEach(function(e) {
+    edgeMap[e.from + '>' + e.to] = e;
+  });
+
+  // Render chain as vertical SVG-style HTML
+  var nodeTypeClass = {
+    'Equipment': 'fc-node-equip',
+    'Fault':     'fc-node-fault',
+    'Component': 'fc-node-comp',
+    'Procedure': 'fc-node-proc',
+    'Document':  'fc-node-doc',
+    'Pattern':   'fc-node-pattern'
+  };
+
+  var chainHtml = '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:0">';
+  for (var i = 0; i < chain.length; i++) {
+    var n   = chain[i];
+    var cls = nodeTypeClass[n.type] || 'fc-node-doc';
+    chainHtml += '<div class="fc-node ' + cls + '">' + escHtml(n.label || n.id) + '</div>';
+
+    if (i < chain.length - 1) {
+      var nextN = chain[i+1];
+      var e     = edgeMap[n.id + '>' + nextN.id] || {};
+      var lbl   = (e.label || e.type || '').toLowerCase().replace(/_/g,' ');
+      var isWarn= e.warning || e.type === 'REQUIRES' || e.type === 'REQUIRES_SAFETY';
+      chainHtml +=
+        '<div class="fc-arrow' + (isWarn ? ' fc-arrow-warn' : '') + '">' +
+          '<div class="fc-arrow-label">' + (isWarn ? '⚠ ' : '') + escHtml(lbl) + '</div>' +
+          '<div class="fc-arrow-line"></div>' +
+        '</div>';
+    }
+  }
+  chainHtml += '</div>';
+
+  // Build panel
+  var panel  = document.createElement('div');
+  panel.className = 'fault-chain-panel';
+  var bodyId = 'fcp-' + Date.now();
+
+  panel.innerHTML =
+    '<div class="fcp-header">' +
+      '<div class="fcp-title">&#128279; How PlantMind reached this conclusion</div>' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<a class="fcp-explore" href="/graph?equip=' + encodeURIComponent(equipTag) + '" target="_blank">Explore full graph &#8599;</a>' +
+        '<button class="fcp-toggle" id="fcp-btn-' + bodyId + '" data-id="' + bodyId + '" onclick="toggleFaultChain(this.dataset.id)">Hide &#9650;</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="fcp-body" id="fcp-body-' + bodyId + '">' +
+      '<div class="fc-svg-wrap">' + chainHtml + '</div>' +
+      (down ? '<div class="fc-downtime">&#9203; Estimated downtime: ' + escHtml(down) + '</div>' : '') +
+    '</div>';
+
+  return panel;
+}
+
+function toggleFaultChain(bodyId) {
+  var body = document.getElementById('fcp-body-' + bodyId);
+  var btn  = document.getElementById('fcp-btn-' + bodyId);
+  if (!body || !btn) return;
+  var hidden = body.style.display === 'none';
+  body.style.display = hidden ? 'block' : 'none';
+  btn.innerHTML      = hidden ? 'Hide &#9650;' : 'Show &#9660;';
+}
+
+// ── ALERT BADGE ───────────────────────────────────────────────────────────────
+
 function updateAlertBadge() {
   fetch('/api/alerts/count')
     .then(function(r) { return r.json(); })
@@ -1534,13 +1620,17 @@ function updateAlertBadge() {
       var badge = document.getElementById('alertsTabBadge');
       if (!badge) return;
       var n = d.count || 0;
-      badge.textContent  = n;
+      badge.textContent   = n;
       badge.style.display = n > 0 ? 'inline' : 'none';
     })
     .catch(function() {});
 }
-updateAlertBadge();
+
+// Badge polling — start on load
 setInterval(updateAlertBadge, 30000);
+window.addEventListener('load', function() { updateAlertBadge(); });
+
 </script>
+
 </body>
 </html>
