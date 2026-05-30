@@ -351,11 +351,15 @@ Analyse the quality and non-conformance history from this data."""
 
 # ── Orchestrator ───────────────────────────────────────────────────────────────
 
-def run_orchestrator(incident, specialist_results):
+def run_orchestrator(incident, specialist_results, graph_context=None):
     """
     Receives all four specialist findings and synthesizes the final investigation report.
     Produces two reports: technical (maintenance engineer) + plain language (plant manager).
     Never touches Pinecone — reasons only over specialist findings.
+
+    graph_context: optional plain-English fault chain from knowledge graph.
+    When present, adds relationship context the RAG chunks cannot provide
+    (e.g. liner replacement → requires → burn-in procedure).
     """
     SYSTEM_PROMPT = """You are the Investigation Orchestrator for PlantMind, a manufacturing plant AI system.
 
@@ -367,6 +371,12 @@ Your rules:
 3. When a specialist returned NO DATA — that absence is itself a finding (e.g. no SOP = procedure gap).
 4. Weight findings by data confidence: HIGH > MEDIUM > LOW > NO DATA.
 5. The report has TWO sections — technical and plain language. Both are required.
+6. CRITICALITY RULES — follow strictly:
+   - Three or more alarms of same type in one shift = HIGH minimum (recurring fault indicator)
+   - Any fault requiring LOTO or production stop = HIGH minimum
+   - Worn components with documented NCR history = HIGH
+   - Safety events (electrical, fire, fumes) = CRITICAL
+   Never downgrade below HIGH when evidence shows recurring fault or production stop required.
 
 Produce the report in exactly this format:
 
@@ -391,7 +401,12 @@ HOW CRITICAL IS IT:
 - One sentence justification
 
 HOW TO ADDRESS IT:
-- Immediate action (do this now)
+- Immediate action (numbered steps in correct sequence — safety first, then fix, then verify)
+  Step 1: Safety — LOTO, stop production, isolate
+  Step 2: Diagnosis — what to inspect
+  Step 3: Fix — what to replace or repair
+  Step 4: Verify — post-fix checks, burn-in if required
+  Step 5: Quality — parts to quarantine or inspect
 - Root cause fix (permanent solution)
 - Preventive action (stops recurrence)
 - Who to notify
@@ -414,10 +429,45 @@ RISK IF NOT ACTIONED: [One sentence — what happens if nothing is done]"""
         findings_block += f"{'─'*50}\n"
         findings_block += result["findings"]
 
+    # Build graph context block if available
+    graph_block = ""
+    if graph_context and graph_context.get("has_data") and graph_context.get("chain_text"):
+        # Build mandatory warnings section from graph
+        warnings = graph_context.get("warnings", [])
+        downtime = graph_context.get("downtime", "")
+
+        mandatory_warnings = ""
+        if warnings:
+            mandatory_warnings = "\n\nMANDATORY REQUIREMENTS FROM KNOWLEDGE GRAPH (you MUST include ALL of these):"
+            for w in warnings:
+                mandatory_warnings += f"\n  ⚠️  {w}"
+
+        if downtime:
+            mandatory_warnings += f"\n  ⏱  Estimated downtime: {downtime} — include this in the impact section."
+
+        graph_block = f"""
+
+─────────────────────────────────────────────────────
+KNOWLEDGE GRAPH CONTEXT — VERIFIED FROM SOP AND NCR DATA
+─────────────────────────────────────────────────────
+{graph_context["chain_text"]}
+─────────────────────────────────────────────────────{mandatory_warnings}
+
+STRICT GRAPH RULES — VIOLATION IS AN ERROR:
+1. The graph shows burn-in is MANDATORY after liner replacement.
+   You MUST include this in immediate action: "Complete burn-in procedure after replacement.
+   Run wire at 5.0 m/min for 30 seconds. Wire instability during burn-in is EXPECTED — not a new fault."
+2. The graph shows the WRONG RESPONSE is adjusting tension.
+   You MUST include this warning: "Do NOT keep adjusting tension — this will not fix worn drive rolls
+   and risks motor burnout. This is the documented operator trap from NCR-2024-047."
+3. LOTO is required before any maintenance — include in immediate action.
+4. Parts welded during fault must be quarantined — include in impact section.
+─────────────────────────────────────────────────────"""
+
     user_prompt = f"""Incident: {incident}
 
 Specialist agent findings:
-{findings_block}
+{findings_block}{graph_block}
 
 Synthesize the final investigation report from these findings."""
 
@@ -613,6 +663,23 @@ def investigate_incident(incident, equipment_id=None):
     if equipment_id:
         yield f"📍 Equipment identified: {equipment_id}\n\n"
 
+    # ── Fetch knowledge graph context ────────────────────────────────────────
+    # Silent fail — graph enrichment is optional, never blocks investigation
+    graph_context = None
+    if equipment_id:
+        try:
+            from knowledge_graph import get_fault_chain
+            graph_context = get_fault_chain(equipment_id)
+            if graph_context and graph_context.get("has_data"):
+                node_count = len(graph_context.get("chain_nodes", []))
+                warn_count = len(graph_context.get("warnings", []))
+                yield f"🔗 Knowledge graph context loaded — {node_count} nodes, {warn_count} warnings\n\n"
+            else:
+                graph_context = None  # No data — do not pass empty context
+        except Exception as e:
+            print(f"  [graph] context fetch failed: {e} — proceeding without graph")
+            graph_context = None
+
     # ── Supervisor routing — decide which agents to call ─────────────────────
     # Teaching note: this is the key change from fixed fan-out to dynamic routing.
     # The supervisor reads the incident and returns only the agents needed.
@@ -671,7 +738,7 @@ def investigate_incident(incident, equipment_id=None):
 
     # ── Run orchestrator ───────────────────────────────────────────────────────
     try:
-        final_report = run_orchestrator(incident, specialist_results)
+        final_report = run_orchestrator(incident, specialist_results, graph_context=graph_context)
     except Exception as e:
         yield f"\n❌ Orchestrator error: {str(e)}\n"
         yield "\nNote: Rate limit hit. Please wait a minute and try again.\n"
