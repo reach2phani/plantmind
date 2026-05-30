@@ -16,6 +16,29 @@ from llm_logger import log_streaming_call, get_today_stats
 
 app = Flask(__name__)
 
+# ── Knowledge graph — load on startup ────────────────────────────────────────
+def _load_knowledge_graph():
+    """Load graph data into Neo4j on app startup. Silent fail if unavailable."""
+    try:
+        from knowledge_graph import load_graph, get_graph_stats
+        import os
+        graph_file = os.path.join(os.path.dirname(__file__), "wm101_graph.json")
+        if os.path.exists(graph_file):
+            stats = get_graph_stats(equip_tag="WM-101")
+            if stats.get("nodes", 0) == 0:
+                print("[app] Knowledge graph empty — loading from wm101_graph.json...")
+                load_graph(graph_file)
+            else:
+                print(f"[app] Knowledge graph ready — {stats['nodes']} nodes, {stats['edges']} edges")
+        else:
+            print("[app] wm101_graph.json not found — skipping graph load")
+    except Exception as e:
+        print(f"[app] Knowledge graph unavailable: {e}")
+
+# Load graph in background thread so startup is not blocked
+import threading
+threading.Thread(target=_load_knowledge_graph, daemon=True).start()
+
 # ── Equipment ID auto-detection ──────────────────────────────────────
 # Extracts equipment tags from natural language operator input.
 # Pattern: letter prefix + hyphen + numbers (e.g. WR-401, P-201, CV-401)
@@ -140,8 +163,8 @@ def filter_shift_chunks(matches, time_from, time_to):
 
 @app.route("/")
 def index():
-    docs = supabase.table("documents").select("*").order("created_at", desc=True).execute()
-    return render_template("index.html", documents=docs.data)
+    from flask import redirect
+    return redirect("/chat")
 
 @app.route("/chat")
 def chat():
