@@ -1,0 +1,369 @@
+{
+  "metadata": {
+    "equipment": "WM-101",
+    "equipment_name": "MIG Welder",
+    "plant_site": "greenfield",
+    "line": "line1",
+    "line_name": "Fabrication Line 1",
+    "version": "1.0",
+    "created": "2025-01-21",
+    "sources": ["WM-101-SOP Rev 1.0", "WI-WM101-001", "NCR-2024-047"],
+    "total_nodes": 32,
+    "total_relationships": 48
+  },
+
+  "nodes": [
+
+    {"id": "WM-101", "label": "WM-101 MIG Welder", "type": "Equipment",
+     "properties": {
+       "equip_tag": "WM-101", "name": "MIG Welder",
+       "plant_site": "greenfield", "line": "line1",
+       "line_name": "Fabrication Line 1",
+       "service_interval": "6 months or 500 production hours",
+       "induction_required": "true",
+       "notes": "Most common fault: wire feed motor overload"
+     }},
+
+    {"id": "wire_feed_overload", "label": "Wire Feed Motor Overload", "type": "Fault",
+     "properties": {
+       "alarm_message": "Wire feed motor overload — feed rate dropped below minimum",
+       "frequency_trigger": "3 or more alarms in one shift indicates systemic fault",
+       "wrong_response": "Do not keep adjusting tension — will not fix worn drive rolls",
+       "correct_response": "Stop production. Inspect drive rolls and liner.",
+       "escalation": "Call maintenance if cannot be cleared by tension adjustment",
+       "source": "WM-101-SOP Section 4.1"
+     }},
+
+    {"id": "arc_instability", "label": "Arc Instability", "type": "Fault",
+     "properties": {
+       "alarm_message": "Arc instability detected — voltage fluctuating outside tolerance",
+       "normal_range": "Voltage stable within plus or minus 1V during welding",
+       "quality_impact": "Parts welded during arc instability must be flagged for QC inspection",
+       "escalation": "Call maintenance if persists after earth clamp and contact tip replacement",
+       "source": "WM-101-SOP Section 4.2"
+     }},
+
+    {"id": "contact_tip_temp_high", "label": "Contact Tip Temperature High", "type": "Fault",
+     "properties": {
+       "alarm_message": "Contact tip temperature high — possible tip wear or blockage",
+       "alarm_threshold": "220 degrees C",
+       "normal_operating": "Up to 180 degrees C",
+       "cooling_required": "Allow 10 minutes cooling before touching tip",
+       "source": "WM-101-SOP Section 4.3"
+     }},
+
+    {"id": "shielding_gas_low", "label": "Shielding Gas Pressure Low", "type": "Fault",
+     "properties": {
+       "alarm_message": "Shielding gas pressure low — check cylinder and regulator",
+       "criticality": "CRITICAL — never weld without shielding gas",
+       "alarm_threshold": "8 bar",
+       "minimum_start_pressure": "20 bar before starting shift",
+       "quality_impact": "All parts welded after alarm must be scrapped regardless of visual appearance",
+       "source": "WM-101-SOP Section 4.4"
+     }},
+
+    {"id": "drive_rolls_worn", "label": "Drive Rolls Worn", "type": "Component",
+     "properties": {
+       "part_number_08mm": "GSW-DROLL-08",
+       "part_number_10mm": "GSW-DROLL-10",
+       "wear_indicator": "Groove worn from 0.8mm to 1.1mm measured width",
+       "wear_effect": "Wire sits lower in groove, reducing grip, causing inconsistent feed speed",
+       "service_interval": "6 months or 500 production hours",
+       "parts_location": "Fabrication Line 1 maintenance cabinet shelf 3",
+       "ncr_reference": "NCR-2024-047 — drive rolls 127 hours beyond service interval",
+       "source": "WM-101-SOP Section 2.1, NCR-2024-047 Section 3.1"
+     }},
+
+    {"id": "wire_liner_blocked", "label": "Wire Liner Blocked", "type": "Component",
+     "properties": {
+       "part_number_08mm": "GSW-LINER-08",
+       "part_number_10mm": "GSW-LINER-10",
+       "symptom": "Uneven resistance on manual wire pull test",
+       "common_failure_point": "Torch neck bend — debris accumulates here",
+       "check_method": "Disconnect torch, blow through liner with compressed air",
+       "parts_location": "Fabrication Line 1 maintenance cabinet shelf 3",
+       "source": "WM-101-SOP Section 2.1, NCR-2024-047 Section 3.2"
+     }},
+
+    {"id": "earth_clamp_loose", "label": "Earth Clamp Loose or Corroded", "type": "Component",
+     "properties": {
+       "effect": "Causes arc instability and voltage fluctuation alarms",
+       "check": "Ensure clean metal-to-metal contact",
+       "fix": "Clean contact surfaces with wire brush and re-secure",
+       "source": "WM-101-SOP Section 2.4"
+     }},
+
+    {"id": "contact_tip_worn", "label": "Contact Tip Worn or Blocked", "type": "Component",
+     "properties": {
+       "part_number_08mm": "GSW-TIP-08",
+       "part_number_10mm": "GSW-TIP-10",
+       "wear_indicator": "Oval bore instead of circular bore",
+       "spatter_blockage": "Reduces gas flow and cooling — causes tip temperature high",
+       "stickout_spec": "10 to 15mm from tip to workpiece",
+       "torque_spec": "Hand tight plus quarter turn — do not over-torque",
+       "replace_with": "Replace at same time as liner and drive roll service",
+       "source": "WM-101-SOP Section 2.2"
+     }},
+
+    {"id": "wire_spool_braking", "label": "Wire Spool Braking Too Tight", "type": "Component",
+     "properties": {
+       "effect": "Increases resistance on wire feed, contributing to motor overload",
+       "fix": "Reduce spool hub tension",
+       "source": "WM-101-SOP Section 4.1"
+     }},
+
+    {"id": "gas_cylinder_low", "label": "Gas Cylinder Low or Empty", "type": "Component",
+     "properties": {
+       "minimum_pressure": "20 bar before starting shift",
+       "alarm_threshold": "8 bar triggers low pressure alarm",
+       "fix": "Replace cylinder if below 20 bar",
+       "source": "WM-101-SOP Section 2.3"
+     }},
+
+    {"id": "gas_hose_leak", "label": "Gas Hose or Regulator Leak", "type": "Component",
+     "properties": {
+       "check_method": "Inspect hose connections with soapy water if pressure dropping",
+       "fix": "Check regulator and all hose connections",
+       "source": "WM-101-SOP Section 2.3"
+     }},
+
+    {"id": "incorrect_stickout", "label": "Incorrect Wire Stickout Distance", "type": "Component",
+     "properties": {
+       "correct_spec": "10 to 15mm from contact tip to workpiece",
+       "effect_if_wrong": "Causes contact tip temperature to rise above alarm threshold",
+       "source": "WM-101-SOP Section 4.3"
+     }},
+
+    {"id": "liner_drive_roll_replacement", "label": "Liner and Drive Roll Replacement", "type": "Procedure",
+     "properties": {
+       "reference": "WI-WM101-001",
+       "liner_time": "25 to 35 minutes",
+       "drive_roll_time": "15 to 20 minutes",
+       "both_together": "40 to 50 minutes",
+       "total_with_burnin": "approximately 1 hour",
+       "trigger_conditions": "3+ overload alarms in one shift, uneven liner resistance, worn drive roll groove, inconsistent feed despite correct tension",
+       "safety_required": "LOTO — isolate power at main disconnect before starting",
+       "signoff_required": "Supervisor sign-off before returning machine to production",
+       "source": "WI-WM101-001"
+     }},
+
+    {"id": "burn_in_procedure", "label": "Burn-in Procedure", "type": "Procedure",
+     "properties": {
+       "mandatory": "true — do not skip after liner replacement",
+       "method": "Run wire at 5.0 m/min for 30 seconds before welding",
+       "duration": "10 minutes including verify step",
+       "purpose": "Seats wire in new liner and clears manufacturing debris",
+       "important_note": "Wire feed instability in first 5 minutes after liner replacement is EXPECTED BEHAVIOUR — not a fault condition",
+       "reference": "WI-WM101-001 Step 9",
+       "source": "WI-WM101-001 Section 3 Step 9"
+     }},
+
+    {"id": "contact_tip_replacement", "label": "Contact Tip Replacement", "type": "Procedure",
+     "properties": {
+       "torque": "Hand tight plus quarter turn — do not over-torque",
+       "replace_when": "Bore is oval, tip temp alarm occurs, during any liner or drive roll service",
+       "cooling_first": "Allow 10 minutes cooling before touching if tip temp alarm fired",
+       "source": "WM-101-SOP Section 2.2"
+     }},
+
+    {"id": "earth_clamp_inspection", "label": "Earth Clamp Inspection and Cleaning", "type": "Procedure",
+     "properties": {
+       "method": "Clean contact surfaces, re-secure to clean bare metal",
+       "first_check_for": "Arc instability — most common cause",
+       "source": "WM-101-SOP Section 4.2"
+     }},
+
+    {"id": "loto_procedure", "label": "LOTO Procedure", "type": "Safety",
+     "properties": {
+       "required_before": "Any maintenance, liner replacement, drive roll replacement",
+       "steps": "Isolate power at main disconnect. Lock with personal padlock. Tag with name and date. Test machine cannot be enabled.",
+       "rule": "Do not attempt electrical repairs — always call maintenance",
+       "source": "WM-101-SOP Section 7"
+     }},
+
+    {"id": "ppe_required", "label": "PPE Required", "type": "Safety",
+     "properties": {
+       "helmet": "Auto-darkening welding helmet minimum shade 10",
+       "gloves": "Leather welding gloves",
+       "jacket": "Flame-resistant welding jacket",
+       "boots": "Steel-capped safety boots",
+       "hearing": "Hearing protection when HC-401 press is running nearby",
+       "source": "WM-101-SOP Section 7"
+     }},
+
+    {"id": "quality_flag", "label": "Quality Inspection Flag", "type": "Safety",
+     "properties": {
+       "triggered_by": "Arc instability event, shielding gas low alarm, wire feed fault",
+       "action": "Quarantine parts welded during fault event — do not pass without inspection",
+       "source": "WM-101-SOP Sections 4.2 and 4.4"
+     }},
+
+    {"id": "escalate_to_maintenance", "label": "Escalate to Maintenance Supervisor", "type": "Procedure",
+     "properties": {
+       "trigger_1": "Same alarm type 3 or more times in one shift",
+       "trigger_2": "Wire feed overload cannot be cleared by tension adjustment",
+       "trigger_3": "Arc instability persists after earth clamp and contact tip replacement",
+       "trigger_4": "Any electrical fault codes on power source display",
+       "trigger_5": "Torch lead damaged, kinked, or showing coolant leak",
+       "trigger_6": "Power source fails to enable or trips on startup",
+       "rule": "Do not attempt electrical repairs",
+       "source": "WM-101-SOP Section 5"
+     }},
+
+    {"id": "wire_feed_speed_spec", "label": "Wire Feed Speed Specification", "type": "Parameter",
+     "properties": {
+       "normal_range": "4.5 to 6.0 m/min",
+       "below_minimum": "Below 4.5 m/min — cold weld, burn-back risk",
+       "above_maximum": "Above 6.0 m/min — motor overload risk",
+       "source": "WM-101-SOP Section 3"
+     }},
+
+    {"id": "arc_voltage_spec", "label": "Arc Voltage Specification", "type": "Parameter",
+     "properties": {
+       "normal_range": "18 to 22V",
+       "alarm_low": "Below 16V triggers instability alarm",
+       "alarm_high": "Above 24V triggers instability alarm",
+       "source": "WM-101-SOP Section 3"
+     }},
+
+    {"id": "gas_flow_spec", "label": "Shielding Gas Flow Specification", "type": "Parameter",
+     "properties": {
+       "gas_type": "75 percent Argon / 25 percent CO2 (C25 mix)",
+       "flow_rate": "10 to 15 L/min",
+       "source": "WM-101-SOP Section 3"
+     }},
+
+    {"id": "drive_roll_tension_spec", "label": "Drive Roll Tension Specification", "type": "Parameter",
+     "properties": {
+       "correct_setting": "Finger-tight plus one quarter turn on pressure arm",
+       "too_tight_effect": "Motor overload alarm",
+       "too_loose_effect": "Wire slip and arc instability",
+       "source": "WM-101-SOP Section 2.1"
+     }},
+
+    {"id": "operator_trap_pattern", "label": "Operator Trap Pattern", "type": "Pattern",
+     "properties": {
+       "description": "Operator increases tension to compensate for worn drive rolls, causing motor overload, leading to birdnesting",
+       "chain": "Worn groove reduces grip → inconsistent feed → operator tightens → overload → birdnesting → 35 min downtime",
+       "lesson_from": "NCR-2024-047 — November 2024 incident",
+       "correct_response": "Stop production. Inspect drive rolls. Do not adjust tension further.",
+       "source": "NCR-2024-047 Section 3, Lessons Learned"
+     }},
+
+    {"id": "systemic_fault_indicator", "label": "Systemic Fault Indicator", "type": "Pattern",
+     "properties": {
+       "trigger": "3 or more wire feed motor overload alarms in one shift",
+       "meaning": "Worn drive rolls, damaged liner, or failing motor — NOT operator error",
+       "correct_response": "Stop production and conduct full drive roll and liner inspection",
+       "wrong_response": "Continuing to adjust tension",
+       "risk_of_wrong_response": "Motor burnout, weld quality defects, arc instability, birdnesting",
+       "source": "WM-101-SOP Section 4.1, NCR-2024-047 Lessons Learned"
+     }},
+
+    {"id": "WM-101-SOP", "label": "WM-101 SOP Rev 1.0", "type": "Document",
+     "properties": {
+       "reference": "WM-101-SOP Rev 1.0",
+       "type": "SOP",
+       "approved_by": "Plant Manager J. Richards",
+       "date": "January 2025",
+       "covers": "Operating procedure, parameter settings, alarm response, shutdown"
+     }},
+
+    {"id": "WI-WM101-001", "label": "WI-WM101-001 Rev 1.0", "type": "Document",
+     "properties": {
+       "reference": "WI-WM101-001",
+       "type": "Work Instruction",
+       "approved_by": "Maintenance Supervisor T. Baxter",
+       "date": "January 2025",
+       "covers": "Wire liner and drive roll replacement procedure"
+     }},
+
+    {"id": "NCR-2024-047", "label": "NCR-2024-047", "type": "Document",
+     "properties": {
+       "reference": "NCR-2024-047",
+       "type": "NCR",
+       "date_raised": "14 November 2024",
+       "raised_by": "Shift Supervisor D. Kowalski",
+       "status": "Closed",
+       "incident": "3 wire feed motor overload alarms night shift 13 November 2024",
+       "total_downtime": "54 minutes",
+       "parts_scrapped": "3 parts (GS-NOV-0447)",
+       "root_cause": "Drive rolls 127 hours beyond 500-hour service interval",
+       "verified_by": "Plant Manager J. Richards",
+       "verified_date": "30 November 2024"
+     }},
+
+    {"id": "GSW-DROLL-08", "label": "GSW-DROLL-08", "type": "Part",
+     "properties": {
+       "description": "Drive roll 0.8mm groove",
+       "for_wire_diameter": "0.8mm",
+       "location": "Fabrication Line 1 maintenance cabinet shelf 3"
+     }},
+
+    {"id": "GSW-LINER-08", "label": "GSW-LINER-08", "type": "Part",
+     "properties": {
+       "description": "Wire liner for 0.8mm wire",
+       "for_wire_diameter": "0.8mm",
+       "location": "Fabrication Line 1 maintenance cabinet shelf 3"
+     }},
+
+    {"id": "GSW-TIP-08", "label": "GSW-TIP-08", "type": "Part",
+     "properties": {
+       "description": "Contact tip for 0.8mm wire",
+       "for_wire_diameter": "0.8mm",
+       "location": "Fabrication Line 1 maintenance cabinet shelf 3"
+     }}
+
+  ],
+
+  "relationships": [
+
+    {"from": "WM-101", "to": "wire_feed_overload", "type": "HAS_FAULT", "properties": {"frequency": "most common alarm"}},
+    {"from": "WM-101", "to": "arc_instability", "type": "HAS_FAULT", "properties": {}},
+    {"from": "WM-101", "to": "contact_tip_temp_high", "type": "HAS_FAULT", "properties": {}},
+    {"from": "WM-101", "to": "shielding_gas_low", "type": "HAS_FAULT", "properties": {"criticality": "CRITICAL"}},
+
+    {"from": "wire_feed_overload", "to": "drive_rolls_worn", "type": "CAUSED_BY", "properties": {"frequency_rank": "1", "note": "primary cause — most common"}},
+    {"from": "wire_feed_overload", "to": "wire_liner_blocked", "type": "CAUSED_BY", "properties": {"frequency_rank": "2"}},
+    {"from": "wire_feed_overload", "to": "drive_roll_tension_spec", "type": "CAUSED_BY", "properties": {"note": "tension too tight or too loose"}},
+    {"from": "wire_feed_overload", "to": "wire_spool_braking", "type": "CAUSED_BY", "properties": {"frequency_rank": "4"}},
+    {"from": "wire_feed_overload", "to": "systemic_fault_indicator", "type": "TRIGGERS", "properties": {"condition": "3 or more alarms in one shift"}},
+    {"from": "wire_feed_overload", "to": "NCR-2024-047", "type": "REFERENCED_IN", "properties": {"note": "November 2024 incident — 3 alarms, 54 min downtime"}},
+
+    {"from": "arc_instability", "to": "earth_clamp_loose", "type": "CAUSED_BY", "properties": {"frequency_rank": "1", "note": "most common cause"}},
+    {"from": "arc_instability", "to": "contact_tip_worn", "type": "CAUSED_BY", "properties": {"frequency_rank": "2"}},
+    {"from": "arc_instability", "to": "drive_rolls_worn", "type": "CAUSED_BY", "properties": {"note": "wire feed inconsistency causes arc instability"}},
+    {"from": "arc_instability", "to": "quality_flag", "type": "TRIGGERS", "properties": {"note": "parts welded during arc instability must be inspected"}},
+    {"from": "wire_feed_overload", "to": "arc_instability", "type": "CAUSES", "properties": {"note": "wire feed fault can cause secondary arc instability"}},
+
+    {"from": "contact_tip_temp_high", "to": "contact_tip_worn", "type": "CAUSED_BY", "properties": {}},
+    {"from": "contact_tip_temp_high", "to": "incorrect_stickout", "type": "CAUSED_BY", "properties": {}},
+
+    {"from": "shielding_gas_low", "to": "gas_cylinder_low", "type": "CAUSED_BY", "properties": {}},
+    {"from": "shielding_gas_low", "to": "gas_hose_leak", "type": "CAUSED_BY", "properties": {}},
+    {"from": "shielding_gas_low", "to": "quality_flag", "type": "TRIGGERS", "properties": {"note": "all parts welded after alarm must be scrapped"}},
+
+    {"from": "drive_rolls_worn", "to": "liner_drive_roll_replacement", "type": "FIXED_BY", "properties": {}},
+    {"from": "drive_rolls_worn", "to": "GSW-DROLL-08", "type": "REPLACED_WITH", "properties": {}},
+    {"from": "drive_rolls_worn", "to": "operator_trap_pattern", "type": "TRIGGERS", "properties": {"note": "operator tightens tension to compensate — wrong response"}},
+    {"from": "drive_rolls_worn", "to": "NCR-2024-047", "type": "REFERENCED_IN", "properties": {}},
+
+    {"from": "wire_liner_blocked", "to": "liner_drive_roll_replacement", "type": "FIXED_BY", "properties": {}},
+    {"from": "wire_liner_blocked", "to": "GSW-LINER-08", "type": "REPLACED_WITH", "properties": {}},
+
+    {"from": "earth_clamp_loose", "to": "earth_clamp_inspection", "type": "FIXED_BY", "properties": {}},
+    {"from": "contact_tip_worn", "to": "contact_tip_replacement", "type": "FIXED_BY", "properties": {}},
+    {"from": "contact_tip_worn", "to": "GSW-TIP-08", "type": "REPLACED_WITH", "properties": {}},
+
+    {"from": "liner_drive_roll_replacement", "to": "burn_in_procedure", "type": "REQUIRES", "properties": {"mandatory": "true", "warning": "do not skip — wire instability after replacement is expected not a fault"}},
+    {"from": "liner_drive_roll_replacement", "to": "loto_procedure", "type": "REQUIRES_SAFETY", "properties": {"timing": "before starting"}},
+    {"from": "liner_drive_roll_replacement", "to": "contact_tip_replacement", "type": "INCLUDES", "properties": {"note": "replace contact tip at same time"}},
+    {"from": "liner_drive_roll_replacement", "to": "WI-WM101-001", "type": "DOCUMENTED_IN", "properties": {}},
+    {"from": "liner_drive_roll_replacement", "to": "NCR-2024-047", "type": "REFERENCED_IN", "properties": {"note": "corrective action taken after November 2024 incident"}},
+
+    {"from": "burn_in_procedure", "to": "WI-WM101-001", "type": "DOCUMENTED_IN", "properties": {"section": "Step 9"}},
+
+    {"from": "systemic_fault_indicator", "to": "escalate_to_maintenance", "type": "REQUIRES", "properties": {}},
+    {"from": "systemic_fault_indicator", "to": "liner_drive_roll_replacement", "type": "REQUIRES", "properties": {}}
+  ]
+}
