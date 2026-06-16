@@ -179,6 +179,37 @@ def filter_shift_chunks(matches, time_from, time_to):
     # G-09 fix: return empty if no events in window — do not silently return all events
     return filtered
 
+# ── Equipment-consistency guard ────────────────────────────────────────
+# Post-retrieval safety check. The regex pre-filter (extract_equipment_id)
+# can MISS a tag (e.g. "x 505" — space breaks the pattern), in which case
+# no equip filter is applied and semantic search returns the nearest chunks
+# from ANY machine. This guard inspects what actually came back and refuses
+# when the results are about the WRONG or INCONSISTENT equipment.
+#
+# Teaching concept: don't trust the parser — verify the sources.
+def equipment_results_trustworthy(matches, requested_tag):
+    """Returns (ok, reason). ok=False => do not answer."""
+    if not matches:
+        return False, "no_matches"
+    top = matches[:5]
+    tags = []
+    for m in top:
+        md = get_match_metadata(m)
+        t = (md.get("equip_tag") or "").strip().upper()
+        if t:
+            tags.append(t)
+    if not tags:
+        return False, "untagged_results"
+    distinct = set(tags)
+    if requested_tag:
+        rt = requested_tag.strip().upper()
+        if rt not in distinct:
+            return False, "requested_tag_absent"
+        return True, "ok"
+    if len(distinct) > 1:
+        return False, "conflicting_equipment"
+    return True, "ok"
+
 # ── Pages ──────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -612,6 +643,20 @@ def ask():
             else:
                 yield "NOANSWER:I could not find a confident answer in the uploaded documents. Try rephrasing your question or check that the relevant document has been uploaded."
         return Response(stream_with_context(no_ans()), mimetype="text/plain")
+
+    # ── Equipment-consistency guard (doc mode) ─────────────────────────
+    # Score passed, but verify results are about the RIGHT machine.
+    # Catches the "x 505" failure: regex missed the tag, semantic search
+    # returned chunks from unrelated equipment, system answered anyway.
+    if mode != "shift":
+        trustworthy, _reason = equipment_results_trustworthy(matches, equip_tag)
+        if not trustworthy:
+            def no_ans_equip():
+                if equip_tag:
+                    yield f"NOANSWER:\u26a0\ufe0f No manuals found for {equip_tag}.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance."
+                else:
+                    yield "NOANSWER:\u26a0\ufe0f No manuals found for the equipment in your question.\nI won't answer from another machine's manuals. Please include the equipment tag (e.g. WM-101), or check that its documents are uploaded."
+            return Response(stream_with_context(no_ans_equip()), mimetype="text/plain")
 
     # For shift mode — filter chunks by time range
     if mode == "shift" and time_from and time_to:

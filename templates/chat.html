@@ -1157,10 +1157,12 @@ function submitQuestion() {
             var c   = document.getElementById('card-'+idx);
             c.className = 'no-answer-card';
             // Equipment-specific message is self-contained — render heading + body, no generic hint
-            var isEquipMsg = msg.indexOf('\u26a0\ufe0f No manuals found for') === 0;
+            // Detect the equipment message by CONTENT, not emoji-at-position-0.
+            // Emoji/whitespace differences between backend and frontend must not break this.
+            var isEquipMsg = msg.indexOf('No manuals found for') !== -1;
             var msgHtml;
             if (isEquipMsg) {
-              var parts   = msg.split('\n');
+              var parts   = msg.split(/\\n|\n/);  // split on real OR literal newline
               var heading = parts[0] || '';
               var bodyTxt = parts.slice(1).join(' ').trim();
               msgHtml =
