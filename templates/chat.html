@@ -1156,11 +1156,25 @@ function submitQuestion() {
             var msg = clean.replace('FALLBACK:','').replace('NOANSWER:','');
             var c   = document.getElementById('card-'+idx);
             c.className = 'no-answer-card';
+            // Equipment-specific message is self-contained — render heading + body, no generic hint
+            var isEquipMsg = msg.indexOf('\u26a0\ufe0f No manuals found for') === 0;
+            var msgHtml;
+            if (isEquipMsg) {
+              var parts   = msg.split('\n');
+              var heading = parts[0] || '';
+              var bodyTxt = parts.slice(1).join(' ').trim();
+              msgHtml =
+                '<div class="no-answer-msg" style="font-weight:600">'+escHtml(heading)+'</div>' +
+                (bodyTxt ? '<div class="no-answer-hint" style="color:#64748b;margin-top:6px">'+escHtml(bodyTxt)+'</div>' : '');
+            } else {
+              msgHtml =
+                '<div class="no-answer-msg">'+escHtml(msg)+'</div>' +
+                '<div class="no-answer-hint">'+(isShift?'Check that a shift log has been uploaded for this time period.':'Try rephrasing, or upload a document covering this topic.')+'</div>';
+            }
             c.innerHTML =
               '<div class="no-answer-q">'+escHtml(q)+'</div>' +
               '<div class="no-answer-body">' +
-                '<div class="no-answer-msg">'+escHtml(msg)+'</div>' +
-                '<div class="no-answer-hint">'+(isShift?'Check that a shift log has been uploaded for this time period.':'Try rephrasing, or upload a document covering this topic.')+'</div>' +
+                msgHtml +
               '</div>';
             btn.disabled    = false;
             btn.textContent = isShift ? 'Search shift log' : 'Ask PlantMind';

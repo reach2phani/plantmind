@@ -606,6 +606,9 @@ def ask():
         def no_ans():
             if mode == "shift":
                 yield "NOANSWER:No shift log events found for this time range. Check that a shift log has been uploaded for this period."
+            elif equip_tag:
+                # Equipment was detected but no documents exist for it
+                yield f"NOANSWER:\u26a0\ufe0f No manuals found for {equip_tag}.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance."
             else:
                 yield "NOANSWER:I could not find a confident answer in the uploaded documents. Try rephrasing your question or check that the relevant document has been uploaded."
         return Response(stream_with_context(no_ans()), mimetype="text/plain")
