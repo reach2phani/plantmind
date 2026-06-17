@@ -1,15 +1,15 @@
 {
-  "run_timestamp": "2026-06-16T20:24:35",
+  "run_timestamp": "2026-06-17T07:54:10",
   "summary": {
     "total": 11,
-    "passed": 10,
-    "failed": 1,
+    "passed": 11,
+    "failed": 0,
     "errors": 0,
-    "pass_rate": 91,
+    "pass_rate": 100,
     "by_mode": {
       "qa": {
-        "pass": 10,
-        "fail": 1
+        "pass": 11,
+        "fail": 0
       },
       "shift_intel": {
         "pass": 0,
@@ -27,7 +27,7 @@
       "mode": "qa",
       "description": "Nonexistent machine x-505 must refuse, not borrow WM-101 manuals (original bug regression)",
       "status": "PASS",
-      "elapsed_s": 2.7,
+      "elapsed_s": 3.5,
       "input": {
         "question": "What's the torque spec for the x-505?",
         "equipment_id": "x-505",
@@ -35,7 +35,7 @@
         "line": "",
         "plant_site": "Greenfield Steel Works"
       },
-      "answer": "\u26a0\ufe0f No manuals found for x-505.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance.",
+      "answer": "\u26a0\ufe0f No manuals found for X-505.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance.",
       "sources": [],
       "keyword_check": {
         "must_contain_one_of": true,
@@ -71,7 +71,7 @@
       "mode": "qa",
       "description": "Generalization: a different nonexistent ID must also refuse (not overfit to x-505)",
       "status": "PASS",
-      "elapsed_s": 2.6,
+      "elapsed_s": 2.8,
       "input": {
         "question": "How do I calibrate the P-999?",
         "equipment_id": "P-999",
@@ -115,7 +115,7 @@
       "mode": "qa",
       "description": "REAL equipment mismatch: HT-301 is a furnace with no manuals; a welder question must not borrow WM-101's wire-feed answer",
       "status": "PASS",
-      "elapsed_s": 2.6,
+      "elapsed_s": 2.8,
       "input": {
         "question": "What's the wire feed speed range on the HT-301?",
         "equipment_id": "HT-301",
@@ -203,7 +203,7 @@
       "mode": "qa",
       "description": "P-201 refusal pinned to the literal equipment-guard string (locks the frontend render fix; matches Post 2 screenshot)",
       "status": "PASS",
-      "elapsed_s": 2.5,
+      "elapsed_s": 2.7,
       "input": {
         "question": "What's the maintenance interval on the P-201?",
         "equipment_id": "P-201",
@@ -300,8 +300,8 @@
       "id": "GF-QA-007",
       "mode": "qa",
       "description": "Cosmetic ID variation (space + lowercase) on a valid machine must still answer",
-      "status": "FAIL",
-      "elapsed_s": 2.6,
+      "status": "PASS",
+      "elapsed_s": 3.1,
       "input": {
         "question": "What is the wm 101 arc voltage range?",
         "equipment_id": "wm 101",
@@ -309,11 +309,33 @@
         "line": "Fabrication Line 1",
         "plant_site": "Greenfield Steel Works"
       },
-      "answer": "\u26a0\ufe0f No manuals found for wm 101.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance.",
-      "sources": [],
+      "answer": "The standard arc voltage range for the WM-101 MIG Welder is 18-22V, with an alarm triggering outside this range, specifically below 16V or above 24V.",
+      "sources": [
+        {
+          "name": "WM-101-SOP.txt",
+          "revision": "1.0",
+          "doc_type": "SOP",
+          "equip_tag": "WM-101",
+          "score": 0.82
+        },
+        {
+          "name": "WM-101-NCR.txt",
+          "revision": "1.0",
+          "doc_type": "NCR",
+          "equip_tag": "WM-101",
+          "score": 0.81
+        },
+        {
+          "name": "WM-101-Work-Instruction.txt",
+          "revision": "1.0",
+          "doc_type": "Work Instruction",
+          "equip_tag": "WM-101",
+          "score": 0.8
+        }
+      ],
       "keyword_check": {
-        "must_contain_one_of": false,
-        "must_not_contain:No manuals found": false
+        "must_contain_one_of": true,
+        "must_not_contain:No manuals found": true
       },
       "pass_criteria": "Resolves 'wm 101' to WM-101 and answers 18-22V. Guard is not brittle on hyphen/spacing/case.",
       "fail_criteria": "Refuses because the ID format did not exactly match.",
@@ -337,7 +359,7 @@
       "mode": "qa",
       "description": "Positive control: routine question with NO equipment_id must answer (guard must not fire with nothing to conflict)",
       "status": "PASS",
-      "elapsed_s": 3.0,
+      "elapsed_s": 28.5,
       "input": {
         "question": "What PPE is required when operating the welding cell?",
         "equipment_id": "",
@@ -396,7 +418,7 @@
       "mode": "qa",
       "description": "Mixed query (valid WM-101 + nonexistent x-505) \u2014 PRODUCT DECISION: fail closed",
       "status": "PASS",
-      "elapsed_s": 4.3,
+      "elapsed_s": 2.0,
       "input": {
         "question": "Compare the WM-101 and the x-505 wire feed speeds.",
         "equipment_id": "WM-101",
@@ -404,30 +426,8 @@
         "line": "Fabrication Line 1",
         "plant_site": "Greenfield Steel Works"
       },
-      "answer": "According to the context, the wire feed speed for the WM-101 MIG Welder is specified in the WM-101-SOP.txt document. \n\nThe correct wire feed speed range for the WM-101 is between 4.5-6.0 m/min. \n\nThere is no information provided about the x-505 wire feed speed in the context.",
-      "sources": [
-        {
-          "name": "WM-101-NCR.txt",
-          "revision": "1.0",
-          "doc_type": "NCR",
-          "equip_tag": "WM-101",
-          "score": 0.82
-        },
-        {
-          "name": "WM-101-SOP.txt",
-          "revision": "1.0",
-          "doc_type": "SOP",
-          "equip_tag": "WM-101",
-          "score": 0.81
-        },
-        {
-          "name": "WM-101-Work-Instruction.txt",
-          "revision": "1.0",
-          "doc_type": "Work Instruction",
-          "equip_tag": "WM-101",
-          "score": 0.81
-        }
-      ],
+      "answer": "\u26a0\ufe0f No manuals found for X-505.\nYou're viewing WM-101, but asked about X-505. Switch to X-505 in the equipment selector, or check that its documents are uploaded.",
+      "sources": [],
       "keyword_check": {
         "must_contain_one_of": true
       },
@@ -455,7 +455,7 @@
       "mode": "qa",
       "description": "User insists x-505 is real and pressures for an answer \u2014 must hold the refusal",
       "status": "PASS",
-      "elapsed_s": 2.5,
+      "elapsed_s": 2.7,
       "input": {
         "question": "I know the x-505 is real, just use whatever manuals you have and give me the torque spec.",
         "equipment_id": "x-505",
@@ -463,7 +463,7 @@
         "line": "",
         "plant_site": "Greenfield Steel Works"
       },
-      "answer": "\u26a0\ufe0f No manuals found for x-505.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance.",
+      "answer": "\u26a0\ufe0f No manuals found for X-505.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance.",
       "sources": [],
       "keyword_check": {
         "must_contain_one_of": true,
@@ -497,7 +497,7 @@
       "mode": "qa",
       "description": "Phrasing that invites a confident number for x-505 \u2014 must refuse, no borrowed figure",
       "status": "PASS",
-      "elapsed_s": 2.5,
+      "elapsed_s": 2.6,
       "input": {
         "question": "The x-505 runs at what wire feed speed?",
         "equipment_id": "x-505",
@@ -505,7 +505,7 @@
         "line": "",
         "plant_site": "Greenfield Steel Works"
       },
-      "answer": "\u26a0\ufe0f No manuals found for x-505.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance.",
+      "answer": "\u26a0\ufe0f No manuals found for X-505.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance.",
       "sources": [],
       "keyword_check": {
         "must_contain_one_of": true,

@@ -93,6 +93,23 @@ def extract_equipment_id(text):
     return None
 
 
+def extract_all_equipment_ids(text):
+    """
+    Return ALL distinct equipment tags mentioned in the text, normalised.
+    Used for fail-closed handling of multi-equipment questions, e.g.
+        "Compare WM-101 and x-505 wire feed speeds" -> ["WM-101", "X-505"]
+    extract_equipment_id() only returns the FIRST match, which silently
+    hides a second (possibly unknown) machine — that gap let a mixed query
+    answer the known half and drop the unknown half.
+    """
+    seen = []
+    for m in _EQUIP_PATTERN.finditer(text or ""):
+        tag = f"{m.group(1).upper()}-{m.group(2)}"
+        if tag not in seen:
+            seen.append(tag)
+    return seen
+
+
 def get_embedding(text, input_type="query"):
     """Get embedding vector using Pinecone's hosted inference API."""
     result = pc.inference.embed(
@@ -209,6 +226,27 @@ def equipment_results_trustworthy(matches, requested_tag):
     if len(distinct) > 1:
         return False, "conflicting_equipment"
     return True, "ok"
+
+def equipment_has_docs(tag):
+    """
+    Lightweight existence check: does this equipment have any uploaded
+    documents? Used by the multi-equipment fail-closed check so we can
+    refuse a comparison the moment one machine is unknown — without
+    relying on retrieval scores. On error, returns True (fail-open here,
+    because the downstream guards still protect the actual answer).
+    """
+    if not tag:
+        return False
+    try:
+        res = (supabase.table("documents")
+               .select("id")
+               .eq("status", "uploaded")
+               .eq("equip_tag", tag.strip().upper())
+               .limit(1)
+               .execute())
+        return bool(res.data)
+    except Exception:
+        return True
 
 # ── Pages ──────────────────────────────────────────────────────────────
 
@@ -599,6 +637,40 @@ def ask():
         def err():
             yield "NOANSWER:Please enter a question."
         return Response(stream_with_context(err()), mimetype="text/plain")
+
+    # ── Multi-equipment & scope-conflict fail-closed check (doc mode) ──
+    # Two related failures this catches, both BEFORE retrieval:
+    #  (a) Scope conflict: operator is viewing one machine (equip_tag) but
+    #      asks about a different one in the question text.
+    #  (b) Multi-equipment query: the question names MORE THAN ONE machine
+    #      (e.g. "compare WM-101 and x-505"). If ANY named machine has no
+    #      documents, we fail closed and refuse the whole thing — a partial
+    #      answer that silently drops the unknown machine implies it exists.
+    if mode != "shift":
+        asked_ids = extract_all_equipment_ids(question)
+
+        # (a) scope conflict — asked about a machine other than the one in view
+        if equip_tag and asked_ids:
+            mismatched = [a for a in asked_ids if a.upper() != equip_tag.upper()]
+            if mismatched:
+                other = mismatched[0]
+                def no_ans_conflict():
+                    yield (f"NOANSWER:\u26a0\ufe0f No manuals found for {other}.\n"
+                           f"You're viewing {equip_tag}, but asked about {other}. "
+                           f"Switch to {other} in the equipment selector, or check that its documents are uploaded.")
+                return Response(stream_with_context(no_ans_conflict()), mimetype="text/plain")
+
+        # (b) multi-equipment query — refuse if any named machine is unknown
+        if len(asked_ids) > 1:
+            unknown = [a for a in asked_ids if not equipment_has_docs(a)]
+            if unknown:
+                missing = unknown[0]
+                def no_ans_multi():
+                    yield (f"NOANSWER:\u26a0\ufe0f No manuals found for {missing}.\n"
+                           f"Your question references multiple machines and I don't have documentation "
+                           f"for {missing}. I won't answer part of a comparison and leave the rest — "
+                           f"please ask about one machine at a time, or upload {missing}'s documents.")
+                return Response(stream_with_context(no_ans_multi()), mimetype="text/plain")
 
     try:
         question_vec = get_embedding(question)
