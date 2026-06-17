@@ -24,7 +24,9 @@ BASE_URL   = "http://localhost:5000"   # your local Flask app
 INPUT_FILE = "evals/test_cases.json"
 OUTPUT_FILE= "evals/eval_results.json"
 
-PLANT_SITE = "Northgate Automotive"   # must match what you uploaded docs under
+# Fallback site, used ONLY when a test case does not declare its own.
+# Site now belongs on each test case (input.plant_site), not here.
+DEFAULT_PLANT_SITE = "Greenfield Steel Works"
 
 
 # ── Helpers ───────────────────────────────────────────────────────────
@@ -41,7 +43,7 @@ def call_qa(test_case):
 
     payload = {
         "question":   inp["question"],
-        "plant_site": PLANT_SITE,
+        "plant_site": inp.get("plant_site", DEFAULT_PLANT_SITE),
         "line":       inp.get("line", ""),
         "equip_tag":  inp.get("equipment_id", ""),
         "mode":       "doc",
@@ -99,7 +101,7 @@ def call_shift_intel(test_case):
 
     payload = {
         "question":   inp["question"],
-        "plant_site": PLANT_SITE,
+        "plant_site": inp.get("plant_site", DEFAULT_PLANT_SITE),
         "line":       inp.get("line", ""),
         "equip_tag":  inp.get("equipment_id", ""),
         "mode":       "shift",
@@ -160,7 +162,7 @@ def call_investigation(test_case):
 
     payload = {
         "incident":   inp["incident"],
-        "plant_site": PLANT_SITE,
+        "plant_site": inp.get("plant_site", DEFAULT_PLANT_SITE),
         "line":       ""
     }
 
@@ -226,7 +228,7 @@ def keyword_check(answer, expected):
 
 # ── Main runner ───────────────────────────────────────────────────────
 
-def run_evals(mode_filter=None):
+def run_evals(mode_filter=None, site_filter=None):
     print(f"\n{'='*60}")
     print("PlantMind Eval Runner — PM-E02")
     print(f"{'='*60}\n")
@@ -238,9 +240,15 @@ def run_evals(mode_filter=None):
     test_cases = data["test_cases"]
     if mode_filter:
         test_cases = [tc for tc in test_cases if tc["mode"] == mode_filter]
-        print(f"Running {mode_filter} cases only: {len(test_cases)} cases\n")
+        print(f"Filtering to mode '{mode_filter}': {len(test_cases)} cases")
+    if site_filter:
+        test_cases = [tc for tc in test_cases
+                      if tc["input"].get("plant_site", DEFAULT_PLANT_SITE) == site_filter]
+        print(f"Filtering to site '{site_filter}': {len(test_cases)} cases")
+    if not mode_filter and not site_filter:
+        print(f"Loaded {len(test_cases)} test cases (all sites, all modes)\n")
     else:
-        print(f"Loaded {len(test_cases)} test cases\n")
+        print()
 
     # Check Flask is reachable before running
     try:
@@ -370,20 +378,14 @@ def run_evals(mode_filter=None):
 
 
 if __name__ == "__main__":
-    import sys
-    # Usage:
-    #   python eval_runner.py           — run all 20 cases
-    #   python eval_runner.py qa        — run Q&A only (7 cases)
-    #   python eval_runner.py shift     — run Shift Intel only (7 cases)
-    #   python eval_runner.py inv       — run Investigation only (6 cases)
-    #
-    # On Groq free tier, run one mode at a time with 5 min gap between batches
-    # to avoid rate limit timeouts.
+    import argparse
+    parser = argparse.ArgumentParser(description="PlantMind eval runner")
+    parser.add_argument("--mode", choices=["qa", "shift", "inv"],
+                        help="run only one mode")
+    parser.add_argument("--site", help='run only one plant, e.g. --site "Greenfield Steel Works"')
+    args = parser.parse_args()
 
-    mode_filter = sys.argv[1] if len(sys.argv) > 1 else None
     mode_map = {"qa": "qa", "shift": "shift_intel", "inv": "investigation"}
+    mode_filter = mode_map.get(args.mode) if args.mode else None
 
-    if mode_filter and mode_filter in mode_map:
-        run_evals(mode_filter=mode_map[mode_filter])
-    else:
-        run_evals()
+    run_evals(mode_filter=mode_filter, site_filter=args.site)

@@ -458,7 +458,13 @@ def api_documents():
 def update_document(doc_id):
     data    = request.get_json()
     allowed_fields = {"plant_site", "line", "doc_type", "revision", "equip_tag"}
-    updates = {k: v for k, v in data.items() if k in allowed_fields}
+    # Ignore empty-string values — never overwrite existing good data with blanks.
+    # This protects against reindex/edit forms submitting unpopulated fields
+    # (e.g. CSV shift logs whose plant/line dropdowns are empty).
+    updates = {
+        k: v for k, v in data.items()
+        if k in allowed_fields and v is not None and str(v).strip() != ""
+    }
     if not updates:
         return jsonify({"error": "No valid fields to update"}), 400
     result = supabase.table("documents").update(updates).eq("id", doc_id).execute()
