@@ -71,7 +71,7 @@ threading.Thread(target=_load_knowledge_graph, daemon=True).start()
 import re as _re
 
 _EQUIP_PATTERN = _re.compile(
-    r'\b([A-Za-z]{1,4})-?(\d{2,4})\b'
+    r'\b([A-Za-z]{1,4})[\s-]?(\d{2,4})\b'
 )
 
 def extract_equipment_id(text):
@@ -458,13 +458,7 @@ def api_documents():
 def update_document(doc_id):
     data    = request.get_json()
     allowed_fields = {"plant_site", "line", "doc_type", "revision", "equip_tag"}
-    # Ignore empty-string values — never overwrite existing good data with blanks.
-    # This protects against reindex/edit forms submitting unpopulated fields
-    # (e.g. CSV shift logs whose plant/line dropdowns are empty).
-    updates = {
-        k: v for k, v in data.items()
-        if k in allowed_fields and v is not None and str(v).strip() != ""
-    }
+    updates = {k: v for k, v in data.items() if k in allowed_fields}
     if not updates:
         return jsonify({"error": "No valid fields to update"}), 400
     result = supabase.table("documents").update(updates).eq("id", doc_id).execute()
@@ -583,6 +577,12 @@ def ask():
     plant     = data.get("plant_site", "")
     line      = data.get("line",       "")
     equip_tag = data.get("equip_tag", "")
+    # Normalise explicitly-passed equip_tag (e.g. "wm 101" → "WM-101")
+    # so cosmetic ID variations from the UI don't bypass normalisation.
+    if equip_tag:
+        _norm = extract_equipment_id(equip_tag)
+        if _norm:
+            equip_tag = _norm
 
     # Auto-detect equipment ID from question if not explicitly set
     # Teaching note: operators often mention equipment in natural language
