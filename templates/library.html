@@ -184,6 +184,7 @@ function populateFilters(){
     .then(function(r){return r.json();})
     .then(function(data){
       var sites = data.plant_sites||[];
+      window._libPlantSites = sites;  // store for edit-form dropdown
       var pSel = document.getElementById('plantFilter');
       if(pSel) sites.forEach(function(s){
         var o=document.createElement('option');o.value=s.name;o.textContent=s.name;pSel.appendChild(o);
@@ -389,14 +390,14 @@ function renderEditForm(doc){
         '<span class="edit-label">Plant site</span>' +
         '<select class="edit-input" id="ep-'+doc.id+'">' +
           '<option value="">-- select --</option>' +
-          ['Houston Plant','Deer Park Facility'].map(function(p){return '<option value="'+p+'"'+(doc.plant_site===p?' selected':'')+'>'+p+'</option>'}).join('') +
+          (window._libPlantSites||[]).map(function(s){return '<option value="'+s.name+'"'+(doc.plant_site===s.name?' selected':'')+'>'+s.name+'</option>'}).join('') +
         '</select>' +
       '</div>' +
       '<div class="edit-field">' +
         '<span class="edit-label">Line</span>' +
         '<select class="edit-input" id="el-'+doc.id+'">' +
           '<option value="">-- select --</option>' +
-          ['Line 1','Line 2','Line 3'].map(function(l){return '<option value="'+l+'"'+(doc.line===l?' selected':'')+'>'+l+'</option>'}).join('') +
+          (window._libLines||[]).filter(function(l){return !doc.plant_site||l.plant_site===doc.plant_site;}).map(function(l){return '<option value="'+l.name+'"'+(doc.line===l.name?' selected':'')+'>'+l.name+'</option>'}).join('') +
         '</select>' +
       '</div>' +
       '<div class="edit-field">' +
