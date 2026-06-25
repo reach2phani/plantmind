@@ -545,7 +545,7 @@ function showForm(type, defaultSite, defaultLine) {
         '<input class="form-input" id="f1" placeholder="e.g. Welding Robot 2"></div>' +
         '<div class="form-field"><div class="form-lbl">Type</div>' +
         '<select class="form-input" id="f2"><option value="">-- select --</option>' +
-        ['Robot','Pump','Conveyor','Paint Booth','Assembly Tool','Sensor','Other'].map(function(t){ return '<option>'+t+'</option>'; }).join('') +
+        ['Robot','Welder','Pump','Conveyor','Paint Booth','Assembly Tool','Sensor','Other'].map(function(t){ return '<option>'+t+'</option>'; }).join('') +
         '</select></div>' +
         '<div class="form-field"><div class="form-lbl">Manufacturer</div>' +
         '<input class="form-input" id="f5" placeholder="e.g. Fanuc"></div>' +
@@ -621,7 +621,7 @@ function showEditEquip(id) {
     '<div class="form-grid">' +
       '<div class="form-field"><div class="form-lbl">Name <span class="req">*</span></div><input class="form-input" id="f0" value="'+esc(eq.name)+'"></div>' +
       '<div class="form-field"><div class="form-lbl">Type</div><select class="form-input" id="f1">' +
-        ['','Robot','Pump','Conveyor','Paint Booth','Assembly Tool','Sensor','Other'].map(function(t){ return '<option value="'+t+'"'+(eq.type===t?' selected':'')+'>'+esc(t||'-- select --')+'</option>'; }).join('')+'</select></div>' +
+        ['','Robot','Welder','Pump','Conveyor','Paint Booth','Assembly Tool','Sensor','Other'].map(function(t){ return '<option value="'+t+'"'+(eq.type===t?' selected':'')+'>'+esc(t||'-- select --')+'</option>'; }).join('')+'</select></div>' +
       '<div class="form-field"><div class="form-lbl">Plant site <span class="req">*</span></div><select class="form-input" id="f2" onchange="refreshLines()">'+siteOpts+'</select></div>' +
       '<div class="form-field"><div class="form-lbl">Production line <span class="req">*</span></div><select class="form-input" id="f3">'+lineOpts+'</select></div>' +
       '<div class="form-field full"><div class="form-lbl">Manufacturer</div><input class="form-input" id="f4" value="'+esc(eq.manufacturer||'')+'"></div>' +
