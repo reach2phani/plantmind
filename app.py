@@ -139,10 +139,13 @@ def parse_revision(rev_str):
 
 def time_in_range(event_time, time_from, time_to):
     try:
-        fmt = "%H:%M"
-        et  = datetime.strptime(event_time.strip()[:5], fmt).time()
-        tf  = datetime.strptime(time_from.strip()[:5],  fmt).time()
-        tt  = datetime.strptime(time_to.strip()[:5],    fmt).time()
+        def _p(s):
+            s = s.strip()
+            # accept H:MM or HH:MM
+            return datetime.strptime(s if len(s.split(":")[0]) == 2 else "0"+s, "%H:%M").time()
+        et = _p(event_time)
+        tf = _p(time_from)
+        tt = _p(time_to)
         if tf <= tt:
             return tf <= et <= tt
         else:
@@ -150,11 +153,135 @@ def time_in_range(event_time, time_from, time_to):
     except Exception:
         return True
 
+def extract_time_range(question):
+    """
+    Pull an explicit time window out of a natural-language shift question.
+
+    Why this exists: the chat box only sends question text — it does NOT send
+    structured time_from/time_to fields. Without this, "what happened between
+    02:00 and 05:00" never set a window, the time filter never ran, and the
+    model would invent timestamps to match the window it was told about.
+    This parses the window from the words so the filter can actually apply it.
+
+    Supports:
+      "between 02:00 and 05:00"      -> ("02:00","05:00")
+      "from 1am to 3am"              -> ("01:00","03:00")
+      "before 23:00"                 -> ("00:00","23:00")
+      "after 04:00"                  -> ("04:00","23:59")
+    Returns (time_from, time_to) as "HH:MM", or ("","") if no window found.
+    """
+    if not question:
+        return "", ""
+    q = question.lower()
+
+    def _norm(h, m, ap):
+        h = int(h); m = int(m) if m else 0
+        if ap == "pm" and h != 12: h += 12
+        if ap == "am" and h == 12: h = 0
+        if h > 23: h = 23
+        if m > 59: m = 59
+        return f"{h:02d}:{m:02d}"
+
+    # token: 02:00 | 2:00 | 2 am | 11pm  (optional minutes, optional am/pm)
+    tok = r'(\d{1,2})(?::(\d{2}))?\s*(am|pm)?'
+
+    m = re.search(r'\bbetween\s+' + tok + r'\s+(?:and|to|-|–)\s+' + tok, q)
+    if not m:
+        m = re.search(r'\bfrom\s+' + tok + r'\s+(?:to|until|till|-|–)\s+' + tok, q)
+    if m:
+        tf = _norm(m.group(1), m.group(2), m.group(3))
+        tt = _norm(m.group(4), m.group(5), m.group(6))
+        return tf, tt
+
+    m = re.search(r'\bbefore\s+' + tok, q)
+    if m:
+        return "00:00", _norm(m.group(1), m.group(2), m.group(3))
+
+    m = re.search(r'\bafter\s+' + tok, q)
+    if m:
+        return _norm(m.group(1), m.group(2), m.group(3)), "23:59"
+
+    return "", ""
+
+def extract_shift_date(question):
+    """
+    Pull a calendar date out of a shift question and return it as YYYY-MM-DD,
+    matching how dates are written in the shift-log text.
+
+    Why this exists: shift retrieval was not scoped by date, so a question about
+    "May 20" could retrieve chunks from May 21 (which has its own in-window
+    events) and the model would blend the wrong day's events into the answer.
+    Scoping to the asked date keeps the answer on the right shift.
+
+    Supports: "May 20", "20 May", "May 20 2025", "2025-05-20", "05/20".
+    Returns "YYYY-MM-DD" or "" if no date found. Year defaults to 2025 if absent
+    (the only year present in the current logs).
+    """
+    if not question:
+        return ""
+    q = question.lower()
+    months = {
+        "january":1,"jan":1,"february":2,"feb":2,"march":3,"mar":3,"april":4,"apr":4,
+        "may":5,"june":6,"jun":6,"july":7,"jul":7,"august":8,"aug":8,
+        "september":9,"sep":9,"sept":9,"october":10,"oct":10,
+        "november":11,"nov":11,"december":12,"dec":12,
+    }
+
+    # 2025-05-20  or  2025/05/20
+    m = re.search(r'\b(20\d{2})[-/](\d{1,2})[-/](\d{1,2})\b', q)
+    if m:
+        y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        return f"{y:04d}-{mo:02d}-{d:02d}"
+
+    # "may 20" or "may 20 2025"  /  "20 may" or "20 may 2025"
+    mon_pat = "|".join(months.keys())
+    m = re.search(r'\b(' + mon_pat + r')\s+(\d{1,2})(?:,?\s+(20\d{2}))?\b', q)
+    if not m:
+        m2 = re.search(r'\b(\d{1,2})\s+(' + mon_pat + r')(?:,?\s+(20\d{2}))?\b', q)
+        if m2:
+            d = int(m2.group(1)); mo = months[m2.group(2)]; y = int(m2.group(3) or 2025)
+            return f"{y:04d}-{mo:02d}-{d:02d}"
+    if m:
+        mo = months[m.group(1)]; d = int(m.group(2)); y = int(m.group(3) or 2025)
+        return f"{y:04d}-{mo:02d}-{d:02d}"
+
+    return ""
+
 def get_match_metadata(m):
     """Safely extract metadata from Pinecone match object or dict."""
     if isinstance(m, dict):
         return m.get("metadata", {})
     return getattr(m, "metadata", {}) or {}
+
+def filter_shift_by_date(matches, target_date):
+    """
+    Keep only event lines whose date matches target_date (YYYY-MM-DD).
+
+    Mirrors filter_shift_chunks but for date. Night-shift logs span two calendar
+    dates within one batched chunk, and chunk metadata only carries the first
+    row's date — so we must check the date written into each LINE, not the
+    chunk's metadata. Lines with no recognizable date are kept (e.g. summary
+    lines) so we don't over-filter.
+    """
+    if not target_date:
+        return matches
+    filtered = []
+    for md in matches:
+        text = md["metadata"].get("text", "")
+        kept = []
+        for line in text.split("\n"):
+            d = re.search(r'\b(20\d{2}-\d{2}-\d{2})\b', line)
+            if d:
+                if d.group(1) == target_date:
+                    kept.append(line)
+            else:
+                kept.append(line)
+        if kept:
+            md = dict(md)
+            md["metadata"] = dict(md["metadata"])
+            md["metadata"]["text"] = "\n".join(kept)
+            filtered.append(md)
+    return filtered
 
 def get_match_score(m):
     if isinstance(m, dict):
@@ -184,7 +311,11 @@ def filter_shift_chunks(matches, time_from, time_to):
         lines = text.split("\n")
         kept  = []
         for line in lines:
-            t = re.search(r'\bat (\d{2}:\d{2})\b', line)
+            # Match ONLY the event timestamp ("at HH:MM" as written by the
+            # embedder). Do NOT fall back to a bare HH:MM — description/action
+            # text frequently mentions other times in prose, and matching those
+            # would wrongly keep out-of-window events.
+            t = re.search(r'\bat (\d{1,2}:\d{2})\b', line)
             if t:
                 if time_in_range(t.group(1), time_from, time_to):
                     kept.append(line)
@@ -633,6 +764,23 @@ def ask():
     time_from = data.get("time_from",  "")
     time_to   = data.get("time_to",    "")
 
+    # If the UI didn't send an explicit window, parse one from the question.
+    # The chat box sends only text, so "between 02:00 and 05:00" must be
+    # extracted here — otherwise no window is applied and the model is left
+    # to invent timestamps to match the range it was told about.
+    #
+    # IMPORTANT: a window stated in the QUESTION takes priority over the UI's
+    # default range. The Shift tab sends a broad default (e.g. 22:00–06:00 for
+    # "the whole night shift"); if the operator asked for a specific sub-window
+    # like "between 02:00 and 05:00", that intent must win over the default.
+    if mode == "shift":
+        tf, tt = extract_time_range(question)
+        if tf and tt:
+            time_from, time_to = tf, tt
+    # Date scoping: parse the asked date so retrieval results from OTHER shifts
+    # don't bleed into the answer (a "May 20" question must not surface May 21).
+    target_date = extract_shift_date(question) if mode == "shift" else ""
+
     if not question:
         def err():
             yield "NOANSWER:Please enter a question."
@@ -736,14 +884,52 @@ def ask():
                     yield "NOANSWER:\u26a0\ufe0f No manuals found for the equipment in your question.\nI won't answer from another machine's manuals. Please include the equipment tag (e.g. WM-101), or check that its documents are uploaded."
             return Response(stream_with_context(no_ans_equip()), mimetype="text/plain")
 
-    # For shift mode — filter chunks by time range
-    if mode == "shift" and time_from and time_to:
-        matches = filter_shift_chunks(matches, time_from, time_to)
+    # For shift mode — scope to the asked date first, then the time window
+    if mode == "shift" and (target_date or (time_from and time_to)):
+        matches = [match_to_dict(m) for m in matches]
+        if target_date:
+            matches = filter_shift_by_date(matches, target_date)
+        if time_from and time_to:
+            matches = filter_shift_chunks(matches, time_from, time_to)
+
+        # Honesty guard. After scoping, decide if any REAL event line remains.
+        # Date-only: any line carrying target_date. Time: any line whose event
+        # timestamp is in-window. Combined: a line must satisfy both.
+        def _line_qualifies(ln):
+            ok_date = True
+            ok_time = True
+            if target_date:
+                dm = re.search(r'\b(20\d{2}-\d{2}-\d{2})\b', ln)
+                ok_date = bool(dm) and dm.group(1) == target_date
+            if time_from and time_to:
+                tm = re.search(r'\bat (\d{1,2}:\d{2})\b', ln)
+                ok_time = bool(tm) and time_in_range(tm.group(1), time_from, time_to)
+            return ok_date and ok_time
+        has_real = any(
+            _line_qualifies(ln)
+            for mm in matches
+            for ln in mm.get("metadata", {}).get("text", "").split("\n")
+        )
+        if not has_real:
+            if target_date and time_from and time_to:
+                _scope = f"on {target_date} between {time_from} and {time_to}"
+            elif target_date:
+                _scope = f"on {target_date}"
+            else:
+                _scope = f"between {time_from} and {time_to}"
+            def no_window():
+                yield (f"NOANSWER:No shift log events were recorded {_scope}. "
+                       f"The log shows no activity for that period — check a different "
+                       f"date or time range, or confirm the shift log is loaded.")
+            return Response(stream_with_context(no_window()), mimetype="text/plain")
 
     context_parts = []
     sources       = []
     seen          = set()
-    matches       = [match_to_dict(m) for m in matches]
+    # Convert any remaining raw Pinecone matches to dicts. In shift mode the
+    # matches were already converted and filtered above; match_to_dict is safe
+    # on dicts (it reads metadata either way), so filtered text is preserved.
+    matches       = [m if isinstance(m, dict) and "metadata" in m else match_to_dict(m) for m in matches]
     for m in matches:
         meta = m.get("metadata", {})
         text = meta.get("text", "")
@@ -771,7 +957,12 @@ def ask():
             "Answer questions using ONLY the provided shift log context. "
             "Format your answer as a clear bulleted list of events with timestamps where available. "
             "Group events by category: Alarms, Maintenance, Quality, Process. "
-            "Be concise and factual. Never fabricate events not in the context."
+            "Be concise and factual. "
+            "CRITICAL: Use only the exact timestamps that appear in the context. "
+            "NEVER invent, adjust, or relabel a timestamp to fit a requested time window. "
+            "If an event's time is outside the asked window, do not include it. "
+            "If the context contains no events inside the asked window, reply exactly: "
+            "'No events were recorded in that time window.' Do not summarise out-of-window events."
         )
         user_prompt = (
             f"Shift log context{line_ctx}{time_ctx}:\n\n{context}\n\n"
