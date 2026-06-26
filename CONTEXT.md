@@ -1,7 +1,7 @@
 # PlantMind — Full Project Context for Claude
 
 > This is the complete handoff document. Paste this entire file at the start of any new Claude conversation.
-> Last updated: Session 11 complete.
+> Last updated: Session 12 complete (knowledge graph).
 
 ---
 
@@ -13,6 +13,8 @@ An operator describes an equipment incident — "WR-401 welding robot wire feed 
 
 Session 11 added real-time MQTT integration — the system now monitors live equipment data, detects alarm patterns automatically, and surfaces enriched alert cards to operators.
 
+Session 12 added a knowledge graph layer (Neo4j). Equipment fault chains — Fault → Component → Procedure → Safety → Pattern — are stored as a graph and used two ways: (1) the investigation orchestrator pulls a fault chain for the equipment and injects verified warnings (e.g. mandatory burn-in after liner replacement, the "don't keep adjusting tension" operator trap) into the report, and (2) a standalone Graph Explorer page lets operators browse the relationships visually. The graph is a strict overlay — it never blocks an investigation; if the graph is unavailable, the pipeline proceeds without it (silent fail). The reference graph dataset is WM-101 (`wm101_graph.json`); the rest of the document corpus is still WR-401-centric from earlier sessions.
+
 ---
 
 ## Stack
@@ -23,6 +25,7 @@ Session 11 added real-time MQTT integration — the system now monitors live equ
 | Specialist agents | llama-3.1-8b-instant | 14,400 RPD, 6,000 TPM, 500K TPD |
 | Orchestrator + reflection | llama-3.3-70b-versatile | 1,000 RPD, 12,000 TPM, 100K TPD |
 | Vector DB | Pinecone free tier | Serverless, metadata filtering |
+| Knowledge graph | Neo4j (Aura free tier) | Fault chains; loaded on startup from wm101_graph.json (NEW Session 12) |
 | Embedding model | multilingual-e5-large | Via Pinecone inference API |
 | Database + storage | Supabase free tier | Pauses after 7 days inactivity |
 | MQTT broker | HiveMQ Cloud free tier | cloud broker, TLS port 8883 |
@@ -38,6 +41,9 @@ Session 11 added real-time MQTT integration — the system now monitors live equ
 C:\PlantMind\                     (Windows, VS Code)
 ├── app.py                        — Flask API, all routes
 ├── multi_agent.py                — Full agent pipeline
+├── knowledge_graph.py            — Neo4j fault-chain queries + graph load (NEW Session 12)
+├── agent_v2.py                   — LEGACY single-agent tool-loop prototype (not imported; superseded by multi_agent.py)
+├── wm101_graph.json              — Knowledge graph dataset for WM-101 (NEW Session 12)
 ├── llm_logger.py                 — LLM observability
 ├── embedder.py                   — Document chunking and Pinecone upsert
 ├── reembed.py                    — Re-index all documents
@@ -49,6 +55,8 @@ C:\PlantMind\                     (Windows, VS Code)
 │   ├── chat.html                 — Ask + Investigate + Shift UI
 │   ├── library.html              — Document library
 │   ├── alerts.html               — Live feed + Pattern alerts (NEW Session 11)
+│   ├── graph.html                — Knowledge Graph Explorer (NEW Session 12)
+│   ├── gaps.html                 — Knowledge gap / coverage analysis page
 │   ├── plant_setup.html          — Plant CRUD
 │   └── index.html                — Upload interface (fallback)
 ├── static/
@@ -158,7 +166,7 @@ Flask /ask or /investigate route (app.py)
       │
       └── /investigate (Agent Investigation)
             extract_equipment_id() — auto-detect from incident text
-            get_previous_investigations() — last 3 from chat_history
+            get_fault_chain(equip) — knowledge graph context (NEW Session 12, silent-fail)
                   │
                   ▼
             supervisor_route() — llama-3.1-8b, temp=0.0, max_tokens=100
@@ -174,9 +182,10 @@ Flask /ask or /investigate route (app.py)
               each: llama-3.1-8b, max_tokens=400, logged to llm_logs
                   │
                   ▼
-            run_orchestrator(incident, specialist_results, memory_context)
+            run_orchestrator(incident, specialist_results, graph_context=None)
               llama-3.3-70b, max_tokens=800
-              memory_context prepended from get_previous_investigations()
+              graph_context (if has_data) injects a KNOWLEDGE GRAPH CONTEXT block
+                with mandatory warnings + STRICT GRAPH RULES (burn-in, tension trap)
               produces: INVESTIGATION REPORT (technical + plant manager summary)
                   │
                   ▼ (if ENABLE_REFLECTION=true)
@@ -273,6 +282,33 @@ PROACTIVE_COOLDOWN_MINUTES=60
 
 ---
 
+---
+
+## Knowledge graph (NEW Session 12)
+
+**Backend:** Neo4j AuraDB (free tier). Env vars: `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`.
+Connection quirks (confirmed working, don't "fix"): `_get_driver()` forces the URI scheme to `neo4j+ssc://` regardless of what's in `NEO4J_URI`, opens a **fresh driver per operation** (no pooling/caching) and uses `session(database=None)`. Required for AuraDB free tier on Windows.
+Loaded into Neo4j on Flask startup in a background daemon thread (`_load_knowledge_graph()` in app.py) from `wm101_graph.json`. `load_graph()` clears existing nodes for that equip_tag then MERGEs — safe to re-run. Startup is never blocked; if Neo4j is unavailable everything silently degrades.
+
+**Node types (9):** Equipment, Fault, Component, Procedure, Document, Pattern, Safety, Parameter, Part.
+**Relationship types:** HAS_FAULT, CAUSED_BY, CAUSES, TRIGGERS, FIXED_BY, REPLACED_WITH, REQUIRES, REQUIRES_SAFETY, INCLUDES, REFERENCED_IN, DOCUMENTED_IN.
+**Reference dataset:** WM-101 only — a MIG Welder, `plant_site="greenfield"`, `line="line1"`, built from WM-101-SOP / WI-WM101-001 / NCR-2024-047. Actual file holds 33 nodes / 37 relationships (note: `metadata.total_nodes`/`total_relationships` say 32/48 — stale counts in the JSON, harmless). No other equipment has graph data yet.
+
+**Two consumers:**
+1. **Investigation orchestrator** — `investigate_incident()` calls `get_fault_chain(equip)`. If `has_data`, the orchestrator prompt gets a KNOWLEDGE GRAPH CONTEXT block plus mandatory warnings and STRICT GRAPH RULES (currently hard-coded for the WM-101 liner/burn-in + drive-roll tension trap from NCR-2024-047). The graph is an additive overlay — never blocks the investigation.
+2. **Graph Explorer page** (`/graph`, graph.html) — equipment dropdown from `/api/graph/equipment`, nodes/edges from `/api/graph/nodes`. Rendering is a **custom layered-canvas layout** (nodes arranged in layers by type), not a third-party graph library. chat.html also injects a fault-chain panel below the investigation report when the equipment has graph data (`/api/graph/fault-chain`, only renders if `chain_nodes.length >= 2`).
+
+**get_fault_chain(equip_tag, fault_type=None)** returns:
+`{equip_tag, chain_nodes, chain_edges, chain_text, warnings, downtime, has_data}`
+(`has_data = len(chain_nodes) > 0`). Traverses up to 5 hops from the equipment/fault node.
+Warnings come from two places: (a) **hard-coded by node id** inside `get_fault_chain` — `burn_in_procedure`, `loto_procedure`, `quality_flag`, `shielding_gas_low` each append a fixed warning string; and (b) graph-derived from Pattern nodes' `wrong_response` property. `downtime` is read from a Procedure node's `total_with_burnin` property.
+**get_full_graph(equip_tag, plant_site, node_type)** returns: `{nodes, edges, count}`; edges get a `warning` flag when rel type is REQUIRES / REQUIRES_SAFETY.
+**get_graph_stats(equip_tag)** returns: `{nodes, edges}`
+**get_graphed_equipment()** returns: list of equipment tags that have graph data
+**load_graph(json_path)** loads/refreshes the graph; returns success bool
+
+---
+
 ## Key functions and where they live
 
 ### app.py
@@ -288,6 +324,13 @@ PROACTIVE_COOLDOWN_MINUTES=60
 - `/api/recent-equipment` — last 4 investigated equipment tags
 - `/api/llm-stats` — today's token usage
 - `/api/history` POST — saves chat to chat_history
+- `/graph` route — serves graph.html Explorer (NEW Session 12)
+- `/api/graph/fault-chain` GET — fault chain for equip (+optional fault); used by chat.html + orchestrator (NEW)
+- `/api/graph/nodes` GET — all nodes/edges for explorer (NEW)
+- `/api/graph/equipment` GET — equipment that has graph data (NEW)
+- `/api/graph/debug` GET — graph/Neo4j status check on Render (NEW)
+- `/gaps` + `/api/gaps` — coverage analysis (which equipment is missing which doc_types)
+- `_load_knowledge_graph()` — background thread, loads Neo4j on startup (NEW)
 
 ### mqtt_subscriber.py (NEW Session 11)
 - `get_supabase()` — lazy init (avoids Windows httpx conflict)
@@ -305,12 +348,22 @@ PROACTIVE_COOLDOWN_MINUTES=60
 - Real sleep 0.3s per sim_minute
 
 ### multi_agent.py
-- `get_previous_investigations(equip_tag, limit=3)` — memory context
 - `supervisor_route(incident, equipment_id)` — dynamic agent routing
 - `run_alarm_agent()`, `run_maintenance_agent()`, `run_sop_agent()`, `run_ncr_agent()`
-- `run_orchestrator()` — 70b synthesis
-- `investigate_incident()` — main generator, yields streaming output
+- `run_orchestrator(incident, specialist_results, graph_context=None)` — 70b synthesis; injects graph block when graph_context.has_data
+- `investigate_incident(incident, equipment_id=None)` — main generator; fetches get_fault_chain() then yields streaming output
 - `_groq_call_with_retry()` — 55s/70s/90s backoff on 429
+- NOTE: agent memory (`get_previous_investigations`) from Session 9 was REMOVED in Session 12 — orchestrator now takes graph_context, not memory_context. Update earlier docs that still mention it.
+
+### knowledge_graph.py (NEW Session 12)
+- `_get_driver()` — fresh Neo4j driver per call; forces `neo4j+ssc://` scheme
+- `_run(cypher, params)` — run Cypher, return list of dicts
+- `load_graph(json_path)` — clear-by-equip then MERGE nodes/relationships from JSON
+- `get_fault_chain(equip_tag, fault_type=None)` — fault chain + warnings + downtime for orchestrator/chat
+- `_build_chain_text(...)` — renders chain_nodes into the plain-English block the orchestrator reads
+- `get_full_graph(equip_tag, plant_site, node_type)` — nodes/edges for explorer
+- `get_graph_stats(equip_tag)` — node/edge counts
+- `get_graphed_equipment()` — list of equipment with graph data
 
 ### llm_logger.py
 - `_get_supabase()` — lazy init
@@ -336,6 +389,7 @@ PROACTIVE_COOLDOWN_MINUTES=60
 - Elapsed timer during investigation
 - Copy report button
 - Query param handler: `/chat?equip=WR-401&incident=...` pre-fills from Alerts
+- Fault-chain panel (NEW Session 12): after an investigation, calls `/api/graph/fault-chain`; renders a panel with chain + warnings + estimated downtime, but only when the equipment has graph data (≥2 chain nodes). WM-101 is currently the only equipment that triggers it.
 
 ### library.html
 - Filter by plant, line, doc type, equipment, text search
@@ -359,9 +413,22 @@ PROACTIVE_COOLDOWN_MINUTES=60
 - Alerts tab shows red badge with count when unread alerts exist
 - Badge disappears when count = 0
 
+### graph.html (NEW Session 12)
+- Knowledge Graph Explorer at `/graph`
+- Equipment dropdown populated from `/api/graph/equipment`
+- Loads nodes/edges from `/api/graph/nodes?equip=...`
+- Custom layered-canvas renderer — nodes grouped into layers by type (Equipment, Fault, Component, Procedure, Document, Pattern, Safety, Parameter, Part)
+- Stats bar shows node/edge counts; click a node for detail panel
+- Empty state until an equipment with graph data is selected (currently WM-101 only)
+
+### gaps.html
+- Coverage analysis at `/gaps` — reads `/api/gaps`
+- Pure Supabase aggregation (no LLM): groups documents by equip_tag, shows which required doc_types are missing per machine, with a coverage %
+
 ### nav — consistent across all pages
 - PlantMind brand, Plant Setup button, GP G. Phani user badge
-- Tabs: Ask → /chat | Library → /library | Alerts → /alerts
+- Tabs: Ask → /chat | Library → /library | Alerts → /alerts | Graph → /graph (NEW Session 12)
+- graph.html nav does not link back to /graph (you're already there); all other pages link to it
 - 50px nav height on all pages
 
 ---
@@ -386,6 +453,8 @@ python test_pattern.py
 ```
 
 Render deployment: Flask only. MQTT subscriber runs locally. HiveMQ is the cloud broker. Supabase is the shared bridge — subscriber writes from laptop, Flask reads from Render.
+
+Knowledge graph (Session 12): no extra terminal. The graph loads into Neo4j automatically on Flask startup (background thread). Neo4j Aura must be reachable and NEO4J_* env vars set; if not, the graph features silently no-op and the rest of the app is unaffected. Use `/api/graph/debug` to confirm graph status on Render.
 
 ---
 
@@ -486,6 +555,10 @@ python simulator.py
 1. **INV-004** — known 8b model limitation, not a bug
 2. **Render deployment** — MQTT subscriber cannot run on Render free tier (no background workers). Runs locally. All Flask routes work on Render.
 3. **Simulator is demo-only** — in production, real equipment sends MQTT messages. Delete simulator.py for production.
+4. **Knowledge graph is WM-101 only** — `wm101_graph.json` is the single graph dataset. Other equipment returns `has_data: false` and the fault-chain panel / orchestrator graph block simply don't appear. No graph = no error, just no enrichment.
+5. **Graph warnings are hard-coded in two layers** — (a) `knowledge_graph.get_fault_chain` appends fixed warning strings keyed on specific node ids (`burn_in_procedure`, `loto_procedure`, `quality_flag`, `shielding_gas_low`), and (b) `multi_agent.py`'s orchestrator adds STRICT GRAPH RULES written for the WM-101 case (burn-in, tension trap, NCR-2024-047). Both are WM-101-specific; neither is derived generically from the graph. Adding a second equipment's graph will not produce warnings until these are generalised.
+6. **WM-101 (graph) vs WR-401 (everything else) mismatch** — the headline demo equipment across docs, MQTT, simulator, and most eval cases is **WR-401** (plant `northgate`, `line4`). The knowledge graph's only equipment is **WM-101** (plant `greenfield`, `line1`). So the graph enrichment only fires when an operator investigates WM-101, which is *not* the main demo machine. Worth deciding: make WM-101 the canonical example, or build a WR-401 graph. (This also means the graph does not currently close the INV-004 WR-401 burn-in gap — that case is WR-401, the burn-in graph knowledge is WM-101.)
+7. **Graph not yet covered by evals** — the 90% baseline predates the graph feature; no eval case exercises graph-enriched output. A WM-101 burn-in investigation case would be the natural first graph eval.
 
 ---
 
@@ -501,6 +574,7 @@ python simulator.py
 | 9 | Agent memory, one-tap templates, Ragas, UX hardening | 90% |
 | 10 | Plant setup CRUD, dynamic dropdowns, unified input, library fix | 90% |
 | 11 | MQTT real-time integration, HiveMQ, SimPy simulator, alerts page | 90% |
+| 12 | Knowledge graph (Neo4j), fault-chain orchestrator enrichment, Graph Explorer, gaps page | 90% (graph not yet in eval suite) |
 
 ---
 
@@ -530,24 +604,37 @@ python simulator.py
 | MQTT-004 | live_events Supabase table | 11 |
 | PM-040 | Proactive pattern detection | 11 |
 | PM-040-UI | Alerts standalone page with filters + dismiss all | 11 |
+| PM-KG-001 | Neo4j knowledge graph backend + startup load | 12 |
+| PM-KG-002 | Fault-chain orchestrator enrichment (warnings/downtime) | 12 |
+| PM-KG-003 | Graph Explorer page (custom canvas) | 12 |
+| PM-KG-004 | Fault-chain panel in chat report | 12 |
+| PM-GAPS-01 | Coverage / knowledge-gap analysis page | 12 |
 
-### Next session — Session 12 options
+### Next session — Session 13 options
 
-**Option A — LangGraph agent architecture upgrade**
+**Option A — Knowledge graph follow-ups (newest feature, finish it off)**
+| ID | Story | Effort |
+|----|-------|--------|
+| PM-KG-005 | Generalise STRICT GRAPH RULES — derive from graph, not hard-coded WM-101 | 3 hrs |
+| PM-KG-006 | Add graph dataset for a 2nd equipment (prove it's not WM-101-specific) | 2 hrs |
+| PM-KG-007 | WM-101 burn-in eval case (first graph-enriched eval) | 2 hrs |
+| PM-KG-008 | Decide WM-101 vs WR-401 as canonical demo equipment (or build WR-401 graph) | 1 hr |
+
+**Option B — LangGraph agent architecture upgrade**
 | ID | Story | Effort |
 |----|-------|--------|
 | PM-LG-001 | LangGraph migration — refactor multi_agent.py to StateGraph | 4 hrs |
 | PM-LG-002 | Safety critic agent node — LOTO/PPE audit before every response | 2 hrs |
 | PM-LG-003 | Retry and loop handling via conditional edges | 1 hr |
 
-**Option B — Quality and eval expansion**
+**Option C — Quality and eval expansion**
 | ID | Story | Effort |
 |----|-------|--------|
 | PM-RAGAS-02 | Expand Ragas golden dataset to 15 cases | 2 hrs |
 | PM-RAGAS-03 | Ragas with reflection on vs off | 1 hr |
 | PM-RAGAS-04 | Shift intel Ragas cases | 2 hrs |
 
-**Option C — High-value product features**
+**Option D — High-value product features**
 | ID | Story | Effort |
 |----|-------|--------|
 | PM-SH-001 | Prescriptive shift handover — "3 things needing attention, ranked by risk" | 3 hrs |
@@ -571,7 +658,7 @@ python simulator.py
 - Clean venv, requirements.txt covers core + evals + ragas
 - No pyiceberg, no scikit-network
 - Git configured
-- .env transferred — includes MQTT vars from Session 11
+- .env transferred — includes MQTT vars (Session 11) and NEO4J_URI / NEO4J_USERNAME / NEO4J_PASSWORD (Session 12)
 
 ## Requirements
 
@@ -579,7 +666,7 @@ python simulator.py
 flask, gunicorn, groq, pinecone, supabase, python-dotenv,
 langchain-community, langchain-text-splitters, langchain-groq,
 pypdf, requests, openai, ragas, datasets,
-paho-mqtt, simpy
+paho-mqtt, simpy, neo4j
 ```
 
 Do NOT run pip freeze — pulls in pyiceberg from ragas dependencies.
@@ -606,4 +693,4 @@ Paste this entire file as your first message, then add:
 This session I want to: [describe what to build]
 ```
 
-*PlantMind · Session 11 complete · Push to GitHub before next session*
+*PlantMind · Session 12 complete (knowledge graph) · Push to GitHub before next session*
