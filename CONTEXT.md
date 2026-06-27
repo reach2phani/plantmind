@@ -1,7 +1,7 @@
 # PlantMind — Full Project Context for Claude
 
 > This is the complete handoff document. Paste this entire file at the start of any new Claude conversation.
-> Last updated: Session 12 complete (knowledge graph).
+> Last updated: Session 13 complete (action layer M0–M2: tool-calling work-order agent + human approval gate).
 
 ---
 
@@ -14,6 +14,8 @@ An operator describes an equipment incident — "WR-401 welding robot wire feed 
 Session 11 added real-time MQTT integration — the system now monitors live equipment data, detects alarm patterns automatically, and surfaces enriched alert cards to operators.
 
 Session 12 added a knowledge graph layer (Neo4j). Equipment fault chains — Fault → Component → Procedure → Safety → Pattern — are stored as a graph and used two ways: (1) the investigation orchestrator pulls a fault chain for the equipment and injects verified warnings (e.g. mandatory burn-in after liner replacement, the "don't keep adjusting tension" operator trap) into the report, and (2) a standalone Graph Explorer page lets operators browse the relationships visually. The graph is a strict overlay — it never blocks an investigation; if the graph is unavailable, the pipeline proceeds without it (silent fail). The reference graph dataset is WM-101 (`wm101_graph.json`); the rest of the document corpus is still WR-401-centric from earlier sessions.
+
+Session 13 added the **action layer** (Trend 1 — agentic action), scoped to WM-101. Before this, investigations stopped at a recommendation. Now a **separate tool-calling agent** turns a finished investigation report into a **draft work order** by calling tools against seeded Supabase tables + the graph, and a **human approval gate** governs it. Built in milestones: M0 (system of record — 7 tables, seed data, read-only `/work-orders` page), M1 (Groq native tool-calling drafts a work order), M2 (human-in-the-loop: edit-while-draft, approve/reject, date-based WO numbers, audit trail). The guardrails are the point: tool results are authoritative, cost is computed in Python (never by the model, so it can't be gamed into a lower approval tier), the state machine is enforced server-side, and every action is audited. Still TODO: M3 (execution/side effects), M3.5 (n8n round-trip), M0.5 (WM-101 simulator), M4 (guardrail evals). See PHASE-PLAN-Action-Layer.md for the full plan.
 
 ---
 
@@ -44,6 +46,10 @@ C:\PlantMind\                     (Windows, VS Code)
 ├── knowledge_graph.py            — Neo4j fault-chain queries + graph load (NEW Session 12)
 ├── agent_v2.py                   — LEGACY single-agent tool-loop prototype (not imported; superseded by multi_agent.py)
 ├── wm101_graph.json              — Knowledge graph dataset for WM-101 (NEW Session 12)
+├── work_order_agent.py           — Tool-calling work-order drafting agent (NEW Session 13)
+├── sql/01_schema.sql             — Action-layer tables (NEW Session 13)
+├── sql/02_seed.sql               — WM-101 parts/suppliers/techs/thresholds seed (NEW Session 13)
+├── sql/03_m2_schema.sql          — wo_number/title/audit columns + next_wo_number() (NEW Session 13)
 ├── llm_logger.py                 — LLM observability
 ├── embedder.py                   — Document chunking and Pinecone upsert
 ├── reembed.py                    — Re-index all documents
@@ -57,6 +63,7 @@ C:\PlantMind\                     (Windows, VS Code)
 │   ├── alerts.html               — Live feed + Pattern alerts (NEW Session 11)
 │   ├── graph.html                — Knowledge Graph Explorer (NEW Session 12)
 │   ├── gaps.html                 — Knowledge gap / coverage analysis page
+│   ├── work_orders.html          — Work orders + inventory + approval gate (NEW Session 13)
 │   ├── plant_setup.html          — Plant CRUD
 │   └── index.html                — Upload interface (fallback)
 ├── static/
@@ -306,6 +313,37 @@ Warnings come from two places: (a) **hard-coded by node id** inside `get_fault_c
 **get_graph_stats(equip_tag)** returns: `{nodes, edges}`
 **get_graphed_equipment()** returns: list of equipment tags that have graph data
 **load_graph(json_path)** loads/refreshes the graph; returns success bool
+
+---
+
+---
+
+## Action layer — work orders (NEW Session 13, M0–M2)
+
+The agentic action layer. Investigation → draft work order (tool-calling) → human approval gate. Scoped to WM-101.
+
+**New module:** `work_order_agent.py` — a SEPARATE agent (imports nothing from multi_agent.py, changes nothing in the investigation path). Groq NATIVE tool-calling on llama-3.3-70b-versatile.
+- Tools: `get_equipment_fix_info` (graph fault chain), `check_parts_inventory`, `find_technician`, `check_availability` (M1 stub — real scheduling is M3).
+- Bounded loop (`MAX_ITERATIONS = 6`). Outputs structured JSON (title, summary, parts, procedures, technician, downtime).
+- `draft_work_order(report_text, equip_tag, ...)` → saves a `pending_approval` row, writes a `wo_audit` "drafted" row with the full tool log.
+- `price_and_cost(parts, downtime_min)` — PUBLIC helper, reused by the edit endpoint. **Cost is always computed here in Python**, never by the model: `Σ(unit_cost×qty) + downtime_hrs×(LABOR_RATE 120 + DOWNTIME_RATE 355)`. Tier matched from `cost_thresholds`. Tunable constants at top of file.
+
+**New Supabase tables (7, run `01_schema.sql` then `02_seed.sql`; M2 adds `03_m2_schema.sql`):**
+- `work_orders` — keys on equip_tag (plant/line derived from equipment table, never stored). Columns incl. wo_number, title, status, parts(jsonb), procedures(jsonb), est_cost_usd, approval_tier, approved_by/at, rejected_reason, edited_at. Status machine: draft → pending_approval → approved → scheduled → executed → dispatched; rejected/cancelled terminal. **Enforced server-side in Flask, not the DB.**
+- `parts_inventory` — 7 seeded SKUs (GSW-DROLL-08/LINER-08/TIP-08/WIRE-0625 + consumables). GSW-WIRE-0625 seeded OUT OF STOCK (qty 0) for the guardrail demo.
+- `suppliers`, `technicians` (5, skills jsonb e.g. ["LOTO","MIG"]), `cost_thresholds` (USD: auto <250, supervisor 250–1500, manager 1500+), `bookings`, `wo_audit` (append-only audit trail).
+- `next_wo_number()` Postgres function — date-based WO numbers `WO-YYYYMMDD-NN`, atomic per-day sequence.
+
+**New routes (app.py):**
+- `/work-orders` page; `GET /api/work-orders` (derives plant/line + technician_name); `GET /api/inventory` (computes needs_reorder); `GET /api/technicians`; `GET /api/work-orders/count` (nav badge).
+- `POST /api/draft-work-order` (M1 — runs the agent).
+- `PATCH /api/work-orders/<id>` (M2 edit — draft-only, recomputes cost/tier, audited); `POST .../approve`; `POST .../reject`. All return 409 if not pending_approval (state machine guard).
+
+**UI:** `work_orders.html` — three-state cards (collapsed list / expanded read / inline edit), approve/reject, editable title, pending-count nav badge. "Draft work order" button on the investigation report in chat.html. Work-orders tab added to all nav (chat/library/alerts/graph).
+
+**Guardrails in place (M1–M2):** tool results authoritative (system prompt forbids invented parts/stock/tech/cost); cost computed in Python (can't be edited into a cheaper tier); bounded loop; state machine enforced server-side; full audit trail; edit only while draft.
+
+**Not yet built:** M3 (execution — decrement stock, book tech, completion record), M3.5 (n8n Cloud round-trip → dispatched), M0.5 (WM-101 simulator/live trigger), M4 (guardrail evals).
 
 ---
 
@@ -575,6 +613,7 @@ python simulator.py
 | 10 | Plant setup CRUD, dynamic dropdowns, unified input, library fix | 90% |
 | 11 | MQTT real-time integration, HiveMQ, SimPy simulator, alerts page | 90% |
 | 12 | Knowledge graph (Neo4j), fault-chain orchestrator enrichment, Graph Explorer, gaps page | 90% (graph not yet in eval suite) |
+| 13 | Action layer M0–M2: WM-101 parity evals, 7 tables, tool-calling WO agent, human approval gate | WM-101 evals 93% (1 known burn-in miss); action layer working, untested by eval |
 
 ---
 
@@ -693,4 +732,4 @@ Paste this entire file as your first message, then add:
 This session I want to: [describe what to build]
 ```
 
-*PlantMind · Session 12 complete (knowledge graph) · Push to GitHub before next session*
+*PlantMind · Session 13 complete (action layer M0–M2) · Next: M3 execution. Push to GitHub before next session*
