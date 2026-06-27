@@ -372,6 +372,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
 
 /* ── Fault chain panel ── */
 .fault-chain-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;margin:0 20px 12px;overflow:hidden}
+.act-btn-draft{background:#7c3aed;color:#fff;border:none}
+.act-btn-draft:hover{background:#6d28d9}
+.act-btn-drafted{background:#dcfce7!important;color:#166534!important}
+.wo-drafted-note{font-size:12px;color:#475569;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:8px 12px;margin:0 20px 12px}
+.wo-drafted-note a{color:#7c3aed;text-decoration:none;font-weight:500}
+.wo-drafted-note a:hover{text-decoration:underline}
 .fcp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f1f5f9;background:#faf5ff}
 .fcp-title{font-size:12px;font-weight:600;color:#4f46e5;display:flex;align-items:center;gap:6px}
 .fcp-toggle{font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;padding:2px 6px}
@@ -456,6 +462,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
   <a class="page-tab" href="/library" onclick="saveConversation()">Library</a>
   <a class="page-tab" href="/alerts" onclick="saveConversation()">Alerts <span id="alertsTabBadge" style="display:none;font-size:10px;background:#dc2626;color:#fff;padding:1px 6px;border-radius:999px;margin-left:2px;font-weight:700"></span></a>
   <a class="page-tab" href="/graph"  onclick="saveConversation()">Graph</a>
+  <a class="page-tab" href="/work-orders" onclick="saveConversation()">Work orders</a>
 </div>
 
 <div class="body">
@@ -1420,11 +1427,14 @@ function submitInvestigation(incident) {
           var actDiv = document.createElement('div');
           actDiv.className = 'card-actions';
           actDiv.innerHTML =
+            '<button class="act-btn act-btn-draft" onclick="draftWorkOrder(this, \''+escHtml(equipment_id_used||'').replace(/'/g,"&#39;")+'\')">&#128203; Draft work order</button>' +
             '<button class="act-btn" onclick="reuseQuestion(\''+escHtml(incident).replace(/'/g,"&#39;")+'\')">Re-investigate</button>' +
             '<div class="helpful">Helpful?' +
               '<button class="thumb" onclick="this.style.opacity=1;this.nextElementSibling.style.opacity=0.2">&#128077;</button>' +
               '<button class="thumb" onclick="this.style.opacity=1;this.previousElementSibling.style.opacity=0.2">&#128078;</button>' +
             '</div>';
+          actDiv.setAttribute('data-report', bodyText);
+          actDiv.setAttribute('data-line', line || '');
           card.appendChild(actDiv);
           saveToHistory('agent', incident, bodyText, [], plant, line);
           // Inject fault chain panel if equipment has graph data
@@ -1498,6 +1508,49 @@ function submitInvestigation(incident) {
     stepsEl.innerHTML = '<span style="color:#dc2626;font-size:13px">Investigation failed: '+escHtml(err.message)+'</span>';
     btn.disabled    = false;
     btn.textContent = '⚡ Investigate';
+  });
+}
+
+// ── DRAFT WORK ORDER (M1) ─────────────────────────────────────────────────────
+
+function draftWorkOrder(btn, equipTag) {
+  var actDiv = btn.closest('.card-actions');
+  var report = actDiv ? actDiv.getAttribute('data-report') : '';
+  var line   = actDiv ? actDiv.getAttribute('data-line')   : '';
+  if (!report) { alert('No investigation report found to draft from.'); return; }
+
+  var original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Drafting…';
+
+  fetch('/api/draft-work-order', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ report: report, equip_tag: equipTag, line: line })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.error) {
+      btn.disabled = false;
+      btn.innerHTML = original;
+      alert('Could not draft work order: ' + d.error);
+      return;
+    }
+    var wo = d.work_order || {};
+    btn.innerHTML = '✅ Work order drafted';
+    btn.classList.add('act-btn-drafted');
+    var note = document.createElement('div');
+    note.className = 'wo-drafted-note';
+    note.innerHTML =
+      'Draft created — <b>' + escHtml(wo.approval_tier || 'review') + '</b> approval needed' +
+      (wo.est_cost_usd != null ? ' · est. $' + Number(wo.est_cost_usd).toFixed(2) : '') +
+      '. <a href="/work-orders">Open Work orders →</a>';
+    actDiv.parentNode.insertBefore(note, actDiv.nextSibling);
+  })
+  .catch(function(err) {
+    btn.disabled = false;
+    btn.innerHTML = original;
+    alert('Draft failed: ' + err.message);
   });
 }
 

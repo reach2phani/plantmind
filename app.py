@@ -12,6 +12,7 @@ from embedder import embed_document
 from pinecone import Pinecone
 from groq import Groq
 from multi_agent import investigate_incident
+from work_order_agent import draft_work_order, price_and_cost
 from llm_logger import log_streaming_call, get_today_stats
 
 app = Flask(__name__)
@@ -1196,6 +1197,260 @@ def get_live_events():
         return jsonify({"events": result.data or []})
     except Exception as e:
         return jsonify({"events": []})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WORK ORDERS / INVENTORY ROUTES  (M0 — read-only; approval arrives in M2)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.route("/work-orders")
+def work_orders_page():
+    return render_template("work_orders.html")
+
+
+def _equip_context(equip_tag):
+    """Look up plant_site/line for an equip_tag from the equipment config table.
+    Plant/line are NOT stored on work_orders/parts — derived here so the
+    equipment table is the single source of truth."""
+    try:
+        res = (supabase.table("equipment")
+               .select("plant_site,line")
+               .eq("equip_tag", equip_tag)
+               .limit(1)
+               .execute())
+        if res.data:
+            return {"plant_site": res.data[0].get("plant_site", ""),
+                    "line":       res.data[0].get("line", "")}
+    except Exception:
+        pass
+    return {"plant_site": "", "line": ""}
+
+
+@app.route("/api/work-orders", methods=["GET"])
+def get_work_orders():
+    try:
+        equip  = request.args.get("equip_tag", "")
+        status = request.args.get("status", "")
+        q = (supabase.table("work_orders")
+             .select("*")
+             .order("created_at", desc=True)
+             .limit(50))
+        if equip:
+            q = q.eq("equip_tag", equip)
+        if status:
+            q = q.eq("status", status)
+        rows = q.execute().data or []
+
+        ctx_cache = {}
+        for w in rows:
+            tag = w.get("equip_tag", "")
+            if tag and tag not in ctx_cache:
+                ctx_cache[tag] = _equip_context(tag)
+            ctx = ctx_cache.get(tag, {"plant_site": "", "line": ""})
+            w["plant_site"] = ctx["plant_site"]
+            w["line"]       = ctx["line"]
+
+        # Resolve assigned_technician id -> name for display
+        tech_ids = list({w.get("assigned_technician") for w in rows if w.get("assigned_technician")})
+        tech_names = {}
+        if tech_ids:
+            try:
+                tres = supabase.table("technicians").select("id,name").in_("id", tech_ids).execute()
+                tech_names = {t["id"]: t.get("name") for t in (tres.data or [])}
+            except Exception:
+                pass
+        for w in rows:
+            w["technician_name"] = tech_names.get(w.get("assigned_technician"))
+
+        return jsonify({"work_orders": rows})
+    except Exception as e:
+        return jsonify({"work_orders": [], "error": str(e)})
+
+
+@app.route("/api/technicians", methods=["GET"])
+def get_technicians():
+    """Active technicians (optionally filtered by line) for the edit dropdown."""
+    try:
+        line = request.args.get("line", "")
+        q = supabase.table("technicians").select("*").eq("active", True).order("name")
+        if line:
+            q = q.eq("line", line)
+        rows = q.execute().data or []
+        for r in rows:
+            sk = r.get("skills")
+            if isinstance(sk, str):
+                try: r["skills"] = json.loads(sk)
+                except Exception: r["skills"] = []
+        return jsonify({"technicians": rows})
+    except Exception as e:
+        return jsonify({"technicians": [], "error": str(e)})
+
+
+@app.route("/api/work-orders/count", methods=["GET"])
+def get_work_orders_count():
+    """Count of work orders awaiting human approval — for the nav badge (M2)."""
+    try:
+        result = (supabase.table("work_orders")
+                  .select("id", count="exact")
+                  .eq("status", "pending_approval")
+                  .execute())
+        return jsonify({"count": result.count or 0})
+    except Exception:
+        return jsonify({"count": 0})
+
+
+@app.route("/api/inventory", methods=["GET"])
+def get_inventory():
+    try:
+        equip = request.args.get("equip_tag", "")
+        q = supabase.table("parts_inventory").select("*").order("sku")
+        if equip:
+            # this equipment's parts PLUS shared consumables (equip_tag is null)
+            q = q.or_(f"equip_tag.eq.{equip},equip_tag.is.null")
+        parts = q.execute().data or []
+
+        for p in parts:
+            qty = p.get("qty_on_hand") or 0
+            rop = p.get("reorder_point") or 0
+            p["needs_reorder"] = qty <= rop
+
+        return jsonify({"parts": parts})
+    except Exception as e:
+        return jsonify({"parts": [], "error": str(e)})
+
+
+@app.route("/api/draft-work-order", methods=["POST"])
+def draft_work_order_route():
+    """M1 — turn a finished investigation report into a DRAFT work order
+    (status 'pending_approval') via the separate work-order agent.
+    Drafts only: no approval, no execution (those are M2/M3)."""
+    try:
+        data         = request.get_json() or {}
+        report_text  = (data.get("report") or "").strip()
+        equip_tag    = (data.get("equip_tag") or "").strip()
+        incident_ref = data.get("incident_ref")
+        line_hint    = data.get("line", "")
+
+        if not report_text:
+            return jsonify({"error": "No investigation report provided"}), 400
+        if not equip_tag:
+            equip_tag = extract_equipment_id(report_text)
+        if not equip_tag:
+            return jsonify({"error": "Could not determine equipment for this work order"}), 400
+
+        wo = draft_work_order(report_text, equip_tag,
+                              incident_ref=incident_ref, line_hint=line_hint)
+        return jsonify({"success": True, "work_order": wo})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ── M2: human-in-the-loop — edit (draft only) / approve / reject ──────────────
+
+def _audit(work_order_id, event_type, actor, detail=None):
+    try:
+        supabase.table("wo_audit").insert({
+            "work_order_id": work_order_id,
+            "event_type":    event_type,
+            "actor":         actor,
+            "detail":        detail or {},
+        }).execute()
+    except Exception:
+        pass
+
+
+def _get_wo(wo_id):
+    res = supabase.table("work_orders").select("*").eq("id", wo_id).limit(1).execute()
+    return (res.data or [None])[0]
+
+
+@app.route("/api/work-orders/<wo_id>", methods=["PATCH"])
+def edit_work_order(wo_id):
+    """Edit a DRAFT work order. Allowed only while status == pending_approval.
+    Title/parts(qty)/technician/downtime are editable; cost + tier ALWAYS
+    recomputed in Python from the parts — never taken from the request."""
+    try:
+        wo = _get_wo(wo_id)
+        if not wo:
+            return jsonify({"error": "Work order not found"}), 404
+        if wo.get("status") != "pending_approval":
+            return jsonify({"error": "Only draft (pending_approval) work orders can be edited"}), 409
+
+        data = request.get_json() or {}
+        updates = {}
+
+        if "title" in data:
+            updates["title"] = (data.get("title") or "").strip()
+        if "summary" in data:
+            updates["summary"] = data.get("summary") or ""
+        if "assigned_technician" in data:
+            updates["assigned_technician"] = data.get("assigned_technician")
+
+        # Parts / downtime drive a cost + tier recompute (guardrail).
+        parts        = data.get("parts", wo.get("parts") or [])
+        downtime_min = int(data.get("est_downtime_min", wo.get("est_downtime_min") or 60))
+        priced_parts, est_cost, tier, approver_role = price_and_cost(parts, downtime_min)
+        updates["parts"]            = priced_parts
+        updates["est_downtime_min"] = downtime_min
+        updates["est_cost_usd"]     = est_cost
+        updates["approval_tier"]    = tier
+        updates["edited_at"]        = datetime.utcnow().isoformat()
+
+        supabase.table("work_orders").update(updates).eq("id", wo_id).execute()
+        _audit(wo_id, "edited", data.get("actor", "human"),
+               {"changes": list(updates.keys()), "new_cost_usd": est_cost, "new_tier": tier})
+
+        out = _get_wo(wo_id)
+        if out:
+            out["approver_role"] = approver_role
+        return jsonify({"success": True, "work_order": out})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/work-orders/<wo_id>/approve", methods=["POST"])
+def approve_work_order(wo_id):
+    """Approve a DRAFT work order: pending_approval -> approved.
+    The human approval gate. Nothing executes here (execution is M3)."""
+    try:
+        wo = _get_wo(wo_id)
+        if not wo:
+            return jsonify({"error": "Work order not found"}), 404
+        if wo.get("status") != "pending_approval":
+            return jsonify({"error": "Only pending_approval work orders can be approved"}), 409
+
+        data       = request.get_json() or {}
+        approver   = data.get("approved_by", "Shift Supervisor")
+        updates = {"status": "approved", "approved_by": approver, "approved_at": datetime.utcnow().isoformat()}
+        supabase.table("work_orders").update(updates).eq("id", wo_id).execute()
+        _audit(wo_id, "approved", approver,
+               {"tier": wo.get("approval_tier"), "est_cost_usd": wo.get("est_cost_usd")})
+
+        return jsonify({"success": True, "work_order": _get_wo(wo_id)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/work-orders/<wo_id>/reject", methods=["POST"])
+def reject_work_order(wo_id):
+    """Reject a DRAFT work order: pending_approval -> rejected (terminal)."""
+    try:
+        wo = _get_wo(wo_id)
+        if not wo:
+            return jsonify({"error": "Work order not found"}), 404
+        if wo.get("status") != "pending_approval":
+            return jsonify({"error": "Only pending_approval work orders can be rejected"}), 409
+
+        data   = request.get_json() or {}
+        reason = (data.get("reason") or "").strip()
+        actor  = data.get("actor", "human")
+        updates = {"status": "rejected", "rejected_reason": reason}
+        supabase.table("work_orders").update(updates).eq("id", wo_id).execute()
+        _audit(wo_id, "rejected", actor, {"reason": reason})
+
+        return jsonify({"success": True, "work_order": _get_wo(wo_id)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ─────────────────────────────────────────────────────────────────────────────

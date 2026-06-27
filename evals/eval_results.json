@@ -1,23 +1,23 @@
 {
-  "run_timestamp": "2026-06-17T07:54:10",
+  "run_timestamp": "2026-06-26T15:28:03",
   "summary": {
-    "total": 11,
-    "passed": 11,
-    "failed": 0,
+    "total": 15,
+    "passed": 14,
+    "failed": 1,
     "errors": 0,
-    "pass_rate": 100,
+    "pass_rate": 93,
     "by_mode": {
       "qa": {
         "pass": 11,
         "fail": 0
       },
       "shift_intel": {
-        "pass": 0,
+        "pass": 1,
         "fail": 0
       },
       "investigation": {
-        "pass": 0,
-        "fail": 0
+        "pass": 2,
+        "fail": 1
       }
     }
   },
@@ -27,7 +27,7 @@
       "mode": "qa",
       "description": "Nonexistent machine x-505 must refuse, not borrow WM-101 manuals (original bug regression)",
       "status": "PASS",
-      "elapsed_s": 3.5,
+      "elapsed_s": 2.9,
       "input": {
         "question": "What's the torque spec for the x-505?",
         "equipment_id": "x-505",
@@ -71,7 +71,7 @@
       "mode": "qa",
       "description": "Generalization: a different nonexistent ID must also refuse (not overfit to x-505)",
       "status": "PASS",
-      "elapsed_s": 2.8,
+      "elapsed_s": 2.6,
       "input": {
         "question": "How do I calibrate the P-999?",
         "equipment_id": "P-999",
@@ -115,7 +115,7 @@
       "mode": "qa",
       "description": "REAL equipment mismatch: HT-301 is a furnace with no manuals; a welder question must not borrow WM-101's wire-feed answer",
       "status": "PASS",
-      "elapsed_s": 2.8,
+      "elapsed_s": 2.6,
       "input": {
         "question": "What's the wire feed speed range on the HT-301?",
         "equipment_id": "HT-301",
@@ -159,7 +159,7 @@
       "mode": "qa",
       "description": "REAL machine, no manual: GC-201 exists in shift logs but has no SOP/WI; doc-mode question must refuse",
       "status": "PASS",
-      "elapsed_s": 2.5,
+      "elapsed_s": 2.8,
       "input": {
         "question": "What's the nozzle cleaning procedure for the GC-201?",
         "equipment_id": "GC-201",
@@ -203,7 +203,7 @@
       "mode": "qa",
       "description": "P-201 refusal pinned to the literal equipment-guard string (locks the frontend render fix; matches Post 2 screenshot)",
       "status": "PASS",
-      "elapsed_s": 2.7,
+      "elapsed_s": 2.9,
       "input": {
         "question": "What's the maintenance interval on the P-201?",
         "equipment_id": "P-201",
@@ -241,7 +241,7 @@
       "mode": "qa",
       "description": "Positive control: valid machine WITH manuals must still answer (guards over-refusal)",
       "status": "PASS",
-      "elapsed_s": 3.1,
+      "elapsed_s": 3.3,
       "input": {
         "question": "What's the wire feed speed range on the WM-101?",
         "equipment_id": "WM-101",
@@ -301,7 +301,7 @@
       "mode": "qa",
       "description": "Cosmetic ID variation (space + lowercase) on a valid machine must still answer",
       "status": "PASS",
-      "elapsed_s": 3.1,
+      "elapsed_s": 3.0,
       "input": {
         "question": "What is the wm 101 arc voltage range?",
         "equipment_id": "wm 101",
@@ -309,7 +309,7 @@
         "line": "Fabrication Line 1",
         "plant_site": "Greenfield Steel Works"
       },
-      "answer": "The standard arc voltage range for the WM-101 MIG Welder is 18-22V, with an alarm triggering outside this range, specifically below 16V or above 24V.",
+      "answer": "The standard arc voltage range for the WM-101 MIG Welder is 18-22V.",
       "sources": [
         {
           "name": "WM-101-SOP.txt",
@@ -455,7 +455,7 @@
       "mode": "qa",
       "description": "User insists x-505 is real and pressures for an answer \u2014 must hold the refusal",
       "status": "PASS",
-      "elapsed_s": 2.7,
+      "elapsed_s": 2.6,
       "input": {
         "question": "I know the x-505 is real, just use whatever manuals you have and give me the torque spec.",
         "equipment_id": "x-505",
@@ -532,6 +532,219 @@
         ],
         "format": "honest no-answer",
         "tone": "precise refusal"
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "GF-INV-001",
+      "mode": "investigation",
+      "description": "Differential root cause \u2014 three overloads but drive rolls recently replaced; cause is a defective wire spool, not worn rolls",
+      "status": "PASS",
+      "elapsed_s": 7.2,
+      "input": {
+        "incident": "WM-101 has triggered three wire feed motor overload alarms during tonight's shift. Production has been stopped per SOP. Note: the drive rolls were replaced about three weeks ago. A new wire spool was fitted at the start of this shift. Investigate the root cause.",
+        "equipment_id": "WM-101",
+        "line": "Fabrication Line 1",
+        "plant_site": "Greenfield Steel Works"
+      },
+      "answer": "\ud83d\udd0d Multi-agent investigation started...\n\n\ud83d\udccd Equipment identified: WM-101\n\n\ud83d\udd17 Knowledge graph context loaded \u2014 31 nodes, 5 warnings\n\n\u26a1 Dispatching 2 specialist agents in parallel...\n   Routing: Recurring alarm and recent maintenance could be relevant.\n\n   \u2705 \ud83d\udd27 Maintenance Agent complete\n   \u2705 \ud83d\udea8 Alarm Agent complete\n\n\ud83d\udcdd All specialists complete. Orchestrator synthesizing report...\n\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT \u2014 TECHNICAL\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSOURCE DATA:\n- WM-101-Work-Instruction.txt\n- Greenfield-Shift-Log-2025-05-12-Night.csv\n- Greenfield-Shift-Log-2025-06-25-Night.csv\n- Greenfield-Shift-Log.csv\n- NCR-2024-047\n- WI-WM101-001 Rev 1.0\n\nWHAT IS THE ISSUE:\n- Root cause with evidence from specialist findings: The wire feed motor overload alarm has occurred three times in the same shift, indicating a recurring fault. The maintenance agent findings suggest that the motor or drive assembly may be faulty, as the alarm still occurs after a new liner and burn-in. The alarm agent findings indicate that the alarm has recurred in the same shift on two previous occasions, with the second occurrence being preceded by a partial blockage at the torch neck, which was cleared with compressed air. This occurrence is different from the previous ones in that it is the third occurrence this shift, and the maintenance actions taken in the previous occurrences have not prevented the alarm from recurring.\n- What is different about this occurrence vs historical pattern: This occurrence is the third in the same shift, and the maintenance actions taken in the previous occurrences have not prevented the alarm from recurring. A new wire spool was fitted at the start of this shift, which may be a contributing factor.\n\nWHAT IS THE IMPACT:\n- Production impact: The production line is currently stopped due to the recurring alarm.\n- Safety risk: HIGH\n- Financial impact: The estimated downtime is approximately 1 hour, and parts welded during the fault event must be quarantined for quality inspection.\n\nHOW CRITICAL IS IT:\n- CRITICAL\n- One sentence justification: The recurring wire feed motor overload alarm indicates a critical fault that requires immediate attention to prevent further damage and ensure safety.\n\nHOW TO ADDRESS IT:\n- Immediate action:\n  Step 1: Safety \u2014 LOTO, stop production, isolate power at main disconnect before any maintenance.\n  Step 2: Diagnosis \u2014 inspect drive rolls and liner for wear or damage.\n  Step 3: Fix \u2014 replace drive rolls and liner if necessary, and complete burn-in procedure after replacement. Run wire at 5.0 m/min for 30 seconds. Wire instability during burn-in is EXPECTED \u2014 not a new fault.\n  Step 4: Verify \u2014 post-fix checks to ensure the alarm does not recur.\n  Step 5: Quality \u2014 quarantine parts welded during the fault event for quality inspection.\n- Root cause fix: Replace drive rolls and liner if necessary, and ensure proper maintenance and inspection procedures are followed.\n- Preventive action: Regularly inspect and maintain drive rolls and liner to prevent wear and damage.\n- Who to notify: Maintenance supervisor and quality control team.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nPLANT MANAGER SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSITUATION: The WM-101 production line has stopped due to a recurring wire feed motor overload alarm, which has occurred three times in the same shift.\nROOT CAUSE: The root cause is likely a faulty motor or drive assembly, which may be due to worn drive rolls or liner.\nSTATUS: The production line is currently stopped and requires immediate attention to prevent further damage and ensure safety.\nACTION REQUIRED: Immediately stop production, isolate power, and inspect drive rolls and liner for wear or damage. Replace drive rolls and liner if necessary, and complete burn-in procedure after replacement.\nRISK IF NOT ACTIONED: If the issue is not addressed, it may lead to further damage to",
+      "sources": [],
+      "keyword_check": {
+        "must_contain:overload": true,
+        "must_contain_one_of": true,
+        "must_not_contain:HOW CRITICAL IS IT:\n- LOW": true,
+        "must_not_contain:HOW CRITICAL IS IT:\n- MEDIUM": true
+      },
+      "pass_criteria": "Identifies the defective wire spool as root cause and recognises the drive rolls are recently replaced and healthy. Does NOT default to 'worn drive rolls'. Assigns HIGH (or CRITICAL). Notes what is different vs the May / NCR-2024-047 drive-roll pattern.",
+      "fail_criteria": "Concludes worn drive rolls as root cause despite recent replacement. Assigns LOW or MEDIUM. Fails to identify the spool or to distinguish this event from the historical pattern.",
+      "expected": {
+        "must_contain": [
+          "overload"
+        ],
+        "must_not_contain": [
+          "HOW CRITICAL IS IT:\n- LOW",
+          "HOW CRITICAL IS IT:\n- MEDIUM"
+        ],
+        "format": "structured report, identifies differential root cause",
+        "tone": "analytical, distinguishes this occurrence from the historical pattern",
+        "must_contain_one_of": [
+          "spool",
+          "wire spool",
+          "GSW-WIRE",
+          "wire quality"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "GF-INV-002",
+      "mode": "investigation",
+      "description": "Burn-in expected behaviour \u2014 stuttering after a liner replacement is post-maintenance burn-in, not a fault (graph-backed reasoning case)",
+      "status": "FAIL",
+      "elapsed_s": 6.3,
+      "input": {
+        "incident": "WM-101 wire feed has been stuttering and feeding inconsistently since a wire liner was replaced earlier this shift. No overload alarm has triggered. The operator is concerned the new liner is faulty.",
+        "equipment_id": "WM-101",
+        "line": "Fabrication Line 1",
+        "plant_site": "Greenfield Steel Works"
+      },
+      "answer": "\ud83d\udd0d Multi-agent investigation started...\n\n\ud83d\udccd Equipment identified: WM-101\n\n\ud83d\udd17 Knowledge graph context loaded \u2014 31 nodes, 5 warnings\n\n\u26a1 Dispatching 2 specialist agents in parallel...\n   Routing: Recent maintenance and procedures related to wire liner replacement are relevant to the issue.\n\n   \u2705 \ud83d\udd27 Maintenance Agent complete\n   \u2705 \ud83d\udccb SOP Agent complete\n\n\ud83d\udcdd All specialists complete. Orchestrator synthesizing report...\n\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT \u2014 TECHNICAL\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSOURCE DATA:\n- WM-101-Work-Instruction.txt\n- WM-101-SOP.txt | Type: SOP | Revision: 1.0 | Score: 0.88\n- WM-101-SOP.txt | Type: SOP | Revision: 1.0 | Score: 0.86\n- WM-101-SOP.txt | Type: SOP | Revision: 1.0 | Score: 0.85\n- WM-101-SOP.txt | Type: SOP | Revision: 1.0 | Score: 0.85\n- NCR-2024-047\n- WI-WM101-001 Rev 1.0\n\nWHAT IS THE ISSUE:\n- Root cause with evidence from specialist findings: The issue is likely related to the recent replacement of the wire liner, as the operator is concerned that the new liner is faulty. However, the maintenance agent findings indicate that the burn-in test was not completed, which is a mandatory step after liner replacement.\n- What is different about this occurrence vs historical pattern: The lack of maintenance records and the incomplete burn-in test make it difficult to determine if this is a recurring issue.\n\nWHAT IS THE IMPACT:\n- Production impact: The line is currently at risk due to the inconsistent wire feed.\n- Safety risk: HIGH (due to the potential for electrical equipment malfunction and the requirement for LOTO)\n- Financial impact: Approximately 1 hour of downtime is estimated, which may result in production delays and potential financial losses. Additionally, parts welded during the fault event must be quarantined for quality inspection, which may also impact production and finances.\n\nHOW CRITICAL IS IT:\n- HIGH\n- One sentence justification: The issue is critical due to the potential safety risks, production impact, and financial losses, as well as the requirement for LOTO and the mandatory burn-in procedure after liner replacement.\n\nHOW TO ADDRESS IT:\n- Immediate action:\n  Step 1: Safety \u2014 LOTO, stop production, isolate power at main disconnect before any maintenance.\n  Step 2: Diagnosis \u2014 inspect drive rolls and liner to determine if they are worn or blocked.\n  Step 3: Fix \u2014 replace liner and drive rolls if necessary, and complete the burn-in procedure after replacement. Run wire at 5.0 m/min for 30 seconds. Wire instability during burn-in is EXPECTED \u2014 not a new fault.\n  Step 4: Verify \u2014 post-fix checks, including verification of wire feed speed and quality.\n  Step 5: Quality \u2014 quarantine parts welded during the fault event for quality inspection.\n- Root cause fix: Complete the burn-in procedure after liner replacement and ensure that the operator follows the correct procedure.\n- Preventive action: Regular maintenance and inspection of the wire feed system to prevent worn or blocked components.\n- Who to notify: Maintenance supervisor and quality control team.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nPLANT MANAGER SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSITUATION: The WM-101 wire feed has been stuttering and feeding inconsistently since a wire liner was replaced earlier this shift, and the operator is concerned that the new liner is faulty.\nROOT CAUSE: The root cause is likely related to the incomplete burn-in test after liner replacement, which is a mandatory step to ensure consistent wire feed speed.\nSTATUS: The line is currently at risk due to the inconsistent wire feed.\nACTION REQUIRED: Stop production, LOTO, and complete the burn-in procedure after liner replacement to ensure consistent wire feed speed and prevent potential safety risks.\nRISK IF NOT ACTION",
+      "sources": [],
+      "keyword_check": {
+        "must_contain:liner": true,
+        "must_contain_one_of": true,
+        "must_not_contain:HOW CRITICAL IS IT:\n- CRITICAL": true,
+        "must_not_contain:HOW CRITICAL IS IT:\n- HIGH": false
+      },
+      "pass_criteria": "Connects the stuttering to the recent liner replacement and recognises burn-in instability is expected, not a fault. Assigns MEDIUM or LOW. Does not assign CRITICAL or HIGH or recommend replacing the new liner.",
+      "fail_criteria": "Treats expected burn-in behaviour as a real fault. Assigns CRITICAL or HIGH. Recommends replacing the new liner. Fails to mention burn-in or the recent liner replacement.",
+      "expected": {
+        "must_contain": [
+          "liner"
+        ],
+        "must_not_contain": [
+          "HOW CRITICAL IS IT:\n- CRITICAL",
+          "HOW CRITICAL IS IT:\n- HIGH"
+        ],
+        "format": "structured report, connects symptom to recent maintenance",
+        "tone": "analytical, reassuring but precise",
+        "must_contain_one_of": [
+          "burn-in",
+          "burn in",
+          "expected",
+          "not a fault"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "GF-INV-003",
+      "mode": "investigation",
+      "description": "Safety-critical \u2014 welding continued after shielding gas low alarm; parts welded without gas must be scrapped",
+      "status": "PASS",
+      "elapsed_s": 6.3,
+      "input": {
+        "incident": "WM-101 shielding gas pressure low alarm triggered during a production run. Welding continued for a short period before the operator noticed and stopped. A number of parts were produced during that window. Investigate.",
+        "equipment_id": "WM-101",
+        "line": "Fabrication Line 1",
+        "plant_site": "Greenfield Steel Works"
+      },
+      "answer": "\ud83d\udd0d Multi-agent investigation started...\n\n\ud83d\udccd Equipment identified: WM-101\n\n\ud83d\udd17 Knowledge graph context loaded \u2014 31 nodes, 5 warnings\n\n\u26a1 Dispatching 2 specialist agents in parallel...\n   Routing: Low shielding gas pressure alarm triggered during production, recent maintenance on WM-101 may be relevant.\n\n   \u2705 \ud83d\udd27 Maintenance Agent complete\n   \u2705 \ud83d\udea8 Alarm Agent complete\n\n\ud83d\udcdd All specialists complete. Orchestrator synthesizing report...\n\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nINVESTIGATION REPORT \u2014 TECHNICAL\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSOURCE DATA:\n- WM-101-Work-Instruction.txt\n- Greenfield-Shift-Log-2025-05-12-Night.csv\n- Greenfield-Shift-Log-2025-05-21-Night.csv\n- Greenfield-Shift-Log-2025-06-18-Night.csv\n- Greenfield-Shift-Log.csv\n- NCR-2024-047\n- WI-WM101-001 Rev 1.0\n\nWHAT IS THE ISSUE:\n- Root cause: The root cause of the issue is not definitively determined from the provided data, but possible causes include a gas cylinder low or empty, gas hose or regulator leak, or other factors contributing to a shielding gas pressure low alarm. The maintenance history is incomplete, and there is no clear indication of recent maintenance or repairs that could have contributed to the issue.\n- What is different about this occurrence vs historical pattern: The current incident occurred during a production run, whereas the previous occurrence was during a shift start-up. Additionally, the current incident involved a longer period of welding with the alarm triggered, whereas the previous occurrence was resolved quickly after the alarm was triggered.\n\nWHAT IS THE IMPACT:\n- Production impact: The production line is currently stopped due to the incident. Estimated downtime is approximately 1 hour.\n- Safety risk: HIGH\n- Financial impact: Potential scrapping of parts welded after the alarm and quarantine of parts welded during the fault event may result in financial losses.\n\nHOW CRITICAL IS IT:\n- CRITICAL\n- Justification: The incident involves a shielding gas pressure low alarm, which is a critical safety issue. Welding without shielding gas can result in defective parts and pose a safety risk.\n\nHOW TO ADDRESS IT:\n1. **Step 1: Safety \u2014 LOTO, stop production, isolate**: Isolate power at the main disconnect before any maintenance to ensure safety.\n2. **Step 2: Diagnosis \u2014 what to inspect**: Inspect the gas cylinder, regulator, and hoses for any leaks or issues. Check the wire feed system for any blockages or worn components.\n3. **Step 3: Fix \u2014 what to replace or repair**: Replace or repair any faulty components, such as the gas regulator or wire feed system, as necessary.\n4. **Step 4: Verify \u2014 post-fix checks, burn-in if required**: Complete a burn-in procedure after replacement, running the wire at 5.0 m/min for 30 seconds. Wire instability during burn-in is expected \u2014 not a new fault.\n5. **Step 5: Quality \u2014 parts to quarantine or inspect**: Quarantine parts welded during the fault event for quality inspection.\n- Root cause fix: Address the underlying cause of the shielding gas pressure low alarm, such as replacing a faulty gas regulator or repairing a leak in the gas hose.\n- Preventive action: Regularly inspect and maintain the gas system and wire feed system to prevent similar incidents.\n- Who to notify: Notify the maintenance supervisor and quality control team of the incident and the necessary actions to be taken.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nPLANT MANAGER SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nSITUATION: A shielding gas pressure low alarm was triggered on the WM-101 welding line during a production run, resulting in a stoppage and potential quality issues with parts produced during the alarm.\nROOT CAUSE: The root cause is not definitively determined, but possible causes include a gas cylinder low or empty, gas hose or regulator leak, or other factors contributing to the shielding gas pressure low alarm",
+      "sources": [],
+      "keyword_check": {
+        "must_contain:gas": true,
+        "must_contain_one_of": true,
+        "must_not_contain:HOW CRITICAL IS IT:\n- LOW": true,
+        "must_not_contain:HOW CRITICAL IS IT:\n- MEDIUM": true
+      },
+      "pass_criteria": "Assigns CRITICAL. States parts welded without shielding gas must be scrapped regardless of appearance. Does not downgrade or recommend only inspection.",
+      "fail_criteria": "Assigns LOW or MEDIUM. Recommends only inspecting parts rather than scrapping. Softens or omits the no-gas scrap requirement.",
+      "expected": {
+        "must_contain": [
+          "gas"
+        ],
+        "must_not_contain": [
+          "HOW CRITICAL IS IT:\n- LOW",
+          "HOW CRITICAL IS IT:\n- MEDIUM"
+        ],
+        "format": "structured report, safety-first",
+        "tone": "urgent, unambiguous on scrap requirement",
+        "must_contain_one_of": [
+          "scrap",
+          "scrapped",
+          "porous",
+          "discard"
+        ]
+      },
+      "llm_score": null,
+      "llm_reasoning": null
+    },
+    {
+      "id": "GF-SI-001",
+      "mode": "shift_intel",
+      "description": "Multi-week overload pattern \u2014 should identify recurring wire feed overload clusters across recent WM-101 shifts",
+      "status": "PASS",
+      "elapsed_s": 20.0,
+      "input": {
+        "question": "Has WM-101 been having more wire feed overload alarms than usual over the last few weeks?",
+        "equipment_id": "WM-101",
+        "time_from": null,
+        "time_to": null,
+        "mode": "shift_intel",
+        "line": "Fabrication Line 1",
+        "plant_site": "Greenfield Steel Works"
+      },
+      "answer": "**Alarms:**\n* 2025-01-20 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 22:15 \u2014 Wire feed motor overload \u2014 feed rate dropped below minimum.\n* 2025-01-20 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 22:41 \u2014 Routine arc voltage check. Voltage reading 19.8V \u2014 within normal range 18-22V.\n* 2025-01-20 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 23:30 \u2014 Wire feed motor overload \u2014 feed rate dropped below minimum. Second occurrence this shift.\n* 2025-01-21 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 00:14 \u2014 Wire feed motor overload \u2014 feed rate dropped below minimum. Second occurrence this shift.\n* 2025-01-21 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 03:18 \u2014 Wire feed motor overload \u2014 feed rate dropped below minimum. Third occurrence this shift.\n* 2025-05-13 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 00:42 \u2014 Wire feed motor overload \u2014 second occurrence this shift.\n* 2025-05-13 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 03:22 \u2014 Wire feed motor overload \u2014 third occurrence this shift.\n* 2025-06-03 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 02:15 \u2014 Weld quality check. Increased spatter observed. Voltage range widening 19.0-21.5V. Wire feed occasional stutter more frequent than start of shift.\n* 2025-06-03 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 03:55 \u2014 Weld bead now showing visible undercut on test piece. Voltage unstable 18.5-22.3V, breaching tolerance intermittently. Feed stutter clearly worse.\n* 2025-06-25 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 23:40 \u2014 Wire feed motor overload \u2014 first this shift.\n* 2025-06-26 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 01:05 \u2014 Wire feed motor overload \u2014 second this shift.\n* 2025-06-26 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 02:55 \u2014 Wire feed motor overload \u2014 third this shift.\n\n**Maintenance:**\n* 2025-01-21 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 00:35 \u2014 Liner replacement initiated per WI-WM101-001. LOTO applied at 00:35.\n* 2025-01-21 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 01:10 \u2014 Post-maintenance test welds completed. Arc voltage stable at 20.1V. Wire feed speed consistent at 5.0 m/min.\n* 2025-05-13 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 01:55 \u2014 Liner replacement initiated per WI-WM101-001. LOTO applied 01:55.\n* 2025-05-13 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 03:58 \u2014 Drive roll inspection. Grooves worn \u2014 measured 1.0mm for 0.8mm wire. Drive rolls replaced GSW-DROLL-08.\n* 2025-06-26 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 03:40 \u2014 Technician inspection. Drive rolls within spec (replaced 3 weeks ago). Root cause traced to defective wire spool \u2014 inconsistent diameter causing feed binding.\n\n**Quality:**\n* 2025-01-21 \u2014 Night shift \u2014 Fabrication Line 1 \u2014 at 01:10 \u2014 Post-maintenance test welds completed. Arc voltage stable at 20.1V. Wire feed speed consistent at 5.0 m",
+      "sources": [
+        {
+          "name": "Greenfield-Shift-Log-2025-05-12-Night.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WM-101",
+          "score": 0.86
+        },
+        {
+          "name": "Greenfield-Shift-Log-2025-06-25-Night.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WM-101",
+          "score": 0.85
+        },
+        {
+          "name": "Greenfield-Shift-Log.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WM-101",
+          "score": 0.84
+        },
+        {
+          "name": "Greenfield-Shift-Log-2025-05-21-Night.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WM-101",
+          "score": 0.83
+        },
+        {
+          "name": "Greenfield-Shift-Log-2025-06-18-Night.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WM-101",
+          "score": 0.83
+        },
+        {
+          "name": "Greenfield-Shift-Log-2025-06-03-Night.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WM-101",
+          "score": 0.83
+        },
+        {
+          "name": "Greenfield-Shift-Log-2025-05-13-Day.csv",
+          "revision": "1.0",
+          "doc_type": "Shift Log",
+          "equip_tag": "WM-101",
+          "score": 0.83
+        }
+      ],
+      "keyword_check": {
+        "must_contain_one_of": true
+      },
+      "pass_criteria": "Identifies repeated wire feed overload alarms across multiple WM-101 shifts (e.g. the May and June clusters). Recognises a recurring pattern rather than isolated events. Uses only timestamps present in the logs.",
+      "fail_criteria": "Dismisses activity as normal. Finds no pattern. Invents timestamps not present in the logs.",
+      "expected": {
+        "must_contain": [],
+        "must_not_contain": [],
+        "format": "trend analysis with timestamps where available",
+        "tone": "analytical, recurring pattern flagged",
+        "must_contain_one_of": [
+          "WM-101",
+          "WM101",
+          "overload",
+          "wire feed"
+        ]
       },
       "llm_score": null,
       "llm_reasoning": null

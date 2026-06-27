@@ -1,21 +1,21 @@
 {
   "_meta": {
     "version": "2.0",
-    "total_cases": 25,
+    "total_cases": 21,
     "by_site": {
       "Northgate Automotive": 10,
-      "Greenfield Steel Works": 15
+      "Greenfield Steel Works": 11
     },
     "by_mode": {
       "qa": 14,
-      "shift_intel": 4,
-      "investigation": 7
+      "shift_intel": 3,
+      "investigation": 4
     },
     "scoring": {
       "pass_threshold": 0.7,
       "method": "llm_as_judge + keyword_check"
     },
-    "notes": "Multi-site suite. Each case declares input.plant_site. Run one plant: python eval_runner.py --site \"Greenfield Steel Works\". Northgate cases are the retired baseline, tagged but not re-pointed. Refusal cases use must_contain_one_of across refusal phrasings; the must_not_contain tokens (WM-101-only strings) prove no wrong-manual borrowing. GF-QA-005 is intentionally pinned to the literal 'No manuals found for' to guard the frontend render fix \u2014 confirm that exact string is what the equipment guard emits. | WM-101 parity (added): GF-INV-001 (differential root cause \u2014 June defective spool vs worn drive rolls), GF-INV-002 (burn-in expected, graph-backed), GF-INV-003 (shielding-gas CRITICAL/scrap), GF-SI-001 (multi-week overload pattern). These are the first investigation + shift_intel cases for WM-101 and the first coverage of the graph-enriched investigation path. Run: python eval_runner.py --site \"Greenfield Steel Works\". GF-INV-002 is expected to pass where Northgate INV-004 fails \u2014 if it does not, that itself shows the graph is not changing the outcome."
+    "notes": "Multi-site suite. Each case declares input.plant_site. Run one plant: python eval_runner.py --site \"Greenfield Steel Works\". Northgate cases are the retired baseline, tagged but not re-pointed. Refusal cases use must_contain_one_of across refusal phrasings; the must_not_contain tokens (WM-101-only strings) prove no wrong-manual borrowing. GF-QA-005 is intentionally pinned to the literal 'No manuals found for' to guard the frontend render fix \u2014 confirm that exact string is what the equipment guard emits."
   },
   "test_cases": [
     {
@@ -695,143 +695,6 @@
       },
       "pass_criteria": "Refuses instead of lifting a plausible figure from WM-101's manual. (LLM judge should confirm no numeric spec appears.)",
       "fail_criteria": "Returns any wire-feed figure for x-505."
-    },
-    {
-      "id": "GF-INV-001",
-      "mode": "investigation",
-      "description": "Differential root cause \u2014 three overloads but drive rolls recently replaced; cause is a defective wire spool, not worn rolls",
-      "input": {
-        "incident": "WM-101 has triggered three wire feed motor overload alarms during tonight's shift. Production has been stopped per SOP. Note: the drive rolls were replaced about three weeks ago. A new wire spool was fitted at the start of this shift. Investigate the root cause.",
-        "equipment_id": "WM-101",
-        "line": "Fabrication Line 1",
-        "plant_site": "Greenfield Steel Works"
-      },
-      "mock_context": {
-        "shift_logs": "2025-06-25 Night WM-101: 23:40 wire feed motor overload (1st). 01:05 overload (2nd), pattern resembles May escalation. 02:55 overload (3rd), production stopped, new spool fitted start of shift. 03:40 maintenance: drive rolls within spec (replaced 3 weeks ago); root cause traced to defective wire spool GSW-WIRE-0625 causing feed binding; spool quarantined and replaced; returned to service 04:25. Handover: root cause different from May \u2014 defective wire spool, not drive rolls; drive rolls healthy.",
-        "maintenance": "2025-06-04 drive rolls replaced GSW-DROLL-08. 2025-06-25 inspection: drive rolls measured within spec, not worn. Wire spool GSW-WIRE-0625 found defective \u2014 inconsistent diameter causing feed binding.",
-        "sop": "WM-101-SOP 4.1: Three or more wire feed motor overload alarms in one shift indicates a systemic fault \u2014 worn drive rolls, damaged liner, or failing motor. Do not continue production. Causes include worn drive rolls, blocked liner, drive roll pressure, and wire spool braking too tight.",
-        "ncr": "NCR-2024-047: prior recurring overload event traced to worn drive rolls past service interval. Lesson: three or more overloads in a shift indicates worn rolls or blocked liner \u2014 but verify what is different this time before assuming the same cause."
-      },
-      "expected": {
-        "must_contain": [
-          "overload"
-        ],
-        "must_not_contain": [
-          "HOW CRITICAL IS IT:\n- LOW",
-          "HOW CRITICAL IS IT:\n- MEDIUM"
-        ],
-        "format": "structured report, identifies differential root cause",
-        "tone": "analytical, distinguishes this occurrence from the historical pattern",
-        "must_contain_one_of": [
-          "spool",
-          "wire spool",
-          "GSW-WIRE",
-          "wire quality"
-        ]
-      },
-      "pass_criteria": "Identifies the defective wire spool as root cause and recognises the drive rolls are recently replaced and healthy. Does NOT default to 'worn drive rolls'. Assigns HIGH (or CRITICAL). Notes what is different vs the May / NCR-2024-047 drive-roll pattern.",
-      "fail_criteria": "Concludes worn drive rolls as root cause despite recent replacement. Assigns LOW or MEDIUM. Fails to identify the spool or to distinguish this event from the historical pattern."
-    },
-    {
-      "id": "GF-INV-002",
-      "mode": "investigation",
-      "description": "Burn-in expected behaviour \u2014 stuttering after a liner replacement is post-maintenance burn-in, not a fault (graph-backed reasoning case)",
-      "input": {
-        "incident": "WM-101 wire feed has been stuttering and feeding inconsistently since a wire liner was replaced earlier this shift. No overload alarm has triggered. The operator is concerned the new liner is faulty.",
-        "equipment_id": "WM-101",
-        "line": "Fabrication Line 1",
-        "plant_site": "Greenfield Steel Works"
-      },
-      "mock_context": {
-        "shift_logs": "WM-101: liner replacement initiated per WI-WM101-001, LOTO applied. Liner replaced GSW-LINER-08. Burn-in completed. Feed instability during burn-in is expected behaviour, not a fault. Post-maintenance test welds: arc voltage stable, wire feed consistent, no overload alarms.",
-        "maintenance": "WI-WM101-001 Step 9: Burn-in procedure is MANDATORY after liner replacement. Run wire at 5.0 m/min for 30 seconds. Wire feed instability in the first 5 minutes after liner replacement is expected behaviour during burn-in \u2014 this is NOT a fault condition.",
-        "sop": "WM-101-SOP: after wire liner replacement, complete the mandatory burn-in before resuming production. Early wire feed inconsistency after a liner change is expected.",
-        "ncr": ""
-      },
-      "expected": {
-        "must_contain": [
-          "liner"
-        ],
-        "must_not_contain": [
-          "HOW CRITICAL IS IT:\n- CRITICAL",
-          "HOW CRITICAL IS IT:\n- HIGH"
-        ],
-        "format": "structured report, connects symptom to recent maintenance",
-        "tone": "analytical, reassuring but precise",
-        "must_contain_one_of": [
-          "burn-in",
-          "burn in",
-          "expected",
-          "not a fault"
-        ]
-      },
-      "pass_criteria": "Connects the stuttering to the recent liner replacement and recognises burn-in instability is expected, not a fault. Assigns MEDIUM or LOW. Does not assign CRITICAL or HIGH or recommend replacing the new liner.",
-      "fail_criteria": "Treats expected burn-in behaviour as a real fault. Assigns CRITICAL or HIGH. Recommends replacing the new liner. Fails to mention burn-in or the recent liner replacement."
-    },
-    {
-      "id": "GF-INV-003",
-      "mode": "investigation",
-      "description": "Safety-critical \u2014 welding continued after shielding gas low alarm; parts welded without gas must be scrapped",
-      "input": {
-        "incident": "WM-101 shielding gas pressure low alarm triggered during a production run. Welding continued for a short period before the operator noticed and stopped. A number of parts were produced during that window. Investigate.",
-        "equipment_id": "WM-101",
-        "line": "Fabrication Line 1",
-        "plant_site": "Greenfield Steel Works"
-      },
-      "mock_context": {
-        "shift_logs": "WM-101: shielding gas pressure low alarm triggered. Welding continued briefly before operator stopped. Parts produced during the low-gas window flagged.",
-        "maintenance": "",
-        "sop": "WM-101-SOP 4.4 Shielding Gas Pressure Low: CRITICAL \u2014 do not weld without shielding gas. Welds produced without gas are porous and structurally unsafe. All parts welded without gas must be scrapped regardless of visual appearance. Stop welding immediately; do not resume until gas flow confirmed at 10-15 L/min.",
-        "ncr": ""
-      },
-      "expected": {
-        "must_contain": [
-          "gas"
-        ],
-        "must_not_contain": [
-          "HOW CRITICAL IS IT:\n- LOW",
-          "HOW CRITICAL IS IT:\n- MEDIUM"
-        ],
-        "format": "structured report, safety-first",
-        "tone": "urgent, unambiguous on scrap requirement",
-        "must_contain_one_of": [
-          "scrap",
-          "scrapped",
-          "porous",
-          "discard"
-        ]
-      },
-      "pass_criteria": "Assigns CRITICAL. States parts welded without shielding gas must be scrapped regardless of appearance. Does not downgrade or recommend only inspection.",
-      "fail_criteria": "Assigns LOW or MEDIUM. Recommends only inspecting parts rather than scrapping. Softens or omits the no-gas scrap requirement."
-    },
-    {
-      "id": "GF-SI-001",
-      "mode": "shift_intel",
-      "description": "Multi-week overload pattern \u2014 should identify recurring wire feed overload clusters across recent WM-101 shifts",
-      "input": {
-        "question": "Has WM-101 been having more wire feed overload alarms than usual over the last few weeks?",
-        "equipment_id": "WM-101",
-        "time_from": null,
-        "time_to": null,
-        "mode": "shift_intel",
-        "line": "Fabrication Line 1",
-        "plant_site": "Greenfield Steel Works"
-      },
-      "mock_context": "Greenfield Fabrication Line 1 night-shift logs, WM-101: 2025-05-12/13 three wire feed overloads (22:47, 00:42, 03:22), production stopped, worn drive rolls replaced. Further overload occurrences recorded on 2025-05-20, 2025-05-21, 2025-06-03, 2025-06-10, 2025-06-18. 2025-06-25/26 three overloads again (23:40, 01:05, 02:55), production stopped, root cause defective wire spool. Recurring wire feed overload pattern across multiple shifts.",
-      "expected": {
-        "must_contain": [],
-        "must_not_contain": [],
-        "format": "trend analysis with timestamps where available",
-        "tone": "analytical, recurring pattern flagged",
-        "must_contain_one_of": [
-          "WM-101",
-          "WM101",
-          "overload",
-          "wire feed"
-        ]
-      },
-      "pass_criteria": "Identifies repeated wire feed overload alarms across multiple WM-101 shifts (e.g. the May and June clusters). Recognises a recurring pattern rather than isolated events. Uses only timestamps present in the logs.",
-      "fail_criteria": "Dismisses activity as normal. Finds no pattern. Invents timestamps not present in the logs."
     }
   ]
 }

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantMind - Work Orders</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
+.nav{background:#1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.nav-brand{font-size:17px;font-weight:700;color:#fff}
+.nav-brand span{color:#a5b4fc}
+.page-tabs{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
+.page-tab{padding:11px 18px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:flex;align-items:center}
+.page-tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
+.page-tab:hover:not(.active){color:#64748b}
+.tab-badge{font-size:10px;font-weight:700;background:#fbbf24;color:#7c2d12;padding:1px 6px;border-radius:999px;margin-left:5px;display:none}
+.main{max-width:860px;margin:0 auto;padding:24px 20px 48px}
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+.section-sub{font-size:11px;font-weight:500;color:#64748b;background:#f1f5f9;padding:2px 8px;border-radius:6px;text-transform:none;letter-spacing:0}
+.refresh-btn{font-size:11px;color:#94a3b8;cursor:pointer;background:none;border:none;padding:0}
+.refresh-btn:hover{color:#64748b}
+.section-gap{margin-bottom:28px}
+.wo-card{border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:10px;background:#fff}
+.wo-card.editing{border-color:#6366f1}
+.wo-card-hd{padding:11px 14px;display:flex;align-items:center;gap:9px;background:#f8fafc;cursor:pointer}
+.wo-card.open .wo-card-hd{border-bottom:1px solid #e2e8f0}
+.wo-chev{font-size:12px;color:#94a3b8;transition:transform .15s;flex-shrink:0}
+.wo-card.open .wo-chev{transform:rotate(90deg)}
+.wo-num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#64748b;flex-shrink:0}
+.wo-title{font-size:13px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wo-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#e0e7ff;color:#3730a3;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+.wo-status.st-pending_approval{background:#fef3c7;color:#92400e}
+.wo-status.st-approved{background:#dcfce7;color:#166534}
+.wo-status.st-rejected{background:#fee2e2;color:#b91c1c}
+.wo-status.st-executed,.wo-status.st-dispatched{background:#e0e7ff;color:#3730a3}
+.wo-hd-cost{margin-left:auto;font-size:13px;font-weight:600;color:#0f172a;flex-shrink:0}
+.wo-hd-equip{font-size:11px;color:#64748b;flex-shrink:0}
+.wo-card-body{padding:13px 14px;font-size:13px;color:#334155;line-height:1.7;display:none}
+.wo-card.open .wo-card-body{display:block}
+.wo-summary{margin-bottom:12px}
+.wo-sec-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px}
+.wo-parts{margin-bottom:12px}
+.wo-part{display:flex;align-items:center;gap:8px;font-size:12px;padding:2px 0}
+.wo-part-sku{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#0f172a}
+.wo-part-qty{color:#64748b}
+.wo-part-stock{margin-left:auto;font-size:11px;color:#64748b}
+.wo-proc{display:flex;align-items:center;gap:6px;font-size:12px;color:#334155;margin-bottom:12px}
+.wo-proc-flag{color:#d97706}
+.wo-stats{display:flex;flex-wrap:wrap;gap:8px;padding-top:12px;border-top:1px solid #f1f5f9}
+.wo-stat{background:#f8fafc;border-radius:8px;padding:7px 11px;min-width:84px}
+.wo-stat-l{font-size:11px;color:#64748b}
+.wo-stat-v{font-size:14px;font-weight:600;color:#0f172a}
+.wo-gate{display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #f1f5f9;flex-wrap:wrap}
+.wo-gate-note{font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:4px}
+.wo-btn{font-size:12px;border-radius:6px;padding:6px 14px;cursor:pointer;border:1px solid #e2e8f0;background:#fff;color:#475569}
+.wo-btn:hover{background:#f8fafc}
+.wo-btn-edit{display:flex;align-items:center;gap:5px}
+.wo-btn-approve{background:#16a34a;border-color:#16a34a;color:#fff;font-weight:500;margin-left:auto}
+.wo-btn-approve:hover{background:#15803d}
+.wo-btn-reject{border-color:#fecaca;color:#dc2626}
+.wo-btn-reject:hover{background:#fef2f2}
+.wo-final{margin-top:14px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:12px;color:#64748b}
+.wo-reject-reason{color:#b91c1c;margin-top:4px}
+.wo-edit-banner{display:flex;align-items:center;gap:6px;font-size:11px;color:#4338ca;background:#eef2ff;padding:6px 10px;border-radius:6px;margin-bottom:12px}
+.wo-edit-banner .spacer{margin-left:auto;color:#94a3b8}
+.wo-field-l{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px}
+.wo-input{width:100%;font-size:13px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#0f172a;margin-bottom:12px}
+.wo-qty{width:52px;text-align:center;font-size:12px;padding:4px 6px;border:1px solid #cbd5e1;border-radius:6px;margin-left:auto}
+.wo-edit-row{display:flex;align-items:center;gap:8px;font-size:12px;margin:6px 0}
+.wo-edit-cols{display:flex;gap:12px;margin-bottom:12px}
+.wo-select{width:100%;font-size:12px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#0f172a}
+.wo-empty{padding:48px 24px;text-align:center;color:#94a3b8;font-size:13px;line-height:1.8;background:#fff;border-radius:12px;border:1px solid #e2e8f0}
+.wo-empty-icon{font-size:32px;margin-bottom:8px}
+.inv-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.inv-table{width:100%;border-collapse:collapse;font-size:13px}
+.inv-table th{text-align:left;padding:9px 14px;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;background:#f8fafc;border-bottom:1px solid #e2e8f0}
+.inv-table th.num{text-align:right}
+.inv-table td{padding:9px 14px;border-top:1px solid #f1f5f9;color:#334155}
+.inv-table td.num{text-align:right}
+.inv-sku{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#0f172a}
+.inv-name{color:#64748b}
+.inv-low td{background:#fff5f5}
+.inv-qty-low{color:#dc2626;font-weight:700}
+.inv-flag{font-size:10px;font-weight:700;background:#fee2e2;color:#b91c1c;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.inv-ok{color:#cbd5e1}
+.inv-reorder-note{font-size:11px;color:#dc2626;font-weight:500;display:flex;align-items:center;gap:4px}
+.inv-foot{font-size:11px;color:#94a3b8;margin:10px 2px 0}
+@media(max-width:600px){
+  .nav{padding:0 12px}.page-tabs{padding:0 8px}.page-tab{padding:9px 10px;font-size:12px}
+  .main{padding:14px 12px 32px}.inv-table th,.inv-table td{padding:8px 10px}.inv-name{display:none}
+  .wo-edit-cols{flex-direction:column;gap:0}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">Plant<span>Mind</span></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="/plant-setup" style="font-size:11px;color:#a5b4fc;padding:4px 10px;border-radius:6px;border:1px solid #4f46e5;background:rgba(79,70,229,.15);text-decoration:none;white-space:nowrap">&#9881; Plant setup</a>
+    <div style="display:flex;align-items:center;gap:6px;background:#0f172a;padding:4px 10px;border-radius:6px">
+      <div style="width:22px;height:22px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">GP</div>
+      <span style="font-size:11px;color:#e2e8f0;font-weight:500;white-space:nowrap">G. Phani</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-tabs">
+  <a class="page-tab" href="/chat">Ask</a>
+  <a class="page-tab" href="/library">Library</a>
+  <a class="page-tab" href="/alerts">Alerts</a>
+  <a class="page-tab" href="/graph">Graph</a>
+  <a class="page-tab active" href="/work-orders">Work orders<span class="tab-badge" id="woBadge">0</span></a>
+</div>
+
+<div class="main">
+  <div class="section-gap">
+    <div class="section-hd">
+      <span class="section-label">&#128203; Work orders</span>
+      <button class="refresh-btn" onclick="loadWorkOrders()">&#8635; Refresh</button>
+    </div>
+    <div id="woList"><div class="wo-empty"><div class="wo-empty-icon">&#128203;</div>Loading&hellip;</div></div>
+  </div>
+
+  <div class="section-gap">
+    <div class="section-hd">
+      <span class="section-label">&#128296; Inventory <span class="section-sub" id="invContext">&hellip;</span></span>
+      <span class="inv-reorder-note" id="invReorderNote"></span>
+    </div>
+    <div class="inv-wrap">
+      <table class="inv-table">
+        <thead><tr><th>SKU</th><th>Part</th><th class="num">Qty</th><th class="num">Reorder</th><th class="num">Cost</th><th class="num"></th></tr></thead>
+        <tbody id="invBody"><tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:24px">Loading&hellip;</td></tr></tbody>
+      </table>
+    </div>
+    <p class="inv-foot">Read-only. Plant &amp; line are looked up from equipment config by equip_tag, not stored on these rows.</p>
+  </div>
+</div>
+
+<script src="/static/nav_context.js"></script>
+<script>
+var CTX={plant_site:localStorage.getItem('pm_plant')||"",line:localStorage.getItem('pm_line')||"",equip_tag:localStorage.getItem('pm_equip')||""};
+var EQUIP=CTX.equip_tag||"WM-101";
+var TECHS=[];
+var WO_BY_ID={};
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function usd(n){var v=parseFloat(n);return isNaN(v)?"-":"$"+v.toFixed(2);}
+
+function loadTechs(){
+  fetch("/api/technicians?line="+encodeURIComponent(CTX.line||""))
+    .then(function(r){return r.json();}).then(function(d){TECHS=d.technicians||[];})
+    .catch(function(){TECHS=[];});
+}
+
+function loadWorkOrders(){
+  fetch("/api/work-orders?equip_tag="+encodeURIComponent(EQUIP))
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var list=d.work_orders||[];
+      WO_BY_ID={}; list.forEach(function(w){WO_BY_ID[w.id]=w;});
+      var el=document.getElementById("woList");
+      if(!list.length){el.innerHTML='<div class="wo-empty"><div class="wo-empty-icon">&#128203;</div>No work orders yet.<br>Work orders will appear here once an investigation drafts one.</div>';updateBadge(0);return;}
+      el.innerHTML=list.map(renderCard).join("");
+      updateBadge(list.filter(function(w){return w.status==="pending_approval";}).length);
+    })
+    .catch(function(){document.getElementById("woList").innerHTML='<div class="wo-empty">Could not load work orders.</div>';});
+}
+
+function renderCard(w){
+  var status=w.status||"pending_approval";
+  var isDraft=status==="pending_approval";
+  var title=w.title||(w.summary?w.summary.slice(0,48):"Work order");
+  var lineLabel=[w.plant_site,w.line].filter(Boolean).join(" \u00b7 ");
+  var partsHtml=(w.parts||[]).map(function(p){
+    return '<div class="wo-part"><span class="wo-part-sku">'+esc(p.sku)+'</span><span class="wo-part-qty">\u00d7'+esc(p.qty||1)+'</span>'+
+      (p.unit_cost_usd!=null?'<span class="wo-part-stock">'+usd(p.unit_cost_usd)+'</span>':'')+'</div>';
+  }).join("");
+  var procHtml=(w.procedures||[]).map(function(pr){
+    return '<div class="wo-proc">'+(pr.mandatory?'<span class="wo-proc-flag">&#9888;</span>':'')+esc(pr.name)+'</div>';
+  }).join("");
+  var stats=[];
+  if(w.est_cost_usd!=null)stats.push('<div class="wo-stat"><div class="wo-stat-l">Est. cost</div><div class="wo-stat-v">'+usd(w.est_cost_usd)+'</div></div>');
+  if(w.est_downtime_min!=null)stats.push('<div class="wo-stat"><div class="wo-stat-l">Downtime</div><div class="wo-stat-v">~'+esc(w.est_downtime_min)+' min</div></div>');
+  if(w.technician_name||w.assigned_technician)stats.push('<div class="wo-stat"><div class="wo-stat-l">Technician</div><div class="wo-stat-v">'+esc(w.technician_name||"assigned")+'</div></div>');
+  if(w.approval_tier)stats.push('<div class="wo-stat"><div class="wo-stat-l">Approval tier</div><div class="wo-stat-v">'+esc(w.approval_tier)+'</div></div>');
+
+  var gate="";
+  if(isDraft){
+    var role=w.approver_role||(w.approval_tier==="manager"?"Plant Manager":w.approval_tier==="auto"?"":"Shift Supervisor");
+    gate='<div class="wo-gate"><span class="wo-gate-note">&#128274; Awaiting human approval</span>'+
+      '<button class="wo-btn wo-btn-edit" onclick="enterEdit(event,\''+w.id+'\')">&#9998; Edit</button>'+
+      '<button class="wo-btn wo-btn-approve" onclick="approveWO(event,\''+w.id+'\',\''+esc(role)+'\')">Approve'+(role?' as '+esc(role):'')+'</button>'+
+      '<button class="wo-btn wo-btn-reject" onclick="rejectWO(event,\''+w.id+'\')">Reject</button></div>';
+  }else if(status==="approved"){
+    gate='<div class="wo-final">&#10003; Approved by '+esc(w.approved_by||"")+(w.approved_at?' on '+esc((w.approved_at||"").slice(0,10)):'')+'.</div>';
+  }else if(status==="rejected"){
+    gate='<div class="wo-final">Rejected.'+(w.rejected_reason?'<div class="wo-reject-reason">Reason: '+esc(w.rejected_reason)+'</div>':'')+'</div>';
+  }
+
+  return '<div class="wo-card" id="wocard-'+w.id+'">'+
+    '<div class="wo-card-hd" onclick="toggleCard(\''+w.id+'\')">'+
+      '<span class="wo-chev">&#9656;</span>'+
+      (w.wo_number?'<span class="wo-num">'+esc(w.wo_number)+'</span>':'')+
+      '<span class="wo-title">'+esc(title)+'</span>'+
+      '<span class="wo-status st-'+esc(status)+'">'+esc(status.replace(/_/g," "))+'</span>'+
+      (w.est_cost_usd!=null?'<span class="wo-hd-cost">'+usd(w.est_cost_usd)+'</span>':'')+
+      '<span class="wo-hd-equip">'+esc(w.equip_tag||EQUIP)+'</span>'+
+    '</div>'+
+    '<div class="wo-card-body">'+
+      (lineLabel?'<div class="wo-sec-label" style="margin-bottom:10px">'+esc(lineLabel)+'</div>':'')+
+      '<div class="wo-summary">'+esc(w.summary||"(no summary)")+'</div>'+
+      (partsHtml?'<div class="wo-sec-label">Parts</div><div class="wo-parts">'+partsHtml+'</div>':'')+
+      (procHtml?'<div class="wo-sec-label">Procedure</div>'+procHtml:'')+
+      (stats.length?'<div class="wo-stats">'+stats.join("")+'</div>':'')+gate+
+    '</div></div>';
+}
+
+function toggleCard(id){var c=document.getElementById("wocard-"+id);if(c&&!c.classList.contains("editing"))c.classList.toggle("open");}
+function updateBadge(n){var b=document.getElementById("woBadge");if(!b)return;b.textContent=n;b.style.display=n>0?"inline-block":"none";}
+
+function enterEdit(ev,id){
+  ev.stopPropagation();
+  var w=WO_BY_ID[id];if(!w)return;
+  var card=document.getElementById("wocard-"+id);
+  card.classList.add("open","editing");
+  var body=card.querySelector(".wo-card-body");
+  var partsRows=(w.parts||[]).map(function(p){
+    return '<div class="wo-edit-row"><span class="wo-part-sku">'+esc(p.sku)+'</span> '+esc(p.name||"")+
+      '<input class="wo-qty" data-sku="'+esc(p.sku)+'" type="number" min="1" value="'+esc(p.qty||1)+'"></div>';
+  }).join("");
+  var techOpts=TECHS.map(function(t){
+    var sel=(t.id===w.assigned_technician)?" selected":"";
+    var sk=(t.skills||[]).join(", ");
+    return '<option value="'+esc(t.id)+'"'+sel+'>'+esc(t.name)+(sk?' ('+esc(sk)+')':'')+'</option>';
+  }).join("");
+  if(!TECHS.length)techOpts='<option value="'+esc(w.assigned_technician||"")+'">'+esc(w.technician_name||"(current)")+'</option>';
+  body.innerHTML=
+    '<div class="wo-edit-banner">&#9998; Editing draft<span class="spacer">'+esc(w.wo_number||"")+' \u00b7 WO number fixed \u00b7 cost recomputes on save</span></div>'+
+    '<label class="wo-field-l">Title</label><input class="wo-input" id="edit-title-'+id+'" value="'+esc(w.title||"")+'">'+
+    '<label class="wo-field-l">Parts (qty editable)</label>'+partsRows+
+    '<div class="wo-edit-cols" style="margin-top:12px">'+
+      '<div style="flex:1"><label class="wo-field-l">Technician</label><select class="wo-select" id="edit-tech-'+id+'">'+techOpts+'</select></div>'+
+      '<div style="width:130px"><label class="wo-field-l">Downtime (min)</label><input class="wo-input" id="edit-dt-'+id+'" type="number" min="0" value="'+esc(w.est_downtime_min||60)+'"></div>'+
+    '</div>'+
+    '<div class="wo-gate"><span class="wo-gate-note">Changes are logged to the audit trail</span>'+
+      '<button class="wo-btn" style="margin-left:auto" onclick="cancelEdit(\''+id+'\')">Cancel</button>'+
+      '<button class="wo-btn wo-btn-approve" style="margin-left:0;background:#4f46e5;border-color:#4f46e5" onclick="saveEdit(\''+id+'\')">Save changes</button></div>';
+}
+
+function cancelEdit(id){var c=document.getElementById("wocard-"+id);c.classList.remove("editing");loadWorkOrders();}
+
+function saveEdit(id){
+  var parts=[];
+  document.querySelectorAll('#wocard-'+id+' .wo-qty').forEach(function(inp){parts.push({sku:inp.getAttribute("data-sku"),qty:parseInt(inp.value)||1});});
+  var payload={title:document.getElementById("edit-title-"+id).value,parts:parts,
+    assigned_technician:document.getElementById("edit-tech-"+id).value||null,
+    est_downtime_min:parseInt(document.getElementById("edit-dt-"+id).value)||60,actor:"human"};
+  fetch("/api/work-orders/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(d){if(d.error){alert("Edit failed: "+d.error);return;}var c=document.getElementById("wocard-"+id);if(c)c.classList.remove("editing");loadWorkOrders();})
+    .catch(function(e){alert("Edit failed: "+e.message);});
+}
+
+function approveWO(ev,id,role){
+  ev.stopPropagation();
+  if(!confirm("Approve this work order"+(role?" as "+role:"")+"?"))return;
+  fetch("/api/work-orders/"+id+"/approve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({approved_by:role||"Shift Supervisor"})})
+    .then(function(r){return r.json();}).then(function(d){if(d.error){alert("Approve failed: "+d.error);return;}loadWorkOrders();})
+    .catch(function(e){alert("Approve failed: "+e.message);});
+}
+
+function rejectWO(ev,id){
+  ev.stopPropagation();
+  var reason=prompt("Reason for rejecting this work order?");
+  if(reason===null)return;
+  fetch("/api/work-orders/"+id+"/reject",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({reason:reason,actor:"human"})})
+    .then(function(r){return r.json();}).then(function(d){if(d.error){alert("Reject failed: "+d.error);return;}loadWorkOrders();})
+    .catch(function(e){alert("Reject failed: "+e.message);});
+}
+
+function loadInventory(){
+  fetch("/api/inventory?equip_tag="+encodeURIComponent(EQUIP))
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var parts=d.parts||[];var body=document.getElementById("invBody");
+      document.getElementById("invContext").textContent=[EQUIP,CTX.plant_site,CTX.line].filter(Boolean).join(" \u00b7 ")||EQUIP;
+      if(!parts.length){body.innerHTML='<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:24px">No parts found.</td></tr>';document.getElementById("invReorderNote").textContent="";return;}
+      var low=0;
+      body.innerHTML=parts.map(function(p){
+        var isLow=!!p.needs_reorder;if(isLow)low++;
+        return '<tr class="'+(isLow?"inv-low":"")+'"><td><span class="inv-sku">'+esc(p.sku)+'</span></td>'+
+          '<td class="inv-name">'+esc(p.name)+'</td><td class="num '+(isLow?"inv-qty-low":"")+'">'+esc(p.qty_on_hand)+'</td>'+
+          '<td class="num">'+esc(p.reorder_point)+'</td><td class="num">'+usd(p.unit_cost_usd)+'</td>'+
+          '<td class="num">'+(isLow?'<span class="inv-flag">Reorder</span>':'<span class="inv-ok">&#10003;</span>')+'</td></tr>';
+      }).join("");
+      document.getElementById("invReorderNote").innerHTML=low?('&#9888; '+low+' need'+(low===1?"s":"")+' reorder'):"";
+    })
+    .catch(function(){document.getElementById("invBody").innerHTML='<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:24px">Could not load inventory.</td></tr>';});
+}
+
+function refreshAll(){loadWorkOrders();loadInventory();}
+loadTechs();refreshAll();setInterval(refreshAll,30000);
+</script>
+</body>
+</html>
