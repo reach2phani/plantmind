@@ -111,6 +111,97 @@ def extract_all_equipment_ids(text):
     return seen
 
 
+def _line_number(s):
+    """Return the trailing line number from a line string, e.g.
+    'Fabrication Line 1' -> '1', 'Line 10' -> '10', '' -> ''."""
+    m = _re.search(r'(\d{1,3})\s*$', (s or "").strip())
+    return m.group(1) if m else ""
+
+
+def _detect_line_in_text(text):
+    """Return a normalised 'line N' token if the text references a production
+    line (e.g. 'the welder on Line 1'), else ''. Only used as a scoping hint."""
+    m = _re.search(r'\bline\s*(\d{1,3})\b', text or "", _re.IGNORECASE)
+    return f"line {m.group(1)}" if m else ""
+
+
+def resolve_equipment_reference(text, plant_site="", line=""):
+    """
+    Fallback equipment resolver for when the operator names a machine in plain
+    language instead of by tag — e.g. "the welder on Line 1" instead of "WM-101".
+
+    Why this exists:
+        extract_equipment_id() only recognises TAG-format IDs (letters+digits).
+        A natural-language reference ("the welder on Line 1") yields no tag, so
+        equipment_id comes back None, no equip_tag metadata filter is applied,
+        and semantic search returns the nearest-neighbour equipment instead
+        (e.g. a different welding robot, or a coolant pump with 'thermal' NCRs).
+        This resolver closes that gap by matching the text against the equipment
+        registry (type / name), scoped by plant and line.
+
+    Safety contract (never guesses, never regresses):
+        Returns a single equip_tag ONLY when the match is UNAMBIGUOUS (exactly
+        one candidate). Returns None on no match, multiple matches, or any
+        lookup error — so tagged queries and ambiguous references behave exactly
+        as before.
+    """
+    if not text:
+        return None
+    try:
+        rows = (supabase.table("equipment")
+                .select("equip_tag,name,type,plant_site,line,active")
+                .execute().data) or []
+    except Exception as e:
+        print(f"  [resolve] equipment lookup failed: {e} — skipping name resolution")
+        return None
+
+    low = text.lower()
+
+    # Scope by line — prefer the UI-supplied line, else one detected in the text.
+    line_ctx = (line or "").strip().lower() or _detect_line_in_text(text)
+    ctx_num  = _line_number(line_ctx)
+    plant_ctx = (plant_site or "").strip().lower()
+
+    def line_matches(cand_line):
+        if not line_ctx:
+            return True  # no line context → don't filter on line
+        cl = (cand_line or "").strip().lower()
+        if not cl:
+            return False
+        cand_num = _line_number(cl)
+        if ctx_num and cand_num:
+            # Compare on the line NUMBER so "line 1" matches "Fabrication Line 1"
+            # but not "Line 10" or "Processing Line 2".
+            return ctx_num == cand_num
+        return line_ctx in cl
+
+    candidates = []
+    for r in rows:
+        if r.get("active") is False:
+            continue
+        if plant_ctx and (r.get("plant_site") or "").strip().lower() != plant_ctx:
+            continue
+        if not line_matches(r.get("line")):
+            continue
+        # Does the text reference this machine by its type ("welder") or by a
+        # meaningful word from its name ("MIG Welder" -> "welder")?
+        type_word  = (r.get("type") or "").strip().lower()
+        name_words = [w for w in _re.findall(r'[a-z]+', (r.get("name") or "").lower())
+                      if len(w) > 2]
+        hit = bool(type_word) and _re.search(rf'\b{_re.escape(type_word)}\b', low) is not None
+        if not hit:
+            for w in name_words:
+                if _re.search(rf'\b{_re.escape(w)}\b', low):
+                    hit = True
+                    break
+        tag = r.get("equip_tag")
+        if hit and tag and tag not in candidates:
+            candidates.append(tag)
+
+    # Require an unambiguous single match — otherwise fall back to no filter.
+    return candidates[0] if len(candidates) == 1 else None
+
+
 def get_embedding(text, input_type="query"):
     """Get embedding vector using Pinecone's hosted inference API."""
     result = pc.inference.embed(
@@ -761,6 +852,13 @@ def ask():
         detected = extract_equipment_id(question)
         if detected:
             equip_tag = detected
+        else:
+            # No tag in the text — try resolving a plain-language reference
+            # ("the welder on Line 1" -> WM-101). Unambiguous matches only; if
+            # this returns None, equip_tag stays empty and behaviour is unchanged.
+            resolved = resolve_equipment_reference(question, plant_site=plant, line=line)
+            if resolved:
+                equip_tag = resolved
     mode      = data.get("mode",       "doc")
     time_from = data.get("time_from",  "")
     time_to   = data.get("time_to",    "")
@@ -1125,6 +1223,14 @@ def investigate():
 
     # Auto-detect equipment if not passed from UI
     equip = data.get("equip_tag", "") or extract_equipment_id(incident)
+
+    # Fallback: resolve a natural-language reference ("the welder on Line 1")
+    # to a concrete tag when no tag pattern was found. Without this, equip is
+    # None, no equip_tag filter is applied, and semantic search drifts to the
+    # nearest-neighbour machine (wrong equipment in the report). Unambiguous
+    # matches only — otherwise equip stays empty and behaviour is unchanged.
+    if not equip:
+        equip = resolve_equipment_reference(incident, plant_site=plant, line=line)
 
     if plant or line:
         context  = f"[Plant: {plant}, Line: {line}] "

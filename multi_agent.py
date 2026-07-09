@@ -578,8 +578,33 @@ Routing rules:
   - Conflicting sensor readings → sop + maintenance (spec + recent work)
   - Unknown or general → all four agents
 
-Respond with ONLY a JSON object, nothing else:
-{"agents": ["alarm", "maintenance"], "reason": "one sentence explanation"}
+Think first, then choose. Write the "reason" BEFORE the "agents" list, and make
+the list follow directly from your reason — every agent you name in the reason
+must appear in the list, and vice versa. Choose 1-4 agents based purely on what
+THIS incident needs; do not default to a fixed number.
+
+Respond with ONLY a JSON object, nothing else, with "reason" first:
+{"reason": "one sentence explanation", "agents": ["alarm", "maintenance"]}
+
+Examples (study how the agent list matches the reasoning):
+
+Incident: "P-201 tripped again — that's the third overload this week and parts are piling up."
+{"reason": "Recurring overload ('third this week') with quality impact — need alarm history, recent maintenance, and any non-conformances.", "agents": ["alarm", "maintenance", "ncr"]}
+
+Incident: "Getting heavy spatter on the welds from WR-401 this shift, welds look out of spec."
+{"reason": "Weld-quality/spatter issue — need alarm log for onset, NCRs for quality history, and the SOP spec.", "agents": ["alarm", "ncr", "sop"]}
+
+Incident: "Exhaust fan on the booth stopped and fumes are building up — what do we do right now?"
+{"reason": "Safety event needing the correct urgent procedure first, not history.", "agents": ["sop"]}
+
+Incident: "Wire feed on WM-101 is stuttering, started right after yesterday's service."
+{"reason": "Wire-feed fault tied to recent work — need maintenance history and the feed-setup spec.", "agents": ["maintenance", "sop"]}
+
+Incident: "New robot CV-410 threw an error on first run, no prior history."
+{"reason": "First-time failure with no history — check any maintenance done and the setup procedure.", "agents": ["maintenance", "sop"]}
+
+Incident: "Something seems off on Line 3 but I can't tell what."
+{"reason": "Vague/general report with no clear signal — cast wide with all specialists.", "agents": ["alarm", "maintenance", "sop", "ncr"]}
 
 Valid agent names: alarm, maintenance, sop, ncr"""
 
