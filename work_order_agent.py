@@ -23,13 +23,14 @@ import json
 from groq import Groq
 from supabase import create_client
 from dotenv import load_dotenv
+from models import MODEL_DEEP, extract_json, completion_kwargs
 
 load_dotenv()
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 supabase    = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
-MODEL          = "llama-3.3-70b-versatile"
+MODEL          = MODEL_DEEP
 MAX_ITERATIONS = 6          # bounded agentic loop (guardrail)
 
 # ── Cost model (Python computes cost — the LLM never does) ────────────
@@ -243,24 +244,17 @@ def _run_tool_loop(report_text, equip_tag, line_hint=""):
     for _ in range(MAX_ITERATIONS):
         resp = groq_client.chat.completions.create(
             model=MODEL, messages=messages,
-            tools=TOOLS, tool_choice="auto", max_tokens=1200,
+            tools=TOOLS, tool_choice="auto",
+            **completion_kwargs(MODEL, "work_order", 1200),
         )
         msg = resp.choices[0].message
 
         if not msg.tool_calls:
-            # Final answer — parse JSON (tolerate accidental fences)
-            content = (msg.content or "").strip()
-            if content.startswith("```"):
-                content = content.strip("`")
-                if content.lower().startswith("json"):
-                    content = content[4:]
+            # Final answer — extract JSON, tolerating reasoning text / fences.
             try:
-                return json.loads(content), tool_log
+                return extract_json(msg.content or ""), tool_log
             except Exception:
-                start, end = content.find("{"), content.rfind("}")
-                if start != -1 and end != -1:
-                    return json.loads(content[start:end + 1]), tool_log
-                raise ValueError("Agent did not return valid JSON: " + content[:300])
+                raise ValueError("Agent did not return valid JSON: " + (msg.content or "")[:300])
 
         messages.append(msg)
         for tc in msg.tool_calls:

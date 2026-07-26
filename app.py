@@ -14,6 +14,7 @@ from groq import Groq
 from multi_agent import investigate_incident
 from work_order_agent import draft_work_order, price_and_cost
 from llm_logger import log_streaming_call, get_today_stats
+from models import MODEL_FAST, MODEL_DEEP, completion_kwargs
 
 app = Flask(__name__)
 
@@ -1057,6 +1058,9 @@ def ask():
             "Format your answer as a clear bulleted list of events with timestamps where available. "
             "Group events by category: Alarms, Maintenance, Quality, Process. "
             "Be concise and factual. "
+            "FORMATTING (quick lookup, not a formal report): plain text only. "
+            "Do NOT use Markdown tables, bold (**), italics, or headings (#). "
+            "Use simple single-level '- ' bullets; do NOT nest them. "
             "CRITICAL: Use only the exact timestamps that appear in the context. "
             "NEVER invent, adjust, or relabel a timestamp to fit a requested time window. "
             "If an event's time is outside the asked window, do not include it. "
@@ -1073,7 +1077,12 @@ def ask():
         system_prompt = (
             "You are PlantMind, an AI assistant for manufacturing plant operators. "
             "Answer questions using ONLY the provided document context. "
-            "Be specific and practical. Never fabricate information not in the context."
+            "Be specific and practical. Never fabricate information not in the context. "
+            "FORMATTING (this is a quick lookup, not a formal report): "
+            "Answer in plain text, kept short and scannable. "
+            "Do NOT use Markdown tables, bold (**), italics, or headings (#). "
+            "Prefer a few simple '- ' bullets or 1-2 short sentences. "
+            "Do NOT nest bullets. Lead with the direct answer, then only essential detail."
         )
         user_prompt = (
             f"Context:\n\n{context}\n\n"
@@ -1092,21 +1101,25 @@ def ask():
         _output = []
         try:
             stream = groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model=MODEL_FAST,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user",   "content": user_prompt}
                 ],
-                stream=True, max_tokens=800, temperature=0.1
+                stream=True, temperature=0.1,
+                **completion_kwargs(MODEL_FAST, "qa", 800)
             )
             for chunk in stream:
                 delta = chunk.choices[0].delta
-                if delta and delta.content:
+                # GPT-OSS reasoning models stream chain-of-thought on a separate
+                # `reasoning` field. Only stream real answer content; never leak
+                # reasoning tokens into the operator's chat window.
+                if delta and getattr(delta, "content", None):
                     _output.append(delta.content)
                     yield delta.content
             log_streaming_call(
                 call_type  = data.get("mode", "qa"),
-                model      = "llama-3.1-8b-instant",
+                model      = MODEL_FAST,
                 input_text = system_prompt + user_prompt,
                 output_text= "".join(_output),
                 latency_ms = int((_t.time() - _start) * 1000),
@@ -1115,7 +1128,7 @@ def ask():
             )
         except Exception as e:
             log_streaming_call(
-                call_type="qa", model="llama-3.1-8b-instant",
+                call_type="qa", model=MODEL_FAST,
                 input_text=system_prompt, output_text="",
                 latency_ms=int((_t.time()-_start)*1000), error=e
             )

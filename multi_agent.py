@@ -18,6 +18,7 @@ Agents:
 from groq import Groq
 from pinecone import Pinecone
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from models import MODEL_FAST, MODEL_DEEP, extract_json, completion_kwargs
 import os
 import json
 from dotenv import load_dotenv
@@ -28,8 +29,21 @@ from llm_logger import log_llm_call
 
 import time as _time
 
+def _retry_after_seconds(err_text, default=3.0):
+    """Pull 'try again in 1.07s' (or '6m 11s') out of a Groq 429 message.
+    Returns seconds to wait; falls back to `default` if not found. Capped at 60s
+    since TPM windows reset within a minute."""
+    import re as _re2
+    m = _re2.search(r'try again in\s+(?:(\d+)m\s*)?([\d.]+)s', err_text or "", _re2.IGNORECASE)
+    if m:
+        mins = float(m.group(1)) if m.group(1) else 0.0
+        secs = float(m.group(2))
+        return min(60.0, mins * 60 + secs + 0.5)   # +0.5s cushion
+    return float(default)
+
+
 def _groq_call_with_retry(fn, max_retries=3, call_type="specialist",
-                          model="llama-3.1-8b-instant",
+                          model=MODEL_FAST,
                           plant_site="", equip_tag=""):
     """
     Retry Groq calls on rate limit errors with exponential backoff.
@@ -46,8 +60,11 @@ def _groq_call_with_retry(fn, max_retries=3, call_type="specialist",
             )
         except Exception as e:
             if "rate_limit" in str(e).lower() or "429" in str(e):
-                wait = [55, 70, 90][attempt]
-                print(f"  Rate limit hit — waiting {wait}s before retry {attempt+1}/{max_retries}")
+                # TPM windows reset within ~60s, and Groq tells us exactly how
+                # long to wait ("try again in 1.07s"). Honour that hint instead
+                # of a flat 55s wait, with a short backoff as the fallback.
+                wait = _retry_after_seconds(str(e), default=[3, 8, 15][attempt])
+                print(f"  Rate limit hit — waiting {wait:.1f}s before retry {attempt+1}/{max_retries}")
                 _time.sleep(wait)
             else:
                 raise
@@ -155,13 +172,13 @@ Analyse the alarm pattern from this data."""
 
     response = _groq_call_with_retry(
         lambda: groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model=MODEL_FAST,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user",   "content": user_prompt}
             ],
-            max_tokens=400, temperature=0.1),
-        call_type="specialist", model="llama-3.1-8b-instant",
+            temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
+        call_type="specialist", model=MODEL_FAST,
         equip_tag=equipment_id)
 
     return {
@@ -214,13 +231,13 @@ Analyse the maintenance history from this data."""
 
     response = _groq_call_with_retry(
         lambda: groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model=MODEL_FAST,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user",   "content": user_prompt}
             ],
-            max_tokens=400, temperature=0.1),
-        call_type="specialist", model="llama-3.1-8b-instant",
+            temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
+        call_type="specialist", model=MODEL_FAST,
         equip_tag=equipment_id)
 
     return {
@@ -273,13 +290,13 @@ Extract the relevant procedures and specifications from this data."""
 
     response = _groq_call_with_retry(
         lambda: groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model=MODEL_FAST,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user",   "content": user_prompt}
             ],
-            max_tokens=400, temperature=0.1),
-        call_type="specialist", model="llama-3.1-8b-instant",
+            temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
+        call_type="specialist", model=MODEL_FAST,
         equip_tag=equipment_id)
 
     return {
@@ -332,13 +349,13 @@ Analyse the quality and non-conformance history from this data."""
 
     response = _groq_call_with_retry(
         lambda: groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model=MODEL_FAST,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user",   "content": user_prompt}
             ],
-            max_tokens=400, temperature=0.1),
-        call_type="specialist", model="llama-3.1-8b-instant",
+            temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
+        call_type="specialist", model=MODEL_FAST,
         equip_tag=equipment_id)
 
     return {
@@ -377,6 +394,14 @@ Your rules:
    - Worn components with documented NCR history = HIGH
    - Safety events (electrical, fire, fumes) = CRITICAL
    Never downgrade below HIGH when evidence shows recurring fault or production stop required.
+
+FORMATTING RULES (follow these EXACTLY — do not deviate):
+- Output PLAIN TEXT only. Do NOT use Markdown: no ** for bold, no * for italics,
+  no # headings, no backticks. The section headers below are the only headers.
+- Use simple single-level "- " bullets. Do NOT nest bullets or create
+  sub-sub-lists. One fact per bullet, kept to a single line where possible.
+- Reproduce the section structure below verbatim, including the ═ divider lines.
+- Be concise. Prefer short, direct bullets over long paragraphs.
 
 Produce the report in exactly this format:
 
@@ -476,13 +501,13 @@ Synthesize the final investigation report from these findings."""
     # synthesise the specialist findings into a structured report.
     response = _groq_call_with_retry(
         lambda: groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=MODEL_DEEP,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user",   "content": user_prompt}
             ],
-            max_tokens=800, temperature=0.1),
-        call_type="orchestrator", model="llama-3.3-70b-versatile")
+            temperature=0.1, **completion_kwargs(MODEL_DEEP, "orchestrator", 1400)),
+        call_type="orchestrator", model=MODEL_DEEP)
 
     initial_report = response.choices[0].message.content
 
@@ -528,13 +553,13 @@ Keep the exact same format (INVESTIGATION REPORT — TECHNICAL + PLANT MANAGER S
 
     reflection_response = _groq_call_with_retry(
         lambda: groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=MODEL_DEEP,
             messages=[
                 {"role": "system", "content": REFLECTION_PROMPT},
                 {"role": "user",   "content": f"Original report to critique and improve:\n\n{initial_report}\n\nNote: The report above was synthesised from shift logs, maintenance records, SOPs, and NCR history for this equipment. Improve it using only what is already stated in the report."}
             ],
-            max_tokens=600, temperature=0.1),
-        call_type="reflection", model="llama-3.3-70b-versatile")
+            temperature=0.1, **completion_kwargs(MODEL_DEEP, "reflection", 600)),
+        call_type="reflection", model=MODEL_DEEP)
 
     return reflection_response.choices[0].message.content
 
@@ -623,27 +648,23 @@ def supervisor_route(incident, equipment_id=None):
     try:
         response = _groq_call_with_retry(
             lambda: groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",   # 8b is fine for classification
+                model=MODEL_FAST,   # fast tier is fine for classification
                 messages=[
                     {"role": "system", "content": SUPERVISOR_PROMPT},
                     {"role": "user",   "content": user_msg}
                 ],
-                max_tokens=100,
-                temperature=0.0   # deterministic routing
+                temperature=0.0,   # deterministic routing
+                **completion_kwargs(MODEL_FAST, "supervisor", 100)
             ),
             call_type="supervisor",
-            model="llama-3.1-8b-instant"
+            model=MODEL_FAST
         )
 
-        raw = response.choices[0].message.content.strip()
+        raw = response.choices[0].message.content or ""
 
-        # Strip markdown fences if model adds them
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-
-        data = json.loads(raw)
+        # Robustly extract the JSON, tolerating reasoning text / fences that
+        # GPT-OSS models can wrap around it (see models.extract_json).
+        data = extract_json(raw)
         agents = data.get("agents", [])
         reason = data.get("reason", "")
 
@@ -730,10 +751,11 @@ def investigate_incident(incident, equipment_id=None):
     # Run all four specialists in parallel.
     # IMPORTANT: do NOT yield inside the with-block — collect results first,
     # yield progress after the executor has cleanly closed.
-    # Run all four specialists in parallel (max_workers=4)
-    # Safe without reflection — 4 x 400 tokens = 1,600 tokens well under 6,000 TPM
-    # If reflection is enabled, consider max_workers=2 to avoid TPM spikes
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    # Run specialists with max_workers=2 (two waves), NOT all four at once.
+    # Four simultaneous calls stack their tokens into the same 60s window and
+    # trip the TPM limit (the 429 we saw). Two-at-a-time halves the burst while
+    # staying nearly as fast. Matters more on GPT-OSS, which adds reasoning tokens.
+    with ThreadPoolExecutor(max_workers=2) as executor:
         future_to_name = {
             executor.submit(fn, incident, equipment_id): label
             for label, fn in specialist_functions
