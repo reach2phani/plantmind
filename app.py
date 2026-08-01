@@ -3,7 +3,7 @@ import re
 import threading
 import json
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 load_dotenv()  # load env vars FIRST before any module that needs them
 from flask import Flask, request, jsonify, render_template, Response, stream_with_context
@@ -14,9 +14,27 @@ from groq import Groq
 from multi_agent import investigate_incident
 from work_order_agent import draft_work_order, price_and_cost
 from llm_logger import log_streaming_call, get_today_stats
-from models import MODEL_FAST, MODEL_DEEP, completion_kwargs
+from models import MODEL_FAST, MODEL_DEEP, completion_kwargs, extract_json
 
 app = Flask(__name__)
+
+
+@app.errorhandler(Exception)
+def _handle_uncaught_error(e):
+    """
+    Safety net: any unhandled exception on an /api/ route must return JSON,
+    never Flask's default HTML error page. Frontend code across this app
+    does response.json() on API calls -- an HTML page there breaks with a
+    cryptic "Unexpected token '<'" instead of a real error message. Page
+    routes (rendering templates) fall through to Flask's normal handling
+    unchanged, since those aren't consumed as JSON.
+    """
+    from werkzeug.exceptions import HTTPException
+    code = e.code if isinstance(e, HTTPException) else 500
+    if request.path.startswith("/api/"):
+        print(f"  [error] unhandled exception on {request.path}: {e}")
+        return jsonify({"error": "Something went wrong on our end. Please try again."}), code
+    raise e
 
 # ── Knowledge graph — load on startup ────────────────────────────────────────
 def _load_knowledge_graph():
@@ -486,6 +504,12 @@ def chat():
 @app.route("/library")
 def library():
     return render_template("library.html")
+
+@app.route("/expert-capture")
+def expert_capture_page():
+    """PM-IK-001 — senior-operator field capture. Always-available nav
+    entry point; does not depend on any alarm state or acknowledgment flow."""
+    return render_template("expert_capture.html")
 
 # ── API ────────────────────────────────────────────────────────────────
 
@@ -1570,6 +1594,520 @@ def reject_work_order(wo_id):
         return jsonify({"success": True, "work_order": _get_wo(wo_id)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXPERT FIX CAPTURE ROUTES (PM-IK-001)
+# ─────────────────────────────────────────────────────────────────────────────
+# Always-available capture flow (nav button "Capture knowledge"), deliberately
+# NOT wired to any alarm-acknowledge/resolve lifecycle — see CONTEXT.md
+# discussion history. Operator picks the equipment/alarm themselves, records
+# a voice note, reviews the transcript, reviews an LLM-structured card, then
+# confirms. Confirmed fixes are embedded into Pinecone as doc_type
+# "Expert Fix" and become a fifth searchable source for the investigation
+# pipeline (see multi_agent.py: run_expert_fix_agent).
+
+from embedder import embed_expert_fix
+
+EXPERT_FIX_STRUCTURE_PROMPT = """You structure a senior operator's spoken field report into a
+clean record for PlantMind's knowledge base. You are given a transcript of what the operator
+said. The operator was NOT asked to pick equipment from a list first — they just talked, so
+you must also identify which equipment they're describing from the transcript itself.
+
+CRITICAL RULE — never invent or infer content the transcript does not support. If the
+transcript does not clearly state a field, return an empty string "" for that field. Do not
+pad thin input with plausible-sounding detail. A sparse transcript should produce a sparse,
+honest result — that is correct behaviour, not a failure.
+
+EQUIPMENT TAG EXTRACTION:
+- equip_tag_candidate: the equipment tag as the operator said it, normalised to the plant's
+  format (uppercase, hyphenated — e.g. "wm one oh one" or "WM 101" both become "WM-101").
+  Empty string if no equipment was named at all.
+
+FIX SHAPE — decide which of three shapes this fix actually is, do not force a mismatch:
+- "steps": the operator described an ordered sequence of concrete actions (with or without
+  exact numeric values) that another person could follow to reproduce the fix. Populate
+  fix_steps as an ordered array of short, imperative strings, e.g.
+  ["Open the tension dial cover", "Reset tension from 18 to 22", "Run one test weld"].
+  Keep each step to what the operator actually said — do not add steps they didn't mention.
+- "diagnostic": the operator described a symptom, signal, or observation that explains WHAT
+  the problem was, but not a repeatable action sequence (e.g. "the grinding sound meant it
+  was the bearing, not the belt"). Leave fix_steps as an empty array; put the description in
+  what_fixed_it as plain text.
+- "insufficient": the operator's account is too thin to reproduce or even use as a diagnostic
+  lead (e.g. "I just knew from experience" with no further detail). Leave fix_steps empty;
+  put whatever they did say into what_fixed_it so it isn't lost, however small.
+
+Extract exactly these fields:
+- equip_tag_candidate: as defined above
+- what_was_different: what was different/unusual about this occurrence (root cause detail)
+- fix_shape: "steps" | "diagnostic" | "insufficient", as defined above
+- fix_steps: ordered array of strings, ONLY when fix_shape is "steps", otherwise []
+- what_fixed_it: plain-text description of the fix — always populate this as a human-readable
+  summary regardless of fix_shape, even when fix_steps is also populated
+- when_it_applies: any stated conditions under which this fix applies (e.g. "only after
+  liner replacement") — empty string if the operator didn't state a condition
+- sop_gap_identified: true only if the operator explicitly said the SOP/procedure doesn't
+  cover this, is wrong, or is missing something — otherwise false
+- sop_gap_reason: one sentence on what the SOP misses, ONLY if sop_gap_identified is true,
+  otherwise empty string
+
+Respond with ONLY a JSON object, nothing else, no markdown fences:
+{"equip_tag_candidate": "WM-101", "what_was_different": "...", "fix_shape": "steps",
+ "fix_steps": ["...", "..."], "what_fixed_it": "...", "when_it_applies": "...",
+ "sop_gap_identified": true, "sop_gap_reason": "..."}"""
+
+
+def _normalise_candidate_tag(raw_tag, known_tags):
+    """
+    Validates an LLM-extracted equipment tag candidate against the plant's
+    real, known equipment tags before it's ever treated as confirmed.
+
+    This exists because search_expert_fixes filters on equip_tag with an
+    EXACT match — there is no fuzzy fallback at retrieval time. A candidate
+    that's close-but-not-exact (e.g. "WM101" vs "WM-101") would silently
+    make this fix unfindable forever, with no error anywhere. So: match
+    the extracted candidate against the canonical list case-insensitively
+    and punctuation-insensitively, and only return a tag if we're confident
+    it maps onto something real. If nothing matches, return the raw
+    candidate anyway (still better than nothing) but flag it as unconfirmed
+    so the UI can visibly prompt the operator to check it.
+    """
+    if not raw_tag:
+        return "", False
+
+    def _simplify(s):
+        return re.sub(r"[^A-Z0-9]", "", s.upper())
+
+    simplified_candidate = _simplify(raw_tag)
+    for tag in known_tags:
+        if _simplify(tag) == simplified_candidate:
+            return tag, True  # exact canonical match found
+
+    return raw_tag.strip().upper(), False  # best-effort, not confirmed
+
+
+@app.route("/api/expert-fixes/equipment-list", methods=["GET"])
+def expert_fix_equipment_list():
+    """
+    Powers the "Edit" fallback on the recording screen — used only when the
+    auto-extracted tag needs correcting, not as a gate before recording.
+    Pulls distinct equip_tags from live_events (last 90 days) so the list
+    stays relevant to equipment that's actually active, rather than every
+    tag that's ever existed in the plant.
+    """
+    try:
+        cutoff = (datetime.utcnow() - timedelta(days=90)).isoformat()
+        result = (supabase.table("live_events")
+                  .select("equip_tag, plant_site, line")
+                  .gte("created_at", cutoff)
+                  .limit(500)
+                  .execute())
+        seen = set()
+        tags = []
+        for row in (result.data or []):
+            tag = (row.get("equip_tag") or "").strip().upper()
+            if not tag or tag in seen:
+                continue
+            seen.add(tag)
+            tags.append({"equip_tag": tag, "plant_site": row.get("plant_site", ""), "line": row.get("line", "")})
+        tags.sort(key=lambda t: t["equip_tag"])
+        return jsonify({"equipment": tags})
+    except Exception as e:
+        print(f"  [expert-fix] equipment-list error: {e}")
+        return jsonify({"equipment": []})
+
+
+@app.route("/api/expert-fixes/transcribe", methods=["POST"])
+def expert_fix_transcribe():
+    """
+    Accepts a recorded audio file (multipart form, field name 'audio') and
+    returns the Whisper transcript. No fields are saved here — this is a
+    pure transcription step; nothing persists until /save is called.
+    """
+    if "audio" not in request.files:
+        return jsonify({"error": "No audio file provided"}), 400
+    audio_file = request.files["audio"]
+    if audio_file.filename == "":
+        return jsonify({"error": "No audio file provided"}), 400
+
+    try:
+        transcript = groq_client.audio.transcriptions.create(
+            file=(audio_file.filename or "recording.webm", audio_file.read()),
+            model="whisper-large-v3",
+        )
+        text = getattr(transcript, "text", "") or ""
+        return jsonify({"transcript": text.strip()})
+    except Exception as e:
+        print(f"  [expert-fix] transcription error: {e}")
+        return jsonify({"error": "Transcription failed. Please try recording again."}), 500
+
+
+@app.route("/api/expert-fixes/structure", methods=["POST"])
+def expert_fix_structure():
+    """
+    Takes a (possibly operator-edited) transcript and returns:
+      - the LLM-structured card fields (adaptive fix_shape/fix_steps)
+      - an auto-detected, canonically-normalised equipment tag candidate
+
+    Talk-first design: the operator never picked equipment beforehand, so
+    this is the ONE place equipment gets identified — from what they said,
+    not from a list they browsed. Structuring only; nothing is saved here.
+    """
+    data       = request.get_json() or {}
+    transcript = (data.get("transcript") or "").strip()
+
+    if not transcript:
+        return jsonify({"error": "No transcript provided"}), 400
+
+    user_prompt = f"""Operator's transcript:
+\"\"\"{transcript}\"\"\"
+
+Structure this into the required JSON fields, including identifying the equipment tag."""
+
+    try:
+        response = groq_client.chat.completions.create(
+            model=MODEL_DEEP,
+            messages=[
+                {"role": "system", "content": EXPERT_FIX_STRUCTURE_PROMPT},
+                {"role": "user",   "content": user_prompt}
+            ],
+            temperature=0.1,
+            **completion_kwargs(MODEL_DEEP, "orchestrator", 500)
+        )
+        raw = response.choices[0].message.content or ""
+        structured = extract_json(raw)
+    except Exception as e:
+        print(f"  [expert-fix] structuring error: {e}")
+        # Fail soft — operator can still confirm with a manually-filled card
+        # rather than losing their whole recording over an LLM hiccup.
+        structured = {
+            "equip_tag_candidate": "", "what_was_different": "",
+            "fix_shape": "insufficient", "fix_steps": [], "what_fixed_it": "",
+            "when_it_applies": "", "sop_gap_identified": False, "sop_gap_reason": ""
+        }
+
+    # Validate the extracted tag against real, known equipment tags before
+    # it's treated as confirmed — see _normalise_candidate_tag docstring
+    # for why this matters (exact-match retrieval downstream).
+    raw_candidate = structured.get("equip_tag_candidate", "") or ""
+    try:
+        known = expert_fix_equipment_list().get_json().get("equipment", [])
+        known_tags = [e["equip_tag"] for e in known]
+    except Exception:
+        known_tags = []
+    equip_tag, tag_confirmed = _normalise_candidate_tag(raw_candidate, known_tags)
+
+    fix_shape = structured.get("fix_shape") or "diagnostic"
+    if fix_shape not in ("steps", "diagnostic", "insufficient"):
+        fix_shape = "diagnostic"
+    fix_steps = structured.get("fix_steps") or []
+    if fix_shape != "steps":
+        fix_steps = []
+
+    return jsonify({
+        "equip_tag":            equip_tag,
+        "equip_tag_confirmed":  tag_confirmed,
+        "what_was_different":   structured.get("what_was_different", "") or "",
+        "fix_shape":            fix_shape,
+        "fix_steps":            fix_steps,
+        "what_fixed_it":        structured.get("what_fixed_it", "") or "",
+        "when_it_applies":      structured.get("when_it_applies", "") or "",
+        "sop_gap_identified":   bool(structured.get("sop_gap_identified", False)),
+        "sop_gap_reason":       structured.get("sop_gap_reason", "") or "",
+    })
+
+
+@app.route("/api/expert-fixes/save", methods=["POST"])
+def expert_fix_save():
+    """
+    Final confirm step. Accepts multipart form data (so the optional photo
+    can ride along in the same request):
+      equip_tag, equip_tag_source ("auto"/"edited"), plant_site, line,
+      alarm_id, alarm_description (all alarm fields now optional — talk-first
+      flow is not anchored to a specific alarm event),
+      captured_by_name, captured_by_role, raw_transcript,
+      what_was_different, fix_shape, fix_steps (JSON-encoded array string),
+      what_fixed_it, when_it_applies,
+      sop_gap_identified ("true"/"false"), sop_gap_reason,
+      photo (optional file)
+
+    Inserts the row, uploads the photo if present, then embeds into
+    Pinecone in a background thread (mirrors the existing /upload pattern)
+    so the operator gets an immediate response rather than waiting on
+    the embedding call.
+    """
+    form = request.form
+    equip_tag = (form.get("equip_tag") or "").strip().upper()
+    captured_by_name = (form.get("captured_by_name") or "").strip()
+    raw_transcript   = (form.get("raw_transcript") or "").strip()
+
+    if not equip_tag:
+        return jsonify({"error": "Equipment tag is required — please confirm which equipment this is"}), 400
+    if not captured_by_name:
+        return jsonify({"error": "Captured-by name is required"}), 400
+    if not raw_transcript:
+        return jsonify({"error": "A transcript is required — please record your fix"}), 400
+
+    photo_path = None
+    photo_file = request.files.get("photo")
+    if photo_file and photo_file.filename:
+        try:
+            ext = photo_file.filename.rsplit(".", 1)[-1].lower() if "." in photo_file.filename else "jpg"
+            photo_path = f"expert-fix-photos/{equip_tag}_{int(datetime.utcnow().timestamp())}.{ext}"
+            supabase.storage.from_(SUPABASE_BUCKET).upload(
+                path=photo_path,
+                file=photo_file.read(),
+                file_options={"content-type": photo_file.mimetype or "image/jpeg", "upsert": "true"}
+            )
+        except Exception as e:
+            print(f"  [expert-fix] photo upload failed (continuing without photo): {e}")
+            photo_path = None
+
+    sop_gap_raw = (form.get("sop_gap_identified") or "false").strip().lower()
+
+    fix_shape = (form.get("fix_shape") or "diagnostic").strip().lower()
+    if fix_shape not in ("steps", "diagnostic", "insufficient"):
+        fix_shape = "diagnostic"
+
+    fix_steps = []
+    if fix_shape == "steps":
+        try:
+            fix_steps = json.loads(form.get("fix_steps") or "[]")
+            if not isinstance(fix_steps, list):
+                fix_steps = []
+            fix_steps = [str(s).strip() for s in fix_steps if str(s).strip()]
+        except Exception as e:
+            print(f"  [expert-fix] fix_steps parse error (continuing with empty steps): {e}")
+            fix_steps = []
+
+    equip_tag_source = (form.get("equip_tag_source") or "auto").strip().lower()
+    if equip_tag_source not in ("auto", "edited"):
+        equip_tag_source = "auto"
+
+    record = {
+        "equip_tag":           equip_tag,
+        "equip_tag_source":    equip_tag_source,
+        "plant_site":          form.get("plant_site", "") or "",
+        "line":                form.get("line", "") or "",
+        "alarm_id":            form.get("alarm_id") or None,
+        "alarm_description":   form.get("alarm_description", "") or "",
+        "captured_by_name":    captured_by_name,
+        "captured_by_role":    form.get("captured_by_role", "") or "",
+        "raw_transcript":      raw_transcript,
+        "what_was_different":  form.get("what_was_different", "") or "",
+        "fix_shape":           fix_shape,
+        "fix_steps":           fix_steps,
+        "what_fixed_it":       form.get("what_fixed_it", "") or "",
+        "when_it_applies":     form.get("when_it_applies", "") or "",
+        "sop_gap_identified":  sop_gap_raw in ("true", "1", "yes"),
+        "sop_gap_reason":      form.get("sop_gap_reason", "") or "",
+        "photo_path":          photo_path,
+        "embed_status":        "pending",
+    }
+
+    try:
+        result = supabase.table("expert_fixes").insert(record).execute()
+        saved  = result.data[0] if result.data else None
+    except Exception as e:
+        # Never let a DB error fall through to Flask's default HTML error
+        # page -- the frontend does response.json() and a stray HTML page
+        # breaks with a cryptic "Unexpected token '<'" instead of a real
+        # message. A common real-world cause: the table was created before
+        # a later column (fix_shape/fix_steps/equip_tag_source) existed --
+        # see the ALTER TABLE ADD COLUMN IF NOT EXISTS block in the schema.
+        print(f"  [expert-fix] save insert failed: {e}")
+        return jsonify({"error": "Could not save the fix — the database rejected it. "
+                                  "If this keeps happening, check that expert_fixes has all "
+                                  "required columns (see sql_04_expert_fixes.sql)."}), 500
+
+    if not saved:
+        return jsonify({"error": "Could not save the fix. Please try again."}), 500
+
+    fix_id = saved["id"]
+
+    def run_embed():
+        try:
+            success = embed_expert_fix(fix_id, saved)
+            supabase.table("expert_fixes").update({
+                "embed_status":     "done" if success else "failed",
+                "last_embedded_at": datetime.utcnow().isoformat(),
+            }).eq("id", fix_id).execute()
+        except Exception as e:
+            print(f"  [expert-fix] background embed failed for {fix_id}: {e}")
+            try:
+                supabase.table("expert_fixes").update({"embed_status": "failed"}).eq("id", fix_id).execute()
+            except Exception:
+                pass
+
+    threading.Thread(target=run_embed, daemon=True).start()
+
+    # Stats for the confirmation-screen counter ("N saved / N cited")
+    try:
+        stats = supabase.rpc("expert_fix_operator_stats", {"operator_name": captured_by_name}).execute()
+        row = (stats.data or [{}])[0]
+        saved_count = row.get("saved_count", 1)
+        cited_count = row.get("cited_count", 0)
+    except Exception as e:
+        print(f"  [expert-fix] stats lookup failed: {e}")
+        saved_count, cited_count = 1, 0
+
+    return jsonify({
+        "success":     True,
+        "fix":         saved,
+        "saved_count": saved_count,
+        "cited_count": cited_count,
+    })
+
+
+@app.route("/api/expert-fixes/stats", methods=["GET"])
+def expert_fix_stats():
+    """Standalone stats lookup — used if the confirm screen is reopened
+    later without a fresh /save call (e.g. after 'capture another')."""
+    name = (request.args.get("name") or "").strip()
+    if not name:
+        return jsonify({"saved_count": 0, "cited_count": 0})
+    try:
+        stats = supabase.rpc("expert_fix_operator_stats", {"operator_name": name}).execute()
+        row = (stats.data or [{}])[0]
+        return jsonify({
+            "saved_count": row.get("saved_count", 0),
+            "cited_count": row.get("cited_count", 0),
+        })
+    except Exception as e:
+        print(f"  [expert-fix] stats error: {e}")
+        return jsonify({"saved_count": 0, "cited_count": 0})
+
+
+@app.route("/api/expert-fixes/mine", methods=["GET"])
+def expert_fix_mine():
+    """
+    Lists an operator's own captures, most recent first. Powers the
+    capture page's list-first landing view — until this existed, a
+    confirmed capture just disappeared from view with no way to look
+    back at what you'd saved or how it's being used.
+    """
+    name  = (request.args.get("name") or "").strip()
+    limit = int(request.args.get("limit", 50))
+    if not name:
+        return jsonify({"fixes": []})
+    try:
+        result = (supabase.table("expert_fixes")
+                  .select("id, equip_tag, plant_site, line, what_was_different, "
+                          "fix_shape, fix_steps, what_fixed_it, when_it_applies, "
+                          "sop_gap_identified, sop_gap_reason, times_cited, "
+                          "last_cited_at, captured_at")
+                  .eq("captured_by_name", name)
+                  .order("captured_at", desc=True)
+                  .limit(limit)
+                  .execute())
+        return jsonify({"fixes": result.data or []})
+    except Exception as e:
+        print(f"  [expert-fix] mine list error: {e}")
+        return jsonify({"fixes": []})
+
+
+@app.route("/api/expert-fixes/<fix_id>", methods=["GET"])
+def expert_fix_get_one(fix_id):
+    """Fetch one fix's full detail — used to populate the edit form."""
+    try:
+        result = (supabase.table("expert_fixes")
+                  .select("*")
+                  .eq("id", fix_id)
+                  .execute())
+        rows = result.data or []
+        if not rows:
+            return jsonify({"error": "Capture not found"}), 404
+        return jsonify({"fix": rows[0]})
+    except Exception as e:
+        print(f"  [expert-fix] get-one error: {e}")
+        return jsonify({"error": "Could not load this capture"}), 500
+
+
+@app.route("/api/expert-fixes/<fix_id>", methods=["PUT"])
+def expert_fix_update(fix_id):
+    """
+    Updates the STRUCTURED fields only (equip_tag, what_was_different,
+    fix_shape/fix_steps, what_fixed_it, when_it_applies, sop_gap_*) —
+    never the raw_transcript, which stays a read-only record of what the
+    operator actually said. Editing structured fields re-embeds the fix
+    so a correction actually reaches future investigations, not just the
+    display on this page — editing without re-embedding would silently
+    desync what's shown here from what's actually searchable.
+    """
+    data = request.get_json() or {}
+
+    editable_fields = ["equip_tag", "what_was_different", "fix_shape",
+                        "fix_steps", "what_fixed_it", "when_it_applies",
+                        "sop_gap_identified", "sop_gap_reason"]
+    updates = {k: data[k] for k in editable_fields if k in data}
+    if not updates:
+        return jsonify({"error": "No editable fields provided"}), 400
+
+    if "equip_tag" in updates:
+        updates["equip_tag"] = (updates["equip_tag"] or "").strip().upper()
+        if not updates["equip_tag"]:
+            return jsonify({"error": "Equipment tag can't be empty"}), 400
+
+    if "fix_shape" in updates and updates["fix_shape"] not in ("steps", "diagnostic", "insufficient"):
+        return jsonify({"error": "Invalid fix shape"}), 400
+
+    updates["embed_status"] = "pending"
+
+    try:
+        result = (supabase.table("expert_fixes")
+                  .update(updates)
+                  .eq("id", fix_id)
+                  .execute())
+    except Exception as e:
+        print(f"  [expert-fix] update failed: {e}")
+        return jsonify({"error": "Could not save your changes. Please try again."}), 500
+
+    fetch_result = supabase.table("expert_fixes").select("*").eq("id", fix_id).execute()
+    rows = fetch_result.data or []
+    if not rows:
+        return jsonify({"error": "Capture not found"}), 404
+    updated_row = rows[0]
+
+    def run_reembed():
+        try:
+            success = embed_expert_fix(fix_id, updated_row)
+            supabase.table("expert_fixes").update({
+                "embed_status":     "done" if success else "failed",
+                "last_embedded_at": datetime.utcnow().isoformat(),
+            }).eq("id", fix_id).execute()
+        except Exception as e:
+            print(f"  [expert-fix] background re-embed failed for {fix_id}: {e}")
+            try:
+                supabase.table("expert_fixes").update({"embed_status": "failed"}).eq("id", fix_id).execute()
+            except Exception:
+                pass
+
+    threading.Thread(target=run_reembed, daemon=True).start()
+
+    return jsonify({"success": True, "fix": updated_row})
+
+
+@app.route("/api/expert-fixes/<fix_id>", methods=["DELETE"])
+def expert_fix_delete(fix_id):
+    """
+    Deletes the Supabase row AND the matching Pinecone vector — a delete
+    that only removed the row but left the vector behind would mean the
+    fix keeps surfacing in investigations after the operator thought
+    they'd removed it, which would be worse than not deleting at all.
+    """
+    try:
+        pine_index.delete(ids=[f"expertfix_{fix_id}"])
+    except Exception as e:
+        print(f"  [expert-fix] Pinecone delete failed (continuing with DB delete): {e}")
+
+    try:
+        supabase.table("expert_fixes").delete().eq("id", fix_id).execute()
+    except Exception as e:
+        print(f"  [expert-fix] Supabase delete failed: {e}")
+        return jsonify({"error": "Could not delete this capture. Please try again."}), 500
+
+    return jsonify({"success": True})
 
 
 # ─────────────────────────────────────────────────────────────────────────────

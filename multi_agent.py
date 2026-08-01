@@ -9,10 +9,13 @@ Architecture:
 
 Agents:
   AlarmAgent       — shift log search, alarm pattern analysis
+  ExpertFixAgent   — senior-operator field captures (PM-IK-001), searched
+                     right after shift logs since a prior expert fix on the
+                     exact fault pattern is the highest-value lead available
   MaintenanceAgent — maintenance record search, repair history
   SOPAgent         — procedure search, specification lookup
   NCRAgent         — non-conformance history, corrective action patterns
-  Orchestrator     — receives all four findings, synthesizes final report
+  Orchestrator     — receives all specialist findings, synthesizes final report
 """
 
 from groq import Groq
@@ -80,6 +83,36 @@ ENABLE_REFLECTION = os.getenv("ENABLE_REFLECTION", "false").lower() == "true"
 pc          = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 pine_index  = pc.Index(os.getenv("PINECONE_INDEX"))
 
+# ── Citation tracking for expert fixes (PM-IK-001) ─────────────────────────
+# A lightweight Supabase client just for the one write this file needs:
+# incrementing expert_fixes.times_cited when a fix is retrieved as a strong
+# match during a live investigation. Kept separate from app.py's client so
+# multi_agent.py has no import-time dependency on app.py (it's already run
+# standalone via the __main__ block at the bottom of this file).
+try:
+    from supabase import create_client as _create_supabase_client
+    _supabase = _create_supabase_client(
+        os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY")
+    )
+except Exception as _e:
+    print(f"  [expert_fix] Supabase client unavailable: {_e} — citation tracking disabled")
+    _supabase = None
+
+
+def _increment_expert_fix_citations(expert_fix_ids):
+    """
+    Mark each expert fix as cited. Silent-fail — citation tracking is a
+    nice-to-have counter for the operator, never something that should be
+    able to break or slow down an investigation.
+    """
+    if not _supabase or not expert_fix_ids:
+        return
+    for fid in expert_fix_ids:
+        try:
+            _supabase.rpc("increment_expert_fix_cited", {"fix_id": fid}).execute()
+        except Exception as e:
+            print(f"  [expert_fix] citation increment failed for {fid}: {e}")
+
 
 # ── Shared Pinecone search ─────────────────────────────────────────────────────
 
@@ -128,6 +161,67 @@ def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4
         )
 
     return "\n\n---\n\n".join(output)
+
+
+# ── Expert Fix search (PM-IK-001) ──────────────────────────────────────────
+# A dedicated search function rather than reusing search_plantmind(), because
+# this one needs to return the matched expert_fix_ids too — search_plantmind()
+# only returns formatted text, which is all every other doc_type needs, but
+# citation tracking here requires knowing exactly WHICH rows were used.
+
+def search_expert_fixes(query, equipment_filter=None, top_k=3):
+    """
+    Search Pinecone for Expert Fix documents on this equipment.
+    Returns (formatted_text, list_of_expert_fix_ids_for_strong_matches).
+
+    A "strong match" (score >= 0.4) is treated as "the agent used this" for
+    citation-counting purposes — see increment_expert_fix_cited in the SQL
+    schema and the comment on expert_fixes.times_cited for why this simpler
+    definition (found + used as context) was chosen over trying to parse
+    the orchestrator's final report text for exact citations.
+    """
+    embedding = pc.inference.embed(
+        model="multilingual-e5-large",
+        inputs=[query],
+        parameters={"input_type": "query", "truncate": "END"}
+    )
+    query_vec = embedding[0].values
+
+    filter_dict = {"doc_type": {"$eq": "Expert Fix"}}
+    if equipment_filter:
+        filter_dict["equip_tag"] = {"$eq": equipment_filter}
+
+    results = pine_index.query(
+        vector=query_vec,
+        top_k=top_k,
+        include_metadata=True,
+        filter=filter_dict
+    )
+
+    if not results.matches:
+        return "NO_DATA: No expert fixes found in PlantMind for this equipment.", []
+
+    strong_matches = [m for m in results.matches if m.score >= 0.4]
+    if not strong_matches:
+        return "LOW_CONFIDENCE: Expert fixes found but similarity too low — do not cite.", []
+
+    output   = []
+    fix_ids  = []
+    for match in strong_matches:
+        meta = match.metadata
+        name = meta.get("captured_by_name", "an operator")
+        role = meta.get("captured_by_role", "") or "Operator"
+        date = meta.get("captured_at", "")[:10]  # YYYY-MM-DD prefix only
+        output.append(
+            f"[Expert Fix — {name}, {role}"
+            f"{', ' + date if date else ''} | Score: {round(match.score, 2)}]\n"
+            f"{meta.get('text', '')[:400]}"
+        )
+        fid = meta.get("expert_fix_id")
+        if fid:
+            fix_ids.append(fid)
+
+    return "\n\n---\n\n".join(output), fix_ids
 
 
 # ── Specialist Agent: Alarm Agent ──────────────────────────────────────────────
@@ -184,6 +278,83 @@ Analyse the alarm pattern from this data."""
     return {
         "agent":    "Alarm Agent",
         "icon":     "🚨",
+        "findings": response.choices[0].message.content,
+        "raw_data": search_result
+    }
+
+
+# ── Specialist Agent: Expert Fix Agent (PM-IK-001) ────────────────────────────
+
+def run_expert_fix_agent(incident, equipment_id=None):
+    """
+    Specialist: searches senior-operator field captures for this equipment.
+    These are unverified-by-committee but highly credible — the trust signal
+    is the named operator, not a formal sign-off. If a prior expert fix
+    directly conflicts with what the SOP agent later reports, the orchestrator
+    is instructed to surface that conflict explicitly, never resolve it here.
+    """
+    SYSTEM_PROMPT = """You are the Expert Fix agent for PlantMind, a manufacturing plant AI system.
+
+Your single job: check whether a senior operator has already captured a fix for this exact
+fault pattern on this equipment, from a real incident they personally resolved.
+
+Rules:
+- You have been given ONE tool result from an expert-fix search. Analyse it fully.
+- Expert fixes are cited by the OPERATOR'S NAME AND ROLE — never call them "unverified".
+  The name and role ARE the trust signal; do not add hedging language on top of it.
+- If a fix is found, state exactly what the operator found different and what fixed it,
+  in your own words, attributed to them by name.
+- CRITICAL — if the search result contains reproducible numbered steps, preserve them
+  as numbered steps in your findings, in the same order, with the same specific values.
+  Do NOT compress them into a single summary sentence — the orchestrator downstream
+  needs the literal steps to build an actionable report, not a paraphrase of them.
+- If the search result is flagged as insufficient detail to reproduce, say so plainly —
+  present it as a lead worth investigating, not as a proven procedure.
+- If no expert fix exists for this equipment or fault pattern, say so plainly — that is
+  itself a useful finding (it means this is a genuine knowledge gap, not just a missed search).
+- Never invent or embellish an expert fix. Report only what the search actually returned.
+
+Return your findings in this exact structure:
+
+EXPERT FIX FINDINGS:
+- Found: [YES, attributed to <name, role> | NO — no prior expert fix on record]
+- What was different: [from the fix, or N/A]
+- What fixed it: [from the fix, or N/A]
+- When it applies: [any stated conditions, or N/A]
+- SOP gap flagged by operator: [YES/NO — did they say the SOP misses this]
+- Data confidence: HIGH / MEDIUM / LOW / NO DATA
+
+SOURCES USED:
+- [operator name, role, and date cited]"""
+
+    query = f"fix for {equipment_id or 'equipment'} {incident[:100]}"
+    search_result, fix_ids = search_expert_fixes(query, equipment_filter=equipment_id)
+
+    # Citation tracking happens here, at retrieval time — not after the
+    # orchestrator writes its report. See search_expert_fixes() docstring.
+    _increment_expert_fix_citations(fix_ids)
+
+    user_prompt = f"""Incident reported: {incident}
+
+Expert fix search results:
+{search_result}
+
+Analyse whether a prior expert fix applies to this incident."""
+
+    response = _groq_call_with_retry(
+        lambda: groq_client.chat.completions.create(
+            model=MODEL_FAST,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": user_prompt}
+            ],
+            temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
+        call_type="specialist", model=MODEL_FAST,
+        equip_tag=equipment_id)
+
+    return {
+        "agent":    "Expert Fix Agent",
+        "icon":     "🎙",
         "findings": response.choices[0].message.content,
         "raw_data": search_result
     }
@@ -388,7 +559,26 @@ Your rules:
 3. When a specialist returned NO DATA — that absence is itself a finding (e.g. no SOP = procedure gap).
 4. Weight findings by data confidence: HIGH > MEDIUM > LOW > NO DATA.
 5. The report has TWO sections — technical and plain language. Both are required.
-6. CRITICALITY RULES — follow strictly:
+6. EXPERT FIX RULES — follow strictly:
+   - Cite expert fixes by the operator's NAME AND ROLE, e.g. "Dave (Senior Operator)
+     found on 14 Jul 2026 that..." — never label an expert fix "unverified". The name
+     and role are the trust signal; do not add hedging qualifiers on top of that.
+   - If the Expert Fix agent found a match, it should normally be the FIRST thing named
+     under IMMEDIATE ACTION — a prior operator's proven fix is the fastest path to
+     resolving the current incident.
+   - When the expert fix contains reproducible numbered steps (the source text says
+     "reproducible steps"), REPRODUCE THOSE STEPS VERBATIM, in order, under IMMEDIATE
+     ACTION — do not summarise or paraphrase them into a single sentence. The goal is
+     that someone unfamiliar with this incident can follow the report like a checklist
+     and resolve it without contacting the operator who captured it.
+   - When the expert fix is flagged as insufficient detail ("treat as a lead, not a
+     procedure"), present it as a starting lead, not as a step-by-step fix — and say so
+     plainly rather than inventing steps that were never given.
+   - If an expert fix CONTRADICTS what the SOP agent reports (e.g. different tension,
+     temperature, or timing values), do NOT decide which one is correct. Surface BOTH
+     explicitly, label it a contradiction, and recommend engineering review before
+     acting on either one. Never silently prefer the SOP over the expert fix or vice versa.
+7. CRITICALITY RULES — follow strictly:
    - Three or more alarms of same type in one shift = HIGH minimum (recurring fault indicator)
    - Any fault requiring LOTO or production stop = HIGH minimum
    - Worn components with documented NCR history = HIGH
@@ -589,49 +779,55 @@ Choose the MINIMUM set needed — do not dispatch agents that will find nothing.
 
 Available agents:
   alarm       — searches shift logs for alarm history and patterns
+  expert_fix  — searches senior-operator field captures (PM-IK-001) for a
+                prior fix on this exact fault pattern — check this whenever
+                a specific equipment tag is known, it's often the fastest
+                path to resolution and costs nothing to check
   maintenance — searches maintenance records and service history
   sop         — searches SOPs for procedures and specifications
   ncr         — searches non-conformance reports for quality incidents
 
 Routing rules:
-  - Recurring alarm or "third time this week" → alarm + maintenance + ncr
-  - Weld quality or spatter issue → alarm + ncr + sop
+  - Whenever equipment is identified, include expert_fix alongside alarm —
+    a prior operator fix, if one exists, is the single highest-value lead
+  - Recurring alarm or "third time this week" → alarm + expert_fix + maintenance + ncr
+  - Weld quality or spatter issue → alarm + expert_fix + ncr + sop
   - Safety event (exhaust fan, fumes, fire risk) → sop (urgent procedure first)
-  - Wire feed, liner, arc, or stuttering → maintenance + sop (recent work matters)
+  - Wire feed, liner, arc, or stuttering → alarm + expert_fix + maintenance + sop
   - Any issue where recent maintenance could be relevant → always include maintenance
-  - First-time failure, no history → maintenance + sop
+  - First-time failure, no history → expert_fix + maintenance + sop
   - Conflicting sensor readings → sop + maintenance (spec + recent work)
-  - Unknown or general → all four agents
+  - Unknown or general → all five agents
 
 Think first, then choose. Write the "reason" BEFORE the "agents" list, and make
 the list follow directly from your reason — every agent you name in the reason
-must appear in the list, and vice versa. Choose 1-4 agents based purely on what
+must appear in the list, and vice versa. Choose 1-5 agents based purely on what
 THIS incident needs; do not default to a fixed number.
 
 Respond with ONLY a JSON object, nothing else, with "reason" first:
-{"reason": "one sentence explanation", "agents": ["alarm", "maintenance"]}
+{"reason": "one sentence explanation", "agents": ["alarm", "expert_fix", "maintenance"]}
 
 Examples (study how the agent list matches the reasoning):
 
 Incident: "P-201 tripped again — that's the third overload this week and parts are piling up."
-{"reason": "Recurring overload ('third this week') with quality impact — need alarm history, recent maintenance, and any non-conformances.", "agents": ["alarm", "maintenance", "ncr"]}
+{"reason": "Recurring overload ('third this week') with quality impact — check for a prior expert fix, alarm history, recent maintenance, and any non-conformances.", "agents": ["alarm", "expert_fix", "maintenance", "ncr"]}
 
 Incident: "Getting heavy spatter on the welds from WR-401 this shift, welds look out of spec."
-{"reason": "Weld-quality/spatter issue — need alarm log for onset, NCRs for quality history, and the SOP spec.", "agents": ["alarm", "ncr", "sop"]}
+{"reason": "Weld-quality/spatter issue — need alarm log for onset, a prior expert fix if one exists, NCRs for quality history, and the SOP spec.", "agents": ["alarm", "expert_fix", "ncr", "sop"]}
 
 Incident: "Exhaust fan on the booth stopped and fumes are building up — what do we do right now?"
 {"reason": "Safety event needing the correct urgent procedure first, not history.", "agents": ["sop"]}
 
 Incident: "Wire feed on WM-101 is stuttering, started right after yesterday's service."
-{"reason": "Wire-feed fault tied to recent work — need maintenance history and the feed-setup spec.", "agents": ["maintenance", "sop"]}
+{"reason": "Wire-feed fault tied to recent work — check for a prior expert fix, then maintenance history and the feed-setup spec.", "agents": ["alarm", "expert_fix", "maintenance", "sop"]}
 
 Incident: "New robot CV-410 threw an error on first run, no prior history."
-{"reason": "First-time failure with no history — check any maintenance done and the setup procedure.", "agents": ["maintenance", "sop"]}
+{"reason": "First-time failure with no history — check for any expert fix on record, maintenance done, and the setup procedure.", "agents": ["expert_fix", "maintenance", "sop"]}
 
 Incident: "Something seems off on Line 3 but I can't tell what."
-{"reason": "Vague/general report with no clear signal — cast wide with all specialists.", "agents": ["alarm", "maintenance", "sop", "ncr"]}
+{"reason": "Vague/general report with no clear signal — cast wide with all specialists.", "agents": ["alarm", "expert_fix", "maintenance", "sop", "ncr"]}
 
-Valid agent names: alarm, maintenance, sop, ncr"""
+Valid agent names: alarm, expert_fix, maintenance, sop, ncr"""
 
 
 def supervisor_route(incident, equipment_id=None):
@@ -669,19 +865,19 @@ def supervisor_route(incident, equipment_id=None):
         reason = data.get("reason", "")
 
         # Validate — only accept known agent names
-        valid = {"alarm", "maintenance", "sop", "ncr"}
+        valid = {"alarm", "expert_fix", "maintenance", "sop", "ncr"}
         agents = [a for a in agents if a in valid]
 
-        # Always need at least 2 agents — fall back to all 4 if routing fails
+        # Always need at least 1 agent — fall back to all 5 if routing fails
         if len(agents) < 1:
-            agents = ["alarm", "maintenance", "sop", "ncr"]
+            agents = ["alarm", "expert_fix", "maintenance", "sop", "ncr"]
             reason = "fallback — routing returned empty list"
 
         return agents, reason
 
     except Exception as e:
         print(f"  Supervisor routing failed: {e} — using all agents")
-        return ["alarm", "maintenance", "sop", "ncr"], "fallback — routing error"
+        return ["alarm", "expert_fix", "maintenance", "sop", "ncr"], "fallback — routing error"
 
 
 # ── Parallel Coordinator + Streaming Generator ─────────────────────────────────
@@ -733,6 +929,7 @@ def investigate_incident(incident, equipment_id=None):
 
     agent_map = {
         "alarm":       ("🚨 Alarm Agent",       run_alarm_agent),
+        "expert_fix":  ("🎙 Expert Fix Agent",  run_expert_fix_agent),
         "maintenance": ("🔧 Maintenance Agent", run_maintenance_agent),
         "sop":         ("📋 SOP Agent",         run_sop_agent),
         "ncr":         ("📊 NCR Agent",         run_ncr_agent),
@@ -748,11 +945,11 @@ def investigate_incident(incident, equipment_id=None):
     completed_names    = []
     progress_lines     = []  # collect progress — yield AFTER executor closes
 
-    # Run all four specialists in parallel.
+    # Run all routed specialists in parallel (now up to 5 with expert_fix).
     # IMPORTANT: do NOT yield inside the with-block — collect results first,
     # yield progress after the executor has cleanly closed.
-    # Run specialists with max_workers=2 (two waves), NOT all four at once.
-    # Four simultaneous calls stack their tokens into the same 60s window and
+    # Run specialists with max_workers=2 (waves of two), NOT all at once.
+    # Simultaneous calls stack their tokens into the same 60s window and
     # trip the TPM limit (the 429 we saw). Two-at-a-time halves the burst while
     # staying nearly as fast. Matters more on GPT-OSS, which adds reasoning tokens.
     with ThreadPoolExecutor(max_workers=2) as executor:

@@ -295,3 +295,130 @@ def _embed_local(doc_id, file_path, ext, metadata):
         print(f"  Skipping unsupported type: {ext}")
         return 0
 # end _embed_local
+
+
+# ── Expert Fix embedding (PM-IK-001) ───────────────────────────────────────
+# Unlike the document types above, an expert fix is never a file on disk —
+# it's a structured record already sitting in the `expert_fixes` Supabase
+# table (raw_transcript + LLM-structured fields). This embeds it directly
+# as ONE chunk (these are short — a few sentences — so no splitting needed)
+# with doc_type "Expert Fix" so it slots into the exact same Pinecone index
+# and search_plantmind() filtering that every other doc_type already uses.
+
+def build_expert_fix_text(fix_row):
+    """
+    Assemble the natural-language text that gets embedded for an expert fix.
+    Kept as its own function so app.py and any re-embed script produce
+    IDENTICAL text -- one place defines "what this document says".
+
+    Handles three fix shapes honestly rather than forcing every fix into
+    one template (see structuring prompt in app.py):
+      'steps'        -- ordered, reproducible actions (fix_row['fix_steps'])
+      'diagnostic'    -- a symptom/signal insight, not a step sequence
+                        (falls back to what_fixed_it as plain prose)
+      'insufficient'  -- transcript was too thin to reproduce; embedded
+                        honestly as a flagged, low-detail entry rather
+                        than dressed up as a procedure
+    """
+    parts = []
+    equip = fix_row.get("equip_tag", "")
+    name  = fix_row.get("captured_by_name", "")
+    role  = fix_row.get("captured_by_role", "") or "Operator"
+
+    parts.append(f"Expert fix for {equip}, captured by {name} ({role}).")
+
+    if fix_row.get("alarm_description"):
+        parts.append(f"Related alarm: {fix_row['alarm_description']}.")
+
+    if fix_row.get("what_was_different"):
+        parts.append(f"What was different: {fix_row['what_was_different']}")
+
+    fix_shape = fix_row.get("fix_shape") or "diagnostic"
+    fix_steps = fix_row.get("fix_steps") or []
+
+    if fix_shape == "steps" and fix_steps:
+        numbered = "; ".join(f"{i+1}. {s}" for i, s in enumerate(fix_steps))
+        parts.append(f"What fixed it (reproducible steps): {numbered}")
+    elif fix_shape == "insufficient":
+        parts.append(
+            "What fixed it: insufficient detail was captured to reproduce this "
+            "as steps -- treat as a lead, not a procedure."
+            + (f" Operator's note: {fix_row['what_fixed_it']}" if fix_row.get("what_fixed_it") else "")
+        )
+    elif fix_row.get("what_fixed_it"):
+        parts.append(f"What fixed it: {fix_row['what_fixed_it']}")
+
+    if fix_row.get("when_it_applies"):
+        parts.append(f"When this applies: {fix_row['when_it_applies']}")
+
+    if fix_row.get("sop_gap_identified"):
+        reason = fix_row.get("sop_gap_reason") or "the SOP does not cover this case"
+        parts.append(f"SOP gap identified: {reason}")
+
+    return " ".join(parts)
+
+
+def embed_expert_fix(fix_id, fix_row):
+    """
+    Embed one expert_fixes row into Pinecone as a single vector.
+
+    fix_row: dict with columns from the expert_fixes table (equip_tag,
+    plant_site, line, captured_by_name, captured_by_role, alarm_description,
+    what_was_different, what_fixed_it, when_it_applies, sop_gap_identified,
+    sop_gap_reason, captured_at).
+
+    Returns True on success, False on failure (caller updates embed_status).
+    """
+    text = build_expert_fix_text(fix_row)
+    if not text.strip():
+        print(f"  Expert fix {fix_id}: nothing to embed")
+        return False
+
+    try:
+        embedding = get_embedding(text)
+    except Exception as e:
+        print(f"  Expert fix {fix_id}: embedding error: {e}")
+        return False
+
+    captured_at = fix_row.get("captured_at", "")
+    metadata = {
+        "doc_id":             str(fix_id),
+        "expert_fix_id":      str(fix_id),   # explicit alias -- this is what
+                                              # multi_agent.py reads back to
+                                              # know WHICH row to increment
+                                              # times_cited on.
+        "text":               text[:2000],
+        "chunk":              0,
+        "chunk_type":         "expert_fix",
+        "name":               f"Expert fix - {fix_row.get('captured_by_name','')}",
+        "doc_type":           "Expert Fix",
+        "plant_site":         fix_row.get("plant_site", "") or "",
+        "line":               fix_row.get("line", "") or "",
+        "revision":           "1.0",
+        "file_type":          "expert_fix",
+        "equip_tag":          _normalise_equip_tag(fix_row.get("equip_tag", "")),
+        "captured_by_name":   fix_row.get("captured_by_name", "") or "",
+        "captured_by_role":   fix_row.get("captured_by_role", "") or "",
+        "captured_at":        str(captured_at),
+        "sop_gap_identified": bool(fix_row.get("sop_gap_identified", False)),
+        # Carried separately from `text` so the orchestrator can reproduce
+        # steps verbatim as instructions rather than re-summarising prose --
+        # see multi_agent.py run_expert_fix_agent and the orchestrator's
+        # "EXPERT FIX RULES" for how these get used.
+        "fix_shape":          fix_row.get("fix_shape") or "diagnostic",
+        "fix_steps":          fix_row.get("fix_steps") or [],
+    }
+
+    try:
+        index.upsert(vectors=[{
+            "id":       f"expertfix_{fix_id}",
+            "values":   embedding,
+            "metadata": metadata,
+        }])
+    except Exception as e:
+        print(f"  Expert fix {fix_id}: upsert error: {e}")
+        return False
+
+    print(f"  Expert fix {fix_id}: embedded for {fix_row.get('equip_tag','')}")
+    return True
+# end embed_expert_fix

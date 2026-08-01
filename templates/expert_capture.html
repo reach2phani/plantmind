@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantMind - Capture Knowledge</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
+
+.nav{background:#1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.nav-brand{font-size:17px;font-weight:700;color:#fff}
+.nav-brand span{color:#a5b4fc}
+
+.page-tabs{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0}
+.page-tab{padding:11px 18px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:block}
+.page-tab.active{color:#4f46e5;border-bottom-color:#4f46e5}
+.page-tab:hover:not(.active){color:#64748b}
+
+.main{max-width:1100px;margin:0 auto;padding:24px 20px 48px}
+.flow-container{max-width:520px;margin:0 auto}
+
+.progress-row{display:flex;gap:5px;margin-bottom:20px}
+.progress-seg{flex:1;height:4px;border-radius:2px;background:#e2e8f0}
+.progress-seg.done{background:#4f46e5}
+.progress-seg.active{background:#4f46e5}
+
+.screen{display:none;flex-direction:column;gap:14px}
+.screen.active{display:flex}
+.screen-title{font-size:17px;font-weight:600;color:#0f172a;line-height:1.4}
+.screen-sub{font-size:13px;color:#64748b;line-height:1.6;margin-top:-8px}
+
+.card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px}
+
+.btn-primary{background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:13px 16px;font-size:14px;font-weight:500;cursor:pointer;width:100%;transition:background .15s}
+.btn-primary:hover{background:#4338ca}
+.btn-primary:disabled{background:#cbd5e1;color:#64748b;opacity:1;pointer-events:none}
+.btn-secondary{background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:8px;padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;width:100%;transition:all .15s}
+.btn-secondary:hover{border-color:#cbd5e1;color:#334155}
+
+.rec-area{display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 0 6px}
+.rec-btn{width:76px;height:76px;border-radius:50%;background:#4f46e5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;transition:transform .1s}
+.rec-btn:hover{transform:scale(1.04)}
+.rec-btn.recording{background:#dc2626;animation:pulse 1.3s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}60%{box-shadow:0 0 0 12px rgba(220,38,38,0)}}
+.rec-label{font-size:12px;color:#64748b}
+.rec-timer{font-size:15px;color:#dc2626;font-weight:600}
+.playback-row{display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px 13px;width:100%}
+.playback-row audio{flex:1;height:32px}
+.rerecord-link{font-size:12px;color:#4f46e5;cursor:pointer;white-space:nowrap;font-weight:500}
+.err-box{background:#fef2f2;border-radius:8px;padding:10px 12px;font-size:12px;color:#b91c1c;line-height:1.6}
+
+.tag-row{display:flex;align-items:center;justify-content:space-between;background:#eef2ff;border-radius:8px;padding:11px 13px}
+.tag-left{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.tag-icon{font-size:16px;color:#4f46e5;flex-shrink:0}
+.tag-label{font-size:10px;font-weight:500;color:#4f46e5;text-transform:uppercase;letter-spacing:.04em}
+.tag-val{font-size:13px;font-weight:600;color:#3730a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag-source{font-size:11px;color:#4f46e5}
+.tag-edit-btn{font-size:11px;color:#4f46e5;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:3px;background:none;border:none}
+.tag-unconfirmed{background:#fef3c7;border-radius:8px;padding:9px 11px;font-size:11px;color:#92400e;line-height:1.6}
+.tag-editor{display:none;flex-direction:column;gap:8px;background:#fff;border:1px solid #c7d2fe;border-radius:8px;padding:12px;margin-top:6px}
+.tag-editor.open{display:flex}
+.tag-search{width:100%;font-size:13px;padding:9px 11px;border-radius:6px;border:1px solid #e2e8f0;outline:none}
+.tag-list{max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.tag-list-item{padding:8px 10px;font-size:12px;border-radius:6px;cursor:pointer;color:#334155}
+.tag-list-item:hover{background:#eef2ff;color:#3730a3}
+.tag-manual-row{display:flex;gap:6px}
+.tag-manual-row input{flex:1}
+.tag-manual-row button{font-size:11px;padding:0 12px;border-radius:6px;border:none;background:#4f46e5;color:#fff;cursor:pointer}
+
+.opt-divider{display:flex;align-items:center;gap:8px;margin-top:2px}
+.opt-divider .line{flex:1;height:1px;background:#e2e8f0}
+.opt-divider span{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
+.photo-row{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px dashed #cbd5e1;border-radius:8px;cursor:pointer}
+.photo-row:hover{border-color:#a5b4fc;background:#eef2ff}
+.photo-added{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid #86efac;border-radius:8px;background:#f0fdf4}
+.photo-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#dcfce7}
+.photo-fname{font-size:12px;color:#15803d;font-weight:500;flex:1}
+.photo-remove{font-size:11px;color:#15803d;text-decoration:underline;cursor:pointer}
+
+.proc-list{display:flex;flex-direction:column;gap:10px;padding:20px 0}
+.proc-row{display:flex;align-items:center;gap:10px}
+.proc-icon{width:20px;text-align:center;font-size:15px;color:#cbd5e1}
+.proc-icon.active{color:#4f46e5}
+.proc-icon.done{color:#16a34a}
+.proc-text{font-size:13px;color:#cbd5e1}
+.proc-text.active{color:#334155}
+.proc-text.done{color:#64748b}
+.spin{display:inline-block;animation:spin 0.9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.transcript-box{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:13px;font-size:13px;color:#334155;line-height:1.75;font-style:italic}
+.edit-textarea{width:100%;min-height:110px;font-size:13px;line-height:1.7;padding:12px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#0f172a;resize:vertical;font-family:inherit}
+
+.fix-card{background:#fff;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden}
+.fix-card-hd{background:#eef2ff;padding:10px 13px;border-bottom:1px solid #c7d2fe}
+.fix-card-title{font-size:11px;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.04em}
+.fix-card-sub{font-size:11px;color:#64748b;margin-top:2px}
+.fix-sec{padding:11px 13px;border-bottom:1px solid #f1f5f9;cursor:pointer}
+.fix-sec:hover{background:#fafbff}
+.fix-sec:last-child{border-bottom:none}
+.fix-sec-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.fix-sec-val{font-size:13px;color:#334155;line-height:1.6}
+.fix-sec-val.empty{color:#cbd5e1;font-style:italic}
+.step-list{display:flex;flex-direction:column;gap:0}
+.step-row{display:flex;gap:9px;padding:6px 0}
+.step-num{width:18px;height:18px;border-radius:50%;background:#4f46e5;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-txt{font-size:13px;color:#334155;line-height:1.5}
+.shape-badge{display:inline-flex;align-items:center;gap:4px;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:500;margin-top:4px}
+.shape-badge.steps{background:#dcfce7;color:#166534}
+.shape-badge.diagnostic{background:#e0e7ff;color:#3730a3}
+.shape-badge.insufficient{background:#fef3c7;color:#92400e}
+.sop-badge{display:inline-flex;align-items:center;gap:4px;background:#fef3c7;color:#92400e;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:500;margin-top:4px}
+.edit-inline{display:none;padding:11px 13px;border-bottom:1px solid #f1f5f9}
+.edit-inline.active{display:block}
+.edit-inline textarea{width:100%;min-height:70px;font-size:13px;padding:8px;border-radius:6px;border:1px solid #c7d2fe;font-family:inherit}
+.edit-inline-actions{display:flex;gap:6px;margin-top:6px}
+.edit-inline-actions button{font-size:11px;padding:5px 10px;border-radius:5px;border:none;cursor:pointer}
+.edit-save{background:#4f46e5;color:#fff}
+.edit-cancel{background:#f1f5f9;color:#64748b}
+.shape-toggle{display:flex;gap:6px;margin-top:8px}
+.shape-toggle button{flex:1;font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;color:#64748b}
+.shape-toggle button.selected{background:#4f46e5;color:#fff;border-color:#4f46e5}
+
+.success-area{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 0;text-align:center}
+.success-icon{width:52px;height:52px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:24px;color:#16a34a}
+.success-title{font-size:16px;font-weight:600;color:#0f172a}
+.success-sub{font-size:13px;color:#64748b;line-height:1.6}
+.counter-card{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:12px 14px;width:100%}
+.cc-row{display:flex;justify-content:space-between;align-items:center}
+.cc-name{font-size:13px;font-weight:600;color:#0f172a}
+.cc-role{font-size:11px;color:#94a3b8}
+.cc-stats{display:flex;gap:18px}
+.cc-stat{text-align:center}
+.cc-num{font-size:18px;font-weight:600;color:#4f46e5;display:block}
+.cc-lbl{font-size:10px;color:#94a3b8}
+
+.list-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.list-title{font-size:20px;font-weight:600;color:#0f172a}
+.list-stats{font-size:12px;color:#64748b;margin-top:3px}
+.capture-cta-btn{background:transparent;color:#334155;border:1px solid #cbd5e1;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.capture-cta-btn:hover{border-color:#94a3b8;background:#f8fafc}
+.capture-cta-btn svg{flex-shrink:0}
+.toolbar{display:flex;gap:8px;margin-bottom:12px}
+.search-box{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:0 12px;height:38px}
+.search-box i{font-size:15px;color:#94a3b8}
+.search-box input{border:none;background:transparent;outline:none;font-size:13px;flex:1;color:#0f172a}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.chip{font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid #e2e8f0;color:#64748b;cursor:pointer;white-space:nowrap;background:#fff}
+.chip.active{background:#eef2ff;color:#4338ca;border-color:#c7d2fe}
+.fix-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.fli-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px}
+.fli-top{display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer}
+.fli-equip{font-size:13px;font-weight:600;color:#0f172a}
+.fli-time{font-size:11px;color:#94a3b8;white-space:nowrap}
+.fli-preview{font-size:12px;color:#64748b;margin-top:5px;line-height:1.5;cursor:pointer;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.fli-bottom{display:flex;align-items:center;gap:8px;margin-top:10px}
+.fli-cite{display:flex;flex-direction:column;margin-left:auto;text-align:right}
+.fli-cite-count{font-size:11px;color:#0f172a;font-weight:500}
+.fli-cite-last{font-size:10px;color:#94a3b8}
+.fli-actions{display:flex;gap:2px;margin-left:6px}
+.fli-actions button{background:none;border:none;color:#94a3b8;cursor:pointer;padding:4px 6px;display:flex;align-items:center;border-radius:5px;font-size:14px}
+.fli-actions button:hover{color:#4f46e5;background:#eef2ff}
+.fli-actions button.danger:hover{color:#dc2626;background:#fef2f2}
+.fli-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9}
+.fli-detail.open{display:block}
+.fli-detail-row{margin-bottom:8px}
+.fli-detail-label{font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.fli-detail-val{font-size:12px;color:#334155;line-height:1.6}
+.flow-back-btn{background:none;border:none;color:#4f46e5;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;margin-bottom:4px}
+.empty-state{text-align:center;padding:48px 16px;color:#94a3b8}
+.empty-state-icon{font-size:32px;margin-bottom:10px}
+.empty-state-title{font-size:14px;font-weight:500;color:#334155;margin-bottom:4px}
+.empty-state-sub{font-size:12px;color:#94a3b8;line-height:1.6}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:20px;max-width:420px;width:100%}
+.modal-title{font-size:15px;font-weight:600;color:#0f172a;margin-bottom:8px}
+.modal-sub{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:18px}
+.modal-actions{display:flex;gap:8px}
+.modal-actions button{flex:1}
+.btn-danger{background:#dc2626;color:#fff;border:none;border-radius:8px;padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer}
+.btn-danger:hover{background:#b91c1c}
+
+.edit-modal-box{background:#fff;border-radius:12px;padding:20px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto}
+.edit-field{margin-bottom:14px}
+.edit-field-label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.edit-field input,.edit-field textarea{width:100%;font-size:13px;padding:9px 11px;border-radius:7px;border:1px solid #e2e8f0;font-family:inherit}
+.edit-field textarea{min-height:70px;resize:vertical}
+.edit-readonly-box{background:#f8fafc;border-radius:7px;padding:10px 12px;font-size:12px;color:#64748b;line-height:1.6;font-style:italic}
+
+@media(max-width:600px){
+  .nav{padding:0 12px}
+  .page-tabs{padding:0 8px}
+  .page-tab{padding:9px 10px;font-size:12px}
+  .main{padding:14px 12px 32px}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">Plant<span>Mind</span></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:6px;background:#0f172a;padding:4px 10px;border-radius:6px">
+      <div style="width:22px;height:22px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">GP</div>
+      <span style="font-size:11px;color:#e2e8f0;font-weight:500;white-space:nowrap">G. Phani</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-tabs">
+  <a class="page-tab" href="/chat">Ask</a>
+  <a class="page-tab" href="/library">Library</a>
+  <a class="page-tab" href="/alerts">Alerts</a>
+  <a class="page-tab" href="/graph">Graph</a>
+  <a class="page-tab" href="/work-orders">Work orders</a>
+  <a class="page-tab active" href="/expert-capture">Capture knowledge</a>
+</div>
+
+<div class="main">
+
+  <!-- LIST VIEW — the landing view. Capture flow (below) is hidden until triggered. -->
+  <div id="listView">
+    <div class="list-header">
+      <div>
+        <div class="list-title">Your captures</div>
+        <div class="list-stats" id="listStats">Loading...</div>
+      </div>
+      <button class="capture-cta-btn" onclick="openCaptureFlow()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        Capture knowledge
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="text" id="searchInput" placeholder="Search your captures..." oninput="applyFilters()">
+      </div>
+    </div>
+    <div class="chips" id="filterChips"></div>
+
+    <div id="fixListContainer">
+      <div class="empty-state" id="emptyState" style="display:none">
+        <div class="empty-state-icon">&#127991;</div>
+        <div class="empty-state-title">No captures yet</div>
+        <div class="empty-state-sub">Your knowledge isn't in the SOPs yet.<br>Tap "Capture knowledge" to save your first fix.</div>
+      </div>
+      <div class="fix-grid" id="fixList"></div>
+    </div>
+  </div>
+
+  <!-- CAPTURE FLOW — hidden by default, opened by the button above -->
+  <div id="captureFlow" style="display:none">
+  <div class="flow-container">
+    <button class="flow-back-btn" onclick="closeCaptureFlow()">&#8592; Back to your captures</button>
+
+    <div class="progress-row" id="progressRow">
+      <div class="progress-seg active" data-seg="1"></div>
+      <div class="progress-seg" data-seg="2"></div>
+      <div class="progress-seg" data-seg="3"></div>
+      <div class="progress-seg" data-seg="4"></div>
+    </div>
+
+    <div class="screen active" id="screen-record">
+    <div class="screen-title">Tell us what to capture</div>
+    <div class="screen-sub">Your knowledge isn't in the SOPs yet. Walk us through what you did, in order, so the next operator can learn from this.</div>
+
+    <div class="card" style="padding:14px 16px">
+      <div class="rec-area" style="padding:2px 0">
+        <div id="recReady" style="display:flex;flex-direction:column;align-items:center;gap:10px">
+          <button class="rec-btn" id="recBtn" onclick="startRecording()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+          </button>
+          <div class="rec-label">Tap to record</div>
+        </div>
+        <div id="recActive" style="display:none;flex-direction:column;align-items:center;gap:8px">
+          <button class="rec-btn recording" onclick="stopRecording()">&#9632;</button>
+          <div class="rec-timer" id="recTimer">0:00</div>
+          <div class="rec-label" style="color:#dc2626">Recording — tap to stop</div>
+        </div>
+        <div id="recDone" style="display:none;width:100%">
+          <div class="playback-row">
+            <audio id="playbackAudio" controls></audio>
+            <span class="rerecord-link" onclick="resetRecording()">Re-record</span>
+          </div>
+        </div>
+      </div>
+      <div class="err-box" id="recError" style="display:none"></div>
+    </div>
+
+    <div class="opt-divider"><div class="line"></div><span>Optional</span><div class="line"></div></div>
+    <div class="photo-row" id="photoRow" onclick="document.getElementById('photoInput').click()">
+      <span style="font-size:18px;color:#94a3b8">&#128247;</span>
+      <span style="font-size:12px;color:#64748b;flex:1">Add a photo of the machine or readout</span>
+      <span style="font-size:11px;font-weight:500;color:#4f46e5;background:#eef2ff;border:1px solid #c7d2fe;border-radius:5px;padding:3px 9px">Upload</span>
+    </div>
+    <div class="photo-added" id="photoAdded" style="display:none">
+      <img class="photo-thumb" id="photoThumb" src="">
+      <span class="photo-fname" id="photoFname"></span>
+      <span class="photo-remove" onclick="removePhoto()">Remove</span>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="onPhotoSelected(event)">
+
+    <button class="btn-primary" id="continueRecordBtn" disabled onclick="submitForTranscription()">Looks good — continue</button>
+  </div>
+
+  <div class="screen" id="screen-processing">
+    <div class="screen-title" style="text-align:center">Analysing your recording</div>
+    <div class="screen-sub" style="text-align:center">This takes a few seconds</div>
+    <div class="proc-list">
+      <div class="proc-row"><span class="proc-icon" id="procIcon1">&#9881;</span><span class="proc-text" id="procText1">Transcribing your recording...</span></div>
+      <div class="proc-row"><span class="proc-icon" id="procIcon2">&#9881;</span><span class="proc-text" id="procText2">Identifying equipment and structure...</span></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-transcript">
+    <div class="screen-title">Does this match what you said?</div>
+
+    <div id="tagSection">
+      <div class="tag-row">
+        <div class="tag-left">
+          <span class="tag-icon">&#127991;</span>
+          <div style="min-width:0">
+            <div class="tag-label">Equipment</div>
+            <div class="tag-val" id="tagValDisplay">-</div>
+          </div>
+        </div>
+        <button class="tag-edit-btn" onclick="toggleTagEditor()">&#9998; Edit</button>
+      </div>
+      <div class="tag-unconfirmed" id="tagUnconfirmedWarning" style="display:none;margin-top:6px">
+        We couldn't confidently match this to known equipment — please confirm or pick the right one.
+      </div>
+      <div class="tag-editor" id="tagEditor">
+        <input type="text" class="tag-search" id="tagSearchInput" placeholder="Search equipment tag..." oninput="filterTagList()">
+        <div class="tag-list" id="tagList"></div>
+        <div class="tag-manual-row">
+          <input type="text" class="tag-search" id="tagManualInput" placeholder="Or type the exact tag">
+          <button onclick="useManualTag()">Use</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-top:6px">What we heard</div>
+    <div class="transcript-box" id="transcriptDisplay"></div>
+    <textarea class="edit-textarea" id="transcriptEdit" style="display:none"></textarea>
+    <button class="btn-secondary" id="editTranscriptBtn" onclick="toggleTranscriptEdit()">Edit transcript</button>
+    <button class="btn-primary" onclick="confirmTranscript()">Yes, that's right</button>
+  </div>
+
+  <div class="screen" id="screen-card">
+    <div class="screen-title">Does this capture your fix?</div>
+    <div class="screen-sub">Tap any section to edit.</div>
+    <div class="fix-card">
+      <div class="fix-card-hd">
+        <div class="fix-card-title" id="cardTitle">Expert fix</div>
+        <div class="fix-card-sub" id="cardSub">G. Phani, Senior Operator</div>
+      </div>
+
+      <div class="fix-sec" onclick="openInlineEdit('equip_tag')">
+        <div class="fix-sec-label"><span>Equipment</span></div>
+        <div class="fix-sec-val" id="val_equip_tag"></div>
+      </div>
+      <div class="edit-inline" id="edit_equip_tag">
+        <input type="text" class="tag-search" id="editbox_equip_tag" style="margin-bottom:8px">
+        <div class="edit-inline-actions">
+          <button class="edit-save" onclick="saveInlineEdit('equip_tag')">Save section</button>
+          <button class="edit-cancel" onclick="closeInlineEdit('equip_tag')">Cancel</button>
+        </div>
+      </div>
+
+      <div class="fix-sec" onclick="openInlineEdit('what_was_different')">
+        <div class="fix-sec-label">What was different</div>
+        <div class="fix-sec-val" id="val_what_was_different"></div>
+      </div>
+      <div class="edit-inline" id="edit_what_was_different">
+        <textarea id="editbox_what_was_different"></textarea>
+        <div class="edit-inline-actions">
+          <button class="edit-save" onclick="saveInlineEdit('what_was_different')">Save section</button>
+          <button class="edit-cancel" onclick="closeInlineEdit('what_was_different')">Cancel</button>
+        </div>
+      </div>
+
+      <div class="fix-sec" onclick="openInlineEdit('fix_content')">
+        <div class="fix-sec-label"><span>What fixed it</span></div>
+        <div id="fixContentDisplay"></div>
+      </div>
+      <div class="edit-inline" id="edit_fix_content">
+        <div class="shape-toggle" id="shapeToggle">
+          <button data-shape="steps" onclick="setEditShape('steps')">Steps</button>
+          <button data-shape="diagnostic" onclick="setEditShape('diagnostic')">Description</button>
+          <button data-shape="insufficient" onclick="setEditShape('insufficient')">Not enough detail</button>
+        </div>
+        <textarea id="editbox_fix_content" placeholder="For steps: one step per line" style="margin-top:8px"></textarea>
+        <div class="edit-inline-actions">
+          <button class="edit-save" onclick="saveFixContentEdit()">Save section</button>
+          <button class="edit-cancel" onclick="closeInlineEdit('fix_content')">Cancel</button>
+        </div>
+      </div>
+
+      <div class="fix-sec" onclick="openInlineEdit('when_it_applies')">
+        <div class="fix-sec-label">When this applies</div>
+        <div class="fix-sec-val" id="val_when_it_applies"></div>
+      </div>
+      <div class="edit-inline" id="edit_when_it_applies">
+        <textarea id="editbox_when_it_applies"></textarea>
+        <div class="edit-inline-actions">
+          <button class="edit-save" onclick="saveInlineEdit('when_it_applies')">Save section</button>
+          <button class="edit-cancel" onclick="closeInlineEdit('when_it_applies')">Cancel</button>
+        </div>
+      </div>
+
+      <div class="fix-sec" style="cursor:default">
+        <div class="fix-sec-label">SOP gap</div>
+        <div id="sopGapDisplay" style="font-size:12px;color:#94a3b8">No gap flagged</div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="submitFinalSave()">Confirm — save this fix</button>
+  </div>
+
+  <div class="screen" id="screen-success">
+    <div class="success-area">
+      <div class="success-icon">&#10003;</div>
+      <div class="success-title">Fix captured</div>
+      <div class="success-sub" id="successSub">Tagged, searchable, and ready for the next investigation on this equipment.</div>
+      <div class="counter-card">
+        <div class="cc-row">
+          <div><div class="cc-name">G. Phani</div><div class="cc-role">Senior Operator</div></div>
+          <div class="cc-stats">
+            <div class="cc-stat"><span class="cc-num" id="statSaved">-</span><span class="cc-lbl">saved</span></div>
+            <div class="cc-stat"><span class="cc-num" id="statCited">-</span><span class="cc-lbl">cited</span></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="resetFlow()">Capture another fix</button>
+      <button class="btn-secondary" onclick="closeCaptureFlow()">Done — view your captures</button>
+    </div>
+  </div>
+
+  </div>
+  </div>
+
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-title">Remove this capture?</div>
+    <div class="modal-sub" id="deleteModalSub">This can't be undone. The fix will be removed from your captures and won't appear in future investigations.</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn-danger" onclick="confirmDelete()">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="edit-modal-box">
+    <div class="modal-title">Edit capture</div>
+    <div class="modal-sub">Update the structured details below. What you originally said stays on record underneath, unchanged.</div>
+
+    <div class="edit-field">
+      <div class="edit-field-label">Equipment</div>
+      <input type="text" id="editFieldEquip">
+    </div>
+    <div class="edit-field">
+      <div class="edit-field-label">What was different</div>
+      <textarea id="editFieldDifferent"></textarea>
+    </div>
+    <div class="edit-field">
+      <div class="edit-field-label">What fixed it</div>
+      <div class="shape-toggle" id="editShapeToggle" style="margin-bottom:8px">
+        <button data-shape="steps" onclick="setEditModalShape('steps')">Steps</button>
+        <button data-shape="diagnostic" onclick="setEditModalShape('diagnostic')">Description</button>
+        <button data-shape="insufficient" onclick="setEditModalShape('insufficient')">Not enough detail</button>
+      </div>
+      <textarea id="editFieldFixContent" placeholder="For steps: one step per line"></textarea>
+    </div>
+    <div class="edit-field">
+      <div class="edit-field-label">When this applies</div>
+      <textarea id="editFieldApplies"></textarea>
+    </div>
+    <div class="edit-field">
+      <div class="edit-field-label">Original recording (read-only)</div>
+      <div class="edit-readonly-box" id="editFieldTranscript"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveEditModal()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+var CAPTURED_BY_NAME = "G. Phani";
+var CAPTURED_BY_ROLE = "Senior Operator";
+
+var state = {
+  equip_tag: "", equip_tag_source: "auto", equip_tag_confirmed: false,
+  plant_site: "", line: "",
+  audioBlob: null, photoFile: null,
+  raw_transcript: "",
+  what_was_different: "",
+  fix_shape: "diagnostic", fix_steps: [], what_fixed_it: "",
+  when_it_applies: "",
+  sop_gap_identified: false, sop_gap_reason: ""
+};
+
+var knownEquipment = [];
+var segmentMap = { record: 1, processing: 2, transcript: 3, card: 4, success: 4 };
+
+function goScreen(name) {
+  document.querySelectorAll(".screen").forEach(function(s){ s.classList.remove("active"); });
+  document.getElementById("screen-" + name).classList.add("active");
+  var seg = segmentMap[name] || 1;
+  document.querySelectorAll(".progress-seg").forEach(function(el){
+    var n = parseInt(el.getAttribute("data-seg"), 10);
+    el.classList.toggle("done", n < seg);
+    el.classList.toggle("active", n === seg);
+  });
+}
+
+function escapeHtml(s) {
+  var d = document.createElement("div");
+  d.textContent = s || "";
+  return d.innerHTML;
+}
+
+function loadEquipmentList() {
+  fetch("/api/expert-fixes/equipment-list")
+    .then(function(r){ return r.json(); })
+    .then(function(data){ knownEquipment = data.equipment || []; })
+    .catch(function(){ knownEquipment = []; });
+}
+
+function toggleTagEditor() {
+  var editor = document.getElementById("tagEditor");
+  var isOpen = editor.classList.contains("open");
+  if (isOpen) {
+    editor.classList.remove("open");
+  } else {
+    editor.classList.add("open");
+    renderTagList(knownEquipment);
+    document.getElementById("tagSearchInput").value = "";
+    document.getElementById("tagManualInput").value = "";
+  }
+}
+
+function renderTagList(list) {
+  var el = document.getElementById("tagList");
+  el.innerHTML = "";
+  list.forEach(function(e){
+    var item = document.createElement("div");
+    item.className = "tag-list-item";
+    item.textContent = e.equip_tag + (e.line ? (" - " + e.line) : "");
+    item.onclick = function(){ selectEquipmentTag(e.equip_tag, "edited"); };
+    el.appendChild(item);
+  });
+}
+
+function filterTagList() {
+  var q = document.getElementById("tagSearchInput").value.trim().toUpperCase();
+  var filtered = knownEquipment.filter(function(e){ return e.equip_tag.indexOf(q) !== -1; });
+  renderTagList(filtered);
+}
+
+function useManualTag() {
+  var val = document.getElementById("tagManualInput").value.trim().toUpperCase();
+  if (val) selectEquipmentTag(val, "edited");
+}
+
+function selectEquipmentTag(tag, source) {
+  state.equip_tag = tag;
+  state.equip_tag_source = source;
+  state.equip_tag_confirmed = true;
+  updateTagDisplay();
+  document.getElementById("tagEditor").classList.remove("open");
+}
+
+function updateTagDisplay() {
+  var displayEl = document.getElementById("tagValDisplay");
+  var sourceLabel = state.equip_tag_source === "auto" ? "detected from your recording" : "confirmed by you";
+  displayEl.innerHTML = escapeHtml(state.equip_tag) + ' <span class="tag-source" style="font-weight:400"> - ' + sourceLabel + '</span>';
+  document.getElementById("tagUnconfirmedWarning").style.display =
+    (!state.equip_tag_confirmed && state.equip_tag) ? "block" : "none";
+}
+
+var mediaRecorder = null, recordedChunks = [], recordTimerInterval = null, recordSeconds = 0;
+
+function startRecording() {
+  document.getElementById("recError").style.display = "none";
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream){
+      recordedChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = function(e){
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+      mediaRecorder.onstop = function(){
+        state.audioBlob = new Blob(recordedChunks, { type: "audio/webm" });
+        var url = URL.createObjectURL(state.audioBlob);
+        document.getElementById("playbackAudio").src = url;
+        document.getElementById("recReady").style.display = "none";
+        document.getElementById("recActive").style.display = "none";
+        document.getElementById("recDone").style.display = "block";
+        document.getElementById("continueRecordBtn").disabled = false;
+        stream.getTracks().forEach(function(t){ t.stop(); });
+      };
+      mediaRecorder.start();
+      recordSeconds = 0;
+      document.getElementById("recReady").style.display = "none";
+      document.getElementById("recActive").style.display = "flex";
+      recordTimerInterval = setInterval(function(){
+        recordSeconds++;
+        var m = Math.floor(recordSeconds / 60), s = recordSeconds % 60;
+        document.getElementById("recTimer").textContent = m + ":" + (s < 10 ? "0" : "") + s;
+      }, 1000);
+    })
+    .catch(function(){
+      var box = document.getElementById("recError");
+      box.textContent = "Microphone access is needed to record your fix. Please allow microphone access and try again.";
+      box.style.display = "block";
+    });
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+  clearInterval(recordTimerInterval);
+}
+
+function resetRecording() {
+  state.audioBlob = null;
+  document.getElementById("recDone").style.display = "none";
+  document.getElementById("recReady").style.display = "flex";
+  document.getElementById("continueRecordBtn").disabled = true;
+  document.getElementById("recTimer").textContent = "0:00";
+}
+
+function onPhotoSelected(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  state.photoFile = file;
+  document.getElementById("photoRow").style.display = "none";
+  document.getElementById("photoAdded").style.display = "flex";
+  document.getElementById("photoFname").textContent = file.name;
+  var reader = new FileReader();
+  reader.onload = function(ev){ document.getElementById("photoThumb").src = ev.target.result; };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto() {
+  state.photoFile = null;
+  document.getElementById("photoInput").value = "";
+  document.getElementById("photoRow").style.display = "flex";
+  document.getElementById("photoAdded").style.display = "none";
+}
+
+function submitForTranscription() {
+  if (!state.audioBlob) return;
+  goScreen("processing");
+  setProcStep(1, "active");
+
+  var formData = new FormData();
+  formData.append("audio", state.audioBlob, "recording.webm");
+
+  fetch("/api/expert-fixes/transcribe", { method: "POST", body: formData })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.error) throw new Error(data.error);
+      state.raw_transcript = data.transcript || "";
+      setProcStep(1, "done");
+      setProcStep(2, "active");
+      return fetch("/api/expert-fixes/structure", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript: state.raw_transcript })
+      });
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      state.equip_tag           = data.equip_tag || "";
+      state.equip_tag_source    = "auto";
+      state.equip_tag_confirmed = !!data.equip_tag_confirmed;
+      state.what_was_different  = data.what_was_different || "";
+      state.fix_shape           = data.fix_shape || "diagnostic";
+      state.fix_steps           = data.fix_steps || [];
+      state.what_fixed_it       = data.what_fixed_it || "";
+      state.when_it_applies     = data.when_it_applies || "";
+      state.sop_gap_identified  = !!data.sop_gap_identified;
+      state.sop_gap_reason      = data.sop_gap_reason || "";
+      setProcStep(2, "done");
+      setTimeout(showTranscriptScreen, 300);
+    })
+    .catch(function(err){
+      alert("Something went wrong processing your recording: " + err.message + ". Please try again.");
+      goScreen("record");
+    });
+}
+
+function setProcStep(n, mode) {
+  var icon = document.getElementById("procIcon" + n);
+  var text = document.getElementById("procText" + n);
+  if (mode === "active") {
+    icon.innerHTML = "&#9881;"; icon.className = "proc-icon active spin";
+    text.className = "proc-text active";
+  } else if (mode === "done") {
+    icon.innerHTML = "&#10003;"; icon.className = "proc-icon done";
+    text.className = "proc-text done";
+  }
+}
+
+function showTranscriptScreen() {
+  document.getElementById("transcriptDisplay").textContent = '"' + state.raw_transcript + '"';
+  document.getElementById("transcriptEdit").value = state.raw_transcript;
+  document.getElementById("transcriptDisplay").style.display = "block";
+  document.getElementById("transcriptEdit").style.display = "none";
+  document.getElementById("editTranscriptBtn").textContent = "Edit transcript";
+
+  updateTagDisplay();
+
+  goScreen("transcript");
+}
+
+function toggleTranscriptEdit() {
+  var display = document.getElementById("transcriptDisplay");
+  var edit = document.getElementById("transcriptEdit");
+  var editing = edit.style.display !== "none";
+  if (editing) {
+    state.raw_transcript = edit.value;
+    display.textContent = '"' + state.raw_transcript + '"';
+    display.style.display = "block";
+    edit.style.display = "none";
+    document.getElementById("editTranscriptBtn").textContent = "Edit transcript";
+  } else {
+    display.style.display = "none";
+    edit.style.display = "block";
+    document.getElementById("editTranscriptBtn").textContent = "Save edit";
+  }
+}
+
+function confirmTranscript() {
+  var edit = document.getElementById("transcriptEdit");
+  if (edit.style.display !== "none") state.raw_transcript = edit.value;
+  showStructuredCard();
+}
+
+function showStructuredCard() {
+  document.getElementById("cardTitle").textContent = "Expert fix" + (state.equip_tag ? (" - " + state.equip_tag) : "");
+  document.getElementById("cardSub").textContent =
+    CAPTURED_BY_NAME + ", " + CAPTURED_BY_ROLE + " . " + new Date().toLocaleDateString();
+
+  renderEquipTagField();
+  renderCardField("what_was_different");
+  renderFixContentField();
+  renderCardField("when_it_applies");
+
+  var sopEl = document.getElementById("sopGapDisplay");
+  if (state.sop_gap_identified) {
+    sopEl.innerHTML = '<span class="sop-badge">&#9888; Gap identified - ' +
+      escapeHtml(state.sop_gap_reason || "SOP does not cover this case") + '</span>';
+  } else {
+    sopEl.textContent = "No gap flagged";
+  }
+  goScreen("card");
+}
+
+function renderEquipTagField() {
+  var el = document.getElementById("val_equip_tag");
+  if (state.equip_tag) {
+    var note = state.equip_tag_confirmed ? "" : ' <span style="color:#b45309;font-weight:500">- please confirm</span>';
+    el.innerHTML = escapeHtml(state.equip_tag) + note;
+    el.classList.remove("empty");
+  } else {
+    el.textContent = "Not detected - tap to add";
+    el.classList.add("empty");
+  }
+}
+
+function renderCardField(key) {
+  var el = document.getElementById("val_" + key);
+  var val = state[key];
+  if (val && val.trim()) {
+    el.textContent = val;
+    el.classList.remove("empty");
+  } else {
+    el.textContent = "Not mentioned - tap to add";
+    el.classList.add("empty");
+  }
+}
+
+function renderFixContentField() {
+  var el = document.getElementById("fixContentDisplay");
+  var badge = '<div class="shape-badge ' + state.fix_shape + '">' + shapeLabel(state.fix_shape) + '</div>';
+
+  if (state.fix_shape === "steps" && state.fix_steps.length) {
+    var html = '<div class="step-list">';
+    state.fix_steps.forEach(function(s, i){
+      html += '<div class="step-row"><div class="step-num">' + (i+1) + '</div><div class="step-txt">' + escapeHtml(s) + '</div></div>';
+    });
+    html += '</div>' + badge;
+    el.innerHTML = html;
+  } else if (state.what_fixed_it && state.what_fixed_it.trim()) {
+    el.innerHTML = '<div class="fix-sec-val">' + escapeHtml(state.what_fixed_it) + '</div>' + badge;
+  } else {
+    el.innerHTML = '<div class="fix-sec-val empty">Not mentioned - tap to add</div>' + badge;
+  }
+}
+
+function shapeLabel(shape) {
+  if (shape === "steps") return "Reproducible steps";
+  if (shape === "insufficient") return "Lead only - insufficient detail to reproduce";
+  return "Diagnostic description";
+}
+
+function openInlineEdit(key) {
+  if (key === "equip_tag") {
+    document.getElementById("editbox_equip_tag").value = state.equip_tag || "";
+  } else if (key === "fix_content") {
+    setEditShape(state.fix_shape);
+    var text = state.fix_shape === "steps" ? state.fix_steps.join("\n") : state.what_fixed_it;
+    document.getElementById("editbox_fix_content").value = text || "";
+  } else {
+    document.getElementById("editbox_" + key).value = state[key] || "";
+  }
+  document.getElementById("edit_" + key).classList.add("active");
+}
+
+function closeInlineEdit(key) {
+  document.getElementById("edit_" + key).classList.remove("active");
+}
+
+function saveInlineEdit(key) {
+  if (key === "equip_tag") {
+    state.equip_tag = document.getElementById("editbox_equip_tag").value.trim().toUpperCase();
+    state.equip_tag_source = "edited";
+    state.equip_tag_confirmed = true;
+    renderEquipTagField();
+  } else {
+    state[key] = document.getElementById("editbox_" + key).value;
+    renderCardField(key);
+  }
+  closeInlineEdit(key);
+}
+
+var editingShape = "diagnostic";
+function setEditShape(shape) {
+  editingShape = shape;
+  document.querySelectorAll("#shapeToggle button").forEach(function(b){
+    b.classList.toggle("selected", b.getAttribute("data-shape") === shape);
+  });
+}
+
+function saveFixContentEdit() {
+  var raw = document.getElementById("editbox_fix_content").value;
+  state.fix_shape = editingShape;
+  if (editingShape === "steps") {
+    state.fix_steps = raw.split("\n").map(function(s){ return s.trim(); }).filter(function(s){ return s; });
+    state.what_fixed_it = state.fix_steps.join("; ");
+  } else {
+    state.fix_steps = [];
+    state.what_fixed_it = raw.trim();
+  }
+  renderFixContentField();
+  closeInlineEdit("fix_content");
+}
+
+function submitFinalSave() {
+  if (!state.equip_tag) {
+    alert("Please add the equipment this fix is for before saving.");
+    return;
+  }
+  var btn = document.querySelector("#screen-card .btn-primary");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  var formData = new FormData();
+  formData.append("equip_tag", state.equip_tag);
+  formData.append("equip_tag_source", state.equip_tag_source);
+  formData.append("plant_site", state.plant_site);
+  formData.append("line", state.line);
+  formData.append("captured_by_name", CAPTURED_BY_NAME);
+  formData.append("captured_by_role", CAPTURED_BY_ROLE);
+  formData.append("raw_transcript", state.raw_transcript);
+  formData.append("what_was_different", state.what_was_different);
+  formData.append("fix_shape", state.fix_shape);
+  formData.append("fix_steps", JSON.stringify(state.fix_steps));
+  formData.append("what_fixed_it", state.what_fixed_it);
+  formData.append("when_it_applies", state.when_it_applies);
+  formData.append("sop_gap_identified", state.sop_gap_identified ? "true" : "false");
+  formData.append("sop_gap_reason", state.sop_gap_reason);
+  if (state.photoFile) formData.append("photo", state.photoFile);
+
+  fetch("/api/expert-fixes/save", { method: "POST", body: formData })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      btn.disabled = false;
+      btn.textContent = "Confirm - save this fix";
+      if (!data.success) {
+        alert(data.error || "Could not save the fix. Please try again.");
+        return;
+      }
+      document.getElementById("successSub").textContent =
+        state.equip_tag + " - tagged, searchable, and ready for the next investigation on this equipment.";
+      document.getElementById("statSaved").textContent = data.saved_count;
+      document.getElementById("statCited").textContent = data.cited_count;
+      goScreen("success");
+    })
+    .catch(function(err){
+      btn.disabled = false;
+      btn.textContent = "Confirm - save this fix";
+      alert("Something went wrong saving your fix: " + err.message + ". Please try again.");
+    });
+}
+
+function resetFlow() {
+  state = {
+    equip_tag: "", equip_tag_source: "auto", equip_tag_confirmed: false,
+    plant_site: "", line: "",
+    audioBlob: null, photoFile: null,
+    raw_transcript: "",
+    what_was_different: "",
+    fix_shape: "diagnostic", fix_steps: [], what_fixed_it: "",
+    when_it_applies: "",
+    sop_gap_identified: false, sop_gap_reason: ""
+  };
+  removePhoto();
+  resetRecording();
+  goScreen("record");
+}
+
+// ── List view (landing view) ──────────────────────────────────────────────
+function openCaptureFlow() {
+  document.getElementById("listView").style.display = "none";
+  document.getElementById("captureFlow").style.display = "block";
+  resetFlow();
+}
+
+function closeCaptureFlow() {
+  document.getElementById("captureFlow").style.display = "none";
+  document.getElementById("listView").style.display = "block";
+  loadMyCaptures();  // refresh so a just-saved fix shows up immediately
+}
+
+var allFixes = [];
+var activeFilter = "all";
+
+function loadMyCaptures() {
+  document.getElementById("listStats").textContent = "Loading...";
+  fetch("/api/expert-fixes/mine?name=" + encodeURIComponent(CAPTURED_BY_NAME))
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      allFixes = data.fixes || [];
+      renderFilterChips();
+      applyFilters();
+    })
+    .catch(function(){
+      allFixes = [];
+      renderFilterChips();
+      applyFilters();
+    });
+}
+
+function renderFilterChips() {
+  var equipTags = [];
+  allFixes.forEach(function(f){
+    if (f.equip_tag && equipTags.indexOf(f.equip_tag) === -1) equipTags.push(f.equip_tag);
+  });
+  equipTags.sort();
+
+  var chipsEl = document.getElementById("filterChips");
+  chipsEl.innerHTML = "";
+
+  var allChip = makeChip("all", "All equipment");
+  chipsEl.appendChild(allChip);
+  equipTags.forEach(function(tag){ chipsEl.appendChild(makeChip(tag, tag)); });
+  chipsEl.appendChild(makeChip("uncited", "Not yet cited"));
+}
+
+function makeChip(key, label) {
+  var chip = document.createElement("div");
+  chip.className = "chip" + (activeFilter === key ? " active" : "");
+  chip.textContent = label;
+  chip.onclick = function(){
+    activeFilter = key;
+    renderFilterChips();
+    applyFilters();
+  };
+  return chip;
+}
+
+function applyFilters() {
+  var q = (document.getElementById("searchInput").value || "").trim().toLowerCase();
+
+  var filtered = allFixes.filter(function(f){
+    if (activeFilter === "uncited" && (f.times_cited || 0) > 0) return false;
+    if (activeFilter !== "all" && activeFilter !== "uncited" && f.equip_tag !== activeFilter) return false;
+
+    if (!q) return true;
+    var haystack = [
+      f.equip_tag, f.what_was_different, f.what_fixed_it, f.when_it_applies,
+      (f.fix_steps || []).join(" ")
+    ].join(" ").toLowerCase();
+    return haystack.indexOf(q) !== -1;
+  });
+
+  renderMyCaptures(filtered);
+}
+
+function renderMyCaptures(fixes) {
+  var listEl  = document.getElementById("fixList");
+  var emptyEl = document.getElementById("emptyState");
+  var statsEl = document.getElementById("listStats");
+
+  var totalCited = allFixes.reduce(function(sum, f){ return sum + (f.times_cited || 0); }, 0);
+  statsEl.textContent = allFixes.length + " saved \u00b7 " + totalCited + " cited";
+
+  if (allFixes.length === 0) {
+    emptyEl.style.display = "block";
+    listEl.innerHTML = "";
+    return;
+  }
+  emptyEl.style.display = "none";
+
+  listEl.innerHTML = "";
+  fixes.forEach(function(f, idx){
+    var preview = f.fix_shape === "steps" && f.fix_steps && f.fix_steps.length
+      ? f.fix_steps[0]
+      : (f.what_fixed_it || f.what_was_different || "");
+
+    var citeLast = f.times_cited > 0
+      ? (f.last_cited_at ? "last cited " + timeAgo(f.last_cited_at) : "cited")
+      : "not yet cited";
+
+    var item = document.createElement("div");
+    item.className = "fli-card";
+    item.innerHTML =
+      '<div class="fli-top" data-toggle="' + idx + '">' +
+        '<span class="fli-equip">' + escapeHtml(f.equip_tag || "Unknown equipment") + '</span>' +
+        '<span class="fli-time">' + timeAgo(f.captured_at) + '</span>' +
+      '</div>' +
+      '<div class="fli-preview" data-toggle="' + idx + '">' + escapeHtml(preview) + '</div>' +
+      '<div class="fli-bottom">' +
+        '<div class="shape-badge ' + (f.fix_shape || "diagnostic") + '">' + shapeLabel(f.fix_shape || "diagnostic") + '</div>' +
+        '<div class="fli-cite"><span class="fli-cite-count">' + (f.times_cited || 0) + ' cited</span>' +
+          '<span class="fli-cite-last">' + citeLast + '</span></div>' +
+        '<div class="fli-actions">' +
+          '<button aria-label="Edit" onclick="openEditModal(\'' + f.id + '\')">&#9998;</button>' +
+          '<button aria-label="Delete" class="danger" onclick="openDeleteModal(\'' + f.id + '\', \'' + escapeHtml(f.equip_tag || "") + '\')">&#128465;</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="fli-detail" id="fliDetail' + idx + '">' + renderFixDetail(f) + '</div>';
+
+    item.querySelectorAll('[data-toggle]').forEach(function(el){
+      el.onclick = function(){
+        document.getElementById("fliDetail" + idx).classList.toggle("open");
+      };
+    });
+    listEl.appendChild(item);
+  });
+}
+
+function renderFixDetail(f) {
+  var html = "";
+  if (f.what_was_different) {
+    html += '<div class="fli-detail-row"><div class="fli-detail-label">What was different</div>' +
+      '<div class="fli-detail-val">' + escapeHtml(f.what_was_different) + '</div></div>';
+  }
+  if (f.fix_shape === "steps" && f.fix_steps && f.fix_steps.length) {
+    html += '<div class="fli-detail-row"><div class="fli-detail-label">What fixed it</div><div class="step-list">';
+    f.fix_steps.forEach(function(s, i){
+      html += '<div class="step-row"><div class="step-num">' + (i+1) + '</div><div class="step-txt">' + escapeHtml(s) + '</div></div>';
+    });
+    html += '</div></div>';
+  } else if (f.what_fixed_it) {
+    html += '<div class="fli-detail-row"><div class="fli-detail-label">What fixed it</div>' +
+      '<div class="fli-detail-val">' + escapeHtml(f.what_fixed_it) + '</div></div>';
+  }
+  if (f.when_it_applies) {
+    html += '<div class="fli-detail-row"><div class="fli-detail-label">When this applies</div>' +
+      '<div class="fli-detail-val">' + escapeHtml(f.when_it_applies) + '</div></div>';
+  }
+  if (f.sop_gap_identified) {
+    html += '<div class="fli-detail-row"><div class="sop-badge">&#9888; Gap identified - ' +
+      escapeHtml(f.sop_gap_reason || "SOP does not cover this case") + '</div></div>';
+  }
+  return html || '<div class="fli-detail-val" style="color:#cbd5e1;font-style:italic">No further detail captured</div>';
+}
+
+function timeAgo(iso) {
+  if (!iso) return "";
+  var then = new Date(iso).getTime();
+  if (isNaN(then)) return iso;
+  var mins = Math.round((Date.now() - then) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return mins + "m ago";
+  var hrs = Math.round(mins / 60);
+  if (hrs < 24) return hrs + "h ago";
+  var days = Math.round(hrs / 24);
+  return days + "d ago";
+}
+
+// ── Delete flow ────────────────────────────────────────────────────────
+var pendingDeleteId = null;
+
+function openDeleteModal(id, equipTag) {
+  pendingDeleteId = id;
+  document.getElementById("deleteModalSub").textContent =
+    (equipTag ? equipTag + " — " : "") + "this can't be undone. It'll be removed from your captures and won't appear in future investigations.";
+  document.getElementById("deleteModal").classList.add("open");
+}
+
+function closeDeleteModal() {
+  pendingDeleteId = null;
+  document.getElementById("deleteModal").classList.remove("open");
+}
+
+function confirmDelete() {
+  if (!pendingDeleteId) return;
+  var id = pendingDeleteId;
+  fetch("/api/expert-fixes/" + encodeURIComponent(id), { method: "DELETE" })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      closeDeleteModal();
+      if (!data.success) {
+        alert(data.error || "Could not delete this capture. Please try again.");
+        return;
+      }
+      loadMyCaptures();
+    })
+    .catch(function(err){
+      closeDeleteModal();
+      alert("Something went wrong deleting this capture: " + err.message);
+    });
+}
+
+// ── Edit flow (structured fields only — transcript stays read-only) ─────
+var editingFixId = null;
+var editModalShape = "diagnostic";
+
+function openEditModal(id) {
+  editingFixId = id;
+  fetch("/api/expert-fixes/" + encodeURIComponent(id))
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.fix) { alert(data.error || "Could not load this capture."); return; }
+      var f = data.fix;
+      document.getElementById("editFieldEquip").value = f.equip_tag || "";
+      document.getElementById("editFieldDifferent").value = f.what_was_different || "";
+      document.getElementById("editFieldApplies").value = f.when_it_applies || "";
+      document.getElementById("editFieldTranscript").textContent = f.raw_transcript ? ('"' + f.raw_transcript + '"') : "No recording on file";
+
+      setEditModalShape(f.fix_shape || "diagnostic");
+      var content = (f.fix_shape === "steps" && f.fix_steps && f.fix_steps.length)
+        ? f.fix_steps.join("\n") : (f.what_fixed_it || "");
+      document.getElementById("editFieldFixContent").value = content;
+
+      document.getElementById("editModal").classList.add("open");
+    })
+    .catch(function(){ alert("Could not load this capture."); });
+}
+
+function setEditModalShape(shape) {
+  editModalShape = shape;
+  document.querySelectorAll("#editShapeToggle button").forEach(function(b){
+    b.classList.toggle("selected", b.getAttribute("data-shape") === shape);
+  });
+}
+
+function closeEditModal() {
+  editingFixId = null;
+  document.getElementById("editModal").classList.remove("open");
+}
+
+function saveEditModal() {
+  if (!editingFixId) return;
+
+  var equipTag   = document.getElementById("editFieldEquip").value.trim().toUpperCase();
+  var different  = document.getElementById("editFieldDifferent").value;
+  var applies    = document.getElementById("editFieldApplies").value;
+  var rawContent = document.getElementById("editFieldFixContent").value;
+
+  if (!equipTag) { alert("Equipment can't be empty."); return; }
+
+  var payload = {
+    equip_tag: equipTag,
+    what_was_different: different,
+    when_it_applies: applies,
+    fix_shape: editModalShape,
+  };
+  if (editModalShape === "steps") {
+    payload.fix_steps = rawContent.split("\n").map(function(s){ return s.trim(); }).filter(function(s){ return s; });
+    payload.what_fixed_it = payload.fix_steps.join("; ");
+  } else {
+    payload.fix_steps = [];
+    payload.what_fixed_it = rawContent.trim();
+  }
+
+  fetch("/api/expert-fixes/" + encodeURIComponent(editingFixId), {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.success) {
+        alert(data.error || "Could not save your changes. Please try again.");
+        return;
+      }
+      closeEditModal();
+      loadMyCaptures();
+    })
+    .catch(function(err){
+      alert("Something went wrong saving your changes: " + err.message);
+    });
+}
+
+loadEquipmentList();
+loadMyCaptures();
+</script>
+
+
+</body>
+</html>
