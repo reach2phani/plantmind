@@ -594,7 +594,12 @@ var mediaRecorder = null, recordedChunks = [], recordTimerInterval = null, recor
 
 function startRecording() {
   document.getElementById("recError").style.display = "none";
-  navigator.mediaDevices.getUserMedia({ audio: true })
+  // noiseSuppression/echoCancellation are built into every modern browser
+  // and cost nothing extra to enable -- meaningful help on a loud shop
+  // floor before the audio ever reaches Whisper.
+  navigator.mediaDevices.getUserMedia({
+    audio: { noiseSuppression: true, echoCancellation: true }
+  })
     .then(function(stream){
       recordedChunks = [];
       mediaRecorder = new MediaRecorder(stream);

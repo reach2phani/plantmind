@@ -1,7 +1,7 @@
 # PlantMind — Full Project Context for Claude
 
 > This is the complete handoff document. Paste this entire file at the start of any new Claude conversation.
-> Last updated: Session 13 complete (action layer M0–M2: tool-calling work-order agent + human approval gate).
+> Last updated: Session 14 complete (expert knowledge capture — PM-IK-001).
 
 ---
 
@@ -16,6 +16,8 @@ Session 11 added real-time MQTT integration — the system now monitors live equ
 Session 12 added a knowledge graph layer (Neo4j). Equipment fault chains — Fault → Component → Procedure → Safety → Pattern — are stored as a graph and used two ways: (1) the investigation orchestrator pulls a fault chain for the equipment and injects verified warnings (e.g. mandatory burn-in after liner replacement, the "don't keep adjusting tension" operator trap) into the report, and (2) a standalone Graph Explorer page lets operators browse the relationships visually. The graph is a strict overlay — it never blocks an investigation; if the graph is unavailable, the pipeline proceeds without it (silent fail). The reference graph dataset is WM-101 (`wm101_graph.json`); the rest of the document corpus is still WR-401-centric from earlier sessions.
 
 Session 13 added the **action layer** (Trend 1 — agentic action), scoped to WM-101. Before this, investigations stopped at a recommendation. Now a **separate tool-calling agent** turns a finished investigation report into a **draft work order** by calling tools against seeded Supabase tables + the graph, and a **human approval gate** governs it. Built in milestones: M0 (system of record — 7 tables, seed data, read-only `/work-orders` page), M1 (Groq native tool-calling drafts a work order), M2 (human-in-the-loop: edit-while-draft, approve/reject, date-based WO numbers, audit trail). The guardrails are the point: tool results are authoritative, cost is computed in Python (never by the model, so it can't be gamed into a lower approval tier), the state machine is enforced server-side, and every action is audited. Still TODO: M3 (execution/side effects), M3.5 (n8n round-trip), M0.5 (WM-101 simulator), M4 (guardrail evals). See PHASE-PLAN-Action-Layer.md for the full plan.
+
+Session 14 added **expert knowledge capture** (PM-IK-001) — the tribal-knowledge problem: a senior operator's fix for a recurring fault lives in their head, gets shared over the phone at 2am, and never reaches the next operator who hits the same fault. The feature closes that loop end to end. A senior operator talks (voice, no picker gate — equipment tag is auto-detected from the transcript, not selected from a list first), the recording is transcribed by Whisper with a **vocabulary prompt built from the plant's own recently-active equipment tags** (fixes the "V-201" vs "Vee two oh one" mishear problem), and the equipment tag is resolved through a **three-tier match** — exact (after digit-word conversion, e.g. "two oh one" → "201"), fuzzy (`difflib` close-match for near-misses), or none (operator must confirm/correct) — because retrieval downstream filters on `equip_tag` with **zero fuzzy tolerance**, so a wrong tag at capture time makes the fix permanently unfindable with no error anywhere. The fix content itself is captured **adaptively**, not forced into one template: `fix_shape` is `steps` (reproducible numbered actions, with or without exact values), `diagnostic` (a symptom/signal insight, not a repeatable action), or `insufficient` (transcript too thin to reproduce — flagged honestly rather than dressed up as a procedure). Confirmed captures embed into Pinecone as a new `doc_type: "Expert Fix"`, and a fifth specialist agent (`run_expert_fix_agent`, searched second in every investigation, right after the alarm agent) retrieves them and — critically — the orchestrator is instructed to **reproduce numbered steps verbatim** under IMMEDIATE ACTION rather than summarising them into prose, and to cite by the operator's **name and role**, never "unverified" (the name/role *is* the trust signal). If an expert fix contradicts the SOP, the orchestrator surfaces both and flags it for engineering review — it never silently picks a winner. Usage is tracked (`times_cited`, `last_cited_at`) so the operator gets a durable, browsable library of their own captures (search + equipment/uncited filters, tap-to-edit structured fields, delete with confirmation) rather than a one-way form that disappears the moment it's submitted. **Not yet validated with a real operator or a real second incident** — see Known issues.
 
 ---
 
@@ -47,11 +49,12 @@ C:\PlantMind\                     (Windows, VS Code)
 ├── agent_v2.py                   — LEGACY single-agent tool-loop prototype (not imported; superseded by multi_agent.py)
 ├── wm101_graph.json              — Knowledge graph dataset for WM-101 (NEW Session 12)
 ├── work_order_agent.py           — Tool-calling work-order drafting agent (NEW Session 13)
-├── sql/01_schema.sql             — Action-layer tables (NEW Session 13)
-├── sql/02_seed.sql               — WM-101 parts/suppliers/techs/thresholds seed (NEW Session 13)
-├── sql/03_m2_schema.sql          — wo_number/title/audit columns + next_wo_number() (NEW Session 13)
+├── sql/01_schema.sql             — Action-layer tables (NEW Session 13) — NOT YET IN GIT, see Known issues
+├── sql/02_seed.sql               — WM-101 parts/suppliers/techs/thresholds seed (NEW Session 13) — NOT YET IN GIT
+├── sql/03_m2_schema.sql          — wo_number/title/audit columns + next_wo_number() (NEW Session 13) — NOT YET IN GIT
+├── sql/04_expert_fixes.sql       — expert_fixes table + RLS + citation/stats functions (NEW Session 14)
 ├── llm_logger.py                 — LLM observability
-├── embedder.py                   — Document chunking and Pinecone upsert
+├── embedder.py                   — Document chunking and Pinecone upsert; build_expert_fix_text() / embed_expert_fix() (NEW Session 14)
 ├── reembed.py                    — Re-index all documents
 ├── simulator.py                  — SimPy wear-state plant simulator (NEW Session 11)
 ├── mqtt_subscriber.py            — MQTT listener + pattern detection (NEW Session 11)
@@ -65,6 +68,7 @@ C:\PlantMind\                     (Windows, VS Code)
 │   ├── gaps.html                 — Knowledge gap / coverage analysis page
 │   ├── work_orders.html          — Work orders + inventory + approval gate (NEW Session 13)
 │   ├── plant_setup.html          — Plant CRUD
+│   ├── expert_capture.html       — Expert knowledge capture: talk-first record → transcript → structured card → your-captures library (NEW Session 14)
 │   └── index.html                — Upload interface (fallback)
 ├── static/
 │   └── nav_context.js
@@ -134,6 +138,27 @@ live_events (
 )
 -- event_type = 'alarm' or 'sensor'
 -- only alarms are saved here (sensor readings held in subscriber memory only)
+
+expert_fixes (                    -- NEW Session 14, see sql/04_expert_fixes.sql
+  id uuid, equip_tag text, plant_site text, line text,
+  equip_tag_source text default 'auto',    -- 'auto' | 'edited' — audits how the tag was attached
+  alarm_id uuid, alarm_description text, alarm_time timestamptz,   -- optional, not required by talk-first flow
+  captured_by_name text, captured_by_role text,
+  raw_transcript text,              -- read-only after capture; PUT endpoint can never edit this
+  what_was_different text,
+  fix_shape text default 'diagnostic',    -- 'steps' | 'diagnostic' | 'insufficient'
+  fix_steps jsonb,                        -- ordered array, populated only when fix_shape = 'steps'
+  what_fixed_it text, when_it_applies text,
+  sop_gap_identified boolean default false, sop_gap_reason text,
+  photo_path text,                  -- Supabase Storage path, plantmind-docs bucket
+  embed_status text default 'pending',
+  last_embedded_at timestamptz,
+  times_cited int default 0, last_cited_at timestamptz,   -- incremented by multi_agent.py at retrieval time
+  captured_at timestamptz, created_at timestamptz
+)
+-- RLS enabled with one permissive "backend full access" policy (no per-user
+-- Supabase Auth session exists yet — see PM notes in sql/04_expert_fixes.sql)
+-- Two RPC functions: increment_expert_fix_cited(fix_id), expert_fix_operator_stats(operator_name)
 ```
 
 **SQL run in Session 11:**
@@ -347,6 +372,38 @@ The agentic action layer. Investigation → draft work order (tool-calling) → 
 
 ---
 
+## Expert knowledge capture (NEW Session 14, PM-IK-001)
+
+Closes the tribal-knowledge gap — a senior operator's fix for a recurring fault currently lives in their head and gets shared over the phone at 2am, never reaching the system. This makes that knowledge captured, structured, retrievable, and cited by name in future investigations.
+
+**Entry point:** "Capture knowledge" — always-visible nav link (no alarm-lifecycle dependency; deliberately NOT tied to acknowledge/resolve — that design was tried and rejected, see "design decisions rejected" below). Landing view is a **library** (`/expert-capture`), not a form — search box, equipment/uncited filter chips, a grid of the operator's own past captures with tap-to-expand detail, edit, and delete (with confirmation).
+
+**Capture flow — talk first, no equipment picker gate:**
+1. Operator taps record and just talks — no equipment selection screen first (this was the original design; killed because it forced a search-and-match task between "I just fixed something" and "let me talk about it")
+2. `/api/expert-fixes/transcribe` — Whisper (`whisper-large-v3` via Groq), with a **vocabulary prompt** built from `_get_known_equipment()` (recently-active tags, last 90 days) injected into Whisper's `prompt` parameter — fixes the "V-201" heard as "Vee two oh one" failure mode
+3. `/api/expert-fixes/structure` — one LLM call does two jobs: extracts `equip_tag_candidate` from the transcript AND classifies the fix into `fix_shape` (steps/diagnostic/insufficient) with adaptive fields. Structuring prompt explicitly forbids inventing content the transcript doesn't support — sparse input must produce a sparse, honestly-flagged result
+4. `_normalise_candidate_tag()` — **three-tier match** against known equipment tags: `_words_to_digits()` converts spelled-out numbers first ("two oh one" → "201"), then exact match (after punctuation stripping) → confidence `"exact"`; else `difflib.get_close_matches(cutoff=0.72)` → confidence `"fuzzy"`; else raw candidate returned unconfirmed → confidence `"none"`. This exists because `search_expert_fixes` filters Pinecone on `equip_tag` with **zero fuzzy tolerance at retrieval time** — a wrong tag here makes the fix permanently, silently unfindable, no error anywhere
+5. Equipment confirmation surfaces at the **top of the transcript screen** — the earliest point the data actually exists (an earlier build put this on the record screen; it never rendered there because transcription hadn't run yet — a real bug caught during review, not a hypothetical)
+6. Structured card — equipment tag first field (second confirmation chance), then adaptive fix content rendered per `fix_shape`: numbered steps, plain diagnostic text, or an honest "insufficient detail to reproduce" flag. Every field tap-to-edit
+7. Confirm → `/api/expert-fixes/save` → Supabase insert → background thread embeds into Pinecone (`embed_expert_fix()` in embedder.py) → operator sees updated saved/cited counts
+
+**Retrieval — wired into the investigation pipeline as a fifth specialist:**
+- `search_expert_fixes()` (multi_agent.py) — Pinecone query filtered `doc_type: "Expert Fix"` + `equip_tag` exact match, `score >= 0.4` threshold for a "strong match"
+- `run_expert_fix_agent()` — new specialist, added to `agent_map` **second, immediately after the alarm agent** (deliberate ordering — a prior operator's proven fix is the fastest path to resolution, checked before anything else). Supervisor routing rule: whenever equipment is identified, always include `expert_fix` alongside `alarm`
+- Citation happens **at retrieval time**, not by parsing the orchestrator's final report — any strong match increments `times_cited` and stamps `last_cited_at` via the `increment_expert_fix_cited` RPC. Simpler and more reliable than trying to detect exact citations in generated text; the tradeoff is it counts "found and used as context," not "was the literal headline of the report"
+- **Orchestrator rules (STRICT):** cite expert fixes by the operator's name and role, never "unverified" — the name/role IS the trust signal; when `fix_shape` produced reproducible steps, **reproduce them verbatim** under IMMEDIATE ACTION rather than summarising into prose (the goal is a report someone can follow like a checklist without contacting the operator who captured it); if an expert fix **contradicts** the SOP agent's finding, surface both explicitly and flag for engineering review — never silently prefer one
+
+**Design decisions rejected along the way (kept here so they don't get re-litigated):**
+- Alarm-lifecycle triggers (Acknowledge Alarm → Mark as Resolved → capture prompt) — added real backend complexity (ownership tracking, handoff-attribution problems) for a UX gain that didn't outweigh it. Killed in favour of an always-available nav entry point, operator self-selects the moment
+- Automatic writes into the Neo4j knowledge graph on every capture — rejected. The graph is small, hand-curated, and browsed directly as a trusted map; auto-writing every capture (including thin/low-quality ones) would degrade a deliberately curated artifact for a purely visual benefit, since retrieval already works fully through Pinecone without it. If ever revisited, should be a deliberate promotion step (e.g. after N citations, reviewed by an engineer), not automatic
+- Server-side spectral noise suppression (RNNoise/bandpass) — deferred; browser-level `noiseSuppression`/`echoCancellation` constraints on `getUserMedia` were added instead (near-zero cost, no new dependency) — full DSP pre-processing would add a new failure surface for a problem that's more likely vocabulary than raw audio quality
+
+**New routes (app.py):** `/expert-capture` page; `GET /api/expert-fixes/mine` (operator's own library); `GET/PUT/DELETE /api/expert-fixes/<id>` (PUT only ever touches structured fields — `raw_transcript` is explicitly excluded, and re-triggers embedding so a correction reaches future investigations, not just the display; DELETE removes both the Supabase row and the matching Pinecone vector); `GET /api/expert-fixes/equipment-list` (edit-fallback picker, sourced from the same `_get_known_equipment()` helper used for vocabulary injection); `POST /api/expert-fixes/transcribe`; `POST /api/expert-fixes/structure`; `POST /api/expert-fixes/save`; `GET /api/expert-fixes/stats`. Also added a **global Flask error handler** (`@app.errorhandler(Exception)`) that guarantees any unhandled exception on an `/api/` route returns JSON, never Flask's default HTML error page — a real bug hit during testing (a DB schema mismatch threw an uncaught exception, frontend's `response.json()` broke on the HTML page with a cryptic "Unexpected token '<'" error).
+
+**Not yet validated:** built and tested with real logic tests (26 route tests, 13 multi-agent tests) and one real capture, but **never used by a real operator on a real incident, and the core retrieval bet is unproven** — does a differently-worded description of the same fault, from a different operator, weeks later, actually retrieve via semantic similarity? That's the one open technical risk that design work alone can't resolve; needs real usage. See Known issues.
+
+---
+
 ## Key functions and where they live
 
 ### app.py
@@ -369,6 +426,12 @@ The agentic action layer. Investigation → draft work order (tool-calling) → 
 - `/api/graph/debug` GET — graph/Neo4j status check on Render (NEW)
 - `/gaps` + `/api/gaps` — coverage analysis (which equipment is missing which doc_types)
 - `_load_knowledge_graph()` — background thread, loads Neo4j on startup (NEW)
+- `/expert-capture` route — serves expert_capture.html (NEW Session 14)
+- `_get_known_equipment(days=90, limit=500)` — shared source of truth for active equipment tags; feeds the edit-fallback list, the Whisper vocabulary prompt, AND tag matching, so all three can't drift out of sync (NEW)
+- `_build_vocabulary_prompt(max_chars=800)` — assembles the Whisper `prompt` string from known equipment (NEW)
+- `_words_to_digits(text)` / `_simplify_tag(s)` / `_normalise_candidate_tag(raw_tag, known_tags)` — three-tier equipment tag matching: exact / fuzzy (difflib) / none (NEW)
+- `/api/expert-fixes/equipment-list` GET, `/transcribe` POST, `/structure` POST, `/save` POST, `/mine` GET, `/<id>` GET/PUT/DELETE, `/stats` GET (NEW)
+- `@app.errorhandler(Exception)` — guarantees JSON (never HTML) on any unhandled `/api/` route exception (NEW)
 
 ### mqtt_subscriber.py (NEW Session 11)
 - `get_supabase()` — lazy init (avoids Windows httpx conflict)
@@ -392,6 +455,9 @@ The agentic action layer. Investigation → draft work order (tool-calling) → 
 - `investigate_incident(incident, equipment_id=None)` — main generator; fetches get_fault_chain() then yields streaming output
 - `_groq_call_with_retry()` — 55s/70s/90s backoff on 429
 - NOTE: agent memory (`get_previous_investigations`) from Session 9 was REMOVED in Session 12 — orchestrator now takes graph_context, not memory_context. Update earlier docs that still mention it.
+- `search_expert_fixes(query, equipment_filter, top_k=3)` — Pinecone search scoped to `doc_type: "Expert Fix"`; returns (formatted_text, matched_fix_ids) — the id list is what citation tracking increments (NEW Session 14)
+- `run_expert_fix_agent(incident, equipment_id)` — fifth specialist, in `agent_map` second (right after alarm); calls `_increment_expert_fix_citations()` at retrieval time (NEW)
+- `_increment_expert_fix_citations(expert_fix_ids)` — calls the `increment_expert_fix_cited` Supabase RPC per match; silent-fail by design, citation tracking must never be able to break an investigation (NEW)
 
 ### knowledge_graph.py (NEW Session 12)
 - `_get_driver()` — fresh Neo4j driver per call; forces `neo4j+ssc://` scheme
@@ -414,6 +480,8 @@ The agentic action layer. Investigation → draft work order (tool-calling) → 
 - `embed_document(doc_id, storage_path, metadata)` — chunks and upserts
 - Chunk size: 1000 chars, overlap: 200 chars
 - CSV shift logs: custom chunker, 5 rows per batch
+- `build_expert_fix_text(fix_row)` — assembles embeddable text, adaptive on `fix_shape` (numbered "reproducible steps" text / plain diagnostic prose / honestly-flagged "treat as a lead, not a procedure") — never hallucinates content for missing fields (NEW Session 14)
+- `embed_expert_fix(fix_id, fix_row)` — single-vector upsert, `doc_type: "Expert Fix"`, carries `fix_shape`/`fix_steps` in Pinecone metadata (not just the flattened text) so the orchestrator can reproduce steps verbatim rather than re-summarising them (NEW)
 
 ---
 
@@ -463,9 +531,17 @@ The agentic action layer. Investigation → draft work order (tool-calling) → 
 - Coverage analysis at `/gaps` — reads `/api/gaps`
 - Pure Supabase aggregation (no LLM): groups documents by equip_tag, shows which required doc_types are missing per machine, with a coverage %
 
+### expert_capture.html (NEW Session 14)
+- Expert knowledge capture at `/expert-capture` — landing view is the operator's own **library** (search, equipment/uncited filter chips, grid of past captures), not a form
+- "Capture knowledge" button opens the flow inline: record (talk first, no equipment picker) → processing → transcript (equipment confirmation surfaces here, at the top — the earliest point the data exists) → structured card (adaptive: numbered steps / diagnostic text / insufficient-detail flag) → confirm, back to library
+- Each library card: equipment, preview, `fix_shape` badge, times_cited + last_cited_at (or "not yet cited"), edit and delete (with confirmation modal)
+- Edit modal touches structured fields only — `raw_transcript` is read-only, shown for reference
+- `noiseSuppression`/`echoCancellation` enabled on `getUserMedia` audio constraints
+- Uses the app's real accent color (`#4f46e5`, matching the active nav-tab indigo) throughout — an earlier iteration had a second, competing purple (`#7c3aed`) scattered across ~30 spots; fully harmonized
+
 ### nav — consistent across all pages
 - PlantMind brand, Plant Setup button, GP G. Phani user badge
-- Tabs: Ask → /chat | Library → /library | Alerts → /alerts | Graph → /graph (NEW Session 12)
+- Tabs: Ask → /chat | Library → /library | Alerts → /alerts | Graph → /graph (NEW Session 12) | Work orders → /work-orders (NEW Session 13) | Capture knowledge → /expert-capture (NEW Session 14)
 - graph.html nav does not link back to /graph (you're already there); all other pages link to it
 - 50px nav height on all pages
 
@@ -597,6 +673,9 @@ python simulator.py
 5. **Graph warnings are hard-coded in two layers** — (a) `knowledge_graph.get_fault_chain` appends fixed warning strings keyed on specific node ids (`burn_in_procedure`, `loto_procedure`, `quality_flag`, `shielding_gas_low`), and (b) `multi_agent.py`'s orchestrator adds STRICT GRAPH RULES written for the WM-101 case (burn-in, tension trap, NCR-2024-047). Both are WM-101-specific; neither is derived generically from the graph. Adding a second equipment's graph will not produce warnings until these are generalised.
 6. **WM-101 (graph) vs WR-401 (everything else) mismatch** — the headline demo equipment across docs, MQTT, simulator, and most eval cases is **WR-401** (plant `northgate`, `line4`). The knowledge graph's only equipment is **WM-101** (plant `greenfield`, `line1`). So the graph enrichment only fires when an operator investigates WM-101, which is *not* the main demo machine. Worth deciding: make WM-101 the canonical example, or build a WR-401 graph. (This also means the graph does not currently close the INV-004 WR-401 burn-in gap — that case is WR-401, the burn-in graph knowledge is WM-101.)
 7. **Graph not yet covered by evals** — the 90% baseline predates the graph feature; no eval case exercises graph-enriched output. A WM-101 burn-in investigation case would be the natural first graph eval.
+8. **Expert-fix retrieval across vocabulary drift is unproven** (NEW Session 14) — the core technical bet of the whole feature. Semantic search bridges *some* wording differences but there's no guarantee it bridges enough — if a future operator describes the same fault very differently than the original capture ("wire feed stuttering" vs "spatter index high" for the same root cause), retrieval may score below the 0.4 threshold and never surface, silently. No error, no fallback, just a fix that exists but never gets found. Untested against a real second incident.
+9. **Adoption is unvalidated** (NEW Session 14) — every knowledge-capture tool researched (market check: MaintainX, Poka, Augmentir) suffers the same failure mode — used once enthusiastically, abandoned within weeks. Nothing in the design proves this one is different; only real usage over real time will show whether operators keep capturing after the novelty wears off.
+10. **sql/01_schema.sql, 02_seed.sql, 03_m2_schema.sql (Session 13) were run directly in the Supabase SQL editor and never committed to git** (found Session 14) — the tables exist and the app works fine (Render doesn't need the SQL files to build or run — it only calls Supabase over the network), but the schema history isn't reproducible from the repo. Fix in progress: pull an accurate snapshot via `pg_dump`/`supabase db dump` (Docker Desktop is a listed prerequisite for the Supabase CLI's dump command on Windows — hit this Session 14, prefer plain `pg_dump` with the project's connection string instead) and commit it. **`sql/04_expert_fixes.sql` (Session 14) has the same gap** — also run directly against Supabase — needs `git add`/`commit`/`push` alongside the schema recovery for 01-03, not yet confirmed done as of this write-up.
 
 ---
 
@@ -614,6 +693,7 @@ python simulator.py
 | 11 | MQTT real-time integration, HiveMQ, SimPy simulator, alerts page | 90% |
 | 12 | Knowledge graph (Neo4j), fault-chain orchestrator enrichment, Graph Explorer, gaps page | 90% (graph not yet in eval suite) |
 | 13 | Action layer M0–M2: WM-101 parity evals, 7 tables, tool-calling WO agent, human approval gate | WM-101 evals 93% (1 known burn-in miss); action layer working, untested by eval |
+| 14 | Expert knowledge capture (PM-IK-001): talk-first voice capture, adaptive fix-shape structuring, 3-tier equipment tag matching, Whisper vocabulary injection, 5th specialist agent with citation tracking | Not yet in eval suite — 26 route tests + 13 multi-agent logic tests pass; zero real-operator validation |
 
 ---
 
@@ -648,6 +728,7 @@ python simulator.py
 | PM-KG-003 | Graph Explorer page (custom canvas) | 12 |
 | PM-KG-004 | Fault-chain panel in chat report | 12 |
 | PM-GAPS-01 | Coverage / knowledge-gap analysis page | 12 |
+| PM-IK-001 | Expert knowledge capture — talk-first voice, adaptive fix-shape structuring, 3-tier equipment tag matching, Whisper vocabulary injection, 5th specialist agent | 14 (originally estimated 2 hrs in Session 13 backlog — actual effort was far higher; went through many design iterations — talk-first vs picker-first, alarm-lifecycle triggers tried and rejected, UI redesigned twice for consistency — before landing) |
 
 ### Next session — Session 13 options
 
@@ -678,7 +759,16 @@ python simulator.py
 |----|-------|--------|
 | PM-SH-001 | Prescriptive shift handover — "3 things needing attention, ranked by risk" | 3 hrs |
 | PM-VISION-001 | Multimodal vision — photo to investigation | 4 hrs |
-| PM-IK-001 | Institutional knowledge capture form | 2 hrs |
+
+### Next session — Session 14 options (validation-focused, not more building)
+
+| ID | Story | Effort |
+|----|-------|--------|
+| PM-IK-002 | Get 1-3 real operators using expert-fix capture for 2 real weeks — the only way to answer whether retrieval survives real vocabulary drift and whether adoption survives past week one | n/a — usage, not build |
+| PM-IK-003 | Recover sql/01-03 schema history via `pg_dump`/CLI dump, commit to repo (blocked on Docker-free `pg_dump` path — see Known issues #10) | 1 hr |
+| PM-IK-004 | Write GitHub README.md — repo currently has none | 1 hr |
+| PM-IK-005 | Expert-fix eval case(s) — first eval exercising the 5th specialist agent and citation flow | 2 hrs |
+
 
 ### Future (requires live data or integrations)
 | ID | Story | Notes |
@@ -732,4 +822,4 @@ Paste this entire file as your first message, then add:
 This session I want to: [describe what to build]
 ```
 
-*PlantMind · Session 13 complete (action layer M0–M2) · Next: M3 execution. Push to GitHub before next session*
+*PlantMind · Session 14 complete (expert knowledge capture, PM-IK-001) · Next: real-operator validation, not more building. Push to GitHub before next session — including sql/04_expert_fixes.sql and the schema recovery for sql/01-03 (see Known issues #10)*

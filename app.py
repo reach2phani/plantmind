@@ -1,5 +1,6 @@
 import os
 import re
+import difflib
 import threading
 import json
 import tempfile
@@ -1658,6 +1659,29 @@ Respond with ONLY a JSON object, nothing else, no markdown fences:
  "sop_gap_identified": true, "sop_gap_reason": "..."}"""
 
 
+_WORD_TO_DIGIT = {
+    "ZERO": "0", "OH": "0", "O": "0",
+    "ONE": "1", "TWO": "2", "THREE": "3", "FOUR": "4", "FIVE": "5",
+    "SIX": "6", "SEVEN": "7", "EIGHT": "8", "NINE": "9",
+}
+
+
+def _words_to_digits(text):
+    """
+    Converts spelled-out digits to numerals before matching, so a spoken
+    tag like "V two oh one" becomes "V 2 0 1" instead of staying stuck as
+    words that will never string-match "V-201". Whisper frequently spells
+    numbers out in speech even when the underlying tag is numeric, so this
+    has to run BEFORE simplification/matching, not after.
+    """
+    words = re.split(r"(\W+)", text.upper())
+    return "".join(_WORD_TO_DIGIT.get(w, w) for w in words)
+
+
+def _simplify_tag(s):
+    return re.sub(r"[^A-Z0-9]", "", _words_to_digits(s or "").upper())
+
+
 def _normalise_candidate_tag(raw_tag, known_tags):
     """
     Validates an LLM-extracted equipment tag candidate against the plant's
@@ -1665,26 +1689,68 @@ def _normalise_candidate_tag(raw_tag, known_tags):
 
     This exists because search_expert_fixes filters on equip_tag with an
     EXACT match — there is no fuzzy fallback at retrieval time. A candidate
-    that's close-but-not-exact (e.g. "WM101" vs "WM-101") would silently
-    make this fix unfindable forever, with no error anywhere. So: match
-    the extracted candidate against the canonical list case-insensitively
-    and punctuation-insensitively, and only return a tag if we're confident
-    it maps onto something real. If nothing matches, return the raw
-    candidate anyway (still better than nothing) but flag it as unconfirmed
-    so the UI can visibly prompt the operator to check it.
+    that's close-but-not-exact (e.g. "WM101" vs "WM-101", or "Vee two oh
+    one" vs "V-201") would silently make this fix unfindable forever, with
+    no error anywhere. So matching runs in three tiers, each one a fallback
+    for the last:
+
+      "exact"  — candidate matches a known tag after digit-word conversion
+                 and punctuation stripping. Highest confidence -- accepted
+                 with no operator prompt needed.
+      "fuzzy"  — no exact match, but one known tag is a close string match
+                 (handles partial mishears / extra or dropped characters).
+                 Accepted, but the UI flags it for a quick confirm rather
+                 than silently trusting a guess.
+      "none"   — no exact or fuzzy match found. The raw candidate is still
+                 returned (better than nothing) but must be confirmed or
+                 corrected by the operator before it's trustworthy.
+
+    Returns (matched_tag, confidence) where confidence is one of the three
+    strings above.
     """
     if not raw_tag:
-        return "", False
+        return "", "none"
 
-    def _simplify(s):
-        return re.sub(r"[^A-Z0-9]", "", s.upper())
+    simplified_candidate = _simplify_tag(raw_tag)
+    simplified_known = {_simplify_tag(t): t for t in known_tags}
 
-    simplified_candidate = _simplify(raw_tag)
-    for tag in known_tags:
-        if _simplify(tag) == simplified_candidate:
-            return tag, True  # exact canonical match found
+    if simplified_candidate in simplified_known:
+        return simplified_known[simplified_candidate], "exact"
 
-    return raw_tag.strip().upper(), False  # best-effort, not confirmed
+    if simplified_known:
+        close = difflib.get_close_matches(
+            simplified_candidate, simplified_known.keys(), n=1, cutoff=0.72
+        )
+        if close:
+            return simplified_known[close[0]], "fuzzy"
+
+    return raw_tag.strip().upper(), "none"
+
+
+def _get_known_equipment(days=90, limit=500):
+    """
+    Shared source of truth for 'what equipment tags actually exist and are
+    active right now' -- used by the equipment-list endpoint (edit fallback
+    UI), the Whisper vocabulary prompt (transcription), and tag matching
+    (structuring). One query, three consumers, so they can never drift out
+    of sync with each other.
+    """
+    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+    result = (supabase.table("live_events")
+              .select("equip_tag, plant_site, line")
+              .gte("created_at", cutoff)
+              .limit(limit)
+              .execute())
+    seen = set()
+    tags = []
+    for row in (result.data or []):
+        tag = (row.get("equip_tag") or "").strip().upper()
+        if not tag or tag in seen:
+            continue
+        seen.add(tag)
+        tags.append({"equip_tag": tag, "plant_site": row.get("plant_site", ""), "line": row.get("line", "")})
+    tags.sort(key=lambda t: t["equip_tag"])
+    return tags
 
 
 @app.route("/api/expert-fixes/equipment-list", methods=["GET"])
@@ -1697,25 +1763,30 @@ def expert_fix_equipment_list():
     tag that's ever existed in the plant.
     """
     try:
-        cutoff = (datetime.utcnow() - timedelta(days=90)).isoformat()
-        result = (supabase.table("live_events")
-                  .select("equip_tag, plant_site, line")
-                  .gte("created_at", cutoff)
-                  .limit(500)
-                  .execute())
-        seen = set()
-        tags = []
-        for row in (result.data or []):
-            tag = (row.get("equip_tag") or "").strip().upper()
-            if not tag or tag in seen:
-                continue
-            seen.add(tag)
-            tags.append({"equip_tag": tag, "plant_site": row.get("plant_site", ""), "line": row.get("line", "")})
-        tags.sort(key=lambda t: t["equip_tag"])
-        return jsonify({"equipment": tags})
+        return jsonify({"equipment": _get_known_equipment()})
     except Exception as e:
         print(f"  [expert-fix] equipment-list error: {e}")
         return jsonify({"equipment": []})
+
+
+def _build_vocabulary_prompt(max_chars=800):
+    """
+    Whisper's `prompt` parameter accepts up to ~224 tokens of context that
+    biases transcription toward expected vocabulary -- e.g. it's the
+    difference between hearing "Vee two oh one" and correctly transcribing
+    "V-201". Scoped to recently-active equipment (same source as the edit
+    fallback list) rather than the full plant registry, so it stays well
+    under budget even at a large site, and stays relevant rather than
+    diluted by equipment nobody's touched in months.
+    """
+    try:
+        tags = [e["equip_tag"] for e in _get_known_equipment()]
+    except Exception:
+        tags = []
+    if not tags:
+        return ""
+    prompt = "Vocabulary: " + ", ".join(tags)
+    return prompt[:max_chars]
 
 
 @app.route("/api/expert-fixes/transcribe", methods=["POST"])
@@ -1735,6 +1806,7 @@ def expert_fix_transcribe():
         transcript = groq_client.audio.transcriptions.create(
             file=(audio_file.filename or "recording.webm", audio_file.read()),
             model="whisper-large-v3",
+            prompt=_build_vocabulary_prompt(),
         )
         text = getattr(transcript, "text", "") or ""
         return jsonify({"transcript": text.strip()})
@@ -1792,11 +1864,10 @@ Structure this into the required JSON fields, including identifying the equipmen
     # for why this matters (exact-match retrieval downstream).
     raw_candidate = structured.get("equip_tag_candidate", "") or ""
     try:
-        known = expert_fix_equipment_list().get_json().get("equipment", [])
-        known_tags = [e["equip_tag"] for e in known]
+        known_tags = [e["equip_tag"] for e in _get_known_equipment()]
     except Exception:
         known_tags = []
-    equip_tag, tag_confirmed = _normalise_candidate_tag(raw_candidate, known_tags)
+    equip_tag, tag_confidence = _normalise_candidate_tag(raw_candidate, known_tags)
 
     fix_shape = structured.get("fix_shape") or "diagnostic"
     if fix_shape not in ("steps", "diagnostic", "insufficient"):
@@ -1806,15 +1877,16 @@ Structure this into the required JSON fields, including identifying the equipmen
         fix_steps = []
 
     return jsonify({
-        "equip_tag":            equip_tag,
-        "equip_tag_confirmed":  tag_confirmed,
-        "what_was_different":   structured.get("what_was_different", "") or "",
-        "fix_shape":            fix_shape,
-        "fix_steps":            fix_steps,
-        "what_fixed_it":        structured.get("what_fixed_it", "") or "",
-        "when_it_applies":      structured.get("when_it_applies", "") or "",
-        "sop_gap_identified":   bool(structured.get("sop_gap_identified", False)),
-        "sop_gap_reason":       structured.get("sop_gap_reason", "") or "",
+        "equip_tag":             equip_tag,
+        "equip_tag_confidence":  tag_confidence,             # "exact" | "fuzzy" | "none"
+        "equip_tag_confirmed":   tag_confidence != "none",   # kept for simpler UI checks
+        "what_was_different":    structured.get("what_was_different", "") or "",
+        "fix_shape":             fix_shape,
+        "fix_steps":             fix_steps,
+        "what_fixed_it":         structured.get("what_fixed_it", "") or "",
+        "when_it_applies":       structured.get("when_it_applies", "") or "",
+        "sop_gap_identified":    bool(structured.get("sop_gap_identified", False)),
+        "sop_gap_reason":        structured.get("sop_gap_reason", "") or "",
     })
 
 
