@@ -26,16 +26,39 @@ def _handle_uncaught_error(e):
     Safety net: any unhandled exception on an /api/ route must return JSON,
     never Flask's default HTML error page. Frontend code across this app
     does response.json() on API calls -- an HTML page there breaks with a
-    cryptic "Unexpected token '<'" instead of a real error message. Page
-    routes (rendering templates) fall through to Flask's normal handling
-    unchanged, since those aren't consumed as JSON.
+    cryptic "Unexpected token '<'" instead of a real error message.
+
+    For non-API routes: a plain HTTP error (404, 405, etc.) is returned
+    as-is -- an HTTPException instance IS a valid Flask response, and
+    Werkzeug renders its normal error page from it. Re-raising it here
+    instead (an earlier version of this handler did) bubbles the
+    exception past Flask's own handling entirely, which turns something
+    harmless -- e.g. the browser's automatic GET /favicon.ico -- into a
+    full unhandled-exception traceback and a misleading 500 in the
+    server log for what is really just a 404.
+
+    A genuine non-HTTP bug on a page route still re-raises, so Flask's
+    debug/reloader shows the real traceback during development.
     """
     from werkzeug.exceptions import HTTPException
-    code = e.code if isinstance(e, HTTPException) else 500
+    is_http_exc = isinstance(e, HTTPException)
+    code = e.code if is_http_exc else 500
+
     if request.path.startswith("/api/"):
         print(f"  [error] unhandled exception on {request.path}: {e}")
         return jsonify({"error": "Something went wrong on our end. Please try again."}), code
+
+    if is_http_exc:
+        return e
+
     raise e
+
+
+@app.route("/favicon.ico")
+def favicon():
+    """Browsers request this automatically on every page load. Returning
+    204 (no content) avoids it hitting the error handler / logs at all."""
+    return "", 204
 
 # ── Knowledge graph — load on startup ────────────────────────────────────────
 def _load_knowledge_graph():
@@ -1957,6 +1980,13 @@ def expert_fix_save():
     if equip_tag_source not in ("auto", "edited"):
         equip_tag_source = "auto"
 
+    # NEW Session 15 — optional operator judgment call: "this matters even
+    # if nobody else has found it yet". Does NOT get stored on the fix row
+    # itself (nothing about the capture flow changes) -- it only decides
+    # whether the background clustering step below creates a solo
+    # graph_candidate instead of doing nothing when no match is found.
+    flagged_critical = (form.get("flagged_critical") or "false").strip().lower() in ("true", "1", "yes")
+
     record = {
         "equip_tag":           equip_tag,
         "equip_tag_source":    equip_tag_source,
@@ -2013,6 +2043,18 @@ def expert_fix_save():
                 pass
 
     threading.Thread(target=run_embed, daemon=True).start()
+
+    # NEW Session 15 — background pattern-clustering check. Deliberately
+    # separate thread from run_embed above: this needs the fix's Pinecone
+    # vector to exist to compare against others, but must never block or
+    # slow down the operator's save response either way.
+    def run_clustering():
+        try:
+            _cluster_new_fix(fix_id, saved, flagged_critical)
+        except Exception as e:
+            print(f"  [graph-candidate] clustering check failed for {fix_id}: {e}")
+
+    threading.Thread(target=run_clustering, daemon=True).start()
 
     # Stats for the confirmation-screen counter ("N saved / N cited")
     try:
@@ -2157,6 +2199,14 @@ def expert_fix_update(fix_id):
 
     threading.Thread(target=run_reembed, daemon=True).start()
 
+    # NEW Session 15 — if this fix fed an already-promoted graph node,
+    # editing it may invalidate that node's evidence. Re-open for review
+    # rather than leaving a permanent fact standing on changed data.
+    try:
+        _reopen_candidates_for_fix(fix_id)
+    except Exception as e:
+        print(f"  [expert-fix] orphan re-review check failed (edit still succeeded): {e}")
+
     return jsonify({"success": True, "fix": updated_row})
 
 
@@ -2173,11 +2223,393 @@ def expert_fix_delete(fix_id):
     except Exception as e:
         print(f"  [expert-fix] Pinecone delete failed (continuing with DB delete): {e}")
 
+    # NEW Session 15 — same orphan check as PUT, run before the row is
+    # gone so _reopen_candidates_for_fix can still see which candidates
+    # referenced this fix_id.
+    try:
+        _reopen_candidates_for_fix(fix_id)
+    except Exception as e:
+        print(f"  [expert-fix] orphan re-review check failed (delete still proceeds): {e}")
+
     try:
         supabase.table("expert_fixes").delete().eq("id", fix_id).execute()
     except Exception as e:
         print(f"  [expert-fix] Supabase delete failed: {e}")
         return jsonify({"error": "Could not delete this capture. Please try again."}), 500
+
+    return jsonify({"success": True})
+
+
+@app.route("/api/expert-fixes/<fix_id>/flag-critical", methods=["POST"])
+def expert_fix_flag_critical(fix_id):
+    """
+    NEW Session 15 follow-up -- lets an operator retroactively flag an
+    ALREADY-SAVED capture as critical, from the edit modal on their
+    library. The original "Flag as critical" toggle only fired at save
+    time; this closes the gap for a fix Dave forgot to flag, or decided
+    later actually mattered.
+
+    Deliberately a separate action, not folded into the general PUT edit
+    endpoint -- this needs its own idempotency check (don't create a
+    second candidate for a fix that's already pending review or already
+    promoted), which is a different concern from editing structured
+    fields. Still never writes to Neo4j -- only ever creates a pending
+    graph_candidates row for a human to review, same as the save-time path.
+    """
+    result = supabase.table("expert_fixes").select("*").eq("id", fix_id).execute()
+    rows = result.data or []
+    if not rows:
+        return jsonify({"error": "Capture not found"}), 404
+    fix_row = rows[0]
+    equip_tag = fix_row.get("equip_tag", "")
+
+    existing = _find_candidate_containing_fix(equip_tag, fix_id)
+    if existing is not None:
+        return jsonify({
+            "success": True, "already_tracked": True,
+            "status": existing["status"],
+        })
+
+    _create_new_candidate(equip_tag, [str(fix_id)], flagged_by_operator=True)
+    return jsonify({"success": True, "already_tracked": False})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GRAPH CANDIDATES — expert-fix pattern clustering + human review (NEW Session 15)
+# ─────────────────────────────────────────────────────────────────────────────
+# The pipeline that lets confirmed operator knowledge earn its way into the
+# knowledge graph, without ever writing automatically. Nothing here touches
+# Neo4j except the two approve branches below -- everything else is Supabase
+# bookkeeping. See CONTEXT.md "Expert knowledge capture -> graph promotion"
+# for the full design rationale (why review is required, why rejection is
+# scoped to the exact fix combination, why reinforcement still needs a human).
+
+GRAPH_CANDIDATE_SIMILARITY_THRESHOLD = 0.75  # deliberately higher than the
+# 0.4 retrieval threshold -- this asserts "same fault", a stronger claim
+# than "relevant to this query".
+
+
+def _rejection_key(fix_ids):
+    """Deterministic key for a fix_ids combination -- sorted so [A,B] and
+    [B,A] collide to the same suppression record."""
+    return ",".join(sorted(str(f) for f in fix_ids))
+
+
+def _is_combination_suppressed(fix_ids):
+    key = _rejection_key(fix_ids)
+    try:
+        result = (supabase.table("graph_candidate_rejections")
+                  .select("id").eq("fix_ids_key", key).execute())
+        return bool(result.data)
+    except Exception as e:
+        print(f"  [graph-candidate] suppression check failed: {e}")
+        return False  # fail open -- a missed suppression check just means
+        # a rejected pairing might resurface once, not a data-safety issue
+
+
+def _find_candidate_containing_fix(equip_tag, fix_id):
+    """Returns the graph_candidates row (pending or approved) that already
+    contains this fix_id, or None. Small-scale linear scan -- fine at
+    current volume, see CONTEXT.md performance note."""
+    try:
+        result = (supabase.table("graph_candidates")
+                  .select("*").eq("equip_tag", equip_tag)
+                  .in_("status", ["pending", "approved"])
+                  .execute())
+        for row in (result.data or []):
+            if str(fix_id) in [str(f) for f in (row.get("fix_ids") or [])]:
+                return row
+    except Exception as e:
+        print(f"  [graph-candidate] candidate lookup failed: {e}")
+    return None
+
+
+def _synthesize_candidate_summary(fix_rows):
+    """
+    LLM synthesis of what multiple (or one) captures agree on -- same
+    'never invent, never infer beyond the sources' discipline as the
+    original structuring prompt. A hallucinated connection here would mean
+    a reviewer approves based on something the sources never actually said.
+    """
+    sources_text = "\n\n".join(
+        f"Source {i+1} ({f.get('captured_by_name','Unknown')}): "
+        f"{f.get('what_was_different','')} {f.get('what_fixed_it','')}"
+        for i, f in enumerate(fix_rows)
+    )
+    prompt = """Summarise what these operator fix reports have in common, in one or
+two sentences. ONLY state what the sources actually say -- never infer a connection,
+cause, or fix the text doesn't directly support. If the sources don't clearly agree
+on anything specific, say that plainly rather than inventing a connection.
+
+Respond with ONLY the summary text, no preamble, no markdown."""
+    try:
+        response = groq_client.chat.completions.create(
+            model=MODEL_FAST,
+            messages=[{"role": "system", "content": prompt},
+                      {"role": "user", "content": sources_text}],
+            temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 150)
+        )
+        return (response.choices[0].message.content or "").strip()
+    except Exception as e:
+        print(f"  [graph-candidate] summary synthesis failed: {e}")
+        return fix_rows[0].get("what_fixed_it", "") if fix_rows else ""
+
+
+def _cluster_new_fix(fix_id, fix_row, flagged_critical):
+    """
+    Runs in a background thread right after a fix saves. Embeds the fix's
+    own content fresh (does NOT depend on run_embed's Pinecone upsert
+    having finished -- the two threads are independent, no race condition)
+    and searches for similar Expert Fix vectors already in Pinecone for
+    the same equipment. Branches exactly as specced in CONTEXT.md.
+    """
+    equip_tag = fix_row.get("equip_tag", "")
+    text = f"{fix_row.get('what_was_different','')} {fix_row.get('what_fixed_it','')}".strip()
+    if not text:
+        return
+
+    try:
+        query_vec = get_embedding(text, input_type="passage")
+    except Exception as e:
+        print(f"  [graph-candidate] embedding failed for {fix_id}: {e}")
+        return
+
+    try:
+        results = pine_index.query(
+            vector=query_vec, top_k=5, include_metadata=True,
+            filter={"doc_type": {"$eq": "Expert Fix"}, "equip_tag": {"$eq": equip_tag}}
+        )
+    except Exception as e:
+        print(f"  [graph-candidate] Pinecone query failed for {fix_id}: {e}")
+        return
+
+    matches = [m for m in results.matches
+               if m.score >= GRAPH_CANDIDATE_SIMILARITY_THRESHOLD
+               and m.metadata.get("expert_fix_id") != str(fix_id)]
+
+    if not matches:
+        if flagged_critical:
+            _create_new_candidate(equip_tag, [fix_id], flagged_by_operator=True)
+        return
+
+    matched_fix_id = matches[0].metadata.get("expert_fix_id")
+    existing = _find_candidate_containing_fix(equip_tag, matched_fix_id)
+
+    if existing is None:
+        combo = [matched_fix_id, str(fix_id)]
+        if _is_combination_suppressed(combo):
+            return
+        _create_new_candidate(equip_tag, combo, flagged_by_operator=False)
+
+    elif existing["status"] == "pending":
+        new_fix_ids = list(set([str(f) for f in existing["fix_ids"]] + [str(fix_id)]))
+        try:
+            fix_rows = _fetch_fix_rows(new_fix_ids)
+            summary = _synthesize_candidate_summary(fix_rows)
+            supabase.table("graph_candidates").update({
+                "fix_ids": new_fix_ids, "summary": summary
+            }).eq("id", existing["id"]).execute()
+        except Exception as e:
+            print(f"  [graph-candidate] failed to grow candidate {existing['id']}: {e}")
+
+    elif existing["status"] == "approved":
+        _create_new_candidate(
+            equip_tag, [str(fix_id)], flagged_by_operator=False,
+            candidate_type="reinforcement", promoted_node_id=existing.get("promoted_node_id")
+        )
+
+
+def _fetch_fix_rows(fix_ids):
+    if not fix_ids:
+        return []
+    try:
+        result = (supabase.table("expert_fixes").select("*")
+                  .in_("id", fix_ids).execute())
+        return result.data or []
+    except Exception as e:
+        print(f"  [graph-candidate] fetch fix rows failed: {e}")
+        return []
+
+
+def _reopen_candidates_for_fix(fix_id):
+    """
+    Called from PUT/DELETE on an expert fix. If that fix fed an already
+    APPROVED candidate, the graph node it produced may no longer be
+    supported by real evidence -- flip that candidate back to pending
+    and flag it so it resurfaces in the review queue distinctly, rather
+    than leaving a permanent Neo4j node standing on deleted/changed data.
+    """
+    try:
+        result = (supabase.table("graph_candidates").select("*")
+                  .eq("status", "approved").execute())
+        for row in (result.data or []):
+            if str(fix_id) in [str(f) for f in (row.get("fix_ids") or [])]:
+                supabase.table("graph_candidates").update({
+                    "status": "pending", "needs_review": True,
+                }).eq("id", row["id"]).execute()
+                print(f"  [graph-candidate] candidate {row['id']} reopened for review -- source fix {fix_id} was edited/deleted")
+    except Exception as e:
+        print(f"  [graph-candidate] reopen check failed for fix {fix_id}: {e}")
+
+
+def _create_new_candidate(equip_tag, fix_ids, flagged_by_operator=False,
+                           candidate_type="new", promoted_node_id=None):
+    fix_rows = _fetch_fix_rows(fix_ids)
+    summary  = _synthesize_candidate_summary(fix_rows) if fix_rows else ""
+    record = {
+        "equip_tag":          equip_tag,
+        "fix_ids":            fix_ids,
+        "candidate_type":     candidate_type,
+        "promoted_node_id":   promoted_node_id,
+        "status":             "pending",
+        "flagged_by_operator": flagged_by_operator,
+        "summary":            summary,
+    }
+    try:
+        supabase.table("graph_candidates").insert(record).execute()
+    except Exception as e:
+        print(f"  [graph-candidate] insert failed: {e}")
+
+
+@app.route("/api/graph-candidates", methods=["GET"])
+def graph_candidates_list():
+    """Lists pending review candidates, sorted by source count (strongest
+    evidence first). Optional ?equip_tag= and ?q= (searches summary text)."""
+    equip_tag = (request.args.get("equip_tag") or "").strip().upper()
+    q         = (request.args.get("q") or "").strip().lower()
+    try:
+        query = supabase.table("graph_candidates").select("*").eq("status", "pending")
+        if equip_tag:
+            query = query.eq("equip_tag", equip_tag)
+        result = query.execute()
+        rows = result.data or []
+        if q:
+            rows = [r for r in rows if q in (r.get("summary") or "").lower()
+                    or q in (r.get("equip_tag") or "").lower()]
+        rows.sort(key=lambda r: len(r.get("fix_ids") or []), reverse=True)
+        for r in rows:
+            r["source_count"] = len(r.get("fix_ids") or [])
+        return jsonify({"candidates": rows})
+    except Exception as e:
+        print(f"  [graph-candidate] list error: {e}")
+        return jsonify({"candidates": []})
+
+
+@app.route("/api/graph-candidates/<candidate_id>", methods=["GET"])
+def graph_candidate_detail(candidate_id):
+    """Full detail for the review screen -- summary plus every raw source
+    fix, so the reviewer judges the actual words, not just the synthesis."""
+    try:
+        result = supabase.table("graph_candidates").select("*").eq("id", candidate_id).execute()
+        rows = result.data or []
+        if not rows:
+            return jsonify({"error": "Candidate not found"}), 404
+        candidate = rows[0]
+        candidate["sources"] = _fetch_fix_rows(candidate.get("fix_ids") or [])
+        candidate["source_count"] = len(candidate["sources"])
+        return jsonify({"candidate": candidate})
+    except Exception as e:
+        print(f"  [graph-candidate] detail error: {e}")
+        return jsonify({"error": "Could not load this candidate"}), 500
+
+
+@app.route("/api/graph-candidates/<candidate_id>/approve", methods=["POST"])
+def graph_candidate_approve(candidate_id):
+    """
+    The only route in this whole feature that writes into Neo4j. Branches
+    on candidate_type: 'new' creates a Pattern node, 'reinforcement'
+    strengthens an already-approved one. Always audited, always requires
+    this explicit call -- nothing upstream can reach this automatically.
+    """
+    data = request.get_json() or {}
+    reviewed_by = (data.get("reviewed_by") or "").strip()
+
+    result = supabase.table("graph_candidates").select("*").eq("id", candidate_id).execute()
+    rows = result.data or []
+    if not rows:
+        return jsonify({"error": "Candidate not found"}), 404
+    candidate = rows[0]
+    if candidate["status"] != "pending":
+        return jsonify({"error": "This candidate has already been reviewed"}), 409
+
+    fix_rows = _fetch_fix_rows(candidate.get("fix_ids") or [])
+    if not fix_rows:
+        return jsonify({"error": "No source fixes found for this candidate"}), 400
+
+    from knowledge_graph import promote_candidate_to_graph, reinforce_promoted_node
+    try:
+        if candidate["candidate_type"] == "reinforcement" and candidate.get("promoted_node_id"):
+            original = supabase.table("graph_candidates").select("*") \
+                .eq("promoted_node_id", candidate["promoted_node_id"]) \
+                .eq("candidate_type", "new").execute()
+            original_row = (original.data or [{}])[0]
+            combined_fix_ids = list(set(
+                [str(f) for f in (original_row.get("fix_ids") or [])] +
+                [str(f) for f in candidate["fix_ids"]]
+            ))
+            node_id = reinforce_promoted_node(
+                candidate["promoted_node_id"], _fetch_fix_rows(combined_fix_ids), len(combined_fix_ids)
+            )
+        else:
+            node_id = promote_candidate_to_graph(candidate, fix_rows)
+    except Exception as e:
+        print(f"  [graph-candidate] Neo4j write failed for {candidate_id}: {e}")
+        return jsonify({"error": "Could not write to the knowledge graph. Please try again."}), 500
+
+    supabase.table("graph_candidates").update({
+        "status": "approved", "promoted_node_id": node_id,
+        "reviewed_by": reviewed_by, "reviewed_at": datetime.utcnow().isoformat(),
+        "needs_review": False,
+    }).eq("id", candidate_id).execute()
+
+    try:
+        supabase.table("graph_promotion_audit").insert({
+            "candidate_id": candidate_id, "action": "approved",
+            "performed_by": reviewed_by,
+            "detail": {"node_id": node_id, "fix_ids": candidate["fix_ids"]},
+        }).execute()
+    except Exception as e:
+        print(f"  [graph-candidate] audit write failed (promotion still succeeded): {e}")
+
+    return jsonify({"success": True, "node_id": node_id})
+
+
+@app.route("/api/graph-candidates/<candidate_id>/reject", methods=["POST"])
+def graph_candidate_reject(candidate_id):
+    """Rejecting changes nothing about the underlying fixes -- they stay
+    exactly as searchable via Pinecone as before. Only suppresses this
+    EXACT fix_ids combination from resurfacing as a duplicate candidate."""
+    data = request.get_json() or {}
+    reviewed_by = (data.get("reviewed_by") or "").strip()
+
+    result = supabase.table("graph_candidates").select("*").eq("id", candidate_id).execute()
+    rows = result.data or []
+    if not rows:
+        return jsonify({"error": "Candidate not found"}), 404
+    candidate = rows[0]
+    if candidate["status"] != "pending":
+        return jsonify({"error": "This candidate has already been reviewed"}), 409
+
+    try:
+        supabase.table("graph_candidate_rejections").insert({
+            "fix_ids_key": _rejection_key(candidate["fix_ids"]),
+            "rejected_by": reviewed_by,
+        }).execute()
+    except Exception as e:
+        print(f"  [graph-candidate] suppression record failed (rejection still recorded): {e}")
+
+    supabase.table("graph_candidates").update({
+        "status": "rejected", "reviewed_by": reviewed_by,
+        "reviewed_at": datetime.utcnow().isoformat(),
+    }).eq("id", candidate_id).execute()
+
+    try:
+        supabase.table("graph_promotion_audit").insert({
+            "candidate_id": candidate_id, "action": "rejected",
+            "performed_by": reviewed_by, "detail": {"fix_ids": candidate["fix_ids"]},
+        }).execute()
+    except Exception as e:
+        print(f"  [graph-candidate] audit write failed (rejection still succeeded): {e}")
 
     return jsonify({"success": True})
 

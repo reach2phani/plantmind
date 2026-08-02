@@ -122,6 +122,19 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
 .shape-toggle button{flex:1;font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;color:#64748b}
 .shape-toggle button.selected{background:#4f46e5;color:#fff;border-color:#4f46e5}
 
+.critical-flag-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid #e2e8f0;border-radius:10px;cursor:pointer;margin-top:2px}
+.critical-flag-row:hover{border-color:#cbd5e1}
+.critical-flag-row.checked{border-color:#4f46e5;background:#eef2ff}
+.critical-flag-check{width:18px;height:18px;border-radius:5px;border:1.5px solid #cbd5e1;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.critical-flag-row.checked .critical-flag-check{background:#4f46e5;border-color:#4f46e5}
+.critical-flag-label{font-size:13px;font-weight:500;color:#0f172a}
+.critical-flag-sub{font-size:11px;color:#64748b;margin-top:2px;line-height:1.5}
+
+.flag-critical-btn{width:100%;background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:8px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.flag-critical-btn:hover{border-color:#c7d2fe;color:#4338ca}
+.flag-critical-btn:disabled{opacity:.6;cursor:default}
+.flag-critical-status{font-size:11px;color:#64748b;margin-top:6px;text-align:center;min-height:14px}
+
 .success-area{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 0;text-align:center}
 .success-icon{width:52px;height:52px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:24px;color:#16a34a}
 .success-title{font-size:16px;font-weight:600;color:#0f172a}
@@ -356,7 +369,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
     <div class="fix-card">
       <div class="fix-card-hd">
         <div class="fix-card-title" id="cardTitle">Expert fix</div>
-        <div class="fix-card-sub" id="cardSub">G. Phani, Senior Operator</div>
+        <div class="fix-card-sub" id="cardSub">G. Phani</div>
       </div>
 
       <div class="fix-sec" onclick="openInlineEdit('equip_tag')">
@@ -417,6 +430,20 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
         <div id="sopGapDisplay" style="font-size:12px;color:#94a3b8">No gap flagged</div>
       </div>
     </div>
+
+    <!-- NEW Session 15 — optional, purely additive. Does not gate save,
+         does not affect anything else on this screen. Only decides
+         whether a solo capture (no match found yet) still gets seen by
+         a reviewer instead of waiting for a coincidence that might
+         never happen. -->
+    <div class="critical-flag-row" id="criticalFlagRow" onclick="toggleCriticalFlag()">
+      <div class="critical-flag-check" id="criticalFlagCheck"></div>
+      <div>
+        <div class="critical-flag-label">Flag as critical</div>
+        <div class="critical-flag-sub">This matters even if nobody else has found it yet — a supervisor will review it directly</div>
+      </div>
+    </div>
+
     <button class="btn-primary" onclick="submitFinalSave()">Confirm — save this fix</button>
   </div>
 
@@ -427,7 +454,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
       <div class="success-sub" id="successSub">Tagged, searchable, and ready for the next investigation on this equipment.</div>
       <div class="counter-card">
         <div class="cc-row">
-          <div><div class="cc-name">G. Phani</div><div class="cc-role">Senior Operator</div></div>
+          <div><div class="cc-name">G. Phani</div></div>
           <div class="cc-stats">
             <div class="cc-stat"><span class="cc-num" id="statSaved">-</span><span class="cc-lbl">saved</span></div>
             <div class="cc-stat"><span class="cc-num" id="statCited">-</span><span class="cc-lbl">cited</span></div>
@@ -488,6 +515,16 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
       <div class="edit-readonly-box" id="editFieldTranscript"></div>
     </div>
 
+    <!-- NEW — retroactive critical flag. Deliberately a separate action
+         from Save changes below, since it doesn't touch the structured
+         fields at all -- it only gets this fix seen by a reviewer. -->
+    <div class="edit-field" style="border-top:1px solid #f1f5f9;padding-top:14px">
+      <button class="flag-critical-btn" id="flagCriticalBtn" onclick="flagExistingAsCritical()">
+        Flag as critical — send to supervisor review
+      </button>
+      <div class="flag-critical-status" id="flagCriticalStatus"></div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
       <button class="btn-primary" onclick="saveEditModal()">Save changes</button>
@@ -498,7 +535,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
 <script>
 
 var CAPTURED_BY_NAME = "G. Phani";
-var CAPTURED_BY_ROLE = "Senior Operator";
+var CAPTURED_BY_ROLE = "";
 
 var state = {
   equip_tag: "", equip_tag_source: "auto", equip_tag_confirmed: false,
@@ -508,7 +545,8 @@ var state = {
   what_was_different: "",
   fix_shape: "diagnostic", fix_steps: [], what_fixed_it: "",
   when_it_applies: "",
-  sop_gap_identified: false, sop_gap_reason: ""
+  sop_gap_identified: false, sop_gap_reason: "",
+  flagged_critical: false
 };
 
 var knownEquipment = [];
@@ -757,7 +795,7 @@ function confirmTranscript() {
 function showStructuredCard() {
   document.getElementById("cardTitle").textContent = "Expert fix" + (state.equip_tag ? (" - " + state.equip_tag) : "");
   document.getElementById("cardSub").textContent =
-    CAPTURED_BY_NAME + ", " + CAPTURED_BY_ROLE + " . " + new Date().toLocaleDateString();
+    CAPTURED_BY_NAME + " . " + new Date().toLocaleDateString();
 
   renderEquipTagField();
   renderCardField("what_was_different");
@@ -771,7 +809,19 @@ function showStructuredCard() {
   } else {
     sopEl.textContent = "No gap flagged";
   }
+  renderCriticalFlag();
   goScreen("card");
+}
+
+function renderCriticalFlag() {
+  var row = document.getElementById("criticalFlagRow");
+  row.classList.toggle("checked", !!state.flagged_critical);
+  document.getElementById("criticalFlagCheck").innerHTML = state.flagged_critical ? "&#10003;" : "";
+}
+
+function toggleCriticalFlag() {
+  state.flagged_critical = !state.flagged_critical;
+  renderCriticalFlag();
 }
 
 function renderEquipTagField() {
@@ -898,6 +948,7 @@ function submitFinalSave() {
   formData.append("when_it_applies", state.when_it_applies);
   formData.append("sop_gap_identified", state.sop_gap_identified ? "true" : "false");
   formData.append("sop_gap_reason", state.sop_gap_reason);
+  formData.append("flagged_critical", state.flagged_critical ? "true" : "false");
   if (state.photoFile) formData.append("photo", state.photoFile);
 
   fetch("/api/expert-fixes/save", { method: "POST", body: formData })
@@ -931,7 +982,8 @@ function resetFlow() {
     what_was_different: "",
     fix_shape: "diagnostic", fix_steps: [], what_fixed_it: "",
     when_it_applies: "",
-    sop_gap_identified: false, sop_gap_reason: ""
+    sop_gap_identified: false, sop_gap_reason: "",
+    flagged_critical: false
   };
   removePhoto();
   resetRecording();
@@ -1149,6 +1201,10 @@ var editModalShape = "diagnostic";
 
 function openEditModal(id) {
   editingFixId = id;
+  var flagBtn = document.getElementById("flagCriticalBtn");
+  flagBtn.disabled = false;
+  flagBtn.textContent = "Flag as critical — send to supervisor review";
+  document.getElementById("flagCriticalStatus").textContent = "";
   fetch("/api/expert-fixes/" + encodeURIComponent(id))
     .then(function(r){ return r.json(); })
     .then(function(data){
@@ -1179,6 +1235,39 @@ function setEditModalShape(shape) {
 function closeEditModal() {
   editingFixId = null;
   document.getElementById("editModal").classList.remove("open");
+}
+
+function flagExistingAsCritical() {
+  if (!editingFixId) return;
+  var btn    = document.getElementById("flagCriticalBtn");
+  var status = document.getElementById("flagCriticalStatus");
+  btn.disabled = true;
+  btn.textContent = "Flagging...";
+
+  fetch("/api/expert-fixes/" + encodeURIComponent(editingFixId) + "/flag-critical", { method: "POST" })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.success) {
+        status.textContent = data.error || "Could not flag this capture.";
+        btn.disabled = false;
+        btn.textContent = "Flag as critical — send to supervisor review";
+        return;
+      }
+      if (data.already_tracked) {
+        status.textContent = data.status === "approved"
+          ? "Already promoted to the knowledge graph."
+          : "Already waiting for supervisor review.";
+        btn.textContent = "Already flagged";
+      } else {
+        status.textContent = "Sent to supervisor review.";
+        btn.textContent = "Flagged";
+      }
+    })
+    .catch(function(err){
+      status.textContent = "Something went wrong: " + err.message;
+      btn.disabled = false;
+      btn.textContent = "Flag as critical — send to supervisor review";
+    });
 }
 
 function saveEditModal() {

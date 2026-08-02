@@ -88,6 +88,45 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
 .ctx-select{font-size:13px;font-weight:500;color:#0f172a;background:none;border:none;outline:none;cursor:pointer;padding:0;appearance:none;-webkit-appearance:none;width:100%}
 .ctx-select:disabled{color:#94a3b8;cursor:default}
 
+/* ── Explore / Review queue toggle (NEW Session 15) ── */
+.view-toggle-btn{font-size:13px;padding:8px 16px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer}
+.view-toggle-btn.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+
+/* ── Review queue ── */
+.review-toolbar{display:flex;gap:8px;margin-bottom:14px}
+.review-search-box{flex:1}
+.review-search-box input{width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none}
+.review-search-box input:focus{border-color:#a5b4fc}
+.review-empty{text-align:center;padding:48px 16px;color:#94a3b8;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px}
+.review-queue-list{display:flex;flex-direction:column;gap:8px}
+.rq-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:13px 15px;cursor:pointer}
+.rq-card:hover{border-color:#c4b5fd}
+.rq-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rq-equip{font-size:13px;font-weight:600;color:#0f172a;min-width:70px}
+.rq-summary{font-size:12px;color:#64748b;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rq-badge{font-size:11px;font-weight:500;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.rq-badge.multi{background:#f0fdf4;color:#166534}
+.rq-badge.single{background:#eef2ff;color:#4338ca}
+.rq-badge.flagged{background:#fef3c7;color:#92400e}
+.rq-badge.reinforcement{background:#fdf2f8;color:#9d174d}
+
+.review-detail-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;margin-top:16px}
+.rd-back{background:none;border:none;color:#4f46e5;font-size:13px;font-weight:500;cursor:pointer;padding:0;margin-bottom:12px;display:flex;align-items:center;gap:4px}
+.rd-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+.rd-title{font-size:15px;font-weight:600;color:#0f172a}
+.rd-sub{font-size:12px;color:#64748b;margin-bottom:14px}
+.rd-summary-box{background:#f8fafc;border-radius:8px;padding:12px;font-size:13px;color:#0f172a;line-height:1.6;margin-bottom:14px}
+.rd-summary-lbl{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.rd-src{border-top:1px solid #f1f5f9;padding-top:10px;margin-top:10px}
+.rd-src-hd{font-size:12px;font-weight:600;color:#0f172a;margin-bottom:3px}
+.rd-src-hd span{font-weight:400;color:#94a3b8}
+.rd-src-txt{font-size:12px;color:#64748b;line-height:1.6;font-style:italic}
+.rd-actions{display:flex;gap:8px;margin-top:16px}
+.rd-actions button{flex:1;font-size:13px;padding:10px;border-radius:8px;cursor:pointer}
+.rd-btn-reject{border:1px solid #e2e8f0;background:transparent;color:#64748b}
+.rd-btn-approve{border:none;background:#16a34a;color:#fff}
+.rd-needs-review{background:#fef3c7;color:#92400e;font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;margin-bottom:10px;display:inline-block}
+
 /* ── Mobile ── */
 @media(max-width:600px){
   .nav{padding:0 12px}
@@ -98,6 +137,8 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
   .ctrl-select{min-width:140px;font-size:12px}
   .detail-grid{grid-template-columns:1fr}
   .detail-row.full{grid-column:1}
+  .review-toolbar{flex-direction:column}
+  .rq-top{flex-wrap:wrap}
 }
 </style>
 </head>
@@ -137,6 +178,16 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
       <div class="stat-item"><div class="stat-dot" style="background:#888780"></div>Documents <span class="stat-num" id="statDoc">0</span></div>
     </div>
   </div>
+
+  <!-- NEW Session 15 — Explore / Review queue toggle. Same page, same tab,
+       no new nav entry -- see CONTEXT.md for why this deliberately does
+       not get its own top-level tab. -->
+  <div class="toggle-row" style="display:flex;gap:6px">
+    <button class="view-toggle-btn active" id="toggleExploreBtn" onclick="showExploreView()">Explore</button>
+    <button class="view-toggle-btn" id="toggleReviewBtn" onclick="showReviewView()">Review queue <span id="reviewCountBadge"></span></button>
+  </div>
+
+  <div id="exploreView">
 
   <!-- Context bar — Plant → Line → Equipment -->
   <div class="ctx-bar">
@@ -195,6 +246,33 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
   <div class="detail-panel" id="detailPanel">
     <div class="detail-empty">Click any node to see its details</div>
   </div>
+
+  </div><!-- end #exploreView -->
+
+  <!-- NEW Session 15 — Review queue. Nothing here writes to Neo4j except
+       the Approve button's request -- Reject only ever writes Supabase
+       bookkeeping (suppression + audit), never touches the graph. -->
+  <div id="reviewQueueView" style="display:none">
+
+    <div class="review-toolbar">
+      <div class="review-search-box">
+        <input type="text" id="reviewSearchInput" placeholder="Search candidates..." oninput="applyReviewFilters()">
+      </div>
+      <select class="ctrl-select" id="reviewEquipFilter" onchange="applyReviewFilters()" style="min-width:160px">
+        <option value="">All equipment</option>
+      </select>
+    </div>
+
+    <div id="reviewEmptyState" class="review-empty" style="display:none">
+      <div style="font-size:28px">&#10003;</div>
+      <div>No candidates waiting for review</div>
+    </div>
+
+    <div id="reviewQueueList" class="review-queue-list"></div>
+
+    <div id="reviewDetailPanel" class="review-detail-panel" style="display:none"></div>
+
+  </div><!-- end #reviewQueueView -->
 
 </div><!-- end .main -->
 
@@ -784,11 +862,204 @@ function saveConversation() {
   saveGraphState();
 }
 
+// ── Review queue (NEW Session 15) ───────────────────────────────────────────
+// CAPTURED_BY_NAME reuses the same single hardcoded identity convention as
+// expert_capture.html (no real auth/role system yet -- approve is available
+// to whoever's logged in, an honest, documented limitation, not silently
+// assumed solved by this UI).
+var REVIEWER_NAME = "G. Phani";
+var _allCandidates = [];
+
+function showExploreView() {
+  document.getElementById('exploreView').style.display = 'block';
+  document.getElementById('reviewQueueView').style.display = 'none';
+  document.getElementById('toggleExploreBtn').classList.add('active');
+  document.getElementById('toggleReviewBtn').classList.remove('active');
+}
+
+function showReviewView() {
+  document.getElementById('exploreView').style.display = 'none';
+  document.getElementById('reviewQueueView').style.display = 'block';
+  document.getElementById('toggleExploreBtn').classList.remove('active');
+  document.getElementById('toggleReviewBtn').classList.add('active');
+  document.getElementById('reviewDetailPanel').style.display = 'none';
+  loadReviewQueue();
+}
+
+function loadReviewQueue() {
+  fetch('/api/graph-candidates')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      _allCandidates = data.candidates || [];
+      updateReviewCountBadge();
+      populateReviewEquipFilter();
+      applyReviewFilters();
+    })
+    .catch(function(){ _allCandidates = []; updateReviewCountBadge(); renderReviewQueue([]); });
+}
+
+function updateReviewCountBadge() {
+  var badge = document.getElementById('reviewCountBadge');
+  var n = _allCandidates.length;
+  badge.textContent = n > 0 ? '(' + n + ')' : '';
+}
+
+function populateReviewEquipFilter() {
+  var sel = document.getElementById('reviewEquipFilter');
+  var current = sel.value;
+  var tags = [];
+  _allCandidates.forEach(function(c){
+    if (tags.indexOf(c.equip_tag) === -1) tags.push(c.equip_tag);
+  });
+  tags.sort();
+  sel.innerHTML = '<option value="">All equipment</option>';
+  tags.forEach(function(t){
+    var o = document.createElement('option');
+    o.value = t; o.textContent = t;
+    sel.appendChild(o);
+  });
+  sel.value = current;
+}
+
+function applyReviewFilters() {
+  var q = (document.getElementById('reviewSearchInput').value || '').trim().toLowerCase();
+  var equip = document.getElementById('reviewEquipFilter').value;
+  var filtered = _allCandidates.filter(function(c){
+    if (equip && c.equip_tag !== equip) return false;
+    if (!q) return true;
+    return (c.summary || '').toLowerCase().indexOf(q) !== -1 ||
+           (c.equip_tag || '').toLowerCase().indexOf(q) !== -1;
+  });
+  renderReviewQueue(filtered);
+}
+
+function renderReviewQueue(candidates) {
+  var listEl  = document.getElementById('reviewQueueList');
+  var emptyEl = document.getElementById('reviewEmptyState');
+  if (candidates.length === 0) {
+    emptyEl.style.display = 'flex';
+    listEl.innerHTML = '';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  listEl.innerHTML = '';
+  candidates.forEach(function(c){
+    var badgeClass = c.candidate_type === 'reinforcement' ? 'reinforcement'
+      : c.flagged_by_operator ? 'flagged'
+      : c.source_count > 1 ? 'multi' : 'single';
+    var badgeText = c.candidate_type === 'reinforcement' ? 'Strengthens existing'
+      : c.flagged_by_operator ? 'Flagged by operator'
+      : c.source_count + (c.source_count === 1 ? ' source' : ' sources');
+    var item = document.createElement('div');
+    item.className = 'rq-card';
+    item.innerHTML =
+      '<div class="rq-top">' +
+        '<span class="rq-equip">' + escRqHtml(c.equip_tag || 'Unknown') + '</span>' +
+        '<span class="rq-summary">' + escRqHtml(c.summary || '') + '</span>' +
+        '<span class="rq-badge ' + badgeClass + '">' + badgeText + '</span>' +
+      '</div>';
+    item.onclick = function(){ openReviewDetail(c.id); };
+    listEl.appendChild(item);
+  });
+}
+
+function escRqHtml(t) {
+  var d = document.createElement('div');
+  d.textContent = t || '';
+  return d.innerHTML;
+}
+
+function openReviewDetail(candidateId) {
+  fetch('/api/graph-candidates/' + encodeURIComponent(candidateId))
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.candidate) { alert(data.error || 'Could not load this candidate.'); return; }
+      renderReviewDetail(data.candidate);
+    })
+    .catch(function(){ alert('Could not load this candidate.'); });
+}
+
+function renderReviewDetail(c) {
+  var panel = document.getElementById('reviewDetailPanel');
+  var badgeClass = c.candidate_type === 'reinforcement' ? 'reinforcement'
+    : c.flagged_by_operator ? 'flagged'
+    : c.source_count > 1 ? 'multi' : 'single';
+  var badgeText = c.candidate_type === 'reinforcement' ? 'Strengthens existing pattern'
+    : c.flagged_by_operator ? 'Flagged by operator'
+    : c.source_count + (c.source_count === 1 ? ' source' : ' sources');
+
+  var needsReviewBanner = c.needs_review
+    ? '<div class="rd-needs-review">&#9888; A source capture was edited or deleted since this was promoted -- please re-check</div>'
+    : '';
+
+  var sourcesHtml = (c.sources || []).map(function(f){
+    var preview = f.fix_shape === 'steps' && f.fix_steps && f.fix_steps.length
+      ? f.fix_steps.join('. ')
+      : (f.what_fixed_it || f.what_was_different || '');
+    return '<div class="rd-src">' +
+      '<div class="rd-src-hd">' + escRqHtml(f.captured_by_name || 'Unknown') + '</div>' +
+      '<div class="rd-src-txt">"' + escRqHtml(preview) + '"</div>' +
+      '</div>';
+  }).join('');
+
+  panel.innerHTML =
+    '<button class="rd-back" onclick="closeReviewDetail()">&#8592; Back to queue</button>' +
+    needsReviewBanner +
+    '<div class="rd-hd">' +
+      '<span class="rd-title">' + escRqHtml(c.equip_tag || '') + ' — candidate for promotion</span>' +
+      '<span class="rq-badge ' + badgeClass + '">' + badgeText + '</span>' +
+    '</div>' +
+    '<div class="rd-sub">' + (c.source_count || 0) + (c.source_count === 1 ? ' capture' : ' independent captures') + '</div>' +
+    '<div class="rd-summary-box"><div class="rd-summary-lbl">Synthesised summary</div>' + escRqHtml(c.summary || '') + '</div>' +
+    sourcesHtml +
+    '<div class="rd-actions">' +
+      '<button class="rd-btn-reject" onclick="rejectCandidate(\'' + c.id + '\')">Reject</button>' +
+      '<button class="rd-btn-approve" onclick="approveCandidate(\'' + c.id + '\')">Approve — promote to graph</button>' +
+    '</div>';
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeReviewDetail() {
+  document.getElementById('reviewDetailPanel').style.display = 'none';
+}
+
+function approveCandidate(candidateId) {
+  fetch('/api/graph-candidates/' + encodeURIComponent(candidateId) + '/approve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reviewed_by: REVIEWER_NAME })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.success) { alert(data.error || 'Could not approve this candidate.'); return; }
+      closeReviewDetail();
+      loadReviewQueue();
+    })
+    .catch(function(err){ alert('Something went wrong approving this candidate: ' + err.message); });
+}
+
+function rejectCandidate(candidateId) {
+  fetch('/api/graph-candidates/' + encodeURIComponent(candidateId) + '/reject', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reviewed_by: REVIEWER_NAME })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.success) { alert(data.error || 'Could not reject this candidate.'); return; }
+      closeReviewDetail();
+      loadReviewQueue();
+    })
+    .catch(function(err){ alert('Something went wrong rejecting this candidate: ' + err.message); });
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('load', function() {
   loadContextData();
   initCanvas();
   updateAlertBadge();
+  loadReviewQueue();  // badge count loads even while on Explore view
   setInterval(updateAlertBadge, 30000);
   window.addEventListener('resize', function() {
     if (visNodes.length) { layoutNodes(); drawGraph(); }

@@ -466,6 +466,117 @@ def get_graphed_equipment():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# WRITE — PROMOTE AN EXPERT-FIX CANDIDATE INTO THE GRAPH (NEW, Session 15)
+# Used by app.py POST /api/graph-candidates/<id>/approve
+# The ONLY write path into Neo4j at runtime besides load_graph() -- every
+# other function in this file is read-only. Never called automatically;
+# only ever from the human-approved review flow.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def promote_candidate_to_graph(candidate, fix_rows):
+    """
+    Writes ONE new Pattern node for an approved graph_candidates row, and
+    connects it to its Equipment node via HAS_FAULT (the closest existing
+    relationship type -- a confirmed operator pattern is a kind of
+    recurring fault behaviour, same category as the graph's existing
+    hand-authored Pattern nodes).
+
+    Deliberately uses NEW property names (operator_summary, source_type,
+    confirmed_count, contributors) rather than the Session-12 Pattern
+    properties (wrong_response/correct_response) -- so this never
+    accidentally triggers the existing hard-coded warning logic in
+    get_fault_chain()/the orchestrator. Generalising THAT logic to also
+    recognise operator-confirmed patterns is deferred, tracked in
+    CONTEXT.md Known issues -- this function only needs to write correctly,
+    not make itself visible in reports yet.
+
+    candidate: dict from graph_candidates row (id, equip_tag, fix_ids,
+               candidate_type, flagged_by_operator, summary)
+    fix_rows:  list of expert_fixes rows that fed this candidate (for
+               contributor names + captured_at)
+
+    Returns the Neo4j node _id on success, raises on failure -- the
+    caller (app.py) decides how to handle/report that, this function
+    does not swallow errors, since a failed promotion must not silently
+    look like a successful one.
+    """
+    equip_tag = candidate["equip_tag"]
+    node_id   = f"opfix_{candidate['id']}"
+
+    contributors    = sorted(set(f.get("captured_by_name", "") for f in fix_rows if f.get("captured_by_name")))
+    source_type     = "multi_operator" if len(contributors) > 1 else "single_operator"
+    confirmed_count = len(fix_rows)
+
+    label_source = candidate.get("summary") or (fix_rows[0].get("what_fixed_it", "") if fix_rows else "")
+    short_label  = (label_source[:60] + "...") if len(label_source) > 60 else label_source
+
+    props = {
+        "_id":               node_id,
+        "_label":            short_label or f"Operator-confirmed pattern ({equip_tag})",
+        "_type":             "Pattern",
+        "equip_tag":         equip_tag,
+        "plant_site":        fix_rows[0].get("plant_site", "") if fix_rows else "",
+        "line":              fix_rows[0].get("line", "") if fix_rows else "",
+        "operator_summary":  candidate.get("summary") or "",
+        "source_type":       source_type,
+        "confirmed_count":   confirmed_count,
+        "contributors":      ", ".join(contributors),
+        "flagged_critical":  bool(candidate.get("flagged_by_operator")),
+        "candidate_id":      str(candidate["id"]),
+    }
+
+    driver = _get_driver()
+    try:
+        with driver.session(database=None) as session:
+            session.run(
+                "MERGE (n:Pattern {_id: $id}) SET n += $props",
+                {"id": node_id, "props": props}
+            )
+            # Connect to the Equipment node -- HAS_FAULT is the existing
+            # relationship type closest in meaning; matches only on
+            # equip_tag since Equipment nodes are keyed by their tag.
+            session.run(
+                """
+                MATCH (e:Equipment {_id: $equip})
+                MATCH (p:Pattern {_id: $node_id})
+                MERGE (e)-[r:HAS_FAULT]->(p)
+                SET r.source = 'expert_fix_promotion'
+                """,
+                {"equip": equip_tag, "node_id": node_id}
+            )
+    finally:
+        driver.close()
+
+    print(f"[KG] Promoted candidate {candidate['id']} -> Pattern node {node_id} ({source_type}, {confirmed_count} sources)")
+    return node_id
+
+
+def reinforce_promoted_node(node_id, new_fix_rows, new_confirmed_count):
+    """
+    For candidate_type='reinforcement' -- updates an ALREADY-promoted
+    node's confirmed_count and contributors rather than creating a
+    duplicate node. Still only ever called from the human-approved
+    review flow, same as promote_candidate_to_graph.
+    """
+    contributors = sorted(set(f.get("captured_by_name", "") for f in new_fix_rows if f.get("captured_by_name")))
+    driver = _get_driver()
+    try:
+        with driver.session(database=None) as session:
+            session.run(
+                """
+                MATCH (n:Pattern {_id: $id})
+                SET n.confirmed_count = $count,
+                    n.source_type = CASE WHEN $count > 1 THEN 'multi_operator' ELSE 'single_operator' END
+                """,
+                {"id": node_id, "count": new_confirmed_count}
+            )
+    finally:
+        driver.close()
+    print(f"[KG] Reinforced Pattern node {node_id} -> confirmed_count={new_confirmed_count}")
+    return node_id
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # STANDALONE — run to load graph data
 # ─────────────────────────────────────────────────────────────────────────────
 
