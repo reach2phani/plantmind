@@ -663,7 +663,9 @@ RISK IF NOT ACTIONED: [One sentence — what happens if nothing is done]"""
         graph_block = f"""
 
 ─────────────────────────────────────────────────────
-KNOWLEDGE GRAPH CONTEXT — VERIFIED FROM SOP AND NCR DATA
+KNOWLEDGE GRAPH CONTEXT — includes engineering-verified SOP/NCR facts
+AND human-reviewed operator-confirmed patterns (see rule 5 below for
+how to tell them apart and cite each correctly)
 ─────────────────────────────────────────────────────
 {graph_context["chain_text"]}
 ─────────────────────────────────────────────────────{mandatory_warnings}
@@ -677,6 +679,18 @@ STRICT GRAPH RULES — VIOLATION IS AN ERROR:
    and risks motor burnout. This is the documented operator trap from NCR-2024-047."
 3. LOTO is required before any maintenance — include in immediate action.
 4. Parts welded during fault must be quarantined — include in impact section.
+5. OPERATOR-CONFIRMED PATTERNS — the graph may also contain patterns that came from an
+   operator's field capture, reviewed and approved by a supervisor (NOT from formal SOP/NCR
+   documents). You can tell them apart: they're introduced with "X operator(s) confirmed" or
+   "<name> found" rather than being a numbered SOP/NCR fact like rules 1-4 above.
+   - Cite these by naming the contributor(s) and count exactly as given, e.g. "3 operators
+     independently confirmed..." or "Dave found...". Never call them "unverified" — the
+     name/count IS the trust signal, same as everywhere else expert-fix content is cited.
+   - Weight them below a formal SOP/NCR fact (rules 1-4), but above a single unconfirmed
+     Pinecone-only expert fix match with no graph promotion at all.
+   - If an operator-confirmed pattern CONTRADICTS a formal SOP fact elsewhere in this context,
+     do NOT decide which is correct. Surface both explicitly, label it a contradiction, and
+     recommend engineering review -- same rule as for a single expert fix contradicting the SOP.
 ─────────────────────────────────────────────────────"""
 
     user_prompt = f"""Incident: {incident}

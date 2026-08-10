@@ -239,6 +239,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
       <div>Select equipment above to explore its knowledge graph</div>
     </div>
     <canvas id="graphCanvas" style="display:none" height="480"></canvas>
+    <button id="fitToViewBtn" onclick="fitToView()" style="display:none;position:absolute;top:10px;right:14px;font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;color:#4f46e5;cursor:pointer">Fit to view</button>
     <div class="graph-hint">Drag nodes · Scroll to zoom · Click for details</div>
   </div>
 
@@ -437,6 +438,7 @@ function onEquipChange() {
       layoutNodes();
       updateStats();
       applyFilter();
+      fitToView();
       document.getElementById('graphSub').textContent =
         equip + ' — ' + allNodes.length + ' nodes · ' + allEdges.length + ' relationships';
       document.getElementById('statsBar').style.display = 'flex';
@@ -523,11 +525,13 @@ function applyFilter() {
   if (visNodes.length > 0) {
     document.getElementById('graphEmpty').style.display  = 'none';
     document.getElementById('graphCanvas').style.display = 'block';
+    document.getElementById('fitToViewBtn').style.display = 'block';
     drawGraph();
   } else {
     document.getElementById('graphEmpty').innerHTML = '<div>No nodes match this filter</div>';
     document.getElementById('graphEmpty').style.display  = 'flex';
     document.getElementById('graphCanvas').style.display = 'none';
+    document.getElementById('fitToViewBtn').style.display = 'none';
   }
 }
 
@@ -630,6 +634,39 @@ function drawGraph() {
   });
 
   ctx.restore();
+}
+
+// NEW — computes pan/scale so every current node fits on screen at once,
+// instead of relying on manual scroll/drag to discover nodes sitting
+// below the fold (this is exactly what made a promoted Pattern node,
+// laid out in its own row below Procedure, look "missing" when it was
+// really just off-screen).
+function fitToView() {
+  if (!visNodes.length) return;
+  var c  = document.getElementById('graphCanvas');
+  var w  = c.parentElement.clientWidth;
+  var h  = 480;
+
+  var minX = Math.min.apply(null, visNodes.map(function(n){ return n.x; }));
+  var maxX = Math.max.apply(null, visNodes.map(function(n){ return n.x; }));
+  var minY = Math.min.apply(null, visNodes.map(function(n){ return n.y; }));
+  var maxY = Math.max.apply(null, visNodes.map(function(n){ return n.y; }));
+
+  var contentW = Math.max(maxX - minX, 1);
+  var contentH = Math.max(maxY - minY, 1);
+  var padding  = 60;
+
+  var scaleX = (w - padding * 2) / contentW;
+  var scaleY = (h - padding * 2) / contentH;
+  scale = Math.min(scaleX, scaleY, 1.5);  // never zoom in past 1.5x just to fill space
+  scale = Math.max(scale, 0.15);          // never shrink past readability
+
+  var contentCenterX = (minX + maxX) / 2;
+  var contentCenterY = (minY + maxY) / 2;
+  pan.x = (w / 2) - contentCenterX * scale;
+  pan.y = (h / 2) - contentCenterY * scale;
+
+  drawGraph();
 }
 
 // ── Canvas interaction ────────────────────────────────────────────────────────

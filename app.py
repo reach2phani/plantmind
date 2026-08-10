@@ -2471,6 +2471,24 @@ def _create_new_candidate(equip_tag, fix_ids, flagged_by_operator=False,
         print(f"  [graph-candidate] insert failed: {e}")
 
 
+@app.route("/api/graph-candidates/debug/<equip_tag>", methods=["GET"])
+def graph_candidates_debug(equip_tag):
+    """
+    Diagnostic only -- not part of the normal review flow. Bypasses every
+    filtering/rendering layer (get_full_graph, layoutNodes, get_fault_chain)
+    and returns exactly what's in Neo4j for this equipment: every Pattern
+    node's raw equip_tag value, the Equipment node(s) matching the searched
+    tag, and every HAS_FAULT edge in the database. Built specifically to
+    answer "did the write fail, or is something downstream not finding it"
+    without needing terminal/DB access.
+    """
+    from knowledge_graph import debug_pattern_nodes
+    try:
+        return jsonify(debug_pattern_nodes(equip_tag))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/graph-candidates", methods=["GET"])
 def graph_candidates_list():
     """Lists pending review candidates, sorted by source count (strongest

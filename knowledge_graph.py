@@ -263,6 +263,22 @@ def get_fault_chain(equip_tag, fault_type=None):
         props = r.get("props", {}) or {}
         if props.get("wrong_response"):
             warnings.append(f"Do NOT: {props['wrong_response']}")
+        # NEW Session 15 follow-up -- operator-confirmed patterns promoted
+        # via the graph_candidates review flow carry different properties
+        # (operator_summary/source_type/confirmed_count/contributors, not
+        # wrong_response/correct_response) -- these were previously fetched
+        # here but silently produced no warning at all. Worded distinctly
+        # from the formal SOP-derived warnings above: this is field
+        # evidence a human reviewed and approved, not an engineering fact.
+        elif props.get("operator_summary"):
+            count        = props.get("confirmed_count", 1)
+            contributors = props.get("contributors", "")
+            summary      = props.get("operator_summary", "")
+            if props.get("source_type") == "multi_operator":
+                lead = f"{count} operators independently confirmed"
+            else:
+                lead = f"{contributors or 'An operator'} found"
+            warnings.append(f"{lead}: {summary}")
 
     chain_text = _build_chain_text(chain_nodes, chain_edges, warnings, downtime, equip_tag)
 
@@ -319,8 +335,17 @@ def _build_chain_text(nodes, edges, warnings, downtime, equip_tag):
         for p in patterns:
             wrong   = p["properties"].get("wrong_response", "")
             correct = p["properties"].get("correct_response", "")
+            summary = p["properties"].get("operator_summary", "")
             if wrong:   lines.append(f"  ❌ Wrong: {wrong}")
             if correct: lines.append(f"  ✅ Correct: {correct}")
+            if summary:
+                count        = p["properties"].get("confirmed_count", 1)
+                contributors = p["properties"].get("contributors", "")
+                source_type  = p["properties"].get("source_type", "single_operator")
+                if source_type == "multi_operator":
+                    lines.append(f"  👥 {count} operators confirmed: {summary}")
+                else:
+                    lines.append(f"  🎙 {contributors or 'Operator'} found: {summary}")
 
     if warnings:
         lines.append("\nCritical warnings:")
@@ -472,6 +497,41 @@ def get_graphed_equipment():
 # other function in this file is read-only. Never called automatically;
 # only ever from the human-approved review flow.
 # ─────────────────────────────────────────────────────────────────────────────
+
+def debug_pattern_nodes(equip_tag):
+    """
+    Diagnostic only -- bypasses get_full_graph()'s filtering, layoutNodes()'s
+    rendering, and get_fault_chain()'s traversal entirely. Runs the most
+    direct possible query: every Pattern-type node, no filter at all, so we
+    can see the RAW equip_tag values actually stored on them and compare
+    against what's being searched for -- this is exactly the kind of "is it
+    a write problem or a query-mismatch problem" question that's hard to
+    answer by staring at the UI.
+    """
+    driver = _get_driver()
+    try:
+        with driver.session(database=None) as session:
+            all_patterns = session.run(
+                "MATCH (n) WHERE n._type = 'Pattern' RETURN properties(n) AS props"
+            ).data()
+            equip_node = session.run(
+                "MATCH (e:Equipment) WHERE e._id = $tag OR e.equip_tag = $tag "
+                "RETURN e._id AS id, e._label AS label, properties(e) AS props",
+                {"tag": equip_tag}
+            ).data()
+            has_fault_edges = session.run(
+                "MATCH (a)-[r:HAS_FAULT]->(b) RETURN a._id AS from_id, b._id AS to_id, b._type AS to_type"
+            ).data()
+    finally:
+        driver.close()
+
+    return {
+        "searched_for_equip_tag": equip_tag,
+        "all_pattern_nodes_in_db": all_patterns,
+        "equipment_nodes_matching_tag": equip_node,
+        "all_has_fault_edges_in_db": has_fault_edges,
+    }
+
 
 def promote_candidate_to_graph(candidate, fix_rows):
     """

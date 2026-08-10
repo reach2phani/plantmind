@@ -1592,8 +1592,19 @@ function buildFaultChainPanel(data, equipTag) {
     var priority = ['HAS_FAULT','CAUSED_BY','FIXED_BY','REQUIRES','DOCUMENTED_IN'];
     for (var p = 0; p < priority.length; p++) {
       var rel = priority[p];
+      // NEW Session 15 follow-up — a promoted operator-confirmed Pattern
+      // node can now ALSO be connected via HAS_FAULT alongside the
+      // original Fault node. Neo4j doesn't guarantee which edge comes
+      // back first, so without this filter the walk could pick the
+      // Pattern node (which has no further outgoing edges) and the whole
+      // chain would stop dead after 2 nodes -- silently dropping the
+      // entire real SOP fault chain. Pattern nodes are NEVER part of
+      // this primary linear walk; they're appended separately below,
+      // after the real chain is built in full.
       var edge = edges.find(function(e) {
-        return e.from === fromId && e.type === rel && !visited.has(e.to);
+        if (e.from !== fromId || e.type !== rel || visited.has(e.to)) return false;
+        var target = nodes.find(function(n) { return n.id === e.to; });
+        return !target || target.type !== 'Pattern';
       });
       if (edge) {
         var target = nodes.find(function(n) { return n.id === edge.to; });
@@ -1614,6 +1625,33 @@ function buildFaultChainPanel(data, equipTag) {
   }
 
   if (chain.length < 2) return null;
+
+  // NEW Session 15 follow-up — the walk above follows exactly ONE edge per
+  // hop by priority, so a second HAS_FAULT edge from Equipment (an
+  // operator-confirmed Pattern node, promoted via the graph_candidates
+  // review flow, sitting ALONGSIDE the formal Fault chain rather than
+  // downstream of it) gets silently dropped -- it's real data, correctly
+  // fetched, just never walked. Rather than rewriting this into a
+  // branching-tree renderer (bigger change, more risk), append any such
+  // orphaned Pattern nodes as extra boxes after the main chain, with the
+  // confirmation count/contributor visible directly on the box itself —
+  // not hidden behind a click-through, since that's the whole point of
+  // this fix.
+  var orphanPatterns = nodes.filter(function(n) {
+    return n.type === 'Pattern' && !visited.has(n.id) &&
+      edges.some(function(e){ return e.from === equip.id && e.to === n.id && e.type === 'HAS_FAULT'; });
+  });
+
+  function patternBoxLabel(n) {
+    var props   = n.properties || {};
+    var summary = props.operator_summary || n.label || n.id;
+    var count   = props.confirmed_count || 1;
+    var who     = props.contributors || 'An operator';
+    var lead    = (props.source_type === 'multi_operator')
+      ? ('Confirmed by ' + count + ' operators')
+      : (who + ' found');
+    return lead + ' — ' + summary;
+  }
 
   // Build edge map for labels
   var edgeMap = {};
@@ -1650,6 +1688,22 @@ function buildFaultChainPanel(data, equipTag) {
     }
   }
   chainHtml += '</div>';
+
+  // Append orphaned Pattern nodes as extra boxes, connected from Equipment
+  // with a distinctly-labelled arrow so they read as "also true, found a
+  // different way" rather than continuing the same formal chain.
+  if (orphanPatterns.length) {
+    chainHtml += '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:0;margin-top:4px">';
+    orphanPatterns.forEach(function(p) {
+      chainHtml +=
+        '<div class="fc-arrow">' +
+          '<div class="fc-arrow-label">also found</div>' +
+          '<div class="fc-arrow-line"></div>' +
+        '</div>' +
+        '<div class="fc-node fc-node-pattern">' + escHtml(patternBoxLabel(p)) + '</div>';
+    });
+    chainHtml += '</div>';
+  }
 
   // Build panel
   var panel  = document.createElement('div');
