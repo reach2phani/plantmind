@@ -24,6 +24,8 @@ from groq import Groq
 from supabase import create_client
 from dotenv import load_dotenv
 from models import MODEL_DEEP, extract_json, completion_kwargs
+from llm_logger import log_llm_call
+from token_budget import acquire, settle, estimate_tokens, usage_from_response
 
 load_dotenv()
 
@@ -241,12 +243,26 @@ def _run_tool_loop(report_text, equip_tag, line_hint=""):
     ]
     tool_log = []
 
+    kw = completion_kwargs(MODEL, "work_order", 1200)
+    cap = kw.get("max_completion_tokens") or kw.get("max_tokens") or 1200
     for _ in range(MAX_ITERATIONS):
-        resp = groq_client.chat.completions.create(
-            model=MODEL, messages=messages,
-            tools=TOOLS, tool_choice="auto",
-            **completion_kwargs(MODEL, "work_order", 1200),
-        )
+        # Each loop iteration is a full LLM call that re-sends the growing
+        # conversation (tool results included) — previously none were logged.
+        text_so_far = [str(m.get("content", "")) if isinstance(m, dict) else str(getattr(m, "content", "") or "")
+                       for m in messages]
+        reservation = acquire(MODEL, estimate_tokens(text_so_far + [str(TOOLS)], cap))
+        try:
+            resp = log_llm_call(
+                fn=lambda: groq_client.chat.completions.create(
+                    model=MODEL, messages=messages,
+                    tools=TOOLS, tool_choice="auto",
+                    **kw,
+                ),
+                call_type="work_order", model=MODEL, equip_tag=equip_tag)
+            settle(reservation, usage_from_response(resp))
+        except Exception:
+            settle(reservation, None)
+            raise
         msg = resp.choices[0].message
 
         if not msg.tool_calls:

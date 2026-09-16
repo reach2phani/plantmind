@@ -14,16 +14,11 @@ THE TWO TIERS  (mirroring the original architecture's cost/latency design)
     MODEL_DEEP — low-volume / quality-critical calls:
                  orchestrator, reflection, work-order tool calling.
 
-DEFAULTS ARE THE CURRENT LLAMA MODELS, so importing this module changes no
-behaviour. Migrating is done purely through environment variables — no code edit:
+DEFAULTS ARE THE GPT-OSS MODELS (the Llama models were decommissioned
+2026-08-16). Switching model is an environment change — no code edit:
 
-    # Stay on Llama (default — valid until 2026-08-16):
-    PM_MODEL_FAST=llama-3.1-8b-instant
-    PM_MODEL_DEEP=llama-3.3-70b-versatile
-
-    # Migrate to GPT-OSS (Groq's recommended replacements):
-    PM_MODEL_FAST=openai/gpt-oss-20b
-    PM_MODEL_DEEP=openai/gpt-oss-120b
+    PM_MODEL_FAST=openai/gpt-oss-20b      # default
+    PM_MODEL_DEEP=openai/gpt-oss-120b     # default
 
 Because it is env-switchable, rollback is instant: change the var back and
 restart. No redeploy of code.
@@ -73,8 +68,12 @@ def extract_json(raw):
 # ── Tier → model string ────────────────────────────────────────────────
 # Read once at import. Override via environment; defaults preserve today's
 # behaviour exactly.
-MODEL_FAST = os.getenv("PM_MODEL_FAST", "llama-3.1-8b-instant")
-MODEL_DEEP = os.getenv("PM_MODEL_DEEP", "llama-3.3-70b-versatile")
+# Defaults are the CURRENT models. The Llama defaults that used to live here
+# were decommissioned by Groq on 2026-08-16, so a fresh clone with no
+# PM_MODEL_* set would fail every call with a 404. Rollback is still an env
+# change, not a code edit -- that is the whole point of this module.
+MODEL_FAST = os.getenv("PM_MODEL_FAST", "openai/gpt-oss-20b")
+MODEL_DEEP = os.getenv("PM_MODEL_DEEP", "openai/gpt-oss-120b")
 
 
 # ── Reasoning effort per call type ─────────────────────────────────────

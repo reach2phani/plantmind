@@ -150,6 +150,29 @@ def get_rag_snippet(equip_tag, alarm_message, plant_site, line):
         print(f"  [RAG] Error getting snippet: {e}")
         return ""
 
+def official_location(equip_tag, topic_plant, topic_line):
+    """
+    Batch D2 — the MQTT topic names a location its own way ("greenfield" /
+    "line1"); the document library files the same machine under the names in
+    the equipment table ("Greenfield Steel Works" / "Fabrication Line 1").
+    Searching documents with the topic names matched nothing, so every
+    Greenfield alert said "No manuals found".
+
+    Nothing is renamed. The equipment table is used as the single source of
+    truth, only for the document lookup. Falls back to the topic names if the
+    equipment is not registered.
+    """
+    try:
+        rows = (get_supabase().table("equipment")
+                .select("plant_site,line")
+                .eq("equip_tag", equip_tag)
+                .limit(1).execute().data) or []
+        if rows and rows[0].get("plant_site"):
+            return rows[0]["plant_site"], rows[0].get("line") or ""
+    except Exception as e:
+        print(f"  [RAG] equipment lookup failed ({e}) — using topic names")
+    return topic_plant, topic_line
+
 # ─────────────────────────────────────────────────────────────────────────────
 # PATTERN DETECTOR
 # Called after every alarm is saved to live_events
@@ -206,7 +229,8 @@ def check_pattern(plant_site, line, equip_tag, latest_payload):
     value         = latest_payload.get("value", "")
     unit          = latest_payload.get("unit", "")
 
-    snippet = get_rag_snippet(equip_tag, alarm_message, plant_site, line)
+    doc_plant, doc_line = official_location(equip_tag, plant_site, line)
+    snippet = get_rag_snippet(equip_tag, alarm_message, doc_plant, doc_line)
 
     # 5. Build alert answer
     # Combines alarm pattern context + SOP snippet

@@ -155,7 +155,17 @@ def get_fault_chain(equip_tag, fault_type=None):
       downtime    — estimated downtime string
       has_data    — bool
     """
-    driver = _get_driver()
+    try:
+        driver = _get_driver()
+    except Exception as e:
+        # Neo4j unreachable (commonly: Aura free tier auto-paused). Fall back to
+        # the local graph file so the verified SOP/NCR warnings still reach the
+        # report -- but mark the result as degraded so the report can SAY SO.
+        # Silently returning "no graph data" is what made the same WM-101
+        # question produce two different reports with no explanation.
+        print(f"[KG] Neo4j unavailable ({str(e)[:80]}) -- falling back to local graph file")
+        return _fault_chain_from_file(equip_tag, reason="knowledge graph database unreachable")
+
     try:
         with driver.session(database=None) as session:
 
@@ -209,6 +219,9 @@ def get_fault_chain(equip_tag, fault_type=None):
                 RETURN properties(n) AS props
             """, {"equip": equip_tag}).data()
 
+    except Exception as e:
+        print(f"[KG] fault chain query failed ({str(e)[:80]}) -- falling back to local graph file")
+        return _fault_chain_from_file(equip_tag, reason="knowledge graph query failed")
     finally:
         driver.close()
 
@@ -289,7 +302,10 @@ def get_fault_chain(equip_tag, fault_type=None):
         "chain_text":  chain_text,
         "warnings":    warnings,
         "downtime":    downtime,
-        "has_data":    len(chain_nodes) > 0
+        "has_data":    len(chain_nodes) > 0,
+        "source":      "neo4j",       # live graph: includes promoted operator patterns
+        "degraded":    False,
+        "degraded_reason": "",
     }
 
 
@@ -363,10 +379,84 @@ def _build_chain_text(nodes, edges, warnings, downtime, equip_tag):
     return "\n".join(lines)
 
 
+def _fault_chain_from_file(equip_tag, reason=""):
+    """
+    Fallback fault chain, built from the local wm101_graph.json instead of Neo4j.
+
+    Used ONLY when the database is unreachable. It returns the same shape as
+    get_fault_chain() so nothing downstream needs to care, with two differences
+    the caller must surface to the user:
+      * source == "local_file"
+      * promoted operator patterns are MISSING -- they live only in Neo4j, so a
+        degraded report is missing the human-reviewed field knowledge.
+    """
+    path = Path(__file__).parent / "wm101_graph.json"
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        print(f"[KG] local graph file unusable: {e}")
+        out = _empty_chain()
+        out.update({"equip_tag": equip_tag, "source": "unavailable", "degraded": True,
+                    "degraded_reason": reason or "knowledge graph unavailable"})
+        return out
+
+    meta = data.get("metadata", {})
+    if (meta.get("equipment") or "").upper() != (equip_tag or "").upper():
+        # The local file only covers one machine; anything else genuinely has
+        # no graph data, degraded or not.
+        out = _empty_chain()
+        out.update({"equip_tag": equip_tag, "source": "unavailable", "degraded": True,
+                    "degraded_reason": reason or "knowledge graph unavailable"})
+        return out
+
+    chain_nodes, warnings, downtime = [], [], ""
+    for node in data.get("nodes", []):
+        if node.get("type") == "Equipment":
+            continue
+        props = dict(node.get("properties", {}))
+        chain_nodes.append({"id": node["id"], "label": node.get("label", node["id"]),
+                            "type": node.get("type", ""), "properties": props})
+        if node["id"] == "burn_in_procedure":
+            warnings.append("Burn-in is MANDATORY after liner replacement. Wire instability in first 5 minutes is EXPECTED — not a fault.")
+        if node["id"] == "loto_procedure":
+            warnings.append("LOTO required — isolate power at main disconnect before any maintenance.")
+        if node["id"] == "quality_flag":
+            warnings.append("Parts welded during fault event must be quarantined for quality inspection.")
+        if node["id"] == "shielding_gas_low":
+            warnings.append("CRITICAL — never weld without shielding gas. Parts welded after alarm must be scrapped.")
+        if node.get("type") == "Procedure" and props.get("total_with_burnin"):
+            downtime = props["total_with_burnin"]
+        if node.get("type") == "Pattern" and props.get("wrong_response"):
+            warnings.append(f"Do NOT: {props['wrong_response']}")
+
+    node_ids = {n["id"] for n in chain_nodes}
+    chain_edges = [{
+        "from": r["from"], "to": r["to"], "type": r["type"],
+        "label": r["type"].replace("_", " ").lower(),
+        "properties": r.get("properties", {}) or {},
+        "warning": r["type"] in ["REQUIRES", "REQUIRES_SAFETY"],
+    } for r in data.get("relationships", []) if r["from"] in node_ids and r["to"] in node_ids]
+
+    return {
+        "equip_tag":   equip_tag,
+        "chain_nodes": chain_nodes,
+        "chain_edges": chain_edges,
+        "chain_text":  _build_chain_text(chain_nodes, chain_edges, warnings, downtime, equip_tag),
+        "warnings":    warnings,
+        "downtime":    downtime,
+        "has_data":    len(chain_nodes) > 0,
+        "source":      "local_file",
+        "degraded":    True,
+        "degraded_reason": reason or "knowledge graph database unreachable",
+    }
+
+
 def _empty_chain():
     return {
         "equip_tag": "", "chain_nodes": [], "chain_edges": [],
-        "chain_text": "", "warnings": [], "downtime": "", "has_data": False
+        "chain_text": "", "warnings": [], "downtime": "", "has_data": False,
+        "source": "none", "degraded": False, "degraded_reason": "",
     }
 
 

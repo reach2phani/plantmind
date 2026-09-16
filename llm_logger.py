@@ -60,49 +60,90 @@ def _estimate_tokens(text):
 
 
 # ── Core log function ──────────────────────────────────────────────────
+# Batch C1 adds finish_reason / truncated / graph_source. Those columns only
+# exist after sql/06_llm_logs_observability.sql is run. Until then, the insert
+# is retried without them, so logging never breaks because of a missing column.
+_EXTENDED_COLUMNS_OK = True
+_warned_missing_columns = False
+
+
 def _write_log(model, call_type, input_tokens, output_tokens,
-               latency_ms, error=None, plant_site="", equip_tag=""):
+               latency_ms, error=None, plant_site="", equip_tag="",
+               finish_reason=None, graph_source=None):
     """Write one log entry to Supabase. Runs in background thread — never blocks."""
+    global _EXTENDED_COLUMNS_OK, _warned_missing_columns
+    row = {
+        "model":          model,
+        "call_type":      call_type,
+        "input_tokens":   input_tokens,
+        "output_tokens":  output_tokens,
+        "latency_ms":     latency_ms,
+        "error":          str(error)[:500] if error else None,
+        "plant_site":     plant_site or "",
+        "equip_tag":      equip_tag or "",
+    }
+    extended = {}
+    if finish_reason is not None:
+        extended["finish_reason"] = finish_reason
+        extended["truncated"] = finish_reason == "length"
+    if graph_source is not None:
+        extended["graph_source"] = graph_source
+
     try:
-        _get_supabase().table("llm_logs").insert({
-            "model":          model,
-            "call_type":      call_type,
-            "input_tokens":   input_tokens,
-            "output_tokens":  output_tokens,
-            "latency_ms":     latency_ms,
-            "error":          str(error)[:500] if error else None,
-            "plant_site":     plant_site or "",
-            "equip_tag":      equip_tag or "",
-        }).execute()
+        if extended and _EXTENDED_COLUMNS_OK:
+            try:
+                _get_supabase().table("llm_logs").insert({**row, **extended}).execute()
+                return
+            except Exception as e:
+                msg = str(e)
+                if any(c in msg for c in ("finish_reason", "graph_source", "truncated", "PGRST204")):
+                    _EXTENDED_COLUMNS_OK = False
+                    if not _warned_missing_columns:
+                        _warned_missing_columns = True
+                        print("  [llm_logger] llm_logs is missing the Batch C columns — "
+                              "run sql/06_llm_logs_observability.sql. Logging without them for now.")
+                else:
+                    raise
+        _get_supabase().table("llm_logs").insert(row).execute()
     except Exception as e:
         # Logging must never crash the main request
         print(f"  [llm_logger] write failed: {e}")
 
 
 def _log_async(model, call_type, input_tokens, output_tokens,
-               latency_ms, error=None, plant_site="", equip_tag=""):
+               latency_ms, error=None, plant_site="", equip_tag="",
+               finish_reason=None, graph_source=None):
     """Fire-and-forget background log write."""
     t = threading.Thread(
         target=_write_log,
         args=(model, call_type, input_tokens, output_tokens,
-              latency_ms, error, plant_site, equip_tag),
+              latency_ms, error, plant_site, equip_tag, finish_reason, graph_source),
         daemon=True
     )
     t.start()
 
 
+def _finish_reason_of(response):
+    try:
+        return getattr(response.choices[0], "finish_reason", None)
+    except Exception:
+        return None
+
+
 # ── Public API ─────────────────────────────────────────────────────────
 
-def log_llm_call(fn, call_type, model, plant_site="", equip_tag=""):
+def log_llm_call(fn, call_type, model, plant_site="", equip_tag="", graph_source=None):
     """
     Wrap a non-streaming Groq call with timing and logging.
 
     Args:
-        fn:         lambda that calls groq_client.chat.completions.create(...)
-        call_type:  label for this call e.g. "orchestrator", "specialist_alarm"
-        model:      model name string
-        plant_site: optional context for filtering logs
-        equip_tag:  optional context for filtering logs
+        fn:           lambda that calls groq_client.chat.completions.create(...)
+        call_type:    label for this call e.g. "orchestrator", "specialist"
+        model:        model name string
+        plant_site:   optional context for filtering logs
+        equip_tag:    optional context for filtering logs
+        graph_source: optional — for investigation reports, where graph context
+                      came from ("neo4j" / "local_file" / "unavailable" / "none")
 
     Returns:
         The Groq response object (same as calling fn() directly)
@@ -111,19 +152,17 @@ def log_llm_call(fn, call_type, model, plant_site="", equip_tag=""):
     real errors — if Groq throws, we log the error and re-raise.
     """
     start = time.time()
-    error = None
-    response = None
 
     try:
         response = fn()
     except Exception as e:
-        error = e
         latency_ms = int((time.time() - start) * 1000)
         _log_async(
             model=model, call_type=call_type,
             input_tokens=0, output_tokens=0,
-            latency_ms=latency_ms, error=error,
-            plant_site=plant_site, equip_tag=equip_tag
+            latency_ms=latency_ms, error=e,
+            plant_site=plant_site, equip_tag=equip_tag,
+            graph_source=graph_source
         )
         raise  # re-raise so caller handles it normally
 
@@ -131,21 +170,24 @@ def log_llm_call(fn, call_type, model, plant_site="", equip_tag=""):
 
     # Extract exact token counts from Groq response
     usage = getattr(response, "usage", None)
-    input_tokens  = usage.prompt_tokens     if usage else 0
-    output_tokens = usage.completion_tokens if usage else 0
+    input_tokens  = (getattr(usage, "prompt_tokens", 0) or 0)     if usage else 0
+    output_tokens = (getattr(usage, "completion_tokens", 0) or 0) if usage else 0
 
     _log_async(
         model=model, call_type=call_type,
         input_tokens=input_tokens, output_tokens=output_tokens,
         latency_ms=latency_ms, error=None,
-        plant_site=plant_site, equip_tag=equip_tag
+        plant_site=plant_site, equip_tag=equip_tag,
+        finish_reason=_finish_reason_of(response),
+        graph_source=graph_source
     )
 
     return response
 
 
 def log_streaming_call(call_type, model, input_text, output_text,
-                       latency_ms, error=None, plant_site="", equip_tag=""):
+                       latency_ms, error=None, plant_site="", equip_tag="",
+                       finish_reason=None):
     """
     Log a streaming Groq call after all chunks have been collected.
 
@@ -163,8 +205,16 @@ def log_streaming_call(call_type, model, input_text, output_text,
         model=model, call_type=call_type,
         input_tokens=input_tokens, output_tokens=output_tokens,
         latency_ms=latency_ms, error=error,
-        plant_site=plant_site, equip_tag=equip_tag
+        plant_site=plant_site, equip_tag=equip_tag,
+        finish_reason=finish_reason
     )
+
+
+def log_non_token_call(call_type, model, latency_ms, error=None, plant_site="", equip_tag=""):
+    """Log a call that is metered by something other than tokens (e.g. Whisper
+    audio transcription), so it is at least visible in llm_logs."""
+    _log_async(model=model, call_type=call_type, input_tokens=0, output_tokens=0,
+               latency_ms=latency_ms, error=error, plant_site=plant_site, equip_tag=equip_tag)
 
 
 # ── Stats query (for /api/llm-stats endpoint) ─────────────────────────
@@ -178,7 +228,7 @@ def get_today_stats():
     you can answer "how much did I use today?" before hitting the limit.
     """
     try:
-        result = _supabase.rpc("llm_stats_today").execute()
+        result = _get_supabase().rpc("llm_stats_today").execute()  # was the uninitialised _supabase
         if result.data:
             return result.data[0]
     except Exception:

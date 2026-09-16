@@ -1059,13 +1059,14 @@ function toggleSidebar() {
 }
 
 // ── Save to history (called after stream completes) ────────────────────────────
-function saveToHistory(mode, question, answer, sources, plantSite, line) {
+function saveToHistory(mode, question, answer, sources, plantSite, line, equipTag) {
   fetch('/api/history', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       mode: mode, question: question, answer: answer,
-      sources: sources, plant_site: plantSite, line: line
+      sources: sources, plant_site: plantSite, line: line,
+      equip_tag: equipTag || ''
     })
   })
   .then(function() { loadHistory(); })
@@ -1154,7 +1155,7 @@ function submitQuestion() {
           card.dataset.question = q;
           card.dataset.answer   = ansText;
           card.dataset.sources  = JSON.stringify(sources);
-          saveToHistory(currentMode, q, ansText, sources, plant, line);
+          saveToHistory(currentMode, q, ansText, sources, plant, line, equip);
           return;
         }
         buffer += decoder.decode(result.value, {stream:true});
@@ -1382,7 +1383,10 @@ function submitInvestigation(incident) {
   fetch('/investigate', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({incident: incident, plant_site: plant, line: line})
+    // Batch D1: send the machine. Previously the equipment picker was only used
+    // for the fault-chain panel and the work order — the investigation itself
+    // never received it, so an incident typed without a tag searched every machine.
+    body: JSON.stringify({incident: incident, plant_site: plant, line: line, equip_tag: equipment_id_used})
   })
   .then(function(res) {
     var reader  = res.body.getReader();
@@ -1437,7 +1441,7 @@ function submitInvestigation(incident) {
           actDiv.setAttribute('data-report', bodyText);
           actDiv.setAttribute('data-line', line || '');
           card.appendChild(actDiv);
-          saveToHistory('agent', incident, bodyText, [], plant, line);
+          saveToHistory('agent', incident, bodyText, [], plant, line, equipment_id_used);
           // Inject fault chain panel if equipment has graph data
           if (equipment_id_used) {
             injectFaultChain(card, equipment_id_used);

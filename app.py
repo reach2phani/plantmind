@@ -14,7 +14,8 @@ from pinecone import Pinecone
 from groq import Groq
 from multi_agent import investigate_incident
 from work_order_agent import draft_work_order, price_and_cost
-from llm_logger import log_streaming_call, get_today_stats
+from llm_logger import log_streaming_call, get_today_stats, log_llm_call, log_non_token_call
+from token_budget import acquire, settle, estimate_tokens, usage_from_response, snapshot as token_budget_snapshot
 from models import MODEL_FAST, MODEL_DEEP, completion_kwargs, extract_json
 
 app = Flask(__name__)
@@ -1147,6 +1148,11 @@ def ask():
         yield f"SOURCES:{sources_json}\n\n"
         _start = _t.time()
         _output = []
+        _finish = None
+        _qa_cap = completion_kwargs(MODEL_FAST, "qa", 800)
+        _reservation = acquire(MODEL_FAST, estimate_tokens(
+            [system_prompt, user_prompt],
+            _qa_cap.get("max_completion_tokens") or _qa_cap.get("max_tokens") or 800))
         try:
             stream = groq_client.chat.completions.create(
                 model=MODEL_FAST,
@@ -1158,6 +1164,8 @@ def ask():
                 **completion_kwargs(MODEL_FAST, "qa", 800)
             )
             for chunk in stream:
+                if chunk.choices and getattr(chunk.choices[0], "finish_reason", None):
+                    _finish = chunk.choices[0].finish_reason
                 delta = chunk.choices[0].delta
                 # GPT-OSS reasoning models stream chain-of-thought on a separate
                 # `reasoning` field. Only stream real answer content; never leak
@@ -1172,9 +1180,12 @@ def ask():
                 output_text= "".join(_output),
                 latency_ms = int((_t.time() - _start) * 1000),
                 plant_site = data.get("plant_site", ""),
-                equip_tag  = data.get("equip_tag", "")
+                equip_tag  = equip_tag or data.get("equip_tag", ""),
+                finish_reason = _finish
             )
+            settle(_reservation, (len(system_prompt + user_prompt) + len("".join(_output))) // 4)
         except Exception as e:
+            settle(_reservation, None)
             log_streaming_call(
                 call_type="qa", model=MODEL_FAST,
                 input_text=system_prompt, output_text="",
@@ -1282,8 +1293,13 @@ def investigate():
     if not incident:
         return jsonify({"error": "Please describe the incident"}), 400
 
-    # Auto-detect equipment if not passed from UI
-    equip = data.get("equip_tag", "") or extract_equipment_id(incident)
+    # Equipment: from the UI picker if sent (Batch D1), normalised the same way
+    # /ask does it ("wm 101" -> "WM-101"); otherwise detected from the text.
+    equip = (data.get("equip_tag") or "").strip()
+    if equip:
+        equip = extract_equipment_id(equip) or equip.upper()
+    else:
+        equip = extract_equipment_id(incident)
 
     # Fallback: resolve a natural-language reference ("the welder on Line 1")
     # to a concrete tag when no tag pattern was found. Without this, equip is
@@ -1825,6 +1841,8 @@ def expert_fix_transcribe():
     if audio_file.filename == "":
         return jsonify({"error": "No audio file provided"}), 400
 
+    import time as _t
+    _start = _t.time()
     try:
         transcript = groq_client.audio.transcriptions.create(
             file=(audio_file.filename or "recording.webm", audio_file.read()),
@@ -1832,8 +1850,10 @@ def expert_fix_transcribe():
             prompt=_build_vocabulary_prompt(),
         )
         text = getattr(transcript, "text", "") or ""
+        log_non_token_call("transcribe", "whisper-large-v3", int((_t.time() - _start) * 1000))
         return jsonify({"transcript": text.strip()})
     except Exception as e:
+        log_non_token_call("transcribe", "whisper-large-v3", int((_t.time() - _start) * 1000), error=e)
         print(f"  [expert-fix] transcription error: {e}")
         return jsonify({"error": "Transcription failed. Please try recording again."}), 500
 
@@ -1861,15 +1881,26 @@ def expert_fix_structure():
 Structure this into the required JSON fields, including identifying the equipment tag."""
 
     try:
-        response = groq_client.chat.completions.create(
-            model=MODEL_DEEP,
-            messages=[
-                {"role": "system", "content": EXPERT_FIX_STRUCTURE_PROMPT},
-                {"role": "user",   "content": user_prompt}
-            ],
-            temperature=0.1,
-            **completion_kwargs(MODEL_DEEP, "orchestrator", 500)
-        )
+        _kw = completion_kwargs(MODEL_DEEP, "orchestrator", 500)
+        _res = acquire(MODEL_DEEP, estimate_tokens(
+            [EXPERT_FIX_STRUCTURE_PROMPT, user_prompt],
+            _kw.get("max_completion_tokens") or _kw.get("max_tokens") or 500))
+        try:
+            response = log_llm_call(
+                fn=lambda: groq_client.chat.completions.create(
+                    model=MODEL_DEEP,
+                    messages=[
+                        {"role": "system", "content": EXPERT_FIX_STRUCTURE_PROMPT},
+                        {"role": "user",   "content": user_prompt}
+                    ],
+                    temperature=0.1,
+                    **_kw
+                ),
+                call_type="expert_fix_structure", model=MODEL_DEEP)
+            settle(_res, usage_from_response(response))
+        except Exception:
+            settle(_res, None)
+            raise
         raw = response.choices[0].message.content or ""
         structured = extract_json(raw)
     except Exception as e:
@@ -2343,12 +2374,24 @@ on anything specific, say that plainly rather than inventing a connection.
 
 Respond with ONLY the summary text, no preamble, no markdown."""
     try:
-        response = groq_client.chat.completions.create(
-            model=MODEL_FAST,
-            messages=[{"role": "system", "content": prompt},
-                      {"role": "user", "content": sources_text}],
-            temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 150)
-        )
+        _kw = completion_kwargs(MODEL_FAST, "specialist", 150)
+        _res = acquire(MODEL_FAST, estimate_tokens(
+            [prompt, sources_text],
+            _kw.get("max_completion_tokens") or _kw.get("max_tokens") or 150))
+        try:
+            response = log_llm_call(
+                fn=lambda: groq_client.chat.completions.create(
+                    model=MODEL_FAST,
+                    messages=[{"role": "system", "content": prompt},
+                              {"role": "user", "content": sources_text}],
+                    temperature=0.1, **_kw
+                ),
+                call_type="graph_candidate_summary", model=MODEL_FAST,
+                equip_tag=(fix_rows[0].get("equip_tag", "") if fix_rows else ""))
+            settle(_res, usage_from_response(response))
+        except Exception:
+            settle(_res, None)
+            raise
         return (response.choices[0].message.content or "").strip()
     except Exception as e:
         print(f"  [graph-candidate] summary synthesis failed: {e}")
@@ -2719,6 +2762,71 @@ def graph_debug():
     except Exception as e:
         results["graph_error"] = str(e)
     return jsonify(results)
+
+
+@app.route("/api/health", methods=["GET"])
+def health():
+    """
+    Batch C3 — one place that says whether PlantMind's dependencies are up.
+
+    Checks Supabase, Pinecone and Neo4j with a real (cheap, read-only) request
+    each. Groq is NOT called — that would spend tokens just to check — so it
+    reports the configured models and today's logged usage instead.
+
+    status: "ok"       everything up
+            "degraded" core search works but the knowledge graph is down
+                       (investigations still run, from the local graph file)
+            "down"     Supabase or Pinecone is unreachable
+    The eval runner can call this first, so a paused database never shows up
+    as a quality regression.
+    """
+    import time as _t
+    checks = {}
+
+    def check(name, fn):
+        t0 = _t.time()
+        try:
+            detail = fn()
+            checks[name] = {"status": "up", "ms": int((_t.time() - t0) * 1000), "detail": detail}
+        except Exception as e:
+            checks[name] = {"status": "down", "ms": int((_t.time() - t0) * 1000), "error": str(e)[:200]}
+
+    check("supabase", lambda: f"{len(supabase.table('equipment').select('id').limit(1).execute().data or [])} row read")
+    check("pinecone", lambda: f"{pine_index.describe_index_stats().total_vector_count} vectors")
+
+    def _neo4j():
+        from knowledge_graph import _get_driver
+        driver = _get_driver()          # includes verify_connectivity()
+        driver.close()
+        return "connected"
+    check("neo4j", _neo4j)
+
+    # Today's usage per model vs the free-tier daily limit
+    daily_limit = int(os.getenv("PM_TPD_LIMIT", "200000"))
+    usage = {}
+    try:
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        rows = (supabase.table("llm_logs").select("model,input_tokens,output_tokens")
+                .gte("created_at", f"{today}T00:00:00Z").execute().data or [])
+        for r in rows:
+            m = r.get("model") or "unknown"
+            usage[m] = usage.get(m, 0) + (r.get("input_tokens") or 0) + (r.get("output_tokens") or 0)
+    except Exception as e:
+        usage = {"error": str(e)[:120]}
+
+    core_up  = checks["supabase"]["status"] == "up" and checks["pinecone"]["status"] == "up"
+    graph_up = checks["neo4j"]["status"] == "up"
+    status   = "ok" if core_up and graph_up else ("degraded" if core_up else "down")
+
+    return jsonify({
+        "status": status,
+        "checks": checks,
+        "models": {"fast": MODEL_FAST, "deep": MODEL_DEEP},
+        "tokens_today": {m: {"used": t, "daily_limit": daily_limit,
+                             "pct": round(100 * t / daily_limit, 1)}
+                         for m, t in usage.items()} if "error" not in usage else usage,
+        "token_budget_last_60s": token_budget_snapshot(),
+    }), (200 if status != "down" else 503)
 
 
 @app.route("/api/graph/equipment", methods=["GET"])

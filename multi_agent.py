@@ -22,6 +22,7 @@ from groq import Groq
 from pinecone import Pinecone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from models import MODEL_FAST, MODEL_DEEP, extract_json, completion_kwargs
+from token_budget import acquire, settle, estimate_tokens, usage_from_response
 import os
 import json
 from dotenv import load_dotenv
@@ -45,23 +46,39 @@ def _retry_after_seconds(err_text, default=3.0):
     return float(default)
 
 
+def _completion_cap(model, call_type, content_tokens):
+    """Total output tokens a call may use (content + reasoning headroom)."""
+    kw = completion_kwargs(model, call_type, content_tokens)
+    return kw.get("max_completion_tokens") or kw.get("max_tokens") or content_tokens
+
+
 def _groq_call_with_retry(fn, max_retries=3, call_type="specialist",
                           model=MODEL_FAST,
-                          plant_site="", equip_tag=""):
+                          plant_site="", equip_tag="",
+                          estimate=1500, graph_source=None):
     """
-    Retry Groq calls on rate limit errors with exponential backoff.
-    Also logs every call (success or failure) to Supabase via llm_logger.
+    Every investigation LLM call goes through here, and gets three behaviours:
+      1. TOKEN BUDGET (Batch C2): wait for room in this model's per-minute
+         budget BEFORE calling, instead of failing with a 429 and retrying.
+      2. LOGGING: every call, success or failure, lands in llm_logs, now with
+         finish_reason and (for reports) where graph context came from.
+      3. RETRY: still here as the backstop if the estimate was too low.
 
-    Teaching note: wrapping retries + logging in one function means
-    every call site gets both behaviours for free.
+    Teaching note: wrapping budget + logging + retry in one function means
+    every call site gets all three for free.
     """
     for attempt in range(max_retries):
+        reservation = acquire(model, estimate)
         try:
-            return log_llm_call(
+            response = log_llm_call(
                 fn=fn, call_type=call_type, model=model,
-                plant_site=plant_site, equip_tag=equip_tag
+                plant_site=plant_site, equip_tag=equip_tag,
+                graph_source=graph_source
             )
+            settle(reservation, usage_from_response(response))
+            return response
         except Exception as e:
+            settle(reservation, None)   # keep the estimate: a rejected call may still count
             if "rate_limit" in str(e).lower() or "429" in str(e):
                 # TPM windows reset within ~60s, and Groq tells us exactly how
                 # long to wait ("try again in 1.07s"). Honour that hint instead
@@ -210,10 +227,14 @@ def search_expert_fixes(query, equipment_filter=None, top_k=3):
     for match in strong_matches:
         meta = match.metadata
         name = meta.get("captured_by_name", "an operator")
-        role = meta.get("captured_by_role", "") or "Operator"
+        # Role is blank in this deployment. Do NOT substitute a default job
+        # title: whatever appears in this header gets copied into the final
+        # report as if it were recorded fact (it was, as "Senior Operator").
+        role = (meta.get("captured_by_role", "") or "").strip()
         date = meta.get("captured_at", "")[:10]  # YYYY-MM-DD prefix only
         output.append(
-            f"[Expert Fix — {name}, {role}"
+            f"[Expert Fix — {name}"
+            f"{', ' + role if role else ''}"
             f"{', ' + date if date else ''} | Score: {round(match.score, 2)}]\n"
             f"{meta.get('text', '')[:400]}"
         )
@@ -225,6 +246,30 @@ def search_expert_fixes(query, equipment_filter=None, top_k=3):
 
 
 # ── Specialist Agent: Alarm Agent ──────────────────────────────────────────────
+
+def _finish_reason(response):
+    """Groq/OpenAI-style responses say WHY generation stopped. "length" means the
+    model hit its token cap mid-sentence -- the answer is incomplete."""
+    try:
+        return getattr(response.choices[0], "finish_reason", "") or ""
+    except Exception:
+        return ""
+
+
+def _flag_if_truncated(response, what):
+    """Return the response text, with a visible marker if it was cut off.
+
+    Silent truncation is why a specialist can hand the orchestrator half a
+    finding, or a report can end mid-section, and nothing anywhere says so.
+    Both were happening: orchestrator output landed on exactly its cap
+    (1400 content + 1024 reasoning headroom) and no one could tell.
+    """
+    text = response.choices[0].message.content or ""
+    if _finish_reason(response) == "length":
+        print(f"  [truncated] {what} hit the output token cap")
+        text += f"\n\n[TRUNCATED: {what} hit the output token limit and is incomplete.]"
+    return text
+
 
 def run_alarm_agent(incident, equipment_id=None):
     """
@@ -273,12 +318,14 @@ Analyse the alarm pattern from this data."""
             ],
             temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
         call_type="specialist", model=MODEL_FAST,
-        equip_tag=equipment_id)
+        equip_tag=equipment_id,
+        estimate=estimate_tokens([SYSTEM_PROMPT, user_prompt],
+                                 _completion_cap(MODEL_FAST, "specialist", 400)))
 
     return {
         "agent":    "Alarm Agent",
         "icon":     "🚨",
-        "findings": response.choices[0].message.content,
+        "findings": _flag_if_truncated(response, "specialist findings"),
         "raw_data": search_result
     }
 
@@ -300,8 +347,9 @@ fault pattern on this equipment, from a real incident they personally resolved.
 
 Rules:
 - You have been given ONE tool result from an expert-fix search. Analyse it fully.
-- Expert fixes are cited by the OPERATOR'S NAME AND ROLE — never call them "unverified".
-  The name and role ARE the trust signal; do not add hedging language on top of it.
+- Expert fixes are cited by the OPERATOR'S NAME — never call them "unverified".
+  The named operator IS the trust signal; do not add hedging language on top of it.
+  Include a job title only if the search result actually shows one; never invent one.
 - If a fix is found, state exactly what the operator found different and what fixed it,
   in your own words, attributed to them by name.
 - CRITICAL — if the search result contains reproducible numbered steps, preserve them
@@ -317,7 +365,7 @@ Rules:
 Return your findings in this exact structure:
 
 EXPERT FIX FINDINGS:
-- Found: [YES, attributed to <name, role> | NO — no prior expert fix on record]
+- Found: [YES, attributed to <name> | NO — no prior expert fix on record]
 - What was different: [from the fix, or N/A]
 - What fixed it: [from the fix, or N/A]
 - When it applies: [any stated conditions, or N/A]
@@ -325,7 +373,7 @@ EXPERT FIX FINDINGS:
 - Data confidence: HIGH / MEDIUM / LOW / NO DATA
 
 SOURCES USED:
-- [operator name, role, and date cited]"""
+- [operator name and date cited]"""
 
     query = f"fix for {equipment_id or 'equipment'} {incident[:100]}"
     search_result, fix_ids = search_expert_fixes(query, equipment_filter=equipment_id)
@@ -350,12 +398,14 @@ Analyse whether a prior expert fix applies to this incident."""
             ],
             temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
         call_type="specialist", model=MODEL_FAST,
-        equip_tag=equipment_id)
+        equip_tag=equipment_id,
+        estimate=estimate_tokens([SYSTEM_PROMPT, user_prompt],
+                                 _completion_cap(MODEL_FAST, "specialist", 400)))
 
     return {
         "agent":    "Expert Fix Agent",
         "icon":     "🎙",
-        "findings": response.choices[0].message.content,
+        "findings": _flag_if_truncated(response, "specialist findings"),
         "raw_data": search_result
     }
 
@@ -409,12 +459,14 @@ Analyse the maintenance history from this data."""
             ],
             temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
         call_type="specialist", model=MODEL_FAST,
-        equip_tag=equipment_id)
+        equip_tag=equipment_id,
+        estimate=estimate_tokens([SYSTEM_PROMPT, user_prompt],
+                                 _completion_cap(MODEL_FAST, "specialist", 400)))
 
     return {
         "agent":    "Maintenance Agent",
         "icon":     "🔧",
-        "findings": response.choices[0].message.content,
+        "findings": _flag_if_truncated(response, "specialist findings"),
         "raw_data": search_result
     }
 
@@ -468,12 +520,14 @@ Extract the relevant procedures and specifications from this data."""
             ],
             temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
         call_type="specialist", model=MODEL_FAST,
-        equip_tag=equipment_id)
+        equip_tag=equipment_id,
+        estimate=estimate_tokens([SYSTEM_PROMPT, user_prompt],
+                                 _completion_cap(MODEL_FAST, "specialist", 400)))
 
     return {
         "agent":    "SOP Agent",
         "icon":     "📋",
-        "findings": response.choices[0].message.content,
+        "findings": _flag_if_truncated(response, "specialist findings"),
         "raw_data": search_result
     }
 
@@ -527,19 +581,74 @@ Analyse the quality and non-conformance history from this data."""
             ],
             temperature=0.1, **completion_kwargs(MODEL_FAST, "specialist", 400)),
         call_type="specialist", model=MODEL_FAST,
-        equip_tag=equipment_id)
+        equip_tag=equipment_id,
+        estimate=estimate_tokens([SYSTEM_PROMPT, user_prompt],
+                                 _completion_cap(MODEL_FAST, "specialist", 400)))
 
     return {
         "agent":    "NCR Agent",
         "icon":     "📊",
-        "findings": response.choices[0].message.content,
+        "findings": _flag_if_truncated(response, "specialist findings"),
         "raw_data": search_result
     }
 
 
 # ── Orchestrator ───────────────────────────────────────────────────────────────
 
-def run_orchestrator(incident, specialist_results, graph_context=None):
+# -- Graph rules: derived from what the graph actually returned ---------------
+# These were four rules hard-coded for WM-101 (burn-in, the tension trap, LOTO,
+# quarantine) appended to EVERY investigation that had any graph data at all --
+# so an HC-401 report was told it "MUST" include WM-101's burn-in instructions.
+# A rule now appears only when the node it describes is in THIS equipment's
+# retrieved chain.
+
+_GRAPH_NODE_RULES = [
+    ("burn_in_procedure",
+     'The graph shows burn-in is MANDATORY after liner replacement. You MUST include this in '
+     'immediate action: "Complete burn-in procedure after replacement. Run wire at 5.0 m/min '
+     'for 30 seconds. Wire instability during burn-in is EXPECTED - not a new fault."'),
+    ("operator_trap_pattern",
+     'The graph documents an operator trap: the WRONG RESPONSE is to keep adjusting tension. '
+     'You MUST include this warning: "Do NOT keep adjusting tension - this will not fix worn '
+     'drive rolls and risks motor burnout." Cite the NCR named in the graph context.'),
+    ("loto_procedure",
+     "LOTO is required before any maintenance on this equipment - include it in immediate action."),
+    ("quality_flag",
+     "Parts welded during the fault event must be quarantined for inspection - include this "
+     "in the impact section."),
+]
+
+_OPERATOR_PATTERN_RULE = (
+    "OPERATOR-CONFIRMED PATTERNS - this graph contains patterns that came from an operator's "
+    "field capture, reviewed and approved by a supervisor (NOT from formal SOP/NCR documents). "
+    'They are introduced with "X operators confirmed" or "<name> found".\n'
+    "   - Cite them by contributor name(s)/count exactly as given. Never call them "
+    '"unverified" - the name/count IS the trust signal.\n'
+    "   - Weight them BELOW a formal SOP/NCR fact, but above an unpromoted single expert-fix "
+    "match.\n"
+    "   - If one CONTRADICTS a formal SOP fact, do not decide which is correct: surface both, "
+    "label it a contradiction, and recommend engineering review."
+)
+
+
+def _build_graph_rules(graph_context):
+    """Build the STRICT GRAPH RULES block from the nodes actually retrieved."""
+    nodes    = graph_context.get("chain_nodes", []) or []
+    node_ids = {n.get("id") for n in nodes}
+    rules    = [text for node_id, text in _GRAPH_NODE_RULES if node_id in node_ids]
+
+    if any((n.get("properties") or {}).get("operator_summary") for n in nodes):
+        rules.append(_OPERATOR_PATTERN_RULE)
+
+    # True for every machine, so it is always included.
+    rules.append("Use ONLY facts present in the knowledge graph context above. Do not import "
+                 "procedures, part numbers or thresholds from other equipment.")
+
+    numbered = "\n".join("{}. {}".format(i + 1, r) for i, r in enumerate(rules))
+    return "STRICT GRAPH RULES - VIOLATION IS AN ERROR:\n" + numbered
+
+
+def run_orchestrator(incident, specialist_results, graph_context=None, equipment_id=None):
     """
     Receives all four specialist findings and synthesizes the final investigation report.
     Produces two reports: technical (maintenance engineer) + plain language (plant manager).
@@ -560,9 +669,10 @@ Your rules:
 4. Weight findings by data confidence: HIGH > MEDIUM > LOW > NO DATA.
 5. The report has TWO sections — technical and plain language. Both are required.
 6. EXPERT FIX RULES — follow strictly:
-   - Cite expert fixes by the operator's NAME AND ROLE, e.g. "Dave (Senior Operator)
-     found on 14 Jul 2026 that..." — never label an expert fix "unverified". The name
-     and role are the trust signal; do not add hedging qualifiers on top of that.
+   - Cite expert fixes by the operator's NAME, e.g. "Dave found on 14 Jul 2026
+     that..." — never label an expert fix "unverified". The named operator IS the
+     trust signal; do not add hedging qualifiers on top of that. Use a job title
+     ONLY if the source text actually carries one — never invent or assume one.
    - If the Expert Fix agent found a match, it should normally be the FIRST thing named
      under IMMEDIATE ACTION — a prior operator's proven fix is the fastest path to
      resolving the current incident.
@@ -663,40 +773,35 @@ RISK IF NOT ACTIONED: [One sentence — what happens if nothing is done]"""
         graph_block = f"""
 
 ─────────────────────────────────────────────────────
-KNOWLEDGE GRAPH CONTEXT — includes engineering-verified SOP/NCR facts
-AND human-reviewed operator-confirmed patterns (see rule 5 below for
-how to tell them apart and cite each correctly)
+KNOWLEDGE GRAPH CONTEXT — engineering-verified SOP/NCR facts, plus (where
+shown) human-reviewed operator-confirmed patterns, which are cited
+differently — see the rules below
 ─────────────────────────────────────────────────────
 {graph_context["chain_text"]}
 ─────────────────────────────────────────────────────{mandatory_warnings}
 
-STRICT GRAPH RULES — VIOLATION IS AN ERROR:
-1. The graph shows burn-in is MANDATORY after liner replacement.
-   You MUST include this in immediate action: "Complete burn-in procedure after replacement.
-   Run wire at 5.0 m/min for 30 seconds. Wire instability during burn-in is EXPECTED — not a new fault."
-2. The graph shows the WRONG RESPONSE is adjusting tension.
-   You MUST include this warning: "Do NOT keep adjusting tension — this will not fix worn drive rolls
-   and risks motor burnout. This is the documented operator trap from NCR-2024-047."
-3. LOTO is required before any maintenance — include in immediate action.
-4. Parts welded during fault must be quarantined — include in impact section.
-5. OPERATOR-CONFIRMED PATTERNS — the graph may also contain patterns that came from an
-   operator's field capture, reviewed and approved by a supervisor (NOT from formal SOP/NCR
-   documents). You can tell them apart: they're introduced with "X operator(s) confirmed" or
-   "<name> found" rather than being a numbered SOP/NCR fact like rules 1-4 above.
-   - Cite these by naming the contributor(s) and count exactly as given, e.g. "3 operators
-     independently confirmed..." or "Dave found...". Never call them "unverified" — the
-     name/count IS the trust signal, same as everywhere else expert-fix content is cited.
-   - Weight them below a formal SOP/NCR fact (rules 1-4), but above a single unconfirmed
-     Pinecone-only expert fix match with no graph promotion at all.
-   - If an operator-confirmed pattern CONTRADICTS a formal SOP fact elsewhere in this context,
-     do NOT decide which is correct. Surface both explicitly, label it a contradiction, and
-     recommend engineering review -- same rule as for a single expert fix contradicting the SOP.
+{_build_graph_rules(graph_context)}
 ─────────────────────────────────────────────────────"""
+
+    # B1 - when the graph is missing, or came from the local fallback file, the
+    # report must SAY so. A quietly thinner report is the failure mode we found:
+    # the same WM-101 question produced different safety content depending on
+    # whether the database happened to be awake.
+    degraded_note = ""
+    if graph_context and graph_context.get("degraded"):
+        if graph_context.get("source") == "local_file":
+            detail = ("knowledge graph database unavailable; equipment facts came from the local "
+                      "backup copy and operator-confirmed patterns are NOT included")
+        else:
+            detail = ("knowledge graph unavailable; equipment-specific warnings are NOT included "
+                      "in this report - check the SOP manually before acting")
+        degraded_note = ("\n\nSYSTEM NOTE - DEGRADED MODE (you MUST reproduce this line verbatim "
+                         "as the last bullet of SOURCE DATA):\n- DEGRADED: " + detail + ".")
 
     user_prompt = f"""Incident: {incident}
 
 Specialist agent findings:
-{findings_block}{graph_block}
+{findings_block}{graph_block}{degraded_note}
 
 Synthesize the final investigation report from these findings."""
 
@@ -711,9 +816,13 @@ Synthesize the final investigation report from these findings."""
                 {"role": "user",   "content": user_prompt}
             ],
             temperature=0.1, **completion_kwargs(MODEL_DEEP, "orchestrator", 1400)),
-        call_type="orchestrator", model=MODEL_DEEP)
+        call_type="orchestrator", model=MODEL_DEEP,
+        equip_tag=equipment_id or "",
+        graph_source=(graph_context or {}).get("source", "none"),
+        estimate=estimate_tokens([SYSTEM_PROMPT, user_prompt],
+                                 _completion_cap(MODEL_DEEP, "orchestrator", 1400)))
 
-    initial_report = response.choices[0].message.content
+    initial_report = _flag_if_truncated(response, "investigation report")
 
     # ── Reflection pass — second LLM critiques and improves ──────────
     # Only runs when ENABLE_REFLECTION=true (set in .env or environment)
@@ -763,9 +872,11 @@ Keep the exact same format (INVESTIGATION REPORT — TECHNICAL + PLANT MANAGER S
                 {"role": "user",   "content": f"Original report to critique and improve:\n\n{initial_report}\n\nNote: The report above was synthesised from shift logs, maintenance records, SOPs, and NCR history for this equipment. Improve it using only what is already stated in the report."}
             ],
             temperature=0.1, **completion_kwargs(MODEL_DEEP, "reflection", 600)),
-        call_type="reflection", model=MODEL_DEEP)
+        call_type="reflection", model=MODEL_DEEP,
+        estimate=estimate_tokens([REFLECTION_PROMPT, initial_report],
+                                 _completion_cap(MODEL_DEEP, "reflection", 600)))
 
-    return reflection_response.choices[0].message.content
+    return _flag_if_truncated(reflection_response, "reflection pass")
 
 
 # ── Supervisor Agent ──────────────────────────────────────────────────────────
@@ -867,7 +978,10 @@ def supervisor_route(incident, equipment_id=None):
                 **completion_kwargs(MODEL_FAST, "supervisor", 100)
             ),
             call_type="supervisor",
-            model=MODEL_FAST
+            model=MODEL_FAST,
+            equip_tag=equipment_id or "",
+            estimate=estimate_tokens([SUPERVISOR_PROMPT, user_msg],
+                                     _completion_cap(MODEL_FAST, "supervisor", 100))
         )
 
         raw = response.choices[0].message.content or ""
@@ -929,12 +1043,24 @@ def investigate_incident(incident, equipment_id=None):
             if graph_context and graph_context.get("has_data"):
                 node_count = len(graph_context.get("chain_nodes", []))
                 warn_count = len(graph_context.get("warnings", []))
-                yield f"🔗 Knowledge graph context loaded — {node_count} nodes, {warn_count} warnings\n\n"
+                if graph_context.get("degraded"):
+                    # Fallback file: real SOP/NCR facts, but no operator patterns.
+                    yield (f"⚠️ Knowledge graph DEGRADED — database unavailable, using local backup "
+                           f"({node_count} nodes, {warn_count} warnings). Operator-confirmed "
+                           f"patterns are not included.\n\n")
+                else:
+                    yield f"🔗 Knowledge graph context loaded — {node_count} nodes, {warn_count} warnings\n\n"
+            elif graph_context and graph_context.get("degraded"):
+                # Graph unreachable AND no local data for this equipment: keep the
+                # context object so the report still declares degraded mode.
+                yield "⚠️ Knowledge graph unavailable — report will not include equipment-specific warnings.\n\n"
             else:
-                graph_context = None  # No data — do not pass empty context
+                graph_context = None  # genuinely no graph data for this equipment
         except Exception as e:
             print(f"  [graph] context fetch failed: {e} — proceeding without graph")
-            graph_context = None
+            yield "⚠️ Knowledge graph unavailable — report will not include equipment-specific warnings.\n\n"
+            graph_context = {"has_data": False, "degraded": True, "source": "unavailable",
+                             "degraded_reason": str(e)[:120], "chain_nodes": [], "warnings": []}
 
     # ── Supervisor routing — decide which agents to call ─────────────────────
     # Teaching note: this is the key change from fixed fan-out to dynamic routing.
@@ -996,7 +1122,8 @@ def investigate_incident(incident, equipment_id=None):
 
     # ── Run orchestrator ───────────────────────────────────────────────────────
     try:
-        final_report = run_orchestrator(incident, specialist_results, graph_context=graph_context)
+        final_report = run_orchestrator(incident, specialist_results,
+                                        graph_context=graph_context, equipment_id=equipment_id)
     except Exception as e:
         yield f"\n❌ Orchestrator error: {str(e)}\n"
         yield "\nNote: Rate limit hit. Please wait a minute and try again.\n"

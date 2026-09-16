@@ -329,14 +329,10 @@ def run_evals(mode_filter=None, site_filter=None):
             "llm_reasoning":None    # filled in by PM-E03
         })
 
-        # Free tier rate limit delays
-        # Investigation (no reflection) = 5 LLM calls: 4x 8b agents + 1x 70b orchestrator
-        # 4 agents at 400 tokens each = 1,600 tokens on 8b (under 6,000 TPM)
-        # 20s gap is enough for TPM window to clear between investigations
-        if mode == "investigation":
-            time.sleep(20)
-        else:
-            time.sleep(3)
+        # No fixed pauses between cases any more. They used to guard against
+        # Groq's per-minute token limit; the app's token budget
+        # (token_budget.py) now paces every call itself, so a fixed sleep here
+        # just added a second, blind brake (~1 minute per run).
 
     # ── Summary ───────────────────────────────────────────────────────
     total     = len(test_cases)
