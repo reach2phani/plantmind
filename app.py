@@ -983,8 +983,15 @@ def ask():
         filter_dict["file_type"] = {"$eq": "csv"}
         if line:
             filter_dict["line"] = {"$eq": line}
+        # Batch E1: shift chunks now carry each row's own machine, so Shift
+        # mode can finally honour the selected/detected equipment.
+        if equip_tag:
+            filter_dict["equip_tag"] = {"$eq": equip_tag}
     else:
-        filter_dict["file_type"] = {"$nin": ["csv"]}
+        # Docs mode = official documents only (decision A, Batch E3).
+        # Operator field captures ("expert_fix") stay in investigations,
+        # where they are labelled and cross-checked against the SOP.
+        filter_dict["file_type"] = {"$nin": ["csv", "expert_fix"]}
         if plant:     filter_dict["plant_site"] = {"$eq": plant}
         if line:      filter_dict["line"]       = {"$eq": line}
         if equip_tag: filter_dict["equip_tag"]  = {"$eq": equip_tag}

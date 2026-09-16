@@ -61,83 +61,117 @@ splitter = RecursiveCharacterTextSplitter(
 
 def chunk_csv(file_path):
     """
-    Convert CSV rows into rich text chunks.
-    Groups rows into batches of 5 so related events stay together.
-    Each chunk includes all field values as readable sentences.
+    Convert shift-log CSV rows into text chunks, grouped BY MACHINE.
+
+    Batch E1: the old version batched rows 5 at a time in file order, so one
+    chunk could hold WM-101, the furnace and the press, and every chunk got
+    the file's single equipment tag. Asking about WM-101 then returned other
+    machines' events, and asking about GC-201 found nothing.
+
+    Now rows are grouped by the `equipment` column of each row, and every
+    chunk carries that row's own equipment tag and line. Within a machine,
+    rows keep their original order in batches of 5.
     """
     chunks = []
     try:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             content = f.read()
 
-        reader  = csv.DictReader(io.StringIO(content))
-        headers = reader.fieldnames or []
-        rows    = list(reader)
-
+        reader = csv.DictReader(io.StringIO(content))
+        rows   = list(reader)
         if not rows:
             return chunks
 
-        # Build a natural language summary of the whole log as first chunk
-        # so questions like "what happened last shift" hit something useful
-        dates  = list(set([r.get("shift_date","") for r in rows if r.get("shift_date")]))
-        shifts = list(set([r.get("shift","")      for r in rows if r.get("shift")]))
-        lines  = list(set([r.get("line","")       for r in rows if r.get("line")]))
-        cats   = list(set([r.get("category","")   for r in rows if r.get("category")]))
+        groups = {}                                   # equipment -> rows, in file order
+        for row in rows:
+            groups.setdefault((row.get("equipment") or "").strip(), []).append(row)
 
-        summary = (
-            f"Shift log summary. "
-            f"Date: {', '.join(dates)}. "
-            f"Shift: {', '.join(shifts)}. "
-            f"Lines covered: {', '.join(lines)}. "
-            f"Event categories: {', '.join(cats)}. "
-            f"Total events: {len(rows)}. "
-            f"Events include: " +
-            "; ".join([r.get("description","")[:80] for r in rows[:5]]) + "."
-        )
-        chunks.append({
-            "text":       summary,
-            "chunk_type": "summary",
-            "shift_date": ", ".join(dates),
-            "shift":      ", ".join(shifts),
-            "line":       ", ".join(lines),
-        })
+        for equipment, eq_rows in groups.items():
+            dates  = sorted(set(r.get("shift_date", "") for r in eq_rows if r.get("shift_date")))
+            shifts = sorted(set(r.get("shift", "")      for r in eq_rows if r.get("shift")))
+            cats   = sorted(set(r.get("category", "")   for r in eq_rows if r.get("category")))
+            first  = eq_rows[0]
 
-        # Group rows into batches of 5 — keeps related events together
-        batch_size = 5
-        for i in range(0, len(rows), batch_size):
-            batch = rows[i:i+batch_size]
-            lines_text = []
-            for row in batch:
-                # Build a natural language sentence for each row
-                parts = []
-                if row.get("shift_date"): parts.append(row["shift_date"])
-                if row.get("shift"):      parts.append(row["shift"] + " shift")
-                if row.get("line"):       parts.append(row["line"])
-                if row.get("time"):       parts.append("at " + row["time"])
-                if row.get("category"):   parts.append("[" + row["category"] + "]")
-                if row.get("equipment"):  parts.append("Equipment: " + row["equipment"])
-                if row.get("description"):parts.append(row["description"])
-                if row.get("action_taken"):parts.append("Action: " + row["action_taken"])
-                if row.get("operator"):   parts.append("Operator: " + row["operator"])
-                if row.get("status"):     parts.append("Status: " + row["status"])
-                lines_text.append(" — ".join(parts))
-
-            chunk_text = "\n".join(lines_text)
-
-            # Extract metadata from first row of batch
-            first = batch[0]
+            # One summary per machine, so "what happened last shift on WM-101"
+            # hits a WM-101-only overview.
+            summary = (
+                f"Shift log summary for {equipment or 'unspecified equipment'}. "
+                f"Date: {', '.join(dates)}. "
+                f"Shift: {', '.join(shifts)}. "
+                f"Line: {first.get('line', '')}. "
+                f"Event categories: {', '.join(cats)}. "
+                f"Total events: {len(eq_rows)}. "
+                f"Events include: " +
+                "; ".join([r.get("description", "")[:80] for r in eq_rows[:5]]) + "."
+            )
             chunks.append({
-                "text":       chunk_text,
-                "chunk_type": "events",
-                "shift_date": first.get("shift_date", ""),
-                "shift":      first.get("shift",      ""),
-                "line":       first.get("line",       ""),
+                "text":       summary,
+                "chunk_type": "summary",
+                "shift_date": ", ".join(dates),
+                "shift":      ", ".join(shifts),
+                "line":       first.get("line", ""),
+                "equip_tag":  equipment,
             })
+
+            batch_size = 5
+            for i in range(0, len(eq_rows), batch_size):
+                batch = eq_rows[i:i + batch_size]
+                lines_text = []
+                for row in batch:
+                    parts = []
+                    if row.get("shift_date"):   parts.append(row["shift_date"])
+                    if row.get("shift"):        parts.append(row["shift"] + " shift")
+                    if row.get("line"):         parts.append(row["line"])
+                    if row.get("time"):         parts.append("at " + row["time"])
+                    if row.get("category"):     parts.append("[" + row["category"] + "]")
+                    if row.get("equipment"):    parts.append("Equipment: " + row["equipment"])
+                    if row.get("description"):  parts.append(row["description"])
+                    if row.get("action_taken"): parts.append("Action: " + row["action_taken"])
+                    if row.get("operator"):     parts.append("Operator: " + row["operator"])
+                    if row.get("status"):       parts.append("Status: " + row["status"])
+                    lines_text.append(" — ".join(parts))
+
+                chunks.append({
+                    "text":       "\n".join(lines_text),
+                    "chunk_type": "events",
+                    "shift_date": batch[0].get("shift_date", ""),
+                    "shift":      batch[0].get("shift", ""),
+                    "line":       batch[0].get("line", ""),
+                    "equip_tag":  equipment,
+                })
 
     except Exception as e:
         print(f"  CSV parse error: {e}")
 
     return chunks
+
+
+def _replace_doc_vectors(doc_id, vectors):
+    """
+    Upsert a document's new vectors, then delete any of its OLD vectors that
+    the new chunking no longer produces.
+
+    Before Batch E1, re-embedding never deleted anything. If a document came
+    back with fewer chunks than before, the extra old chunks stayed in the
+    index and kept being retrieved. Upserting first, then deleting only the
+    stale ids, means the document is never missing from search mid-update.
+    """
+    old_ids = []
+    try:
+        for page in index.list(prefix=f"{doc_id}_chunk_"):
+            old_ids.extend(getattr(item, "id", item) for item in page)
+    except Exception as e:
+        print(f"  Could not list old vectors for {doc_id}: {e}")
+
+    for i in range(0, len(vectors), 50):
+        index.upsert(vectors=vectors[i:i + 50])
+
+    new_ids = {v["id"] for v in vectors}
+    stale   = [vid for vid in old_ids if vid not in new_ids]
+    for i in range(0, len(stale), 100):
+        index.delete(ids=stale[i:i + 100])
+    if stale:
+        print(f"  Removed {len(stale)} stale chunk(s) for {doc_id}")
 
 
 def embed_document(doc_id, storage_path, metadata):
@@ -201,11 +235,7 @@ def _embed_local(doc_id, file_path, ext, metadata):
                     "equip_tag":  _normalise_equip_tag(metadata.get("equip_tag", "")),
                 }
             })
-            if len(vectors) >= 50:
-                index.upsert(vectors=vectors)
-                vectors = []
-        if vectors:
-            index.upsert(vectors=vectors)
+        _replace_doc_vectors(doc_id, vectors)
 
         print(f"  Done — {len(texts)} chunks for {metadata.get('name')}")
         return len(texts)
@@ -236,17 +266,14 @@ def _embed_local(doc_id, file_path, ext, metadata):
                     "name":       metadata.get("name",       ""),
                     "doc_type":   metadata.get("doc_type",   ""),
                     "plant_site": metadata.get("plant_site", ""),
-                    "line":       metadata.get("line",       ""),
+                    "line":       chunk.get("line") or metadata.get("line", ""),
                     "revision":   metadata.get("revision",   "1.0"),
                     "file_type":  "csv",
-                    "equip_tag":  _normalise_equip_tag(metadata.get("equip_tag", "")),
+                    # Batch E1: the row's own machine, not the whole file's tag
+                    "equip_tag":  _normalise_equip_tag(chunk.get("equip_tag") or metadata.get("equip_tag", "")),
                 }
             })
-            if len(vectors) >= 50:
-                index.upsert(vectors=vectors)
-                vectors = []
-        if vectors:
-            index.upsert(vectors=vectors)
+        _replace_doc_vectors(doc_id, vectors)
 
         print(f"  Done — {len(csv_chunks)} chunks for {metadata.get('name')}")
         return len(csv_chunks)
@@ -282,11 +309,7 @@ def _embed_local(doc_id, file_path, ext, metadata):
                     "equip_tag":  _normalise_equip_tag(metadata.get("equip_tag", "")),
                 }
             })
-            if len(vectors) >= 50:
-                index.upsert(vectors=vectors)
-                vectors = []
-        if vectors:
-            index.upsert(vectors=vectors)
+        _replace_doc_vectors(doc_id, vectors)
 
         print(f"  Done — {len(texts)} chunks for {metadata.get('name')}")
         return len(texts)
@@ -323,9 +346,11 @@ def build_expert_fix_text(fix_row):
     parts = []
     equip = fix_row.get("equip_tag", "")
     name  = fix_row.get("captured_by_name", "")
-    role  = fix_row.get("captured_by_role", "") or "Operator"
+    role  = (fix_row.get("captured_by_role", "") or "").strip()
 
-    parts.append(f"Expert fix for {equip}, captured by {name} ({role}).")
+    # Batch E2: no default job title. Whatever is written here is embedded
+    # and later repeated in reports as if it were recorded fact.
+    parts.append(f"Expert fix for {equip}, captured by {name}" + (f" ({role})." if role else "."))
 
     if fix_row.get("alarm_description"):
         parts.append(f"Related alarm: {fix_row['alarm_description']}.")
