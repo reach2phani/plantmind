@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+# ─────────────────────────────────────────────────────────────────────────────
+# PlantMind evals — promptfoo config (Phase 1, step 1.1: first tests)
+#
+# HOW IT WORKS (simple version)
+#   provider  = who answers   -> PlantMind itself, called over HTTP like a user
+#   tests     = the questions -> each with "vars" (inputs) and "assert" (checks)
+#   judge     = who grades AI-graded checks -> Qwen on Groq (a different model
+#               family from the GPT-OSS models that write PlantMind's answers)
+#
+# RUN (from C:\plantmind, with the app running: python app.py)
+#   npx promptfoo@latest eval -c evals/promptfoo/promptfooconfig.yaml --env-file .env
+#   npx promptfoo@latest view      <- opens the results screen in your browser
+# ─────────────────────────────────────────────────────────────────────────────
+
+description: PlantMind WM-101 evals — step 1.1 smoke tests
+
+# promptfoo always needs a prompt. We just pass the question straight through,
+# because PlantMind builds its own prompts internally.
+prompts:
+  - '{{question}}'
+
+providers:
+  - id: http
+    label: plantmind-ask
+    config:
+      url: 'http://localhost:5000/ask'
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        question: '{{prompt}}'
+        mode: doc
+        plant_site: '{{plant_site}}'
+        line: '{{line}}'
+        equip_tag: '{{equip_tag}}'
+      # /ask replies in plain text ("SOURCES:[...]" then the answer, or
+      # "NOANSWER:..."). This small script turns that into the answer text.
+      transformResponse: 'file://transforms/ask.js'
+
+defaultTest:
+  vars:
+    plant_site: Greenfield Steel Works
+    line: Fabrication Line 1
+    equip_tag: ''
+  options:
+    # The AI judge for every "llm-rubric" check.
+    provider:
+      id: groq:qwen/qwen3.8-27b
+      config:
+        temperature: 0
+        max_completion_tokens: 2048
+        reasoning_format: hidden
+
+tests:
+  # 1 — RULE CHECK: a fact with an exact number. Cheap, no judge needed.
+  - description: 'WM-101 wire feed speed range (rule check)'
+    vars:
+      question: What's the wire feed speed range on the WM-101?
+      equip_tag: WM-101
+    assert:
+      - type: contains
+        value: '4.5'
+      - type: contains-any
+        value: ['6.0', '6 m/min']
+      - type: not-contains
+        value: No manuals found
+
+  # 2 — RULE CHECK: refusing a machine that doesn't exist.
+  - description: 'Unknown machine x-505 must refuse (rule check)'
+    vars:
+      question: What's the torque spec for the x-505?
+      equip_tag: x-505
+    assert:
+      - type: contains
+        value: No manuals found for
+      - type: not-contains
+        value: quarter turn
+
+  # 3 — AI JUDGE: meaning, not exact words. Qwen reads the answer and decides.
+  - description: 'Burn-in after liner replacement (AI judge)'
+    vars:
+      question: What must be done after replacing the wire liner on the WM-101?
+      equip_tag: WM-101
+    assert:
+      - type: icontains
+        value: burn-in
+      # Rubric lesson: say exactly what MUST be present, and explicitly allow
+      # correct extra detail. The first version of this rubric also failed the
+      # answer for mentioning LOTO -- correct information from the same
+      # procedure -- because it never said extra steps were fine.
+      - type: llm-rubric
+        value: >-
+          PASS if the answer contains BOTH of these points:
+          (1) a burn-in is required after liner replacement, run at 5.0 m/min for
+          about 30 seconds before production welding;
+          (2) wire feed instability in the first minutes after the replacement is
+          EXPECTED behaviour, not a fault.
+          Extra correct steps from the same procedure (LOTO, restoring power, test
+          bead, checking for alarms) are ALLOWED and must not cause a fail.
+          FAIL only if a required point is missing, or if the answer states values
+          that contradict them.
