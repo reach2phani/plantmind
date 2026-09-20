@@ -1,0 +1,319 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+# ─────────────────────────────────────────────────────────────────────────────
+# PlantMind evals — GENERATED suite (Docs mode), Phase 1 step 1.4
+#
+# WHERE THESE CAME FROM
+#   Ragas read all 29 official WM-101 chunks (SOP, Work Instruction, NCR) in
+#   three batches and wrote 29 questions, each with a reference answer taken
+#   from the text. They were reviewed one by one: 13 kept, 5 fixed, 11 dropped.
+#   The 18 survivors are here. The review, with a reason for every verdict, is
+#   in evals/generated/questions_2026-09-18_*.json.
+#
+#   Test ids are G<batch>-<question>, e.g. G2-010 = batch 2, GEN-010.
+#
+# WHY THIS SUITE EXISTS
+#   The 16 hand-written tests were designed around failures we had already
+#   imagined: refusals, pressure, safety ordering. They tested only THREE facts
+#   from the documents. This suite tests the rest: gas flow, stickout, alarm
+#   thresholds, part numbers, liner and spindle procedure, sign-off rules.
+#   Hand-written = adversarial. Generated = coverage. We need both.
+#
+# HOW IT IS CHECKED — cheap first
+#   Mostly RULE checks on exact values (220, 10-15 L/min, GSW-DROLL-08). They
+#   cost nothing to run. The AI judge is used only where the meaning matters
+#   and wording varies too much for a rule (5 of 18 tests).
+#
+# EXPECTED FAILURES (known issues, not new bugs)
+#   G2-010  "instability in the first 5 minutes is expected" — the same line the
+#           step-1.1 test found missing. Ragas found it independently. Phase 3.
+#
+# RUN (from C:\plantmind, with the app running: python app.py)
+#   npx promptfoo@0.123.1 eval -c evals/promptfoo/generated.yaml --env-file .env
+# ─────────────────────────────────────────────────────────────────────────────
+
+description: PlantMind WM-101 — generated suite (Ragas + human review), 18 cases
+
+prompts:
+  - '{{question}}'
+
+providers:
+  - id: http
+    label: plantmind-ask
+    config:
+      url: 'http://localhost:5000/ask'
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        question: '{{prompt}}'
+        mode: doc
+        plant_site: '{{plant_site}}'
+        line: '{{line}}'
+        equip_tag: '{{equip_tag}}'
+      transformResponse: 'file://transforms/ask.js'
+
+defaultTest:
+  vars:
+    plant_site: Greenfield Steel Works
+    line: Fabrication Line 1
+    equip_tag: WM-101
+  assert:
+    # Every question here IS answerable from the WM-101 documents — a refusal
+    # is a failure (over-refusing guard, or retrieval missing the chunk).
+    - type: not-contains
+      value: No manuals found
+    # The two sanity checks from step 1.3.
+    - type: javascript
+      value: file://lib/no_repeat_lines.js
+    - type: javascript
+      value: file://lib/not_truncated.js
+  options:
+    provider:
+      id: groq:qwen/qwen3.8-27b
+      config:
+        temperature: 0
+        max_completion_tokens: 2048
+        reasoning_format: hidden
+
+tests:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SPECS AND THRESHOLDS — exact numbers, rule checks only
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - description: 'G1-004 — drive roll service interval, and was it exceeded'
+    vars:
+      question: What is the recommended service interval for the drive rolls, and did the actual usage exceed this interval at the time of the incident?
+    assert:
+      - type: contains
+        value: '500'
+      - type: regex
+        value: '(6|six) months'
+      - type: contains
+        value: '627'
+
+  - description: 'G1-006 — keyword-style search: drive roll replacement schedule'
+    vars:
+      question: drive roll replacement schedule WM-101
+    assert:
+      - type: contains
+        value: '500'
+      - type: regex
+        value: '(6|six) months'
+
+  - description: 'G1-005 (fixed) — part numbers for rolls, liner, contact tip'
+    vars:
+      question: What are the part numbers for the WM-101 drive rolls, wire liner and contact tip?
+    assert:
+      - type: contains
+        value: GSW-DROLL-08
+      - type: contains
+        value: GSW-LINER-08
+      - type: contains
+        value: GSW-TIP-08
+
+  - description: 'G1-010 (fixed) — wire feed tension setting, too tight / too loose'
+    vars:
+      question: How should the wire feed tension be set on the WM-101, and what happens if it is too tight or too loose?
+    assert:
+      - type: icontains
+        value: quarter turn
+      - type: icontains
+        value: overload
+      - type: icontains-any
+        value: ['slip', 'arc instability']
+
+  - description: 'G2-001 — contact tip temperature alarm threshold (keyword style)'
+    vars:
+      question: contact tip temperature alarm threshold WM-101
+    assert:
+      # Only the threshold. The first version also required "10 minutes"
+      # cooling time, which came from the reference answer going BEYOND the
+      # question. The app answered "220 °C" — correct and complete — and
+      # failed. A check must test what was asked, not everything in the source.
+      - type: contains
+        value: '220'
+
+  - description: 'G3-001 (fixed) — causes of tip temperature high, incl. stickout spec'
+    vars:
+      question: What can cause a contact tip temperature high alarm on the WM-101?
+    assert:
+      # 10-15 mm stickout: untested anywhere before this suite.
+      - type: regex
+        value: '10\s*(-|to)\s*15\s*mm'
+      - type: icontains
+        value: spatter
+      - type: icontains
+        value: wear
+
+  - description: 'G2-003 — wire diameter for thin section vs structural'
+    vars:
+      question: what wire diameter i need for thin section and structural steel?
+    assert:
+      - type: contains
+        value: '0.8'
+      - type: contains
+        value: '1.0'
+
+  - description: 'G3-003 (fixed) — shielding gas pressure low: numbers + hold the parts back'
+    vars:
+      question: what i do if shielding gas pressure low?
+    assert:
+      # Numbers straight from SOP 4.4. Gas flow was untested before this suite.
+      - type: regex
+        value: '20\s*bar'
+      - type: regex
+        value: '10\s*(-|to)\s*15\s*L'
+      # Parts decision follows the LOCKED "inspect first" ruling, same as
+      # GF-INV-003: holding parts back passes whether by inspection or scrap.
+      # Do NOT tighten this to "must say scrap" — that is SOP Rev 1.0, which the
+      # plant has ruled against; Rev 1.1 lands in Phase 3.
+      - type: llm-rubric
+        value: >-
+          PASS if the answer says to stop welding, AND says that parts welded
+          while the shielding gas was low must be held back — marked, quarantined,
+          inspected or scrapped — rather than passed on.
+          Either inspection before release OR scrapping is ALLOWED.
+          FAIL if the answer allows those parts to continue on visual appearance
+          alone, or says nothing about the parts at all.
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PROCEDURES — order and safety matter, mix of rules and judge
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - description: 'G2-005 — overload alarm troubleshooting'
+    vars:
+      question: What are the detailed troubleshooting steps for a WM-101 wire feed motor overload alarm, including the primary causes, recommended adjustments, and post-repair checks that a maintenance technician should follow?
+    assert:
+      - type: regex
+        value: '[Hh]alf(-| a )?turn|1/2 turn'
+      - type: icontains
+        value: liner
+      - type: icontains
+        value: drive roll
+
+  - description: 'G2-008 — removing the old liner: torch end, never the feeder end'
+    vars:
+      question: What is the proper procedure for removing the old liner from the WM-101 MIG welder torch, including which end to pull it from, the tool needed, and what length information should be recorded for installing the new liner?
+    assert:
+      - type: icontains
+        value: torch end
+      # "10mm" and "10 mm" are both correct. The first version of this check
+      # only accepted "10mm" and failed the reference answer itself — caught by
+      # running every rule against the correct answers before the first run.
+      - type: regex
+        value: '10\s?mm'
+      # The safety point is the direction. An answer that says "pull from the
+      # feeder end" contains both words the rules look for, so a judge decides.
+      - type: llm-rubric
+        value: >-
+          PASS if the answer says the old liner is pulled out from the TORCH end
+          and NOT from the feeder end, and mentions noting the old liner's length
+          for cutting the new one.
+          FAIL if it says to pull from the feeder end, or leaves the direction
+          unclear.
+
+  - description: 'G3-004 — worn spindle: replace assembly, needs sign-off'
+    vars:
+      question: What must I do when inspecting spindles?
+    assert:
+      - type: icontains
+        value: spindle assembly
+      - type: icontains
+        value: sign-off
+
+  - description: 'G3-002 — verifying wire feed after a new liner'
+    vars:
+      question: What steps shoud I take to chekc the wire fead after installing a new liner?
+    assert:
+      - type: icontains
+        value: test bead
+      # Widened after the first run: the app said "raise a maintenance issue",
+      # which means the same as "escalate" but matched neither word. A rule
+      # should check the meaning's key word, not one exact phrasing.
+      - type: icontains-any
+        value: ['escalate', 'maintenance']
+
+  - description: 'G1-007 — repeated overload alarms: stop, inspect, do not keep adjusting (misspelled)'
+    vars:
+      question: When I keep gettin three or more wire fead motor overlad alrms in a single shift, what steps shoud I take as a maintenence tech to address the issue and avoid further problems?
+    assert:
+      - type: llm-rubric
+        value: >-
+          PASS if the answer says that three or more overload alarms in one shift
+          point to worn drive rolls or a blocked liner (not operator error), and
+          that the right response is to stop production and inspect the drive
+          rolls and liner, rather than continuing to adjust the tension.
+          Mentioning escalation to maintenance is ALLOWED and good.
+          FAIL if the answer recommends continuing to adjust tension as the fix,
+          or does not say to stop and inspect.
+
+  - description: 'G2-009 — arc voltage wobble beyond +-1V: what to check'
+    vars:
+      question: Can you tell me what i shoud do if i see the arc volatge wobbles more than +/-1V durign welding on the WM-101, includng which parts i need to check, replace, and what quality steps are required after the event?
+    assert:
+      - type: icontains
+        value: earth clamp
+      - type: icontains
+        value: contact tip
+      - type: icontains-any
+        value: ['DCEP', 'polarity']
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SAFETY, ESCALATION, SIGN-OFF
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - description: 'G3-007 — PPE incl. helmet minimum shade 10 (keyword style)'
+    vars:
+      question: WM-101 PPE required
+    assert:
+      - type: regex
+        value: '[Ss]hade\D{0,12}10'
+      - type: icontains-all
+        value: ['glove', 'jacket', 'boots']
+
+  - description: 'G3-005 (fixed) — when to call the maintenance supervisor'
+    vars:
+      question: When must the maintenance supervisor be called for the WM-101?
+    assert:
+      - type: llm-rubric
+        value: >-
+          The SOP lists six triggers for calling the maintenance supervisor
+          immediately: the same alarm three or more times in one shift; an
+          overload that tension adjustment cannot clear; arc instability that
+          persists after earth clamp and contact tip replacement; any electrical
+          fault code on the power source; a damaged or leaking torch lead; the
+          power source failing to enable or tripping on startup.
+          PASS if the answer gives at least FOUR of these six, one of which must
+          be "the same alarm three or more times in one shift".
+          FAIL if it gives fewer than four, or invents triggers that contradict
+          these.
+
+  - description: 'G3-008 — sign-off after liner and drive roll service'
+    vars:
+      question: Can you tell me the exact steps for the sign-off process after I finish the wire liner and drive roll service on the WM-101, includng what I need to log and who must approve before I can put the machine back in production?
+    assert:
+      - type: icontains
+        value: shift log
+      - type: icontains
+        value: supervisor
+      - type: icontains-any
+        value: ['part number', 'parts used']
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # KNOWN ISSUE — expected to FAIL until Phase 3
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - description: 'G2-010 — KNOWN ISSUE: instability after liner replacement is expected (keyword style)'
+    vars:
+      question: wire feed instability after liner replacement
+    assert:
+      # Ragas wrote this one on its own, from the work instruction — the same
+      # gap the step-1.1 AI judge caught. Two independent routes to one bug.
+      - type: llm-rubric
+        value: >-
+          PASS if the answer says that wire feed instability in the first
+          minutes (about 5 minutes) after a liner replacement is EXPECTED
+          behaviour during the burn-in, and is not a fault.
+          Mentioning the burn-in run itself is ALLOWED and good.
+          FAIL if the answer treats the instability as a fault to be fixed, or
+          never says it is expected.

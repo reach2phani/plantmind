@@ -1,0 +1,225 @@
+{
+  "_meta": {
+    "what": "Retrieval labels for the 18 generated Docs-mode questions (Phase 1 step 1.5).",
+    "how_labels_work": "A chunk counts as a HIT if it contains ALL the phrases in 'evidence' (case, dashes and spaces ignored). Labelled by TEXT, not by chunk id, so the labels survive Phase 3 re-chunking — chunk ids change when documents are re-cut, the words in them do not. It also means a fact stated in two places counts wherever it is found.",
+    "checked": "2026-09-18: every label matches its own source chunk, and matches 1-2 of the 29 official WM-101 chunks (never a loose match). Where 2 chunks match, both genuinely answer the question."
+  },
+  "questions": [
+    {
+      "id": "G1-004",
+      "question": "What is the recommended service interval for the drive rolls, and did the actual usage exceed this interval at the time of the incident?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "500 production hours",
+        "627"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ]
+    },
+    {
+      "id": "G1-006",
+      "question": "drive roll replacement schedule WM-101",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "500 production hours"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ]
+    },
+    {
+      "id": "G1-005",
+      "question": "What are the part numbers for the WM-101 drive rolls, wire liner and contact tip?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "GSW-DROLL-08",
+        "GSW-LINER-08",
+        "GSW-TIP-08"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ]
+    },
+    {
+      "id": "G1-010",
+      "question": "How should the wire feed tension be set on the WM-101, and what happens if it is too tight or too loose?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "finger-tight plus one quarter turn",
+        "too tight"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ]
+    },
+    {
+      "id": "G1-007",
+      "question": "When I keep gettin three or more wire fead motor overlad alrms in a single shift, what steps shoud I take as a maintenence tech to address the issue and avoid further problems?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "three or more times in a single shift",
+        "not an operator error"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ]
+    },
+    {
+      "id": "G2-001",
+      "question": "contact tip temperature alarm threshold WM-101",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "contact tip temperature",
+        "220"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ]
+    },
+    {
+      "id": "G3-001",
+      "question": "What can cause a contact tip temperature high alarm on the WM-101?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "220",
+        "stickout",
+        "10-15mm"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ]
+    },
+    {
+      "id": "G2-003",
+      "question": "what wire diameter i need for thin section and structural steel?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "thin section",
+        "structural"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ]
+    },
+    {
+      "id": "G3-003",
+      "question": "what i do if shielding gas pressure low?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "shielding gas pressure low",
+        "20 bar"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ]
+    },
+    {
+      "id": "G2-005",
+      "question": "What are the detailed troubleshooting steps for a WM-101 wire feed motor overload alarm, including the primary causes, recommended adjustments, and post‑repair checks that a maintenance technician should follow?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "loosen pressure arm"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ]
+    },
+    {
+      "id": "G2-008",
+      "question": "What is the proper procedure for removing the old liner from the WM-101 MIG welder torch, including which end to pull it from, the tool needed, and what length information should be recorded for installing the new liner?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "torch end",
+        "feeder end"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ]
+    },
+    {
+      "id": "G3-004",
+      "question": "What must I do when inspecting spindles?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "spindle assembly",
+        "sign-off"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ]
+    },
+    {
+      "id": "G3-002",
+      "question": "What steps shoud I take to chekc the wire fead after installing a new liner?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "test bead",
+        "escalate"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ]
+    },
+    {
+      "id": "G2-009",
+      "question": "Can you tell me what i shoud do if i see the arc volatge wobbles more than +/-1V durign welding on the WM-101, includng which parts i need to check, replace, and what quality steps are required after the event?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "earth clamp",
+        "DCEP"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ]
+    },
+    {
+      "id": "G3-007",
+      "question": "WM-101 PPE required",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "shade 10",
+        "leather welding gloves"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ]
+    },
+    {
+      "id": "G3-005",
+      "question": "When must the maintenance supervisor be called for the WM-101?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "3 or more times in one shift",
+        "do not attempt electrical repairs"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ]
+    },
+    {
+      "id": "G3-008",
+      "question": "Can you tell me the exact steps for the sign‑off process after I finish the wire liner and drive roll service on the WM‑101, includng what I need to log and who must approve before I can put the machine back in production?",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "sign-off",
+        "shift log"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ]
+    },
+    {
+      "id": "G2-010",
+      "question": "wire feed instability after liner replacement",
+      "equip_tag": "WM-101",
+      "evidence": [
+        "first 5 minutes",
+        "expected"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ]
+    }
+  ]
+}

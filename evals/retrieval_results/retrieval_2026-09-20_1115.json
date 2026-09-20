@@ -1,0 +1,305 @@
+{
+  "_meta": {
+    "run_at": "2026-09-20T11:15:13",
+    "labels": "evals\\retrieval_labels.json",
+    "top_k": 12,
+    "note": "Phase 1 baseline. Compare against this after every Phase 3 change."
+  },
+  "scores": {
+    "found_in_top_12": 18,
+    "found_in_top_3": 14,
+    "mrr": 0.684,
+    "n": 18,
+    "app_would_refuse": 0
+  },
+  "rows": [
+    {
+      "id": "G1-004",
+      "question": "What is the recommended service interval for the drive rolls, and did the actual usage exceed this interval at the time of the incident?",
+      "evidence": [
+        "500 production hours",
+        "627"
+      ],
+      "rank": 1,
+      "hit_chunk": "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_3",
+      "hit_doc": "NCR: WM-101-NCR.txt",
+      "top_chunk": "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_3",
+      "top_doc": "NCR: WM-101-NCR.txt",
+      "top_score": 0.8915,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G1-006",
+      "question": "drive roll replacement schedule WM-101",
+      "evidence": [
+        "500 production hours"
+      ],
+      "rank": 2,
+      "hit_chunk": "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_5",
+      "hit_doc": "NCR: WM-101-NCR.txt",
+      "top_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_0",
+      "top_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_score": 0.8833,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G1-005",
+      "question": "What are the part numbers for the WM-101 drive rolls, wire liner and contact tip?",
+      "evidence": [
+        "GSW-DROLL-08",
+        "GSW-LINER-08",
+        "GSW-TIP-08"
+      ],
+      "rank": 2,
+      "hit_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_1",
+      "hit_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_0",
+      "top_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_score": 0.8594,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G1-010",
+      "question": "How should the wire feed tension be set on the WM-101, and what happens if it is too tight or too loose?",
+      "evidence": [
+        "finger-tight plus one quarter turn",
+        "too tight"
+      ],
+      "rank": 3,
+      "hit_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_1",
+      "hit_doc": "SOP: WM-101-SOP.txt",
+      "top_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_5",
+      "top_doc": "SOP: WM-101-SOP.txt",
+      "top_score": 0.8509,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G1-007",
+      "question": "When I keep gettin three or more wire fead motor overlad alrms in a single shift, what steps shoud I take as a maintenence tech to address the issue and avoid further problems?",
+      "evidence": [
+        "three or more times in a single shift",
+        "not an operator error"
+      ],
+      "rank": 1,
+      "hit_chunk": "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_6",
+      "hit_doc": "NCR: WM-101-NCR.txt",
+      "top_chunk": "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_6",
+      "top_doc": "NCR: WM-101-NCR.txt",
+      "top_score": 0.8794,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G2-001",
+      "question": "contact tip temperature alarm threshold WM-101",
+      "evidence": [
+        "contact tip temperature",
+        "220"
+      ],
+      "rank": 1,
+      "hit_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_2",
+      "hit_doc": "SOP: WM-101-SOP.txt",
+      "top_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_2",
+      "top_doc": "SOP: WM-101-SOP.txt",
+      "top_score": 0.8566,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G3-001",
+      "question": "What can cause a contact tip temperature high alarm on the WM-101?",
+      "evidence": [
+        "220",
+        "stickout",
+        "10-15mm"
+      ],
+      "rank": 1,
+      "hit_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_7",
+      "hit_doc": "SOP: WM-101-SOP.txt",
+      "top_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_7",
+      "top_doc": "SOP: WM-101-SOP.txt",
+      "top_score": 0.8534,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G2-003",
+      "question": "what wire diameter i need for thin section and structural steel?",
+      "evidence": [
+        "thin section",
+        "structural"
+      ],
+      "rank": 10,
+      "hit_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_3",
+      "hit_doc": "SOP: WM-101-SOP.txt",
+      "top_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_1",
+      "top_doc": "SOP: WM-101-SOP.txt",
+      "top_score": 0.8327,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G3-003",
+      "question": "what i do if shielding gas pressure low?",
+      "evidence": [
+        "shielding gas pressure low",
+        "20 bar"
+      ],
+      "rank": 1,
+      "hit_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_8",
+      "hit_doc": "SOP: WM-101-SOP.txt",
+      "top_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_8",
+      "top_doc": "SOP: WM-101-SOP.txt",
+      "top_score": 0.8941,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G2-005",
+      "question": "What are the detailed troubleshooting steps for a WM-101 wire feed motor overload alarm, including the primary causes, recommended adjustments, and post‑repair checks that a maintenance technician should follow?",
+      "evidence": [
+        "loosen pressure arm"
+      ],
+      "rank": 8,
+      "hit_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_4",
+      "hit_doc": "SOP: WM-101-SOP.txt",
+      "top_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_5",
+      "top_doc": "SOP: WM-101-SOP.txt",
+      "top_score": 0.8853,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G2-008",
+      "question": "What is the proper procedure for removing the old liner from the WM-101 MIG welder torch, including which end to pull it from, the tool needed, and what length information should be recorded for installing the new liner?",
+      "evidence": [
+        "torch end",
+        "feeder end"
+      ],
+      "rank": 1,
+      "hit_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_3",
+      "hit_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_3",
+      "top_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_score": 0.8791,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G3-004",
+      "question": "What must I do when inspecting spindles?",
+      "evidence": [
+        "spindle assembly",
+        "sign-off"
+      ],
+      "rank": 1,
+      "hit_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_6",
+      "hit_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_6",
+      "top_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_score": 0.84,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G3-002",
+      "question": "What steps shoud I take to chekc the wire fead after installing a new liner?",
+      "evidence": [
+        "test bead",
+        "escalate"
+      ],
+      "rank": 2,
+      "hit_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_5",
+      "hit_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_3",
+      "top_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_score": 0.8605,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G2-009",
+      "question": "Can you tell me what i shoud do if i see the arc volatge wobbles more than +/-1V durign welding on the WM-101, includng which parts i need to check, replace, and what quality steps are required after the event?",
+      "evidence": [
+        "earth clamp",
+        "DCEP"
+      ],
+      "rank": 1,
+      "hit_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_6",
+      "hit_doc": "SOP: WM-101-SOP.txt",
+      "top_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_6",
+      "top_doc": "SOP: WM-101-SOP.txt",
+      "top_score": 0.8759,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G3-007",
+      "question": "WM-101 PPE required",
+      "evidence": [
+        "shade 10",
+        "leather welding gloves"
+      ],
+      "rank": 1,
+      "hit_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_10",
+      "hit_doc": "SOP: WM-101-SOP.txt",
+      "top_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_10",
+      "top_doc": "SOP: WM-101-SOP.txt",
+      "top_score": 0.8617,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G3-005",
+      "question": "When must the maintenance supervisor be called for the WM-101?",
+      "evidence": [
+        "3 or more times in one shift",
+        "do not attempt electrical repairs"
+      ],
+      "rank": 8,
+      "hit_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_9",
+      "hit_doc": "SOP: WM-101-SOP.txt",
+      "top_chunk": "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_0",
+      "top_doc": "NCR: WM-101-NCR.txt",
+      "top_score": 0.8413,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G3-008",
+      "question": "Can you tell me the exact steps for the sign‑off process after I finish the wire liner and drive roll service on the WM‑101, includng what I need to log and who must approve before I can put the machine back in production?",
+      "evidence": [
+        "sign-off",
+        "shift log"
+      ],
+      "rank": 1,
+      "hit_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_8",
+      "hit_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_8",
+      "top_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_score": 0.8568,
+      "would_refuse": false,
+      "refuse_reason": ""
+    },
+    {
+      "id": "G2-010",
+      "question": "wire feed instability after liner replacement",
+      "evidence": [
+        "first 5 minutes",
+        "expected"
+      ],
+      "rank": 8,
+      "hit_chunk": "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_4",
+      "hit_doc": "Work Instruction: WM-101-Work-Instruction.txt",
+      "top_chunk": "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_5",
+      "top_doc": "SOP: WM-101-SOP.txt",
+      "top_score": 0.8807,
+      "would_refuse": false,
+      "refuse_reason": ""
+    }
+  ]
+}

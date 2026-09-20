@@ -5,5 +5,13 @@ __pycache__/
 *.pyo
 uploads/
 *.db
-.DS_Store"CONTEXT.md" 
+.DS_Store
+
 supabase/.temp/
+
+# Claude Code project notes - kept out of git by decision
+CLAUDE.md
+
+# Raw promptfoo run output (regenerated on every run; ~1MB each).
+# The keepers are committed: evals/baselines, evals/generated, evals/retrieval_results
+evals/results/

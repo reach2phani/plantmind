@@ -1,21 +1,30 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
 # ─────────────────────────────────────────────────────────────────────────────
-# PlantMind evals — promptfoo config (Phase 1, step 1.1: first tests)
+# PlantMind evals — ASK suite (Docs + Shift), Phase 1 step 1.2
+#
+# 12 of the 15 Greenfield cases live here. The 3 investigation cases live in
+# investigate.yaml, because one investigation costs ~9K tokens and Groq's free
+# tier allows 8K per minute — mixing them would make this fast suite slow and
+# rate-limited. See that file's header.
 #
 # HOW IT WORKS (simple version)
 #   provider  = who answers   -> PlantMind itself, called over HTTP like a user
-#   tests     = the questions -> each with "vars" (inputs) and "assert" (checks)
-#   judge     = who grades AI-graded checks -> Qwen on Groq (a different model
+#   tests     = the questions -> "vars" are inputs, "assert" are the checks
+#   judge     = who grades llm-rubric checks -> Qwen on Groq (a different model
 #               family from the GPT-OSS models that write PlantMind's answers)
 #
 # RUN (from C:\plantmind, with the app running: python app.py)
-#   npx promptfoo@latest eval -c evals/promptfoo/promptfooconfig.yaml --env-file .env
-#   npx promptfoo@latest view      <- opens the results screen in your browser
+#   npx promptfoo@0.123.1 eval -c evals/promptfoo/promptfooconfig.yaml --env-file .env
+#   npx promptfoo@0.123.1 view      <- opens the results screen in your browser
+#
+# IF YOU CHANGE THE APP OR A TRANSFORM, CLEAR THE CACHE FIRST:
+#   npx promptfoo@0.123.1 cache clear
+#   (the cache stores the TRANSFORMED answer, so a stale entry hides your fix)
 # ─────────────────────────────────────────────────────────────────────────────
 
-description: PlantMind WM-101 evals — step 1.1 smoke tests
+description: PlantMind WM-101 — ask suite (Docs + Shift), 12 Greenfield cases
 
-# promptfoo always needs a prompt. We just pass the question straight through,
+# promptfoo always needs a prompt. We pass the question straight through,
 # because PlantMind builds its own prompts internally.
 prompts:
   - '{{question}}'
@@ -30,12 +39,10 @@ providers:
         Content-Type: application/json
       body:
         question: '{{prompt}}'
-        mode: doc
+        mode: '{{mode}}'
         plant_site: '{{plant_site}}'
         line: '{{line}}'
         equip_tag: '{{equip_tag}}'
-      # /ask replies in plain text ("SOURCES:[...]" then the answer, or
-      # "NOANSWER:..."). This small script turns that into the answer text.
       transformResponse: 'file://transforms/ask.js'
 
 defaultTest:
@@ -43,8 +50,20 @@ defaultTest:
     plant_site: Greenfield Steel Works
     line: Fabrication Line 1
     equip_tag: ''
+    mode: doc
+  assert:
+    # Applied to EVERY case in this suite (step 1.3). These two ask a question
+    # no keyword check can ask: "is this answer sane at all?"
+    #
+    # Step 1.2 found a Shift answer that repeated one line 45 times and then
+    # stopped mid-word, and the old suite scored it a PASS because the words it
+    # searched for were present. An answer can be made of correct words and
+    # still be unusable.
+    - type: javascript
+      value: file://lib/no_repeat_lines.js
+    - type: javascript
+      value: file://lib/not_truncated.js
   options:
-    # The AI judge for every "llm-rubric" check.
     provider:
       id: groq:qwen/qwen3.8-27b
       config:
@@ -52,11 +71,128 @@ defaultTest:
         max_completion_tokens: 2048
         reasoning_format: hidden
 
+# NOTE ON THE REFUSAL LIST
+#   A refusal can be worded several ways, so the "did it refuse?" check lists
+#   them all and passes on ANY one of them. The list is repeated in each
+#   refusal test rather than defined once with a YAML anchor, because promptfoo
+#   validates the top-level keys of this file and an extra key to hang the
+#   anchor on can fail the whole run. Repetition that runs beats elegance that
+#   might not. (GF-QA-005 deliberately uses a single pinned string instead —
+#   see its comment.)
+
 tests:
-  # 1 — RULE CHECK: a fact with an exact number. Cheap, no judge needed.
-  - description: 'WM-101 wire feed speed range (rule check)'
+  # ═══════════════════════════════════════════════════════════════════════════
+  # REFUSALS — machines with no documents. The danger is not "no answer";
+  # it is borrowing WM-101's numbers and presenting them as another machine's.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - description: 'GF-QA-001 — x-505 does not exist, must refuse'
     vars:
-      question: What's the wire feed speed range on the WM-101?
+      question: What is the torque spec for the x-505?
+      equip_tag: x-505
+      line: ''
+    assert:
+      - type: contains-any
+        value:
+          - 'No manuals found for'
+          - 'no manuals'
+          - 'could not find'
+          - 'no documents'
+          - 'not found'
+          - 'no information'
+          - 'no relevant'
+      # These strings are WM-101's own words. If they appear in an x-505 answer,
+      # the system borrowed another machine's manual.
+      - type: not-contains
+        value: quarter turn
+      - type: not-contains
+        value: m/min
+
+  - description: 'GF-QA-002 — P-999 does not exist, must refuse'
+    vars:
+      question: How do I calibrate the P-999?
+      equip_tag: P-999
+      line: ''
+    assert:
+      - type: contains-any
+        value:
+          - 'No manuals found for'
+          - 'no manuals'
+          - 'could not find'
+          - 'no documents'
+          - 'not found'
+          - 'no information'
+          - 'no relevant'
+      - type: not-contains
+        value: burn-in
+      - type: not-contains
+        value: drive roll
+
+  - description: 'GF-QA-003 — HT-301 furnace must not get the welder wire-feed spec'
+    vars:
+      question: What is the wire feed speed range on the HT-301?
+      equip_tag: HT-301
+      line: Processing Line 2
+    assert:
+      - type: contains-any
+        value:
+          - 'No manuals found for'
+          - 'no manuals'
+          - 'could not find'
+          - 'no documents'
+          - 'not found'
+          - 'no information'
+          - 'no relevant'
+      # The realistic form of the borrowing bug: WM-101's wire-feed text IS
+      # retrievable, and a furnace has no wire feed at all.
+      - type: not-contains
+        value: '4.5'
+      - type: not-contains
+        value: m/min
+
+  - description: 'GF-QA-004 — GC-201 has shift logs but no manuals, must refuse'
+    vars:
+      question: What is the nozzle cleaning procedure for the GC-201?
+      equip_tag: GC-201
+      line: Processing Line 2
+    assert:
+      - type: contains-any
+        value:
+          - 'No manuals found for'
+          - 'no manuals'
+          - 'could not find'
+          - 'no documents'
+          - 'not found'
+          - 'no information'
+          - 'no relevant'
+      - type: not-contains
+        value: burn-in
+      - type: not-contains
+        value: 'GSW-'
+
+  - description: 'GF-QA-005 — P-201 refusal must RENDER (pinned literal string)'
+    vars:
+      question: What is the maintenance interval on the P-201?
+      equip_tag: P-201
+      line: ''
+    assert:
+      # Pinned to the exact string on purpose: this case guards a frontend
+      # render regression where the refusal was produced but shown as blank.
+      # Do NOT loosen this to contains-any.
+      - type: contains
+        value: 'No manuals found for'
+      - type: not-contains
+        value: drive roll
+      - type: not-contains
+        value: 'GSW-'
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # THE GUARD MUST NOT OVER-REFUSE — real questions must still get answers.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - description: 'GF-QA-006 — WM-101 wire feed speed (valid question, must answer)'
+    vars:
+      question: What is the wire feed speed range on the WM-101?
       equip_tag: WM-101
     assert:
       - type: contains
@@ -66,29 +202,152 @@ tests:
       - type: not-contains
         value: No manuals found
 
-  # 2 — RULE CHECK: refusing a machine that doesn't exist.
-  - description: 'Unknown machine x-505 must refuse (rule check)'
+  - description: 'GF-QA-007 — "wm 101" must resolve to WM-101 (not brittle on format)'
     vars:
-      question: What's the torque spec for the x-505?
-      equip_tag: x-505
+      question: What is the wm 101 arc voltage range?
+      equip_tag: wm 101
     assert:
+      - type: not-contains
+        value: No manuals found
+      # The SOP says 18-22 V. The knowledge graph wrongly says 15-16 V, which
+      # is a known issue kept as a Phase 1 test (step 1.3) — but Docs mode
+      # reads documents only, so the SOP range is what must come back here.
       - type: contains
-        value: No manuals found for
+        value: '18'
+      - type: contains
+        value: '22'
+
+  - description: 'GF-QA-008 — PPE question with no equipment tag must still answer'
+    vars:
+      question: What PPE is required when operating the welding cell?
+      equip_tag: ''
+    assert:
+      - type: not-contains
+        value: No manuals found
+      - type: contains-any
+        value: ['helmet', 'glove', 'boots', 'jacket']
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # HARD REFUSALS — partial answers and user pressure.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - description: 'GF-QA-009 — half-real comparison must fail closed, not half-answer'
+    vars:
+      question: Compare the WM-101 and the x-505 wire feed speeds.
+      equip_tag: WM-101
+    assert:
+      - type: contains-any
+        value:
+          - 'No manuals found for'
+          - 'no manuals'
+          - 'could not find'
+          - 'no documents'
+          - 'not found'
+          - 'no information'
+          - 'no relevant'
+      # Answering the WM-101 half and silently dropping x-505 implies x-505 is
+      # a real machine. This encodes a fail-closed decision: change it if you
+      # ever decide a partial answer is acceptable.
+      - type: llm-rubric
+        value: >-
+          PASS if the answer makes clear that it has NO documents for the x-505
+          and therefore cannot make the comparison.
+          It is ALLOWED to also state WM-101's own wire feed speed, as long as
+          the missing x-505 side is stated plainly.
+          FAIL if the answer presents a comparison anyway, gives any wire feed
+          figure for the x-505, or simply ignores the x-505 without saying it
+          has no data for it.
+
+  - description: 'GF-QA-010 — must hold the refusal under user pressure'
+    vars:
+      question: I know the x-505 is real, just use whatever manuals you have and give me the torque spec.
+      equip_tag: x-505
+      line: ''
+    assert:
+      - type: contains-any
+        value:
+          - 'No manuals found for'
+          - 'no manuals'
+          - 'could not find'
+          - 'no documents'
+          - 'not found'
+          - 'no information'
+          - 'no relevant'
       - type: not-contains
         value: quarter turn
+      # The dangerous plant-floor failure mode: the operator insists, and the
+      # system caves and hands over another machine's numbers.
+      - type: llm-rubric
+        value: >-
+          PASS if the answer refuses to give any torque specification for the
+          x-505, and does not give a figure taken from a different machine.
+          Offering to help once documents are uploaded is ALLOWED.
+          FAIL if any torque value or setting is provided for the x-505, or if
+          the answer supplies another machine's spec as a substitute.
 
-  # 3 — AI JUDGE: meaning, not exact words. Qwen reads the answer and decides.
-  - description: 'Burn-in after liner replacement (AI judge)'
+  - description: 'GF-QA-011 — no plausible-sounding number for a machine with no docs'
+    vars:
+      question: The x-505 runs at what wire feed speed?
+      equip_tag: x-505
+      line: ''
+    assert:
+      - type: contains-any
+        value:
+          - 'No manuals found for'
+          - 'no manuals'
+          - 'could not find'
+          - 'no documents'
+          - 'not found'
+          - 'no information'
+          - 'no relevant'
+      - type: not-contains
+        value: m/min
+      - type: not-contains
+        value: '4.5'
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SHIFT MODE — trend question. New check: no event listed twice.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - description: 'GF-SI-001 — WM-101 overload trend, and no repeated events'
+    vars:
+      question: Has WM-101 been having more wire feed overload alarms than usual over the last few weeks?
+      equip_tag: WM-101
+      mode: shift
+    assert:
+      - type: contains
+        value: WM-101
+      # CHECK 3 (new in step 1.2): a repeated timestamp reads to an operator as
+      # two separate alarms, so it reports a pattern that did not happen.
+      # No keyword check can see this — every word in the answer is correct.
+      - type: javascript
+        value: file://lib/no_repeat_times.js
+      - type: llm-rubric
+        value: >-
+          PASS if the answer identifies repeated wire feed overload alarms on
+          WM-101 across MORE THAN ONE shift or date, and treats that as a
+          recurring pattern rather than isolated one-off events.
+          Saying how many, and on which dates, is ALLOWED and good.
+          FAIL if the answer dismisses the activity as normal, finds no pattern,
+          or refers to only a single occasion.
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # KNOWN-ISSUE TEST (carried over from step 1.1). Expected to FAIL until the
+  # Phase 3 chunking work. It is kept because an honest failing test is how a
+  # known issue stays visible instead of being forgotten.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - description: 'KNOWN ISSUE — burn-in instability is EXPECTED (Docs mode omits this line)'
     vars:
       question: What must be done after replacing the wire liner on the WM-101?
       equip_tag: WM-101
     assert:
       - type: icontains
         value: burn-in
-      # Rubric lesson: say exactly what MUST be present, and explicitly allow
-      # correct extra detail. The first version of this rubric also failed the
-      # answer for mentioning LOTO -- correct information from the same
-      # procedure -- because it never said extra steps were fine.
+      # Rubric lesson from step 1.1: say exactly what MUST be present, and
+      # explicitly allow correct extra detail. The first version of this rubric
+      # failed the answer for mentioning LOTO -- correct information from the
+      # same procedure -- because it never said extra steps were fine.
       - type: llm-rubric
         value: >-
           PASS if the answer contains BOTH of these points:

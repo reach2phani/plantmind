@@ -187,19 +187,24 @@ def log_llm_call(fn, call_type, model, plant_site="", equip_tag="", graph_source
 
 def log_streaming_call(call_type, model, input_text, output_text,
                        latency_ms, error=None, plant_site="", equip_tag="",
-                       finish_reason=None):
+                       finish_reason=None, usage=None):
     """
     Log a streaming Groq call after all chunks have been collected.
 
-    Streaming responses don't return token counts — we estimate from text length.
+    Token counts: pass `usage` (Groq sends real counts on the final streamed
+    chunk) and they are used as-is. Without it we fall back to estimating from
+    text length — which misses the hidden reasoning tokens of GPT-OSS models,
+    so it undercounts (a 3-word reply: estimated 5 output tokens, real 23).
 
     Teaching note: streaming is harder to observe than non-streaming because
     the response arrives in pieces. The pattern here is to collect the full
     output first, then log. The latency is wall-clock time from first chunk
     request to last chunk received.
     """
-    input_tokens  = _estimate_tokens(input_text)
-    output_tokens = _estimate_tokens(output_text)
+    real_in  = getattr(usage, "prompt_tokens", None) if usage else None
+    real_out = getattr(usage, "completion_tokens", None) if usage else None
+    input_tokens  = real_in  if real_in  is not None else _estimate_tokens(input_text)
+    output_tokens = real_out if real_out is not None else _estimate_tokens(output_text)
 
     _log_async(
         model=model, call_type=call_type,

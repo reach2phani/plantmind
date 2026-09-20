@@ -1,0 +1,190 @@
+{
+  "_meta": {
+    "generated_at": "2026-09-18T11:42:25",
+    "equip_tag": "WM-101",
+    "plant_site": "Greenfield Steel Works",
+    "doc_types": [
+      "SOP",
+      "Work Instruction",
+      "NCR"
+    ],
+    "chunks_available": 29,
+    "chunks_used": [
+      "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_7",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_5",
+      "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_8",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_6",
+      "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_9",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_7",
+      "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_10",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_8",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_9"
+    ],
+    "models": {
+      "extraction": "openai/gpt-oss-20b",
+      "questions": "openai/gpt-oss-120b"
+    },
+    "ragas_synthesizer": "single_hop_specific",
+    "how_to_review": "Set each 'review' to keep / fix / drop. For 'fix', edit the question or reference_answer directly.",
+    "reviewed": "2026-09-18 - Claude suggested, user approved ('lock the final set')"
+  },
+  "questions": [
+    {
+      "id": "GEN-001",
+      "question": "What can cause a contact tip temperature high alarm on the WM-101?",
+      "reference_answer": "Contact tip temperature above 220 C indicates one of: tip wear causing increased electrical resistance; spatter blockage reducing gas flow and cooling; or incorrect wire-to-tip gap - stickout should be 10-15 mm.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_7"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "Any parts welded during an arc instability event must be flagged for\nquality inspection. Do not pass parts without inspection.\n\n4.3 Contact Tip Temperature High\nAlarm message: \"Contact tip temperature high — possible tip wear or blockage\"\n\nContact tip temperature above 220°C indicates one of:\n  - Tip wear causing increased electrical resistance\n  - Spatter blockage reducing gas flow and cooling\n  - Incorrect wire-to-tip gap (should be 10-15mm stickout)\n\nImmediate action:\n  Step 1 — Stop welding. Allow 10 minutes cooling before touching tip.\n  Step 2 — Inspect tip for visible wear, blockage, or burn damage.\n  Step 3 — Replace contact tip (see Section 2.2 for torque spec).\n  Step 4 — Check stickout distance: 10-15mm from tip to workpiece.\n  Step 5 — Resume welding and monitor temperature for first 5 minutes.\n\n4.4 Shielding Gas Pressure Low\nAlarm message: \"Shielding gas pressure low — check cylinder and regulator\""
+      ],
+      "persona": "Line operator",
+      "review": "fix",
+      "review_notes": "Overlapped batch-2 GEN-001 (220 C); refocused on the causes, which carry the untested 10-15 mm stickout spec.",
+      "original_question": "Tip wear alarm cause and corrective steps",
+      "original_reference_answer": "The alarm \"Contact tip temperature high — possible tip wear or blockage\" is triggered when the contact tip temperature exceeds 220 °C. A temperature above this level can indicate tip wear, which increases electrical resistance. The recommended immediate actions are: 1) Stop welding and allow the tip to cool for 10 minutes before touching it. 2) Inspect the tip for visible wear, blockage, or burn damage. 3) Replace the contact tip according to the torque specification in Section 2.2. 4) Verify the wire‑to‑tip gap (stickout) is 10‑15 mm. 5) Resume welding and monitor the tip temperature for the first 5 minutes."
+    },
+    {
+      "id": "GEN-002",
+      "question": "What steps shoud I take to chekc the wire fead after installing a new liner?",
+      "reference_answer": "Run a test bead on scrap material. The wire feed should be smooth and consistent, and the arc should be stable within ±1 V. If the wire feed motor overload alarm still occurs after the new liner and burn‑in, escalate to the maintenance supervisor, as the motor or drive assembly may be faulty.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_5"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "STEP 10 — Verify\n  Run a test bead on scrap material.\n  Wire feed should be smooth and consistent.\n  Arc should be stable within ±1V.\n  If wire feed motor overload alarm still occurs after new liner and burn-in:\n  escalate to maintenance supervisor — motor or drive assembly may be faulty.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n4. DRIVE ROLL REPLACEMENT — STEP BY STEP\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nSTEP 1 — LOTO\n  Apply LOTO as described in Section 3 Step 1.\n\nSTEP 2 — Open wire feeder panel\n  Open the wire feeder side panel (two screws, flat-head driver).\n  Locate the drive roll assembly — two rolls, upper and lower.\n\nSTEP 3 — Release tension\n  Release the pressure arm to remove tension from drive rolls.\n  Do not attempt to remove drive rolls under tension."
+      ],
+      "persona": "Maintenance technician",
+      "review": "keep",
+      "review_notes": "Post-liner verify: test bead on scrap, arc stable within +-1V, escalate if overload persists."
+    },
+    {
+      "id": "GEN-003",
+      "question": "what i do if shielding gas pressure low?",
+      "reference_answer": "Stop welding immediately. Check the cylinder gauge; if below 20 bar, replace the cylinder. If the cylinder is adequate, check the regulator and all hose connections. Test gas flow at the torch by holding it over paper. Do not resume until gas flow is confirmed at the correct rate of 10-15 L/min. Parts welded without shielding gas must be held back from production - quarantined for inspection or scrapped - and must never be passed on visual appearance.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_8"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "4.4 Shielding Gas Pressure Low\nAlarm message: \"Shielding gas pressure low — check cylinder and regulator\"\n\nCRITICAL — do not weld without shielding gas. Welds produced without gas\nare porous and structurally unsafe. All parts welded without gas must be\nscrapped regardless of visual appearance.\n\nImmediate action:\n  Step 1 — Stop welding immediately.\n  Step 2 — Check cylinder gauge — if below 20 bar, replace cylinder.\n  Step 3 — If cylinder is adequate: check regulator and all hose connections.\n  Step 4 — Test gas flow at torch: hold torch over paper — should see gas flow.\n  Step 5 — Do not resume until gas flow is confirmed at correct rate (10-15 L/min).\n  Step 6 — Mark any parts welded after the alarm triggered — flag for inspection.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n5. ESCALATION — WHEN TO CALL MAINTENANCE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCall maintenance supervisor immediately if any of the following occur:"
+      ],
+      "persona": "Line operator",
+      "review": "fix",
+      "review_notes": "Numbers kept (20 bar, 10-15 L/min). Parts decision changed to the LOCKED ruling 'inspect first': parts must be held back; inspect OR scrap both pass. SOP Rev 1.0 says scrap; SOP Rev 1.1 (Phase 3) will say inspect first.",
+      "original_reference_answer": "Stop welding immediately. Check the cylinder gauge; if it is below 20 bar replace the cylinder. If the cylinder pressure is OK, inspect the regulator and all hose connections. Test gas flow at the torch by holding it over paper – you should see gas flow. Do not resume welding until gas flow is confirmed at the correct rate (10‑15 L/min). Mark any parts welded after the alarm for inspection. Welding without shielding gas is critical – all such welds must be scrapped."
+    },
+    {
+      "id": "GEN-004",
+      "question": "What must I do when inspecting spindles?",
+      "reference_answer": "When inspecting spindles, check the spindle surfaces for wear or scoring; if the spindle is worn, do not install new drive rolls but replace the spindle assembly, which requires maintenance supervisor sign‑off.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_6"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "STEP 3 — Release tension\n  Release the pressure arm to remove tension from drive rolls.\n  Do not attempt to remove drive rolls under tension.\n\nSTEP 4 — Remove drive rolls\n  Pull the upper drive roll straight off the spindle.\n  Use spanner to remove the lower drive roll retaining nut (10mm).\n  Pull lower drive roll off spindle.\n\nSTEP 5 — Inspect spindles\n  Check spindle surfaces for wear or scoring.\n  If spindle is worn, do not install new drive rolls — replace spindle assembly.\n  Spindle replacement requires maintenance supervisor sign-off.\n\nSTEP 6 — Clean drive area\n  Blow compressed air to clear all wire fragments from drive area.\n  Wipe spindles clean with dry cloth."
+      ],
+      "persona": "Line operator",
+      "review": "keep",
+      "review_notes": "Worn spindle: do not fit new rolls, replace spindle assembly, needs maintenance supervisor sign-off."
+    },
+    {
+      "id": "GEN-005",
+      "question": "When must the maintenance supervisor be called for the WM-101?",
+      "reference_answer": "Call the maintenance supervisor immediately if any of the following occur: the same alarm type occurs three or more times in one shift; the wire feed motor overload cannot be cleared by tension adjustment; arc instability persists after earth clamp and contact tip replacement; any electrical fault codes appear on the power source display; the torch lead is damaged, kinked, or shows signs of coolant leak; or the power source fails to enable or trips on startup. Do not attempt electrical repairs; instead, call maintenance.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_9"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "Call maintenance supervisor immediately if any of the following occur:\n\n- Same alarm type occurs 3 or more times in one shift\n- Wire feed motor overload cannot be cleared by tension adjustment\n- Arc instability persists after earth clamp and contact tip replacement\n- Any electrical fault codes on power source display\n- Torch lead is damaged, kinked, or showing signs of coolant leak\n- Power source fails to enable or trips on startup\n\nDo not attempt electrical repairs. Call maintenance.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n6. END OF SHIFT PROCEDURE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n- Turn off power source at main switch\n- Close shielding gas cylinder valve\n- Release wire tension at drive rolls\n- Record any alarms or faults in shift log\n- Note wire spool remaining (metres) for next shift\n- If contact tip was replaced: note in shift log"
+      ],
+      "persona": "Maintenance technician",
+      "review": "fix",
+      "review_notes": "Content good; question shortened to one clear ask.",
+      "original_question": "When should I call the maintenance supervisor according to WM-101 procedures, including alarm frequency, wire feed motor overload, arc instability after earth clamp and contact tip replacement, electrical fault codes, torch lead damage, and power source startup failures?"
+    },
+    {
+      "id": "GEN-006",
+      "question": "Can you explain the proper procedurre to cleen the drvie area on the WM-101, includng the exact steps I shoud take to remvoe any wire fragmnts and get the spindles ready for the next install?",
+      "reference_answer": "To clean the drive area, first blow compressed air to clear all wire fragments from the drive area. Then wipe the spindles clean with a dry cloth.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_7"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "STEP 6 — Clean drive area\n  Blow compressed air to clear all wire fragments from drive area.\n  Wipe spindles clean with dry cloth.\n\nSTEP 7 — Install new drive rolls\n  Match new drive roll groove to wire diameter (0.8mm or 1.0mm).\n  Fit lower drive roll to spindle and tighten retaining nut — firm, not overtightened.\n  Fit upper drive roll to spindle — push to seat firmly.\n  Confirm both rolls are aligned — grooves must line up precisely.\n  Misaligned grooves cause wire to twist and increase liner wear.\n\nSTEP 8 — Set tension\n  Thread wire through drive rolls.\n  Set tension: finger-tight plus one quarter turn on pressure arm.\n  Pull wire by hand past the rolls — should feel firm resistance, not slipping.\n  If wire slips: increase tension by quarter turn.\n  If motor overload alarm occurs during test: reduce tension by half turn."
+      ],
+      "persona": "Maintenance technician",
+      "review": "drop",
+      "review_notes": "Trivial (blow air, wipe with a cloth)."
+    },
+    {
+      "id": "GEN-007",
+      "question": "WM-101 PPE required",
+      "reference_answer": "PPE required at all times when operating WM-101 includes an auto-darkening welding helmet (minimum shade 10), leather welding gloves, a flame-resistant welding jacket, steel-capped safety boots, and hearing protection when press HC-401 is running nearby.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_10"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n7. SAFETY\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nPPE required at all times when operating WM-101:\n  - Auto-darkening welding helmet (minimum shade 10)\n  - Leather welding gloves\n  - Flame-resistant welding jacket\n  - Steel-capped safety boots\n  - Hearing protection in effect when press HC-401 is running nearby\n\nLOTO procedure required before any maintenance or liner replacement:\n  - Isolate power at main disconnect\n  - Lock with personal padlock\n  - Tag with operator name and date\n  - Test that machine cannot be enabled before starting work\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEND OF DOCUMENT — WM-101-SOP Rev 1.0\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      ],
+      "persona": "Maintenance technician",
+      "review": "keep",
+      "review_notes": "Richer than hand-written GF-QA-008: adds helmet minimum shade 10 and hearing protection near HC-401."
+    },
+    {
+      "id": "GEN-008",
+      "question": "Can you tell me the exact steps for the sign‑off process after I finish the wire liner and drive roll service on the WM‑101, includng what I need to log and who must approve before I can put the machine back in production?",
+      "reference_answer": "After completing the work instruction, you must record the completion in the shift log, note the parts used and their part numbers, and note the technician name and time completed. A supervisor sign‑off is required before returning the machine to production.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_8"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "STEP 9 — Close panel and verify\n  Close wire feeder panel. Replace screws.\n  Remove LOTO. Restore power.\n  Run wire at 5.0 m/min for 30 seconds.\n  Confirm no overload alarm and consistent wire feed speed.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n5. EXPECTED TIME\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n  Wire liner replacement:  25 — 35 minutes\n  Drive roll replacement:  15 — 20 minutes\n  Both together:           40 — 50 minutes\n  Burn-in and verify:      10 minutes\n\nTotal downtime: approximately 1 hour for full liner and drive roll service.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n6. SIGN-OFF\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nAfter completing this work instruction:\n  - Record completion in the shift log\n  - Note parts used and part numbers\n  - Note technician name and time completed\n  - Supervisor sign-off required before returning machine to production"
+      ],
+      "persona": "Line operator",
+      "review": "keep",
+      "review_notes": "Sign-off: log in shift log with part numbers, technician and time; supervisor sign-off before production."
+    },
+    {
+      "id": "GEN-009",
+      "question": "What exact end-of-document line and revision identifier are shown in the WM-101 service manual (END OF DOCUMENT — WI‑WM101‑001 Rev 1.0)?",
+      "reference_answer": "The document ends with the line: END OF DOCUMENT — WI‑WM101‑001 Rev 1.0.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_9"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEND OF DOCUMENT — WI-WM101-001 Rev 1.0\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      ],
+      "persona": "Maintenance technician",
+      "review": "drop",
+      "review_notes": "Asks for the end-of-document line - meaningless."
+    }
+  ]
+}

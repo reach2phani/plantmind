@@ -1,0 +1,196 @@
+{
+  "_meta": {
+    "generated_at": "2026-09-18T11:24:35",
+    "equip_tag": "WM-101",
+    "plant_site": "Greenfield Steel Works",
+    "doc_types": [
+      "SOP",
+      "Work Instruction",
+      "NCR"
+    ],
+    "chunks_used": 29,
+    "models": {
+      "extraction": "openai/gpt-oss-20b",
+      "questions": "openai/gpt-oss-120b"
+    },
+    "ragas_synthesizer": "single_hop_specific",
+    "how_to_review": "Set each 'review' to keep / fix / drop. For 'fix', edit the question or reference_answer directly.",
+    "reviewed": "2026-09-18 - Claude suggested, user approved ('lock the final set')"
+  },
+  "questions": [
+    {
+      "id": "GEN-001",
+      "question": "What were the effects and required actions when wire feed motor overload alarms occurred on the WM-101 during the night shift?",
+      "reference_answer": "The WM-101 generated wire feed motor overload alarms three times on the night shift of 13 November 2024, at 23:14, 01:47, and 04:22. Each alarm stopped production for an average of 18 minutes while the operator cleared the fault and adjusted the wire tension, resulting in a total downtime of 54 minutes for the shift. During the third alarm at 04:22, the wire bird‑nested at the drive rolls, prompting the shift supervisor to be called to clear the nest and re‑thread the wire, which extended the downtime for that event to 35 minutes.",
+      "source_chunks": [
+        "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_0"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ],
+      "source_text": [
+        "NON-CONFORMANCE REPORT\nEquipment: WM-101 MIG Welder\nDocument Type: NCR\nReference: NCR-2024-047\nRevision: 1.0\nPlant: Greenfield Steel Works\nLine: Fabrication Line 1\nRaised by: Shift Supervisor — D. Kowalski\nDate raised: 14 November 2024\nStatus: Closed\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n1. NON-CONFORMANCE DESCRIPTION\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nWM-101 generated wire feed motor overload alarms on three separate\noccasions during the night shift on 13 November 2024. The alarms\noccurred at 23:14, 01:47, and 04:22.\n\nEach alarm caused a production stop averaging 18 minutes while the\noperator cleared the fault and adjusted wire tension. Total downtime\nattributable to this fault: 54 minutes across the shift.\n\nOn the third alarm at 04:22, the wire birdnested at the drive rolls,\nrequiring the shift supervisor to be called to clear the nest and\nre-thread the wire. This extended the downtime to 35 minutes for\nthe third event."
+      ],
+      "persona": "Line operator",
+      "review": "drop",
+      "review_notes": "Trivia about one past night shift (alarm times, downtime minutes)."
+    },
+    {
+      "id": "GEN-002",
+      "question": "What result got the quality inspection on parts welded at 01:47?",
+      "reference_answer": "The quality inspection, done by technician R. Singh on 14 November 2024, found 3 of the 12 parts welded during the 01:47 event had incomplete fusion at the weld root and were scrapped (Batch Reference: GS-NOV-0447). The remaining 41 parts passed visual inspection and were released.",
+      "source_chunks": [
+        "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_1"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ],
+      "source_text": [
+        "Parts welded during the 01:47 event were flagged for quality inspection\nas arc instability was observed following the wire feed fault. Inspection\nfound 3 of 12 parts with incomplete fusion at the weld root. These parts\nwere scrapped (Batch Reference: GS-NOV-0447).\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n2. IMMEDIATE CONTAINMENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nFollowing the third alarm, WM-101 was taken out of service for the\nremainder of the shift. Production was transferred to WM-102 on\nFabrication Line 2 for the balance of the night shift.\n\nAll parts welded on WM-101 during the shift were quarantined pending\nquality inspection. Inspection completed 14 November 2024 by quality\ntechnician R. Singh.\n\nInspection result: 3 parts scrapped (incomplete root fusion). \nRemaining 41 parts passed visual inspection and were released."
+      ],
+      "persona": "Maintenance technician",
+      "review": "drop",
+      "review_notes": "Trivia; reference answer also mixes '3 of 12' with '41 passed' from a different chunk."
+    },
+    {
+      "id": "GEN-003",
+      "question": "What first check after visual inspeccion?",
+      "reference_answer": "After visual inspection, 41 parts passed and were released, while 3 parts were scrapped due to incomplete root fusion.",
+      "source_chunks": [
+        "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_2"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ],
+      "source_text": [
+        "Inspection result: 3 parts scrapped (incomplete root fusion). \nRemaining 41 parts passed visual inspection and were released.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n3. ROOT CAUSE INVESTIGATION\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nMaintenance technician T. Baxter inspected WM-101 on 14 November 2024.\n\nFindings:\n\n3.1 Drive Rolls\nDrive rolls showed significant groove wear. The 0.8mm groove had worn\nto approximately 1.1mm measured width. This increased groove allows the\nwire to sit lower in the groove, reducing grip and causing inconsistent\nfeed speed. When the operator increased tension to compensate, the\nadditional pressure caused motor overload."
+      ],
+      "persona": "Line operator",
+      "review": "drop",
+      "review_notes": "Garbled question and the reference answer does not answer it."
+    },
+    {
+      "id": "GEN-004",
+      "question": "What is the recommended service interval for the drive rolls, and did the actual usage exceed this interval at the time of the incident?",
+      "reference_answer": "The recommended service interval for the drive rolls is 6 months or 500 production hours, whichever comes first. At the time of the incident, the drive rolls had accumulated 627 production hours, exceeding the 500‑hour limit and the 6‑month interval, indicating that the service interval had been surpassed.",
+      "source_chunks": [
+        "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_3"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ],
+      "source_text": [
+        "The drive rolls had not been replaced since the last recorded service\nin March 2024 — 8 months of continuous production. Recommended service\ninterval is 6 months or 500 production hours, whichever comes first.\nService records showed 627 production hours on the current drive rolls\nat the time of the incident.\n\n3.2 Wire Liner\nLiner inspection found the liner partially blocked at the point where\nthe torch neck bends. Wire debris had accumulated at the bend, increasing\nresistance. This contributed to the motor overload condition in combination\nwith the worn drive rolls.\n\n3.3 Root Cause — Primary\nWorn drive rolls beyond service interval. Drive rolls should have been\nreplaced at the 6-month / 500-hour service in September 2024.\nService was not completed due to line demand during the autumn production\npeak. The service was deferred without a rescheduled date being set."
+      ],
+      "persona": "Maintenance technician",
+      "review": "keep",
+      "review_notes": "Real spec: drive roll interval 6 months / 500 hours, and it was exceeded (627 h)."
+    },
+    {
+      "id": "GEN-005",
+      "question": "What are the part numbers for the WM-101 drive rolls, wire liner and contact tip?",
+      "reference_answer": "Drive rolls GSW-DROLL-08, wire liner GSW-LINER-08, contact tip GSW-TIP-08 (the 0.8 mm parts fitted in the NCR-2024-047 corrective action).",
+      "source_chunks": [
+        "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_4"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ],
+      "source_text": [
+        "3.4 Root Cause — Contributing\nWire liner partially blocked, increasing feed resistance. Liner should\nhave been inspected as part of the deferred September service.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n4. CORRECTIVE ACTION\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n4.1 Immediate corrective action (completed 14 November 2024)\n  - Drive rolls replaced: Part No. GSW-DROLL-08, fitted by T. Baxter\n  - Wire liner replaced: Part No. GSW-LINER-08, fitted by T. Baxter\n  - Contact tip replaced as precaution: Part No. GSW-TIP-08\n  - Burn-in procedure completed per WI-WM101-001\n  - Test welds ran and inspected — all passed\n  - WM-101 returned to service 14 November 2024 at 14:30"
+      ],
+      "persona": "Maintenance technician",
+      "review": "fix",
+      "review_notes": "Rewritten from incident history into the part numbers it contains.",
+      "original_question": "What burn-in procedure was performed on the WM-101 during the November 2024 corrective action?",
+      "original_reference_answer": "The burn-in procedure was completed per WI-WM101-001 as part of the immediate corrective action on 14 November 2024. It followed the replacement of drive rolls (Part No. GSW-DROLL-08), wire liner (Part No. GSW-LINER-08), and contact tip (Part No. GSW-TIP-08), after which test welds were run and inspected, all passing, and the WM-101 was returned to service at 14:30."
+    },
+    {
+      "id": "GEN-006",
+      "question": "drive roll replacement schedule WM-101",
+      "reference_answer": "The planned maintenance schedule requires drive roll replacement every 6 months or 500 production hours, whichever comes first, and a production hour counter has been added to the WM-101 operator checklist to track hours weekly.",
+      "source_chunks": [
+        "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_5"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ],
+      "source_text": [
+        "4.2 Systemic corrective action\n  - Planned maintenance schedule updated: drive roll replacement every\n    6 months or 500 production hours, whichever comes first.\n  - A production hour counter was added to the WM-101 operator checklist\n    so hours can be tracked weekly.\n  - Any planned maintenance deferral now requires written sign-off from\n    the Plant Manager and a rescheduled date must be set within 2 weeks.\n  - All deferred services on Fabrication Line 1 equipment were reviewed.\n    Two additional items identified and scheduled for December 2024.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n5. LESSONS LEARNED\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      ],
+      "persona": "Line operator",
+      "review": "keep",
+      "review_notes": "Keyword-style search, the way operators actually type."
+    },
+    {
+      "id": "GEN-007",
+      "question": "When I keep gettin three or more wire fead motor overlad alrms in a single shift, what steps shoud I take as a maintenence tech to address the issue and avoid further problems?",
+      "reference_answer": "The occurrence of three or more wire feed motor overload alarms in a single shift is a reliable indicator of worn drive rolls or a blocked liner, not an operator error. The correct response is to stop production immediately and conduct a full inspection of the drive rolls and liner rather than continuing to adjust tension. Operators should escalate the problem to maintenance right away. Continuing production despite repeated overload alarms can lead to motor burnout, weld quality defects from inconsistent wire feed speed, arc instability events that cause parts to be scrapped, and birdnesting events that result in extended downtime.",
+      "source_chunks": [
+        "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_6"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ],
+      "source_text": [
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n5. LESSONS LEARNED\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nWhen wire feed motor overload alarms occur three or more times in a\nsingle shift, this is a reliable indicator of worn drive rolls or a\nblocked liner — not an operator error. The correct response is to\nstop production and conduct a full drive roll and liner inspection\nrather than continuing to adjust tension.\n\nContinuing production with repeated overload alarms risks:\n  - Motor burnout (expensive repair, long lead time for replacement)\n  - Weld quality defects from inconsistent wire feed speed\n  - Arc instability events causing parts to be scrapped\n  - Birdnesting events causing extended downtime\n\nOperators who encounter three or more wire feed overload alarms in a\nshift should escalate to maintenance immediately rather than attempting\nfurther tension adjustments."
+      ],
+      "persona": "Maintenance technician",
+      "review": "keep",
+      "review_notes": "Misspelled on purpose (robustness); answer is the key safety rule: stop, inspect, don't keep adjusting tension."
+    },
+    {
+      "id": "GEN-008",
+      "question": "What maintenance actions are required when three or more wire feed overload alarms occur on a WM-101 during a shift?",
+      "reference_answer": "When operators encounter three or more wire feed overload alarms in a shift, they should escalate to maintenance immediately rather than attempting further tension adjustments. The maintenance schedule was confirmed updated, and verification on 30 November 2024 showed no further wire feed overload alarms on WM-101 in the two weeks following the corrective action, after which the NCR was closed.",
+      "source_chunks": [
+        "642cdd79-60d0-45c5-8433-05d2dc73e337_chunk_7"
+      ],
+      "source_documents": [
+        "NCR: WM-101-NCR.txt"
+      ],
+      "source_text": [
+        "Operators who encounter three or more wire feed overload alarms in a\nshift should escalate to maintenance immediately rather than attempting\nfurther tension adjustments.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n6. VERIFICATION AND CLOSE-OUT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nVerification date: 30 November 2024\nVerified by: Plant Manager — J. Richards\n\nMaintenance schedule confirmed updated.\nNo further wire feed overload alarms on WM-101 in the two weeks\nfollowing corrective action.\nNCR closed.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEND OF DOCUMENT — NCR-2024-047 Rev 1.0\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      ],
+      "persona": "Maintenance technician",
+      "review": "drop",
+      "review_notes": "Duplicate of GEN-007, plus close-out date trivia."
+    },
+    {
+      "id": "GEN-009",
+      "question": "What i need to know about the parameter settings for the WM-101 on my shift?",
+      "reference_answer": "The SOP states that it defines the correct operating procedure for the WM-101 MIG Welder on Fabrication Line 1 and that it covers pre‑operation checks, parameter settings, alarm response, and shutdown procedure.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_0"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "STANDARD OPERATING PROCEDURE\nEquipment: WM-101 MIG Welder\nDocument Type: SOP\nRevision: 1.0\nPlant: Greenfield Steel Works\nLine: Fabrication Line 1\nApproved by: Plant Manager — J. Richards\nDate: January 2025\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n1. PURPOSE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nThis SOP defines the correct operating procedure for the WM-101 MIG Welder\non Fabrication Line 1 at Greenfield Steel Works. It covers pre-operation\nchecks, parameter settings, alarm response, and shutdown procedure.\n\nAll operators must complete WM-101 induction training before operating\nthis equipment unsupervised.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n2. PRE-OPERATION CHECKS (complete before every shift)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      ],
+      "persona": "Line operator",
+      "review": "drop",
+      "review_notes": "Reference answer is only the SOP purpose statement (title-page chunk 0)."
+    },
+    {
+      "id": "GEN-010",
+      "question": "How should the wire feed tension be set on the WM-101, and what happens if it is too tight or too loose?",
+      "reference_answer": "Set wire feed tension finger-tight plus one quarter turn on the pressure arm. Too tight causes motor overload alarms; too loose causes wire slip and arc instability.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_1"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n2. PRE-OPERATION CHECKS (complete before every shift)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n2.1 Wire Feed System\n- Inspect wire spool for kinks, birdnesting, or debris\n- Confirm wire diameter matches job specification (standard: 0.8mm or 1.0mm)\n- Check drive roll groove matches wire diameter — mismatched rolls cause overload\n- Set wire feed tension: finger-tight plus one quarter turn on the pressure arm\n- Too tight: motor overload alarms. Too loose: wire slip and arc instability.\n- Pull wire through liner manually — resistance should be smooth with no snags\n- If resistance is uneven or wire snags, inspect liner for kinks or replace"
+      ],
+      "persona": "Line operator",
+      "review": "fix",
+      "review_notes": "Six questions in one; cut down to the tension question, answer taken word-for-word from SOP 2.1.",
+      "original_question": "Hey i need to know what i gotta do with the wire spool before i start the shift like how i check it for kinks or birdnesting what diameter i should be looking for how i match the drive roll groove how i set the tension and what happens if its too tight or too loose and also what i do if i feel resistance pulling the wire through the liner",
+      "original_reference_answer": "Before each shift you must inspect the wire spool for kinks, bird‑nesting, or debris. Confirm that the wire diameter matches the job specification – the standard sizes are 0.8 mm or 1.0 mm. Check that the drive‑roll groove matches the wire diameter; a mismatch will cause overload. Set the wire‑feed tension to finger‑tight plus a quarter turn on the pressure arm. If the tension is too tight the machine will give motor‑overload alarms; if it is too loose the wire will slip and the arc will become unstable. Pull the wire through the liner by hand; the pull should be smooth with no snags. If the resistance is uneven or you feel snags, inspect the liner for kinks or replace it."
+    }
+  ]
+}

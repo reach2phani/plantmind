@@ -632,11 +632,25 @@ var mediaRecorder = null, recordedChunks = [], recordTimerInterval = null, recor
 
 function startRecording() {
   document.getElementById("recError").style.display = "none";
-  // noiseSuppression/echoCancellation are built into every modern browser
-  // and cost nothing extra to enable -- meaningful help on a loud shop
-  // floor before the audio ever reaches Whisper.
+  // Reverted noiseSuppression/echoCancellation constraints -- confirmed
+  // causing SILENT recordings on Windows (a real, documented conflict
+  // between these WebRTC audio-processing constraints and Windows'
+  // own driver-level audio enhancements on some mics/headsets -- the
+  // UI looked like it worked, recorded audio was actually empty). Core
+  // recording working reliably matters far more than noise suppression;
+  // that was only ever meant to be a marginal nice-to-have, never worth
+  // this risk.
+  //
+  // BUT plain `audio: true` still leaves the BROWSER'S OWN DEFAULT audio
+  // processing active -- Chrome defaults echoCancellation to true even
+  // when not explicitly requested. Echo cancellation is designed to
+  // suppress sound coming from a nearby speaker (that's literally what
+  // "echo" means to a video-call codec), so playing audio from a phone
+  // near the mic gets actively cancelled out while direct live speech
+  // passes through untouched -- exactly this symptom. Explicitly
+  // disabling it (not just omitting it) is the real fix.
   navigator.mediaDevices.getUserMedia({
-    audio: { noiseSuppression: true, echoCancellation: true }
+    audio: { echoCancellation: false }
   })
     .then(function(stream){
       recordedChunks = [];

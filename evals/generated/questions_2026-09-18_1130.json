@@ -1,0 +1,204 @@
+{
+  "_meta": {
+    "generated_at": "2026-09-18T11:30:01",
+    "equip_tag": "WM-101",
+    "plant_site": "Greenfield Steel Works",
+    "doc_types": [
+      "SOP",
+      "Work Instruction",
+      "NCR"
+    ],
+    "chunks_available": 29,
+    "chunks_used": [
+      "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_2",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_0",
+      "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_3",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_1",
+      "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_4",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_2",
+      "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_5",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_3",
+      "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_6",
+      "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_4"
+    ],
+    "models": {
+      "extraction": "openai/gpt-oss-20b",
+      "questions": "openai/gpt-oss-120b"
+    },
+    "ragas_synthesizer": "single_hop_specific",
+    "how_to_review": "Set each 'review' to keep / fix / drop. For 'fix', edit the question or reference_answer directly.",
+    "reviewed": "2026-09-18 - Claude suggested, user approved ('lock the final set')"
+  },
+  "questions": [
+    {
+      "id": "GEN-001",
+      "question": "contact tip temperature alarm threshold WM-101",
+      "reference_answer": "The contact tip temperature alarm threshold is 220 °C. If the temperature exceeds 220 °C, stop welding, allow the tip to cool for 10 minutes, then inspect the tip. Replace the contact tip if the bore is visibly worn or if temperature alarms occur.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_2"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "2.2 Contact Tip\n- Inspect contact tip for wear, burn-back, or spatter buildup\n- Contact tip bore should be circular — oval bore causes arc wander\n- Replace contact tip if bore is visibly worn or if tip temperature alarms occur\n- Standard contact tip torque: hand tight plus quarter turn — do not over-torque\n- Contact tip temperature alarm threshold: 220°C\n- If temperature exceeds 220°C: stop welding, allow 10 minutes cooling, inspect tip\n\n2.3 Shielding Gas\n- Confirm gas cylinder is not empty — minimum 20 bar before starting a shift\n- Check regulator output pressure: set to 10-15 L/min flow rate for MIG welding\n- Inspect hose connections for leaks using soapy water if gas pressure is dropping\n- Shielding gas low pressure alarm threshold: 8 bar\n- If gas pressure alarm triggers: stop welding immediately, do not continue without gas\n- Welding without shielding gas produces porous welds — entire batch must be scrapped"
+      ],
+      "persona": "Line operator",
+      "review": "keep",
+      "review_notes": "Exact numbers: 220 C alarm threshold, 10 minutes cooling."
+    },
+    {
+      "id": "GEN-002",
+      "question": "What is the wirre feed speeed?",
+      "reference_answer": "The work instruction notes that wire feed speed can become inconsistent even when the tension setting is correct, which is one of the conditions that trigger the wire liner and drive roll replacement procedure.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_0"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "WORK INSTRUCTION\nEquipment: WM-101 MIG Welder\nDocument Type: Work Instruction\nReference: WI-WM101-001\nRevision: 1.0\nPlant: Greenfield Steel Works\nLine: Fabrication Line 1\nApproved by: Maintenance Supervisor — T. Baxter\nDate: January 2025\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nWIRE LINER AND DRIVE ROLL REPLACEMENT PROCEDURE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. PURPOSE\n\nThis work instruction covers the step-by-step procedure for replacing the\nwire liner and drive rolls on WM-101. These are the two most common\nmaintenance tasks on this welder and the primary cause of wire feed\nmotor overload alarms when worn.\n\nPerform this procedure when:\n- Wire feed motor overload alarm occurs 3 or more times in one shift\n- Manual wire pull test shows uneven resistance through liner\n- Drive roll groove is visibly worn, cracked, or filled with debris\n- Wire feed speed is inconsistent despite correct tension setting"
+      ],
+      "persona": "Maintenance technician",
+      "review": "drop",
+      "review_notes": "Reference answer never gives a speed (title-page chunk 0)."
+    },
+    {
+      "id": "GEN-003",
+      "question": "what wire diameter i need for thin section and structural steel?",
+      "reference_answer": "The standard wire diameter is 0.8 mm for thin‑section work and 1.0 mm for structural work.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_3"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "2.4 Electrical Connections\n- Check earth clamp is secure and making clean metal-to-metal contact\n- Loose earth connection causes arc instability and voltage fluctuation alarms\n- Inspect torch lead for cuts, abrasions, or coolant leaks\n- Check power source display for any fault codes before enabling\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n3. OPERATING PARAMETERS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nStandard parameters for mild steel fabrication:\n\n  Wire diameter:      0.8mm (thin section) / 1.0mm (structural)\n  Wire feed speed:    4.5 — 6.0 m/min (adjust to material thickness)\n  Arc voltage:        18 — 22V (normal operating range)\n  Arc voltage alarm:  below 16V or above 24V triggers instability alarm\n  Shielding gas:      75% Argon / 25% CO2 (C25 mix)\n  Gas flow rate:      10 — 15 L/min\n  Contact tip temp:   normal operating up to 180°C\n  Contact tip alarm:  220°C — stop and inspect"
+      ],
+      "persona": "Line operator",
+      "review": "keep",
+      "review_notes": "0.8 mm thin section, 1.0 mm structural."
+    },
+    {
+      "id": "GEN-004",
+      "question": "where the 10mm spanner used and what i need it for?",
+      "reference_answer": "The 10mm spanner is listed under the required tools for the WM‑101 MIG welder on Fabrication Line 1. After LOTO and isolating power, you use it (along with a flat‑head screwdriver, blow gun, wire cutters and measuring tape) when opening panels or adjusting drive components.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_1"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "LOTO REQUIRED before starting. Isolate power at main disconnect.\nLock and tag before opening any panel or touching drive components.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n2. TOOLS AND PARTS REQUIRED\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nTools:\n  - 10mm spanner\n  - Flat-head screwdriver\n  - Compressed air line with blow gun\n  - Wire cutters\n  - Measuring tape\n\nParts (confirm correct part numbers before starting):\n  - Wire liner: Part No. GSW-LINER-08 (0.8mm wire) or GSW-LINER-10 (1.0mm wire)\n  - Drive rolls: Part No. GSW-DROLL-08 (0.8mm groove) or GSW-DROLL-10 (1.0mm groove)\n  - Contact tip: Part No. GSW-TIP-08 or GSW-TIP-10 (replace at same time)\n\nParts are held in the Fabrication Line 1 maintenance cabinet, shelf 3.\nIf stock is low, raise a parts request with the stores team before starting."
+      ],
+      "persona": "Line operator",
+      "review": "drop",
+      "review_notes": "Reference answer guesses what the spanner is for; the real use is covered by GEN-008."
+    },
+    {
+      "id": "GEN-005",
+      "question": "What are the detailed troubleshooting steps for a WM-101 wire feed motor overload alarm, including the primary causes, recommended adjustments, and post‑repair checks that a maintenance technician should follow?",
+      "reference_answer": "The WM-101 alarm message for a motor overload is \"Wire feed motor overload — feed rate dropped below minimum.\" The most common causes, listed in order of frequency, are: (1) drive roll pressure too tight – loosen the pressure arm by half a turn and retest; (2) wire liner blocked or kinked – disconnect the torch and blow air through the liner; (3) drive roll groove worn or mismatched – inspect the groove and replace the roll if it is worn; (4) wire spool braking too tight – reduce the tension on the spool hub; and (5) wire birdnesting at the drive rolls – clear the nest, trim the wire, and reset the system. Additionally, operating the wire feed speed above 6.0 m/min can create a motor overload risk, so keeping the speed within the 4.5‑6.0 m/min range helps prevent the alarm.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_4"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "Wire feed speed outside 4.5-6.0 m/min range:\n  Below 4.5 m/min: insufficient deposition, cold weld, possible burn-back\n  Above 6.0 m/min: motor overload risk, wire piling up at contact tip\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n4. ALARM RESPONSE PROCEDURES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n4.1 Wire Feed Motor Overload\nAlarm message: \"Wire feed motor overload — feed rate dropped below minimum\"\n\nThis is the most common alarm on WM-101. Primary causes in order of frequency:\n  1. Drive roll pressure too tight — loosen pressure arm by half turn and retest\n  2. Wire liner blocked or kinked — disconnect torch, blow through liner with air\n  3. Drive roll groove worn or mismatched — inspect and replace if worn\n  4. Wire spool braking too tight — reduce spool hub tension\n  5. Wire birdnesting at drive rolls — clear nest, trim wire, reset"
+      ],
+      "persona": "Maintenance technician",
+      "review": "keep",
+      "review_notes": "Overload causes in order, 'loosen pressure arm half a turn'."
+    },
+    {
+      "id": "GEN-006",
+      "question": "How do I open the wir spool covr?",
+      "reference_answer": "After applying LOTO, go to Step 2 – release the wire and open the wire spool cover.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_2"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "Parts are held in the Fabrication Line 1 maintenance cabinet, shelf 3.\nIf stock is low, raise a parts request with the stores team before starting.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n3. WIRE LINER REPLACEMENT — STEP BY STEP\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nSTEP 1 — LOTO\n  Apply LOTO. Isolate power at main disconnect switch.\n  Lock with personal padlock. Hang tag with name and time.\n  Confirm machine cannot be enabled before continuing.\n\nSTEP 2 — Release wire\n  Open the wire spool cover.\n  Cut wire at drive rolls using wire cutters.\n  Pull wire back off the spool and set aside.\n  Do not allow wire to spring off the spool — hold tension while cutting.\n\nSTEP 3 — Remove torch from machine\n  Unscrew the euro connector at the wire feeder (turn anti-clockwise).\n  Lay torch straight — do not coil tightly during liner removal.\n  A coiled torch during liner removal will cause the new liner to kink."
+      ],
+      "persona": "Maintenance technician",
+      "review": "drop",
+      "review_notes": "Trivial (open the spool cover)."
+    },
+    {
+      "id": "GEN-007",
+      "question": "How to address arc instabillity?",
+      "reference_answer": "Arc instability is indicated by the alarm message \"Arc instability detected — voltage fluctuating outside tolerance.\" The arc voltage should remain stable within ±1 V during welding; fluctuations beyond this range cause an inconsistent weld bead and can lead to weld failure.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_5"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "Immediate action:\n  Step 1 — Stop welding. Do not force-feed wire through an overloaded motor.\n  Step 2 — Release wire tension at drive rolls.\n  Step 3 — Manually pull wire through liner. Note resistance.\n  Step 4 — If resistance is high: replace liner (see Work Instruction WI-WM101-001).\n  Step 5 — If resistance is normal: adjust drive roll tension and retest.\n  Step 6 — If alarm recurs within 2 hours: escalate to maintenance supervisor.\n\nThree or more wire feed motor overload alarms in one shift indicates a\nsystemic fault — worn drive rolls, damaged liner, or failing motor.\nDo not continue production. Raise maintenance work order.\n\n4.2 Arc Instability\nAlarm message: \"Arc instability detected — voltage fluctuating outside tolerance\"\n\nArc voltage should be stable within ±1V during welding. Fluctuation outside this\nrange causes inconsistent weld bead and potential weld failure."
+      ],
+      "persona": "Maintenance technician",
+      "review": "drop",
+      "review_notes": "Answer describes the symptom but gives no action; GEN-009 covers arc instability better."
+    },
+    {
+      "id": "GEN-008",
+      "question": "What is the proper procedure for removing the old liner from the WM-101 MIG welder torch, including which end to pull it from, the tool needed, and what length information should be recorded for installing the new liner?",
+      "reference_answer": "To remove the old liner, first unscrew the liner retaining nut using a 10 mm spanner at the torch end. Then pull the liner out from the torch end—do not pull from the feeder end, as pulling from the feeder end can cause the old liner to fragment inside the torch. After removal, note the length of the old liner; this measurement will be used as a reference when cutting the new liner.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_3"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "STEP 4 — Remove old liner\n  At the torch end: unscrew the liner retaining nut (10mm spanner).\n  Pull liner out from the torch end — do not pull from the feeder end.\n  Pulling from the feeder end causes the old liner to fragment inside the torch.\n  Note the length of the old liner for reference when cutting the new one.\n\nSTEP 5 — Clean torch body\n  With torch held straight, blow compressed air through the torch from feeder end.\n  Clear all wire fragments and debris before inserting new liner.\n  Inspect the inside of the torch neck for any kinks or damage.\n  If torch neck is kinked, the torch must be replaced — a new liner will not help.\n\nSTEP 6 — Prepare new liner\n  Measure new liner against old liner length — cut to match ±5mm.\n  Cutting too long: liner buckles inside torch. Too short: wire jump at tip end.\n  Straighten new liner fully before insertion."
+      ],
+      "persona": "Line operator",
+      "review": "keep",
+      "review_notes": "Safety fact: pull the old liner from the torch end, never the feeder end."
+    },
+    {
+      "id": "GEN-009",
+      "question": "Can you tell me what i shoud do if i see the arc volatge wobbles more than +/-1V durign welding on the WM-101, includng which parts i need to check, replace, and what quality steps are required after the event?",
+      "reference_answer": "Arc voltage must stay within ±1V during welding; any fluctuation beyond that can cause an inconsistent weld bead and possible weld failure. The most common cause is a loose or corroded earth clamp, so you should first clean and re‑secure the earth clamp. Other primary causes to consider are a worn contact tip (replace the contact tip), inconsistent wire feed speed (check the drive rolls and liner), incorrect polarity (verify DCEP connection), and a contaminated base metal (clean the workpiece surface). Immediate action steps are: 1) Stop welding and do not log the weld as conforming. 2) Check the earth clamp, as it is the most common cause. 3) Replace the contact tip as a precaution. 4) Run a test bead on scrap material before resuming production. 5) If the instability continues, call maintenance. Any parts welded during an arc instability event must be flagged for quality inspection and must not be passed without inspection.",
+      "source_chunks": [
+        "01c2fa47-05f0-4b3d-af3c-6ec1b98efad8_chunk_6"
+      ],
+      "source_documents": [
+        "SOP: WM-101-SOP.txt"
+      ],
+      "source_text": [
+        "Arc voltage should be stable within ±1V during welding. Fluctuation outside this\nrange causes inconsistent weld bead and potential weld failure.\n\nPrimary causes:\n  1. Loose or corroded earth clamp connection — clean and re-secure earth clamp\n  2. Worn contact tip — replace contact tip\n  3. Wire feed speed inconsistency — check drive rolls and liner\n  4. Incorrect polarity — verify DCEP (DC Electrode Positive) connection\n  5. Contaminated base metal — clean workpiece surface before welding\n\nImmediate action:\n  Step 1 — Stop welding. Do not log weld as conforming.\n  Step 2 — Check earth clamp — the most common cause.\n  Step 3 — Replace contact tip as precaution.\n  Step 4 — Run a test bead on scrap material before resuming production.\n  Step 5 — If instability persists: call maintenance.\n\nAny parts welded during an arc instability event must be flagged for\nquality inspection. Do not pass parts without inspection."
+      ],
+      "persona": "Maintenance technician",
+      "review": "keep",
+      "review_notes": "Arc voltage beyond +-1V: earth clamp first, then contact tip, then polarity (DCEP)."
+    },
+    {
+      "id": "GEN-010",
+      "question": "wire feed instability after liner replacement",
+      "reference_answer": "Wire feed instability in the first 5 minutes after liner replacement is expected behavior during the mandatory burn‑in procedure and is not a fault condition.",
+      "source_chunks": [
+        "b5d3e982-1edc-46c2-a43d-66f640f32607_chunk_4"
+      ],
+      "source_documents": [
+        "Work Instruction: WM-101-Work-Instruction.txt"
+      ],
+      "source_text": [
+        "STEP 7 — Insert new liner\n  Insert from the torch end, feeding toward the euro connector.\n  Keep torch as straight as possible during insertion.\n  Feed until liner protrudes approximately 5mm at the euro connector end.\n  Secure liner retaining nut — hand tight plus quarter turn, do not over-torque.\n\nSTEP 8 — Reconnect torch\n  Reconnect euro connector to wire feeder — thread by hand then tighten firmly.\n  Do not cross-thread. If resistance is felt, back off and retry.\n\nSTEP 9 — Burn-in procedure (MANDATORY after liner replacement)\n  Reload wire spool. Thread wire through drive rolls and into liner.\n  Remove LOTO. Restore power.\n  Run wire through liner at 5.0 m/min for 30 seconds before welding.\n  This seats the wire in the new liner and clears any manufacturing debris.\n  Do not begin production welding without completing the burn-in.\n  Wire feed instability in the first 5 minutes after liner replacement is\n  expected behaviour during burn-in — this is NOT a fault condition."
+      ],
+      "persona": "Line operator",
+      "review": "keep",
+      "review_notes": "Independently rediscovered the step-1.1 known issue: instability in the first 5 minutes is expected, not a fault. Expected to FAIL until Phase 3."
+    }
+  ]
+}

@@ -881,13 +881,19 @@ def upload():
 
     return jsonify({"success": True, "message": message, "document": saved})
 
-@app.route("/ask", methods=["POST"])
-def ask():
-    data      = request.get_json()
-    question  = data.get("question",   "").strip()
-    plant     = data.get("plant_site", "")
-    line      = data.get("line",       "")
-    equip_tag = data.get("equip_tag", "")
+# ─────────────────────────────────────────────────────────────────────────────
+# RETRIEVAL — shared by /ask and the retrieval eval (Phase 1 step 1.5)
+#
+# Why these are separate functions: the retrieval eval must measure the REAL
+# search, not a copy of it. A copy would keep measuring the old search after
+# Phase 3 changes this one — and report "no change" exactly when the change
+# is the thing being measured. Moved out of /ask unchanged; /ask calls them.
+# ─────────────────────────────────────────────────────────────────────────────
+ASK_TOP_K = 12
+
+
+def resolve_ask_equipment(question, equip_tag, plant, line):
+    """Which machine the question is about: explicit tag first, else detected."""
     # Normalise explicitly-passed equip_tag (e.g. "wm 101" → "WM-101")
     # so cosmetic ID variations from the UI don't bypass normalisation.
     if equip_tag:
@@ -909,6 +915,123 @@ def ask():
             resolved = resolve_equipment_reference(question, plant_site=plant, line=line)
             if resolved:
                 equip_tag = resolved
+    return equip_tag
+
+
+def build_ask_filter(mode, plant, line, equip_tag):
+    """Pinecone metadata filter. Shift mode only searches CSVs, doc mode excludes CSVs."""
+    filter_dict = {}
+    if mode == "shift":
+        filter_dict["file_type"] = {"$eq": "csv"}
+        if line:
+            filter_dict["line"] = {"$eq": line}
+        # Batch E1: shift chunks now carry each row's own machine, so Shift
+        # mode can finally honour the selected/detected equipment.
+        if equip_tag:
+            filter_dict["equip_tag"] = {"$eq": equip_tag}
+    else:
+        # Docs mode = official documents only (decision A, Batch E3).
+        # Operator field captures ("expert_fix") stay in investigations,
+        # where they are labelled and cross-checked against the SOP.
+        filter_dict["file_type"] = {"$nin": ["csv", "expert_fix"]}
+        if plant:     filter_dict["plant_site"] = {"$eq": plant}
+        if line:      filter_dict["line"]       = {"$eq": line}
+        if equip_tag: filter_dict["equip_tag"]  = {"$eq": equip_tag}
+    return filter_dict
+
+
+def retrieve_chunks(question_vec, filter_dict):
+    """Top-K chunks for a question. Returns (matches, was_fallback)."""
+    results  = pine_index.query(
+        vector=question_vec, top_k=ASK_TOP_K, include_metadata=True,
+        filter=filter_dict
+    )
+    matches      = results.get("matches", [])
+    was_fallback = False
+
+    # Fallback — only relax plant/line filters, NEVER drop equip_tag
+    low_confidence   = not matches or matches[0]["score"] < 0.35
+    has_equip_filter = bool(filter_dict.get("equip_tag"))
+
+    if low_confidence and not has_equip_filter and len(filter_dict) > 1:
+        fallback_filter = {"file_type": filter_dict["file_type"]}
+        results  = pine_index.query(vector=question_vec, top_k=ASK_TOP_K, include_metadata=True, filter=fallback_filter)
+        matches  = results.get("matches", [])
+        was_fallback = True
+    return matches, was_fallback
+
+
+def ask_score_threshold(has_equip_filter):
+    # Lower threshold when equip filter active — spec chunks score lower than procedure chunks
+    return 0.30 if has_equip_filter else 0.35
+
+
+@app.route("/api/eval/retrieve", methods=["POST"])
+def eval_retrieve():
+    """
+    READ-ONLY. For the retrieval eval (evals/retrieval_eval.py): runs exactly
+    the search /ask runs and returns the ranked chunks, WITHOUT calling any LLM.
+    Costs one embedding call (Pinecone, free) and zero Groq tokens.
+
+    Also reports whether /ask would have refused at the search stage, so a
+    "the right chunk was found but the app still said No manuals found" case
+    shows up as its own failure, not as a mysterious miss.
+
+    Doc mode only for now — shift mode adds date/time scoping on top, which is
+    a separate question from "did search find the right chunk".
+    """
+    data      = request.get_json() or {}
+    question  = (data.get("question") or "").strip()
+    plant     = data.get("plant_site", "")
+    line      = data.get("line", "")
+    mode      = data.get("mode", "doc")
+    if not question:
+        return jsonify({"error": "question is required"}), 400
+    if mode != "doc":
+        return jsonify({"error": "only mode 'doc' is supported"}), 400
+
+    equip_tag    = resolve_ask_equipment(question, data.get("equip_tag", ""), plant, line)
+    filter_dict  = build_ask_filter(mode, plant, line, equip_tag)
+    question_vec = get_embedding(question)
+    matches, was_fallback = retrieve_chunks(question_vec, filter_dict)
+
+    has_equip_filter = bool(filter_dict.get("equip_tag"))
+    threshold = ask_score_threshold(has_equip_filter)
+    below_threshold = (not matches) or matches[0]["score"] < threshold
+    trustworthy = True
+    if matches and not below_threshold:
+        trustworthy, _ = equipment_results_trustworthy(matches, equip_tag)
+
+    chunks = []
+    for rank, m in enumerate(matches, start=1):
+        md = m.get("metadata", {}) if isinstance(m, dict) else (m.metadata or {})
+        chunks.append({
+            "rank":     rank,
+            "id":       m["id"],
+            "score":    round(m["score"], 4),
+            "name":     md.get("name", ""),
+            "doc_type": md.get("doc_type", ""),
+            "text":     md.get("text", ""),
+        })
+
+    return jsonify({
+        "equip_tag":    equip_tag,
+        "was_fallback": was_fallback,
+        "threshold":    threshold,
+        "would_refuse": below_threshold or not trustworthy,
+        "refuse_reason": ("below score threshold" if below_threshold
+                          else "equipment guard" if not trustworthy else ""),
+        "chunks":       chunks,
+    })
+
+
+@app.route("/ask", methods=["POST"])
+def ask():
+    data      = request.get_json()
+    question  = data.get("question",   "").strip()
+    plant     = data.get("plant_site", "")
+    line      = data.get("line",       "")
+    equip_tag = resolve_ask_equipment(question, data.get("equip_tag", ""), plant, line)
     mode      = data.get("mode",       "doc")
     time_from = data.get("time_from",  "")
     time_to   = data.get("time_to",    "")
@@ -977,44 +1100,14 @@ def ask():
         return Response(stream_with_context(err_stream()), mimetype="text/plain",
                         headers={"X-Accel-Buffering": "no"})
 
-    # Build filter — shift mode only searches CSVs, doc mode excludes CSVs
-    filter_dict = {}
-    if mode == "shift":
-        filter_dict["file_type"] = {"$eq": "csv"}
-        if line:
-            filter_dict["line"] = {"$eq": line}
-        # Batch E1: shift chunks now carry each row's own machine, so Shift
-        # mode can finally honour the selected/detected equipment.
-        if equip_tag:
-            filter_dict["equip_tag"] = {"$eq": equip_tag}
-    else:
-        # Docs mode = official documents only (decision A, Batch E3).
-        # Operator field captures ("expert_fix") stay in investigations,
-        # where they are labelled and cross-checked against the SOP.
-        filter_dict["file_type"] = {"$nin": ["csv", "expert_fix"]}
-        if plant:     filter_dict["plant_site"] = {"$eq": plant}
-        if line:      filter_dict["line"]       = {"$eq": line}
-        if equip_tag: filter_dict["equip_tag"]  = {"$eq": equip_tag}
-
-    results  = pine_index.query(
-        vector=question_vec, top_k=12, include_metadata=True,
-        filter=filter_dict
-    )
-    matches      = results.get("matches", [])
-    was_fallback = False
-
-    # Fallback — only relax plant/line filters, NEVER drop equip_tag
-    low_confidence   = not matches or matches[0]["score"] < 0.35
+    # Search lives in shared functions (Phase 1 step 1.5) so the retrieval eval
+    # measures THIS code, not a copy that would drift when Phase 3 changes it.
+    filter_dict  = build_ask_filter(mode, plant, line, equip_tag)
+    matches, was_fallback = retrieve_chunks(question_vec, filter_dict)
     has_equip_filter = bool(filter_dict.get("equip_tag"))
 
-    if low_confidence and not has_equip_filter and len(filter_dict) > 1:
-        fallback_filter = {"file_type": filter_dict["file_type"]}
-        results  = pine_index.query(vector=question_vec, top_k=12, include_metadata=True, filter=fallback_filter)
-        matches  = results.get("matches", [])
-        was_fallback = True
-
     # Lower threshold when equip filter active — spec chunks score lower than procedure chunks
-    score_threshold = 0.30 if has_equip_filter else 0.35
+    score_threshold = ask_score_threshold(has_equip_filter)
     if not matches or matches[0]["score"] < score_threshold:
         def no_ans():
             if mode == "shift":
@@ -1153,13 +1246,19 @@ def ask():
         if was_fallback:
             yield "FALLBACK:"
         yield f"SOURCES:{sources_json}\n\n"
-        _start = _t.time()
         _output = []
         _finish = None
+        _usage  = None
         _qa_cap = completion_kwargs(MODEL_FAST, "qa", 800)
         _reservation = acquire(MODEL_FAST, estimate_tokens(
             [system_prompt, user_prompt],
             _qa_cap.get("max_completion_tokens") or _qa_cap.get("max_tokens") or 800))
+        # Timer starts AFTER the budget queue (Phase 1 step 1.6). It used to
+        # start before acquire(), so latency_ms mixed "waiting for our own
+        # per-minute token budget" with "the model working" — a 76 s average
+        # that was mostly queueing. End-to-end time (queue included) is still
+        # measured by the evals from the outside.
+        _start = _t.time()
         try:
             stream = groq_client.chat.completions.create(
                 model=MODEL_FAST,
@@ -1171,7 +1270,17 @@ def ask():
                 **completion_kwargs(MODEL_FAST, "qa", 800)
             )
             for chunk in stream:
-                if chunk.choices and getattr(chunk.choices[0], "finish_reason", None):
+                # Groq puts the REAL token counts (including hidden reasoning
+                # tokens) on the final chunk. Previously ignored, so every Docs
+                # and Shift answer was logged — and budgeted — as characters/4,
+                # which undercounts reasoning models badly.
+                if getattr(chunk, "usage", None):
+                    _usage = chunk.usage
+                elif getattr(getattr(chunk, "x_groq", None), "usage", None):
+                    _usage = chunk.x_groq.usage
+                if not chunk.choices:
+                    continue
+                if getattr(chunk.choices[0], "finish_reason", None):
                     _finish = chunk.choices[0].finish_reason
                 delta = chunk.choices[0].delta
                 # GPT-OSS reasoning models stream chain-of-thought on a separate
@@ -1188,9 +1297,14 @@ def ask():
                 latency_ms = int((_t.time() - _start) * 1000),
                 plant_site = data.get("plant_site", ""),
                 equip_tag  = equip_tag or data.get("equip_tag", ""),
-                finish_reason = _finish
+                finish_reason = _finish,
+                usage      = _usage,
             )
-            settle(_reservation, (len(system_prompt + user_prompt) + len("".join(_output))) // 4)
+            # Settle the budget with what Groq actually counted; fall back to
+            # the old estimate only if the usage chunk never arrived.
+            _real_total = getattr(_usage, "total_tokens", None) if _usage else None
+            settle(_reservation, _real_total or
+                   (len(system_prompt + user_prompt) + len("".join(_output))) // 4)
         except Exception as e:
             settle(_reservation, None)
             log_streaming_call(

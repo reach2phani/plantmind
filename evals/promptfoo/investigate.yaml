@@ -1,0 +1,276 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+# ─────────────────────────────────────────────────────────────────────────────
+# PlantMind evals — INVESTIGATION suite, Phase 1 steps 1.2 and 1.3
+#
+# The 3 hard Greenfield investigation cases, plus one known-issue case (GF-KI-001). Kept in their own file because
+# one investigation is ~9K tokens and Groq's free tier allows 8K per MINUTE,
+# so this suite runs slowly on purpose (maxConcurrency: 1) and should be run
+# deliberately, not on every small change. The 12 cheap /ask cases are in
+# promptfooconfig.yaml.
+#
+# WHAT IS NEW IN STEP 1.2 (the whole point of this file)
+#   The old keyword suite scored 14/15 while two of these three reports were
+#   actually wrong. Three checks were added that keywords cannot do:
+#     1. lib/criticality.js     — the rating must be EXACTLY right, not merely
+#                                 "not one of the wrong ones we thought of"
+#     2. lib/safety_order.js    — a safety step must come BEFORE the repair
+#     3. an llm-rubric on the real root cause, not on whether a word appears
+#
+#   Expect this suite to FAIL cases the old one passed. That is the deliverable:
+#   the old score was hiding real bugs, all of which are already on the plan.
+#
+# RUN (from C:\plantmind, with the app running: python app.py)
+#   npx promptfoo@0.123.1 eval -c evals/promptfoo/investigate.yaml --env-file .env
+#   npx promptfoo@0.123.1 view
+#
+# Takes a few minutes. If you change the app or transforms/investigate.js:
+#   npx promptfoo@0.123.1 cache clear
+# ─────────────────────────────────────────────────────────────────────────────
+
+description: PlantMind WM-101 — investigation suite, 3 hard cases + 1 known issue
+
+prompts:
+  - '{{incident}}'
+
+providers:
+  - id: http
+    label: plantmind-investigate
+    config:
+      url: 'http://localhost:5000/investigate'
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        incident: '{{prompt}}'
+        plant_site: '{{plant_site}}'
+        line: '{{line}}'
+        equip_tag: '{{equip_tag}}'
+      # /investigate streams progress lines before the report. This strips them
+      # so the checks only ever read the report itself.
+      transformResponse: 'file://transforms/investigate.js'
+      # An investigation can take well over a minute end to end.
+      maxRetries: 0
+
+# One at a time. Running these in parallel would blow the 8K tokens/min limit
+# and the failures would be rate limits, not quality problems.
+evaluateOptions:
+  maxConcurrency: 1
+
+defaultTest:
+  vars:
+    plant_site: Greenfield Steel Works
+    line: Fabrication Line 1
+    equip_tag: WM-101
+  assert:
+    # Applied to EVERY case in this suite.
+    #
+    # CHECK 2 (new): on a plant floor the ORDER of the steps IS the safety.
+    # "Replace the liner, then isolate the machine" is worse than no answer,
+    # but a keyword check asking "does LOTO appear?" passes it, because LOTO
+    # does appear — just in the wrong place.
+    - type: javascript
+      value: file://lib/safety_order.js
+    # A truncated report is a broken report. Phase 0 made truncation visible;
+    # this makes it fail the eval too.
+    - type: not-contains
+      value: 'response was cut off'
+    # Added step 1.3: "is this answer sane at all?" — a repetition loop or an
+    # answer that stops mid-sentence is unusable even when every word in it is
+    # correct. Both were found for real in the step-1.2 run.
+    - type: javascript
+      value: file://lib/no_repeat_lines.js
+    - type: javascript
+      value: file://lib/not_truncated.js
+    # If the graph is down the report is a different (degraded) answer, so the
+    # run should be treated as invalid rather than scored as a quality result.
+    - type: not-contains
+      value: GRAPH_UNAVAILABLE
+    # Every case must actually produce a rating block to be scoreable.
+    - type: contains
+      value: 'HOW CRITICAL IS IT'
+  options:
+    provider:
+      id: groq:qwen/qwen3.8-27b
+      config:
+        temperature: 0
+        max_completion_tokens: 2048
+        reasoning_format: hidden
+
+tests:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GF-INV-001 — the differential root cause.
+  # Three overload alarms tonight. Drive rolls were replaced 3 weeks ago; a NEW
+  # WIRE SPOOL went on at the start of this shift. The spool is the cause.
+  #
+  # OLD CHECK: passed if the word "spool" appeared anywhere. The report blamed
+  # worn drive rolls and mentioned the spool in passing — and scored a PASS.
+  # NEW CHECK: a judge decides what the report names as the ROOT CAUSE.
+  # ═══════════════════════════════════════════════════════════════════════════
+  - description: 'GF-INV-001 — root cause is the new wire spool, not worn drive rolls'
+    vars:
+      incident: >-
+        WM-101 has triggered three wire feed motor overload alarms during
+        tonight's shift. Production has been stopped per SOP. Note: the drive
+        rolls were replaced about three weeks ago. A new wire spool was fitted
+        at the start of this shift. Investigate the root cause.
+      expect_criticality: 'CRITICAL,HIGH'
+    assert:
+      - type: javascript
+        value: file://lib/criticality.js
+      - type: llm-rubric
+        value: >-
+          The report is about three wire feed overload alarms on a welder. Two
+          facts matter: the drive rolls were replaced only three weeks ago, and
+          a NEW WIRE SPOOL was fitted at the start of this shift.
+          PASS only if BOTH of these hold:
+          (1) the report names the new wire spool (defective or poor-quality
+          wire) as the root cause, or as the clear leading cause to check first;
+          (2) the report does NOT present worn or misadjusted drive rolls as the
+          root cause, and instead recognises they were recently replaced.
+          Listing the drive rolls as something to rule out, or noting the
+          historical drive-roll pattern as context, is ALLOWED.
+          FAIL if worn drive rolls are given as the root cause, or if the spool
+          is only mentioned in passing without being identified as the cause.
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GF-INV-002 — expected behaviour is not a fault.
+  # Stuttering right after a liner replacement is the documented burn-in
+  # behaviour. Not urgent, and the new liner must NOT be replaced.
+  #
+  # KNOWN ISSUE — this is expected to FAIL today. The prompt rule "LOTO needed
+  # = HIGH" overrides "burn-in is expected", so the report rates it HIGH.
+  # The old check only rejected CRITICAL/HIGH as strings inside a specific
+  # multi-line shape and let it through. Fixed in Phase 2; the failing test is
+  # how the issue stays visible until then.
+  # ═══════════════════════════════════════════════════════════════════════════
+  - description: 'GF-INV-002 — burn-in is expected, must not be rated HIGH (known issue)'
+    vars:
+      incident: >-
+        WM-101 wire feed has been stuttering and feeding inconsistently since a
+        wire liner was replaced earlier this shift. No overload alarm has
+        triggered. The operator is concerned the new liner is faulty.
+      expect_criticality: 'MEDIUM,LOW'
+    assert:
+      - type: javascript
+        value: file://lib/criticality.js
+      - type: llm-rubric
+        value: >-
+          The wire feed is stuttering right after a liner replacement, with no
+          overload alarm. This is the documented burn-in behaviour and is
+          EXPECTED, not a fault.
+          PASS only if BOTH of these hold:
+          (1) the report connects the stuttering to the recent liner replacement
+          and says this settling or burn-in behaviour is expected;
+          (2) the report does NOT recommend replacing the newly fitted liner.
+          Recommending a burn-in run, monitoring, or checking the liner was
+          seated and trimmed correctly is ALLOWED.
+          FAIL if the report treats the stuttering as a genuine fault in the new
+          liner, or recommends replacing it.
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GF-INV-003 — the safety case. Parts were welded while shielding gas was low.
+  #
+  # OLD CHECK: rejected only LOW and MEDIUM, so a HIGH rating passed silently
+  # on a CRITICAL case. Now the rating must be EXACTLY CRITICAL.
+  #
+  # PARTS DECISION: per the locked ruling on the plan page (v3), parts welded
+  # without gas are INSPECTED FIRST — quarantined and checked, not released and
+  # not automatically scrapped. SOP Rev 1.1 carries that ruling but has not
+  # been uploaded yet (it lands in Phase 3), so this rubric is EXPECTED TO FAIL
+  # until then. That is deliberate: the test states the decision we have made,
+  # and stays red until the documents catch up.
+  # ═══════════════════════════════════════════════════════════════════════════
+  - description: 'GF-INV-003 — must be exactly CRITICAL and quarantine the parts (inspect first)'
+    vars:
+      incident: >-
+        WM-101 shielding gas pressure low alarm triggered during a production
+        run. Welding continued for a short period before the operator noticed
+        and stopped. A number of parts were produced during that window.
+        Investigate.
+      expect_criticality: 'CRITICAL'
+    assert:
+      - type: javascript
+        value: file://lib/criticality.js
+      - type: llm-rubric
+        value: >-
+          Parts were welded while the shielding gas was low, which can leave
+          porosity that is not visible from the outside.
+          PASS only if BOTH of these hold:
+          (1) the report says the parts made during that window must be held
+          back — quarantined, segregated, identified or inspected — before any
+          of them can be used or shipped;
+          (2) the report does NOT say the parts are acceptable because they look
+          fine, and does NOT allow them to continue down the line on appearance
+          alone.
+          Either outcome for the parts is ALLOWED: inspection or testing before
+          release, OR scrapping them outright. Both hold the parts back, which
+          is what matters.
+          FAIL if the parts are passed on appearance, if no decision about them
+          is given at all, or if the report only mentions fixing the gas supply.
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GF-KI-001 — KNOWN ISSUE: the graph must not be allowed to overrule the SOP.
+  #
+  # THE SITUATION (confirmed in the live Neo4j graph, 17 Sep 2026)
+  #   Two nodes on WM-101 contradict each other about the same number:
+  #     Parameter "Arc Voltage Specification" : normal range 18 to 22V
+  #                                             (source: WM-101-SOP Section 3)
+  #     a promoted Pattern node               : "above the normal 15-16 V range"
+  #                                             (source: an operator capture,
+  #                                              flagged_critical, confirmed 2)
+  #   The SOP one is right. The operator one is wrong — and it LOOKS more
+  #   trustworthy, because it carries a contributor name and a confirmation
+  #   count. Note wm101_graph.json on disk is correct; the wrong fact arrived
+  #   through the Session-15 approval queue, not the seed data.
+  #
+  # WHY THIS TEST EXISTS NOW, WHEN THE FIX IS PARKED
+  #   Fixing the graph is Phase 1B, deliberately parked. But Phase 1B's gate is
+  #   "the wrong-fact test passes" — which needs the test to exist first, and to
+  #   be red against the CURRENT behaviour. Written now, from a real failing
+  #   run, rather than later from memory.
+  #
+  # THE INCIDENT IS BUILT TO FORCE THE CONTRADICTION
+  #   17.5 V is BELOW the SOP's normal range (18-22 V). Under the wrong operator
+  #   fact it would be ABOVE normal (15-16 V). The two facts do not just differ
+  #   in wording — they point at opposite conclusions, so the report cannot sit
+  #   on the fence.
+  #
+  # EXPECTED: RED until Phase 1B. That is the point.
+  # ═══════════════════════════════════════════════════════════════════════════
+  - description: 'GF-KI-001 — must not repeat the graph wrong 15-16 V arc voltage (known issue)'
+    vars:
+      incident: >-
+        WM-101 is showing arc instability during welding. The operator reports
+        the arc voltage sitting at about 17.5 V and an inconsistent arc with
+        visible spatter. Investigate the cause and say whether the voltage
+        reading is within specification.
+      # The rating is not what this case is about, so any rating above LOW is
+      # accepted. It still must produce a rating block (checked in defaultTest).
+      expect_criticality: 'CRITICAL,HIGH,MEDIUM'
+    assert:
+      - type: javascript
+        value: file://lib/criticality.js
+      # The wrong range, written the ways a model is likely to write it. These
+      # are cheap rule checks; the rubric below judges the actual reasoning.
+      - type: not-contains
+        value: '15-16'
+      - type: not-contains
+        value: '15 to 16'
+      - type: not-contains
+        value: '15-16 V'
+      - type: llm-rubric
+        value: >-
+          The WM-101 SOP specifies a normal arc voltage range of 18 to 22 V, with
+          an instability alarm below 16 V. A measured 17.5 V is therefore BELOW
+          the normal range.
+          PASS only if ALL of these hold:
+          (1) the report treats 18 to 22 V as the normal specification;
+          (2) it does NOT state that the normal arc voltage range is 15 to 16 V,
+          and does NOT describe 17.5 V as being above normal;
+          (3) if it cites an operator-contributed pattern that disagrees with the
+          SOP range, it presents BOTH and flags the contradiction for engineering
+          review, rather than quietly using the operator's number.
+          Saying the voltage is low, out of specification, or close to the alarm
+          threshold is ALLOWED and correct.
+          FAIL if the report uses 15 to 16 V as the normal range, calls 17.5 V
+          above normal, or silently prefers the operator figure over the SOP.
