@@ -15,3 +15,7 @@ CLAUDE.md
 # Raw promptfoo run output (regenerated on every run; ~1MB each).
 # The keepers are committed: evals/baselines, evals/generated, evals/retrieval_results
 evals/results/
+
+# Graph backups written by graph_rebuild_phase1b.py (kept out of git;
+# your durable backups live in C:\plantmind-backups)
+backups/

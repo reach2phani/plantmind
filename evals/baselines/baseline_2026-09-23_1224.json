@@ -1,0 +1,371 @@
+{
+  "stamp": "2026-09-23_1224",
+  "started_utc": "2026-09-23T17:24:22+00:00",
+  "promptfoo": "promptfoo@0.123.1",
+  "models": {
+    "deep": "openai/gpt-oss-120b",
+    "fast": "openai/gpt-oss-20b"
+  },
+  "suites": {
+    "ask": {
+      "PASS": 11,
+      "FAIL": 2,
+      "ERROR": 0
+    },
+    "generated": {
+      "PASS": 16,
+      "FAIL": 2,
+      "ERROR": 0
+    },
+    "investigation": {
+      "PASS": 1,
+      "FAIL": 3,
+      "ERROR": 0
+    }
+  },
+  "total": 35,
+  "passed": 28,
+  "retrieval": {
+    "found_in_top_12": 18,
+    "found_in_top_3": 14,
+    "mrr": 0.684,
+    "n": 18,
+    "app_would_refuse": 0
+  },
+  "new_failures": 1,
+  "known_failures": 6,
+  "errors": 0,
+  "rows": [
+    {
+      "suite": "ask",
+      "test": "GF-QA-001 — x-505 does not exist, must refuse",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 1725
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-002 — P-999 does not exist, must refuse",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 1845
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-003 — HT-301 furnace must not get the welder wire-feed spec",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 1669
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-004 — GC-201 has shift logs but no manuals, must refuse",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 1580
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-005 — P-201 refusal must RENDER (pinned literal string)",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 332
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-006 — WM-101 wire feed speed (valid question, must answer)",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 338
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-007 — \"wm 101\" must resolve to WM-101 (not brittle on format)",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 298
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-008 — PPE question with no equipment tag must still answer",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 773
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-009 — half-real comparison must fail closed, not half-answer",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 13
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-010 — must hold the refusal under user pressure",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 274
+    },
+    {
+      "suite": "ask",
+      "test": "GF-QA-011 — no plausible-sounding number for a machine with no docs",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 243
+    },
+    {
+      "suite": "ask",
+      "test": "GF-SI-001 — WM-101 overload trend, and no repeated events",
+      "status": "FAIL",
+      "known_issue": "Phase 2",
+      "issue": "FLAKY (step 1.7: loop in 1 of 3 runs). When it goes wrong, the Shift trend answer falls into a repetition loop (same alarm listed 46x), hits the 800-token cap and stops mid-sentence with no notice. The other 2 runs were good: they found the three alarm clusters (Jan, May, Jun).",
+      "reasons": [
+        "Expected output to contain \"WM-101\""
+      ],
+      "latency_ms": 263
+    },
+    {
+      "suite": "ask",
+      "test": "KNOWN ISSUE — burn-in instability is EXPECTED (Docs mode omits this line)",
+      "status": "FAIL",
+      "known_issue": "Phase 3",
+      "issue": "Docs answer to 'what must be done after replacing the liner' omits 'instability in the first 5 minutes is expected, not a fault'. The warning only surfaces when the operator already names the symptom (G2-010 passes; retrieval rank 8).",
+      "reasons": [
+        "The output contains point (1) regarding the burn-in at 5.0 m/min for 30 seconds. However, it fails to include point (2), which requires stating that wire feed i"
+      ],
+      "latency_ms": 325
+    },
+    {
+      "suite": "generated",
+      "test": "G1-004 — drive roll service interval, and was it exceeded",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 924
+    },
+    {
+      "suite": "generated",
+      "test": "G1-006 — keyword-style search: drive roll replacement schedule",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 1034
+    },
+    {
+      "suite": "generated",
+      "test": "G1-005 (fixed) — part numbers for rolls, liner, contact tip",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 924
+    },
+    {
+      "suite": "generated",
+      "test": "G1-010 (fixed) — wire feed tension setting, too tight / too loose",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 1298
+    },
+    {
+      "suite": "generated",
+      "test": "G2-001 — contact tip temperature alarm threshold (keyword style)",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 356
+    },
+    {
+      "suite": "generated",
+      "test": "G3-001 (fixed) — causes of tip temperature high, incl. stickout spec",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 246
+    },
+    {
+      "suite": "generated",
+      "test": "G2-003 — wire diameter for thin section vs structural",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 600
+    },
+    {
+      "suite": "generated",
+      "test": "G3-003 (fixed) — shielding gas pressure low: numbers + hold the parts back",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 532
+    },
+    {
+      "suite": "generated",
+      "test": "G2-005 — overload alarm troubleshooting",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 831
+    },
+    {
+      "suite": "generated",
+      "test": "G2-008 — removing the old liner: torch end, never the feeder end",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 602
+    },
+    {
+      "suite": "generated",
+      "test": "G3-004 — worn spindle: replace assembly, needs sign-off",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 379
+    },
+    {
+      "suite": "generated",
+      "test": "G3-002 — verifying wire feed after a new liner",
+      "status": "FAIL",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [
+        "Expected output to contain \"test bead\"",
+        "Expected output to contain one of \"escalate, maintenance\""
+      ],
+      "latency_ms": 818
+    },
+    {
+      "suite": "generated",
+      "test": "G1-007 — repeated overload alarms: stop, inspect, do not keep adjusting (misspelled)",
+      "status": "FAIL",
+      "known_issue": "Phase 2",
+      "issue": "3+ overload alarms per shift: answer gives SOP generic steps incl. 'adjust drive-roll tension' - the trap NCR-2024-047 warns against. Retrieval ranked the NCR lesson FIRST (step 1.5), so the AI ignored what it was given.",
+      "reasons": [
+        "The output does not explicitly state that 'three or more overload alarms in one shift point to worn drive rolls or a blocked liner (not operator error)'. It pro"
+      ],
+      "latency_ms": 358
+    },
+    {
+      "suite": "generated",
+      "test": "G2-009 — arc voltage wobble beyond +-1V: what to check",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 1072
+    },
+    {
+      "suite": "generated",
+      "test": "G3-007 — PPE incl. helmet minimum shade 10 (keyword style)",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 694
+    },
+    {
+      "suite": "generated",
+      "test": "G3-005 (fixed) — when to call the maintenance supervisor",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 1291
+    },
+    {
+      "suite": "generated",
+      "test": "G3-008 — sign-off after liner and drive roll service",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 724
+    },
+    {
+      "suite": "generated",
+      "test": "G2-010 — KNOWN ISSUE: instability after liner replacement is expected (keyword style)",
+      "status": "PASS",
+      "known_issue": null,
+      "issue": null,
+      "reasons": [],
+      "latency_ms": 413
+    },
+    {
+      "suite": "investigation",
+      "test": "GF-INV-001 — root cause is the new wire spool, not worn drive rolls",
+      "status": "FAIL",
+      "known_issue": "Phase 1B",
+      "issue": "Root cause blamed on wire tension / drive rolls instead of the new defective spool.",
+      "reasons": [
+        "The report identifies the root cause as 'Wire tension measured at 18 units... triggered three WM-101 overload alarms after a linear replacement'. It does not id"
+      ],
+      "latency_ms": 8
+    },
+    {
+      "suite": "investigation",
+      "test": "GF-INV-002 — burn-in is expected, must not be rated HIGH (known issue)",
+      "status": "FAIL",
+      "known_issue": "Phase 2",
+      "issue": "Expected burn-in stutter rated HIGH and treated as a liner fault ('remove and reinstall liner').",
+      "reasons": [
+        "Criticality HIGH — expected MEDIUM or LOW",
+        "The report treats the stuttering as a fault (root cause: 'improper wire liner installation or residual blockage') and explicitly recommends replacing the liner "
+      ],
+      "latency_ms": 265
+    },
+    {
+      "suite": "investigation",
+      "test": "GF-INV-003 — must be exactly CRITICAL and quarantine the parts (inspect first)",
+      "status": "FAIL",
+      "known_issue": "Phase 2",
+      "issue": "FLAKY SAFETY RATING (step 1.7): parts welded with low shielding gas rated HIGH, HIGH, CRITICAL over 3 runs - correct only 1 in 3. The earlier single-run PASS was luck. A pass in any one run proves nothing; judge over several runs.",
+      "reasons": [
+        "Criticality HIGH — expected CRITICAL"
+      ],
+      "latency_ms": 38
+    },
+    {
+      "suite": "investigation",
+      "test": "GF-KI-001 — must not repeat the graph wrong 15-16 V arc voltage (known issue)",
+      "status": "PASS",
+      "known_issue": "Phase 1B",
+      "issue": "Graph holds an approved operator pattern saying 15-16 V is normal arc voltage (SOP: 18-22 V). Written in step 1.3, first run at this baseline.",
+      "reasons": [],
+      "latency_ms": 34
+    }
+  ]
+}

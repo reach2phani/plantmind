@@ -186,6 +186,38 @@ def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4
 # only returns formatted text, which is all every other doc_type needs, but
 # citation tracking here requires knowing exactly WHICH rows were used.
 
+def _drop_disputed(matches):
+    """
+    Remove operator captures a reviewer has REJECTED.
+
+    Why this exists (found by hand-testing in Phase 1B): a reviewer marked an
+    operator's arc-voltage note as disputed IN THE GRAPH — it claimed 15-16 V
+    was normal when the SOP says 18-22 V. But the note also lives in Pinecone,
+    where the Expert Fix agent found it with no idea it had been rejected. The
+    report then flagged the contradiction AND still told the operator to set
+    the machine to 15.5 V. A rejection in one system that the other never hears
+    about is worse than no rejection at all.
+
+    Reads expert_fixes.status (added by sql/06_expert_fix_status.sql). If that
+    column does not exist yet, nothing is dropped and behaviour is unchanged.
+    """
+    ids = [m.metadata.get("expert_fix_id") for m in matches if m.metadata.get("expert_fix_id")]
+    if not ids:
+        return matches
+    try:
+        from llm_logger import _get_supabase
+        rows = (_get_supabase().table("expert_fixes")
+                .select("id,status").in_("id", ids).execute().data or [])
+    except Exception as e:
+        print(f"[expert-fix] status check skipped ({str(e)[:80]})")
+        return matches
+
+    rejected = {r["id"] for r in rows if (r.get("status") or "active") != "active"}
+    if rejected:
+        print(f"[expert-fix] dropped {len(rejected)} disputed capture(s) from retrieval")
+    return [m for m in matches if m.metadata.get("expert_fix_id") not in rejected]
+
+
 def search_expert_fixes(query, equipment_filter=None, top_k=3):
     """
     Search Pinecone for Expert Fix documents on this equipment.
@@ -219,6 +251,7 @@ def search_expert_fixes(query, equipment_filter=None, top_k=3):
         return "NO_DATA: No expert fixes found in PlantMind for this equipment.", []
 
     strong_matches = [m for m in results.matches if m.score >= 0.4]
+    strong_matches = _drop_disputed(strong_matches)
     if not strong_matches:
         return "LOW_CONFIDENCE: Expert fixes found but similarity too low — do not cite.", []
 
@@ -630,6 +663,22 @@ _OPERATOR_PATTERN_RULE = (
     "label it a contradiction, and recommend engineering review."
 )
 
+# Added Phase 1B after a live test. The report correctly flagged that an
+# operator note ("normal arc voltage is 15-16 V, reset to 15.5 V") contradicted
+# the SOP's 18-22 V — and then put "set arc voltage to 15.5 V" in the repair
+# steps. Surfacing a contradiction and then acting on the losing side is worse
+# than not noticing it: the operator follows the steps, not the discussion.
+_DISPUTED_VALUE_RULE = (
+    "NUMBERS IN INSTRUCTIONS - when a documented specification (SOP/NCR/work instruction, "
+    "or a graph SPECIFICATION line) and an operator's note give DIFFERENT values for the same "
+    "setting, threshold or range:\n"
+    "   - The documented specification is the one to follow. Use ONLY its value in the steps.\n"
+    "   - Never write an instruction that sets, resets or targets the operator's value. It may "
+    "be mentioned in the findings as a contradiction to review - never in HOW TO ADDRESS IT.\n"
+    "   - If the graph marks a claim DISPUTED or REJECTED, treat it as wrong: state that it was "
+    "reviewed and rejected, give the documented value instead, and do not act on it."
+)
+
 
 def _build_graph_rules(graph_context):
     """Build the STRICT GRAPH RULES block from the nodes actually retrieved."""
@@ -639,6 +688,11 @@ def _build_graph_rules(graph_context):
 
     if any((n.get("properties") or {}).get("operator_summary") for n in nodes):
         rules.append(_OPERATOR_PATTERN_RULE)
+
+    # Always included: the Expert Fix agent can surface an operator's numbers
+    # from Pinecone even when the graph holds no operator note at all, and
+    # those numbers must never end up in the instructions.
+    rules.append(_DISPUTED_VALUE_RULE)
 
     # True for every machine, so it is always included.
     rules.append("Use ONLY facts present in the knowledge graph context above. Do not import "
@@ -1039,7 +1093,10 @@ def investigate_incident(incident, equipment_id=None):
     if equipment_id:
         try:
             from knowledge_graph import get_fault_chain
-            graph_context = get_fault_chain(equipment_id)
+            # Pass the operator's own words: the graph text then leads with the
+            # fault that matches THIS incident, instead of dumping every fault
+            # the machine can have into every report (Phase 1B usage fix).
+            graph_context = get_fault_chain(equipment_id, incident_text=incident)
             if graph_context and graph_context.get("has_data"):
                 node_count = len(graph_context.get("chain_nodes", []))
                 warn_count = len(graph_context.get("warnings", []))

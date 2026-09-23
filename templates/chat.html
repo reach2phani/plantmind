@@ -1444,7 +1444,7 @@ function submitInvestigation(incident) {
           saveToHistory('agent', incident, bodyText, [], plant, line, equipment_id_used);
           // Inject fault chain panel if equipment has graph data
           if (equipment_id_used) {
-            injectFaultChain(card, equipment_id_used);
+            injectFaultChain(card, equipment_id_used, incident);
           }
           return;
         }
@@ -1561,8 +1561,12 @@ function draftWorkOrder(btn, equipTag) {
 
 // ── FAULT CHAIN PANEL ─────────────────────────────────────────────────────────
 
-function injectFaultChain(card, equipTag) {
-  fetch('/api/graph/fault-chain?equip=' + encodeURIComponent(equipTag))
+function injectFaultChain(card, equipTag, incidentText) {
+  // Send the operator's own words so the diagram shows the chain for THIS
+  // incident, not just the machine's first fault.
+  var url = '/api/graph/fault-chain?equip=' + encodeURIComponent(equipTag);
+  if (incidentText) url += '&incident=' + encodeURIComponent(incidentText.slice(0, 500));
+  fetch(url)
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (!data.has_data || !data.chain_nodes || data.chain_nodes.length < 2) return;
@@ -1651,6 +1655,16 @@ function buildFaultChainPanel(data, equipTag) {
     var summary = props.operator_summary || n.label || n.id;
     var count   = props.confirmed_count || 1;
     var who     = props.contributors || 'An operator';
+
+    // A note a reviewer marked as DISPUTED must never be drawn as confirmed
+    // operator knowledge. The report text already respects this; the diagram
+    // did not, so an operator could read the rejected 15-16 V claim as
+    // "Confirmed by 2 operators" while the report said the opposite.
+    if (props.status === 'disputed') {
+      var wins = props.overruled_by ? (' Use ' + props.overruled_by + ' instead.') : '';
+      return '⚠ REJECTED claim (not a specification) — ' + summary + wins;
+    }
+
     var lead    = (props.source_type === 'multi_operator')
       ? ('Confirmed by ' + count + ' operators')
       : (who + ' found');

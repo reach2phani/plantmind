@@ -2819,13 +2819,17 @@ def graph_fault_chain():
     """
     equip = request.args.get("equip", "").strip()
     fault = request.args.get("fault", "").strip()
+    # The incident text lets the graph lead with the fault that matches THIS
+    # incident. Without it the panel drew the wire-feed chain under an
+    # arc-instability report, because it simply took the first fault.
+    incident = request.args.get("incident", "").strip()
 
     if not equip:
         return jsonify({"error": "equip parameter required"}), 400
 
     try:
         from knowledge_graph import get_fault_chain
-        chain = get_fault_chain(equip, fault or None)
+        chain = get_fault_chain(equip, fault or None, incident_text=incident)
         return jsonify(chain)
     except Exception as e:
         print(f"  [graph] fault-chain error: {e}")

@@ -109,8 +109,11 @@ def preflight(suites, force):
 # ─────────────────────────────────────────────────────────────────────────────
 def run_suite(label, config, stamp):
     out = RESULTS / f"baseline_{label}_{stamp}.json"
+    # Two at a time, not promptfoo's default of four. Four /ask questions at
+    # once went past Groq's 8,000 tokens-per-minute limit and one answer came
+    # back as a 429 — which then looked like a quality failure.
     cmd = (f'npx --yes {PROMPTFOO} eval -c "{PF / config}" --env-file "{ROOT / ".env"}" '
-           f'--no-cache --no-table -o "{out}"')
+           f'--no-cache --no-table -j 2 -o "{out}"')
     print(f"\n>>> {label}  ({config})")
     # promptfoo exits non-zero when tests fail — expected; failures are data.
     subprocess.run(cmd, shell=True, cwd=ROOT)
@@ -126,9 +129,16 @@ def classify(label, results, known):
     for r in results:
         desc = (r.get("testCase") or {}).get("description", "?")
         grading = r.get("gradingResult")
+        output = str((r.get("response") or {}).get("output") or "")
+        # An app-side failure (rate limit, outage) comes back as ordinary answer
+        # text, so promptfoo scores it as a quality FAIL and the scorecard
+        # reported a NEW bug that never existed. Judge the answer, not the
+        # weather: these are ERRORs, and they are re-run, not triaged.
+        broke = ("rate limit" in output.lower() or "429" in output[:60]
+                 or output.startswith("Error: ") or "temporarily unavailable" in output.lower())
         if r.get("success"):
             status = "PASS"
-        elif grading is None or r.get("failureReason") == 2:
+        elif broke or grading is None or r.get("failureReason") == 2:
             status = "ERROR"          # the call itself failed — not a quality result
         else:
             status = "FAIL"

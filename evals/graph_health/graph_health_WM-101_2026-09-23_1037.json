@@ -1,0 +1,52 @@
+{
+  "equip": "WM-101",
+  "run_at": "2026-09-23_1037",
+  "passed": 1,
+  "total": 6,
+  "rules": [
+    {
+      "rule": "1. SOURCE     every note says where it came from",
+      "pass": false,
+      "problems": [
+        "Pattern: The report states that the arc voltage was 17.8 V, above the"
+      ]
+    },
+    {
+      "rule": "2. CONNECTED  no note is left floating on its own",
+      "pass": false,
+      "problems": [
+        "Safety: PPE Required",
+        "Parameter: Wire Feed Speed Specification",
+        "Parameter: Arc Voltage Specification",
+        "Parameter: Shielding Gas Flow Specification",
+        "Document: WM-101 SOP Rev 1.0"
+      ]
+    },
+    {
+      "rule": "3. STRINGS    strings join sensible kinds of note",
+      "pass": false,
+      "problems": [
+        "Fault -CAUSED_BY-> Parameter  (Wire Feed Motor Overload -> Drive Roll Tension Specifica)"
+      ]
+    },
+    {
+      "rule": "4. COMPLETE   every fault has a cause and a fix",
+      "pass": false,
+      "problems": [
+        "Shielding Gas Pressure Low: 2 cause(s), 0 fix(es)"
+      ]
+    },
+    {
+      "rule": "5. AGREEMENT  no two notes contradict each other",
+      "pass": true,
+      "problems": []
+    },
+    {
+      "rule": "6. BELONGING  every note belongs to a machine that exists",
+      "pass": false,
+      "problems": [
+        "HC-401: 1 note(s), but no Equipment node for it"
+      ]
+    }
+  ]
+}

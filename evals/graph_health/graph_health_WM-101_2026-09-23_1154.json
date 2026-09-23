@@ -1,0 +1,38 @@
+{
+  "equip": "WM-101",
+  "run_at": "2026-09-23_1154",
+  "passed": 6,
+  "total": 6,
+  "rules": [
+    {
+      "rule": "1. SOURCE     every note says where it came from",
+      "pass": true,
+      "problems": []
+    },
+    {
+      "rule": "2. CONNECTED  no note is left floating on its own",
+      "pass": true,
+      "problems": []
+    },
+    {
+      "rule": "3. STRINGS    strings join sensible kinds of note",
+      "pass": true,
+      "problems": []
+    },
+    {
+      "rule": "4. COMPLETE   every fault has a cause and a fix",
+      "pass": true,
+      "problems": []
+    },
+    {
+      "rule": "5. AGREEMENT  no two notes contradict each other",
+      "pass": true,
+      "problems": []
+    },
+    {
+      "rule": "6. BELONGING  every note belongs to a machine that exists",
+      "pass": true,
+      "problems": []
+    }
+  ]
+}

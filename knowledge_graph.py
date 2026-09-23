@@ -81,12 +81,28 @@ def load_graph(json_path=None):
     try:
         with driver.session(database=None) as session:
 
-            # Clear existing nodes for this equipment
-            session.run(
-                "MATCH (n) WHERE n.equip_tag = $e DETACH DELETE n",
+            # Clear existing nodes for this equipment — EXCEPT operator
+            # knowledge promoted through the review queue.
+            #
+            # Why (Phase 1B): promoted operator notes exist ONLY in Neo4j. They
+            # are in no file, so this reload used to delete them permanently —
+            # a human-reviewed fact, gone on the next restart, with nothing
+            # saying so. The seed file is the source of truth for DOCUMENT
+            # facts; it was never the source of truth for operator knowledge.
+            preserved = session.run(
+                "MATCH (n) WHERE n.equip_tag = $e AND "
+                "(n.source_type IS NOT NULL OR n._id STARTS WITH 'opfix_') "
+                "RETURN n._id AS id",
                 {"e": equip}
+            ).data()
+            preserved_ids = [p["id"] for p in preserved]
+
+            session.run(
+                "MATCH (n) WHERE n.equip_tag = $e AND NOT n._id IN $keep DETACH DELETE n",
+                {"e": equip, "keep": preserved_ids}
             )
-            print(f"[KG]   Cleared existing {equip} nodes")
+            print(f"[KG]   Cleared existing {equip} nodes "
+                  f"(kept {len(preserved_ids)} promoted operator note(s))")
 
             # Create nodes
             for node in nodes:
@@ -121,6 +137,21 @@ def load_graph(json_path=None):
 
             print(f"[KG]   Created {len(rels)} relationships")
 
+            # Re-attach the preserved operator notes. Deleting the Equipment
+            # node above also cut the link to them, so without this they would
+            # survive the reload but float unreachable — which is exactly the
+            # bug that hid the correct arc-voltage spec from every report.
+            if preserved_ids:
+                session.run(
+                    """
+                    MATCH (e:Equipment {_id: $e})
+                    MATCH (p) WHERE p._id IN $keep
+                    MERGE (e)-[:HAS_FAULT]->(p)
+                    """,
+                    {"e": equip, "keep": preserved_ids}
+                )
+                print(f"[KG]   Re-attached {len(preserved_ids)} promoted operator note(s)")
+
         # Verify
         with driver.session(database=None) as session:
             c = session.run(
@@ -142,7 +173,7 @@ def load_graph(json_path=None):
 # Used by /api/graph/fault-chain endpoint
 # ─────────────────────────────────────────────────────────────────────────────
 
-def get_fault_chain(equip_tag, fault_type=None):
+def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
     """
     Returns the fault chain for equipment and optional fault type.
     Traverses connected nodes up to 5 hops.
@@ -180,7 +211,8 @@ def get_fault_chain(equip_tag, fault_type=None):
                 RETURN DISTINCT
                     n._id AS id, n._label AS label,
                     n._type AS type, properties(n) AS props
-                LIMIT 30
+                LIMIT 200   // raised from 30: the graph outgrew it and was silently
+                            // dropping notes, burn-in and LOTO among them
             """, {"equip": equip_tag, "fault_id": fault_id}).data()
 
             # If no results, get all nodes for equipment
@@ -191,7 +223,8 @@ def get_fault_chain(equip_tag, fault_type=None):
                     RETURN DISTINCT
                         n._id AS id, n._label AS label,
                         n._type AS type, properties(n) AS props
-                    LIMIT 30
+                    LIMIT 200   // raised from 30: the graph outgrew it and was silently
+                            // dropping notes, burn-in and LOTO among them
                 """, {"equip": equip_tag}).data()
 
             # Get equipment node
@@ -243,14 +276,11 @@ def get_fault_chain(equip_tag, fault_type=None):
             "type":       r.get("type", ""),
             "properties": props
         })
-        if nid == "burn_in_procedure":
-            warnings.append("Burn-in is MANDATORY after liner replacement. Wire instability in first 5 minutes is EXPECTED — not a fault.")
-        if nid == "loto_procedure":
-            warnings.append("LOTO required — isolate power at main disconnect before any maintenance.")
-        if nid == "quality_flag":
-            warnings.append("Parts welded during fault event must be quarantined for quality inspection.")
-        if nid == "shielding_gas_low":
-            warnings.append("CRITICAL — never weld without shielding gas. Parts welded after alarm must be scrapped.")
+        # Warnings used to be hard-coded here by node id (burn_in_procedure,
+        # loto_procedure, quality_flag, shielding_gas_low) — Known issue #5.
+        # A second machine's graph produced NO warnings at all, however good
+        # its data. They are now derived from the notes' own properties, by
+        # _derive_warnings() below, so any machine gets them for free.
         if r.get("type") == "Procedure" and props.get("total_with_burnin"):
             downtime = props.get("total_with_burnin", "")
 
@@ -271,9 +301,17 @@ def get_fault_chain(equip_tag, fault_type=None):
             "warning":    r["rel_type"] in ["REQUIRES", "REQUIRES_SAFETY"]
         })
 
+    # Warnings derived from the notes themselves (see _derive_warnings).
+    warnings.extend(_derive_warnings(chain_nodes))
+
     # Add pattern warnings
     for r in pattern_results:
         props = r.get("props", {}) or {}
+        # A note the reviewer marked as disputed must never become a warning.
+        # It is shown separately in the chain text, with the fact that overrules
+        # it, so the AI can see the claim AND see that it lost.
+        if props.get("status") == "disputed":
+            continue
         if props.get("wrong_response"):
             warnings.append(f"Do NOT: {props['wrong_response']}")
         # NEW Session 15 follow-up -- operator-confirmed patterns promoted
@@ -293,7 +331,8 @@ def get_fault_chain(equip_tag, fault_type=None):
                 lead = f"{contributors or 'An operator'} found"
             warnings.append(f"{lead}: {summary}")
 
-    chain_text = _build_chain_text(chain_nodes, chain_edges, warnings, downtime, equip_tag)
+    chain_text = _build_chain_text(chain_nodes, chain_edges, warnings, downtime,
+                                   equip_tag, incident_text)
 
     return {
         "equip_tag":   equip_tag,
@@ -309,59 +348,222 @@ def get_fault_chain(equip_tag, fault_type=None):
     }
 
 
-def _build_chain_text(nodes, edges, warnings, downtime, equip_tag):
-    """Build plain English fault chain for LLM orchestrator context."""
+def _clean(text):
+    """
+    Repair double-encoded dashes ("â€”") coming from the seed file, and trim.
+    Cosmetic, but these land in the AI's context and in operator-facing text.
+    """
+    if not isinstance(text, str):
+        return text
+    return (text.replace("â€”", "—").replace("â€“", "–")
+                .replace("â€™", "'").replace("Â", "")).strip()
+
+
+def _src(props):
+    """'  [source: WM-101-SOP Section 4.1]' — or nothing if the note has none."""
+    s = _clean(props.get("source", ""))
+    return f"  [source: {s}]" if s else ""
+
+
+def _derive_warnings(nodes):
+    """
+    Build the critical warnings from the notes' OWN properties.
+
+    Before Phase 1B these four warnings were hard-coded by node id, so they
+    existed only for WM-101 (Known issue #5). Everything below reads a property
+    any machine's graph can carry, so a second machine gets warnings for free:
+
+        Fault.criticality / .quality_impact / .wrong_response
+        Procedure.mandatory / .important_note
+        Safety.rule / .action
+    """
+    out = []
+    for n in nodes:
+        p, label = n.get("properties", {}) or {}, n.get("label", "")
+        if n["type"] == "Fault":
+            if p.get("criticality"):
+                out.append(f'{_clean(p["criticality"])}{_src(p)}')
+            if p.get("quality_impact"):
+                out.append(f'{label}: {_clean(p["quality_impact"])}{_src(p)}')
+            if p.get("wrong_response"):
+                out.append(f'Do NOT: {_clean(p["wrong_response"])}{_src(p)}')
+        elif n["type"] == "Procedure":
+            if str(p.get("mandatory", "")).lower().startswith("true"):
+                out.append(f'{label} is MANDATORY — {_clean(p["mandatory"])}{_src(p)}')
+            if p.get("important_note"):
+                out.append(f'{_clean(p["important_note"])}{_src(p)}')
+        elif n["type"] == "Safety":
+            for key in ("rule", "action", "required_before"):
+                if p.get(key):
+                    out.append(f'{label}: {_clean(p[key])}{_src(p)}')
+                    break
+    # De-duplicate while keeping the order.
+    seen, unique = set(), []
+    for w in out:
+        if w not in seen:
+            seen.add(w)
+            unique.append(w)
+    return unique
+
+
+def _score_fault(fault, nodes, edges, incident_text):
+    """How well does this fault match what the operator actually described?"""
+    if not incident_text:
+        return 0
+    text = incident_text.lower()
+    words = set()
+    p = fault.get("properties", {}) or {}
+    for value in (fault.get("label", ""), p.get("alarm_message", ""), p.get("symptom", "")):
+        words |= {w for w in str(value).lower().replace("—", " ").split() if len(w) > 3}
+    # Its causes count too: "new spool fitted" should match the overload fault.
+    for e in edges:
+        if e["from"] == fault["id"] and e["type"] == "CAUSED_BY":
+            cause = next((n for n in nodes if n["id"] == e["to"]), None)
+            if cause:
+                words |= {w for w in cause["label"].lower().split() if len(w) > 3}
+    return sum(1 for w in words if w in text)
+
+
+def _build_chain_text(nodes, edges, warnings, downtime, equip_tag, incident_text=""):
+    """
+    Turn the graph into text for the orchestrator — KEEPING THE LINKS.
+
+    The old version printed one list of faults and a separate list of causes,
+    so the AI could not tell which cause belonged to which fault: it received
+    31 of 34 notes for every incident, with the connections stripped out. The
+    graph's whole advantage was thrown away in the last step before the AI.
+
+    Now each fault is written with its own causes, each cause with its own fix
+    and part, plus the fault's specification and the source of every fact. When
+    the operator's description matches a fault, that fault is written in full
+    and the others are listed by name only.
+    """
     if not nodes:
         return ""
 
-    lines = [f"Knowledge graph context for {equip_tag}:", ""]
+    by_id = {n["id"]: n for n in nodes}
+    faults = [n for n in nodes if n["type"] == "Fault"]
+    patterns = [n for n in nodes if n["type"] == "Pattern"]
+    documents = [n for n in nodes if n["type"] == "Document"]
 
-    faults     = [n for n in nodes if n["type"] == "Fault"]
-    components = [n for n in nodes if n["type"] == "Component"]
-    procedures = [n for n in nodes if n["type"] == "Procedure"]
-    patterns   = [n for n in nodes if n["type"] == "Pattern"]
-    documents  = [n for n in nodes if n["type"] == "Document"]
+    def linked(from_id, rel):
+        return [by_id[e["to"]] for e in edges
+                if e["from"] == from_id and e["type"] == rel and e["to"] in by_id]
 
-    if faults:
-        lines.append("Known faults:")
-        for f in faults:
-            msg = f["properties"].get("alarm_message", "")
-            lines.append(f"  - {f['label']}" + (f": {msg}" if msg else ""))
+    lines = [f"KNOWLEDGE GRAPH FOR {equip_tag} — human-reviewed facts, each with its source.", ""]
 
-    if components:
-        lines.append("\nRoot causes:")
-        for c in components:
-            lines.append(f"  - {c['label']}")
-            for e in edges:
-                if e["from"] == c["id"] and e["type"] == "FIXED_BY":
-                    fix = next((n for n in nodes if n["id"] == e["to"]), None)
-                    if fix:
-                        lines.append(f"    → Fixed by: {fix['label']}")
+    scored = sorted(((_score_fault(f, nodes, edges, incident_text), f) for f in faults),
+                    key=lambda t: -t[0])
+    best = scored[0][0] if scored else 0
+    if best > 0:
+        # Only the best-matching fault (plus any tie) is written out in full.
+        # Taking every fault with score > 0 was still too loose: a wire-feed
+        # incident pulled in arc instability and contact-tip faults too,
+        # because they share a cause. The rest are listed by name, so the AI
+        # knows they exist without the report drowning in them.
+        relevant = [f for s, f in scored if s == best]
+        others = [f for s, f in scored if s < best]
+    else:
+        relevant, others = [f for _, f in scored], []   # nothing matched — show all
 
-    if procedures:
-        lines.append("\nRequired procedures:")
-        for p in procedures:
-            t = p["properties"].get("total_with_burnin", "")
-            lines.append(f"  - {p['label']}" + (f" (~{t})" if t else ""))
-            if p["properties"].get("mandatory") == "true":
-                lines.append(f"    ⚠️  MANDATORY — do not skip")
+    for fault in relevant:
+        p = fault["properties"]
+        lines.append(f"FAULT: {fault['label']}{_src(p)}")
+        if p.get("alarm_message"):
+            lines.append(f'  Alarm: "{_clean(p["alarm_message"])}"')
+        if p.get("frequency_trigger"):
+            lines.append(f'  Note: {_clean(p["frequency_trigger"])}')
+        if p.get("correct_response"):
+            lines.append(f'  Correct response: {_clean(p["correct_response"])}')
 
-    if patterns:
-        lines.append("\nKnown patterns:")
-        for p in patterns:
-            wrong   = p["properties"].get("wrong_response", "")
-            correct = p["properties"].get("correct_response", "")
-            summary = p["properties"].get("operator_summary", "")
-            if wrong:   lines.append(f"  ❌ Wrong: {wrong}")
-            if correct: lines.append(f"  ✅ Correct: {correct}")
+        for spec in linked(fault["id"], "HAS_PARAMETER"):
+            sp = spec["properties"]
+            # Print whatever the spec actually holds. An allow-list of property
+            # names printed the tension spec as an empty line, because its
+            # values live under correct_setting / too_tight_effect.
+            detail = ", ".join(f"{k.replace('_', ' ')}: {_clean(v)}"
+                               for k, v in sp.items()
+                               if not k.startswith("_")
+                               and k not in ("equip_tag", "plant_site", "line", "source",
+                                             "added_by"))
+            lines.append(f'  SPECIFICATION — {spec["label"]}: {detail}{_src(sp)}')
+
+        causes = linked(fault["id"], "CAUSED_BY")
+        if causes:
+            lines.append("  Possible causes:")
+            for c in causes:
+                cp = c["properties"]
+                lines.append(f'    - {c["label"]}{_src(cp)}')
+                for key in ("wear_indicator", "distinguishing_sign", "service_interval",
+                            "check", "effect", "evidence"):
+                    if cp.get(key):
+                        lines.append(f'        {key.replace("_", " ")}: {_clean(cp[key])}')
+                for fix in linked(c["id"], "FIXED_BY"):
+                    fp = fix["properties"]
+                    mins = fp.get("total_with_burnin") or fp.get("expected_time", "")
+                    lines.append(f'        fix: {fix["label"]}'
+                                 + (f" (~{_clean(mins)})" if mins else "") + _src(fp))
+                for part in linked(c["id"], "REPLACED_WITH"):
+                    lines.append(f'        part: {part["label"]}')
+                # What the fix itself demands — the burn-in after a liner
+                # change, LOTO before opening the machine. These sit one hop
+                # further out, and they are the steps it is dangerous to miss.
+                for fix in linked(c["id"], "FIXED_BY"):
+                    for req in linked(fix["id"], "REQUIRES") + linked(fix["id"], "REQUIRES_SAFETY"):
+                        rp = req["properties"]
+                        note = _clean(rp.get("method") or rp.get("steps") or
+                                      rp.get("mandatory") or "")
+                        lines.append(f'        then required: {req["label"]}'
+                                     + (f" — {note[:120]}" if note else "") + _src(rp))
+        for safety in linked(fault["id"], "TRIGGERS"):
+            if safety["type"] == "Safety":
+                lines.append(f'  Safety: {safety["label"]}'
+                             f'{_src(safety["properties"])}')
+        lines.append("")
+
+    if others:
+        lines.append("Other faults this machine can have (not matching this incident): "
+                     + "; ".join(f["label"] for f in others))
+        lines.append("")
+
+    confirmed = [p for p in patterns if p["properties"].get("status") != "disputed"]
+    disputed = [p for p in patterns if p["properties"].get("status") == "disputed"]
+
+    if confirmed:
+        lines.append("Operator knowledge (reviewed and approved):")
+        for p in confirmed:
+            pp = p["properties"]
+            wrong, correct = _clean(pp.get("wrong_response", "")), _clean(pp.get("correct_response", ""))
+            summary = _clean(pp.get("operator_summary", ""))
+            if wrong:
+                lines.append(f"  Wrong response: {wrong}")
+            if correct:
+                lines.append(f"  Correct response: {correct}")
             if summary:
-                count        = p["properties"].get("confirmed_count", 1)
-                contributors = p["properties"].get("contributors", "")
-                source_type  = p["properties"].get("source_type", "single_operator")
-                if source_type == "multi_operator":
-                    lines.append(f"  👥 {count} operators confirmed: {summary}")
-                else:
-                    lines.append(f"  🎙 {contributors or 'Operator'} found: {summary}")
+                count = pp.get("confirmed_count", 1)
+                who = pp.get("contributors", "")
+                lead = (f"{count} operators independently confirmed"
+                        if pp.get("source_type") == "multi_operator"
+                        else f"{who or 'An operator'} found")
+                lines.append(f"  {lead}: {summary}")
+        lines.append("")
+
+    if disputed:
+        # Shown, not hidden: the AI must know the claim exists AND that it lost,
+        # so it can answer an operator who repeats it. Never as a warning.
+        lines.append("DISPUTED — operator claims that a documented fact overrules. "
+                     "Do NOT use these as specifications:")
+        for p in disputed:
+            pp = p["properties"]
+            claim = _clean(pp.get("operator_summary") or p["label"])
+            wins = by_id.get(pp.get("overruled_by", ""))
+            lines.append(f"  Claim: {claim[:220]}")
+            lines.append(f"  Why it is rejected: {_clean(pp.get('disputed_reason', ''))}")
+            if wins:
+                lines.append(f"  Use instead: {wins['label']} — "
+                             f"{_clean(wins['properties'].get('normal_range', ''))}"
+                             f"{_src(wins['properties'])}")
+        lines.append("")
 
     if warnings:
         lines.append("\nCritical warnings:")

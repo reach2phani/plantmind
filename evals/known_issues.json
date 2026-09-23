@@ -3,7 +3,7 @@
     "what": "Every test that is EXPECTED to fail right now, why, and which phase fixes it.",
     "why": "A baseline with 8 red tests is useless if you have to remember which 8 are fine. run_baseline.py marks a failure listed here as KNOWN and anything else as NEW - so only new failures demand attention. If a KNOWN test starts PASSING, it is reported too: either the fix landed, or the test got lucky (check with run_consistency.py).",
     "how_to_update": "When a phase fixes an issue, delete its entry here. When triage finds a new real bug, add it with the phase that will fix it. 'match' is a substring of the promptfoo test description.",
-    "updated": "2026-09-18 (after step 1.7 consistency run)"
+    "updated": "2026-09-23 (after the Phase 1B baseline)"
   },
   "issues": [
     {
@@ -23,9 +23,9 @@
     {
       "match": "GF-INV-001",
       "suite": "investigation",
-      "issue": "Root cause blamed on wire tension / drive rolls instead of the new defective spool.",
-      "phase": "Phase 1B",
-      "fix": "Graph rebuild adds the defective-spool cause; operator tension tip labelled with its source."
+      "issue": "CAUSE MOVED after the Phase 1B graph rebuild. The graph now offers the defective-spool cause correctly and a hand-run report named it. But an unreviewed operator capture ('wire tension 18 -> 22 units', numbers that appear in NO document) outranks it about half the time. In the failing run the report even quoted the SOP's 'Do NOT keep adjusting tension' as a contradiction and still made tension the root cause. FLAKY.",
+      "phase": "Phase 2",
+      "fix": "Precedence rule: an operator capture that contradicts a documented warning or whose numbers appear in no document may be surfaced, but must not be adopted as the root cause. Same family as the disputed-value rule added in Phase 1B, extended from numbers to actions."
     },
     {
       "match": "GF-INV-002",
@@ -33,13 +33,6 @@
       "issue": "Expected burn-in stutter rated HIGH and treated as a liner fault ('remove and reinstall liner').",
       "phase": "Phase 2",
       "fix": "Prompt rule 'LOTO needed = HIGH' must not override 'burn-in is expected'."
-    },
-    {
-      "match": "GF-KI-001",
-      "suite": "investigation",
-      "issue": "Graph holds an approved operator pattern saying 15-16 V is normal arc voltage (SOP: 18-22 V). Written in step 1.3, first run at this baseline.",
-      "phase": "Phase 1B",
-      "fix": "Graph rebuild with provenance; wrong pattern corrected."
     },
     {
       "match": "G1-007",
