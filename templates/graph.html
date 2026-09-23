@@ -116,6 +116,12 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;ba
 .rd-title{font-size:15px;font-weight:600;color:#0f172a}
 .rd-sub{font-size:12px;color:#64748b;margin-bottom:14px}
 .rd-summary-box{background:#f8fafc;border-radius:8px;padding:12px;font-size:13px;color:#0f172a;line-height:1.6;margin-bottom:14px}
+/* Reinforcement: what this capture will be merged INTO. Amber, because
+   approving joins two things together and that is hard to undo. */
+.rd-merge-box{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px;margin-bottom:14px}
+.rd-merge-lbl{font-size:12px;font-weight:600;color:#92400e;margin-bottom:8px;line-height:1.5}
+.rd-merge-existing{background:#fff;border-radius:6px;padding:10px;font-size:13px;color:#0f172a;line-height:1.6}
+.rd-merge-meta{font-size:11px;color:#92400e;margin-top:8px}
 .rd-summary-lbl{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
 .rd-src{border-top:1px solid #f1f5f9;padding-top:10px;margin-top:10px}
 .rd-src-hd{font-size:12px;font-weight:600;color:#0f172a;margin-bottom:3px}
@@ -1039,9 +1045,31 @@ function renderReviewDetail(c) {
       '</div>';
   }).join('');
 
+  // A reinforcement JOINS an existing note. Show the reviewer what it will
+  // join, side by side with the new capture. Without this they only saw the
+  // new words and had no way to spot a wrong match -- three unrelated fixes
+  // (duty-cycle alarm, low gas flow, weld spatter) were approved into one
+  // arc-voltage note before anyone noticed.
+  var mergeHtml = '';
+  if (c.candidate_type === 'reinforcement') {
+    var t = c.merge_target;
+    mergeHtml = t
+      ? '<div class="rd-merge-box">' +
+          '<div class="rd-merge-lbl">&#9888; This will be ADDED TO the existing note below. ' +
+          'Approve only if they are about the same fault.</div>' +
+          '<div class="rd-merge-existing">' + escRqHtml(t.summary || '(no text on the note)') + '</div>' +
+          '<div class="rd-merge-meta">Currently: ' + (t.confirmed_count || 1) +
+            ' confirmation(s) &middot; ' + escRqHtml(t.contributors || 'unknown') +
+            (t.status === 'disputed' ? ' &middot; <b>this note is DISPUTED</b>' : '') + '</div>' +
+        '</div>'
+      : '<div class="rd-merge-box"><div class="rd-merge-lbl">&#9888; This is a reinforcement, ' +
+        'but the note it should join could not be loaded. Do not approve until you can see it.</div></div>';
+  }
+
   panel.innerHTML =
     '<button class="rd-back" onclick="closeReviewDetail()">&#8592; Back to queue</button>' +
     needsReviewBanner +
+    mergeHtml +
     '<div class="rd-hd">' +
       '<span class="rd-title">' + escRqHtml(c.equip_tag || '') + ' — candidate for promotion</span>' +
       '<span class="rq-badge ' + badgeClass + '">' + badgeText + '</span>' +

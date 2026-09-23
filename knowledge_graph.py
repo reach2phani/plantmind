@@ -903,28 +903,65 @@ def promote_candidate_to_graph(candidate, fix_rows):
     return node_id
 
 
-def reinforce_promoted_node(node_id, new_fix_rows, new_confirmed_count):
+def reinforce_promoted_node(node_id, new_fix_rows, new_confirmed_count, new_summary=""):
     """
-    For candidate_type='reinforcement' -- updates an ALREADY-promoted
-    node's confirmed_count and contributors rather than creating a
-    duplicate node. Still only ever called from the human-approved
-    review flow, same as promote_candidate_to_graph.
+    For candidate_type='reinforcement' — a second operator's capture joins an
+    already-promoted note instead of creating a duplicate.
+
+    THE BUG THIS FIXES (Phase 1B)
+        This used to raise confirmed_count and nothing else. The new capture's
+        words were thrown away, and the contributors list — calculated on the
+        line below, then never written — was discarded too. The note ended up
+        claiming "confirmed by 2 operators" while holding ONE operator's
+        content, and sometimes not even naming the second person.
+
+        That is the worst possible direction for the error: confirmed_count is
+        the trust signal that makes a note outrank a single unconfirmed tip.
+        It grew while the knowledge behind it did not.
+
+        Real damage found in the live graph: THREE reinforcements were approved
+        into one arc-voltage note — about a duty-cycle alarm, low gas flow and
+        weld spatter. Three unrelated fixes, all silently dropped.
+
+    Now the new capture's summary is APPENDED, with who contributed it, and the
+    contributors property is actually written. Nothing is overwritten.
     """
-    contributors = sorted(set(f.get("captured_by_name", "") for f in new_fix_rows if f.get("captured_by_name")))
+    contributors = sorted({f.get("captured_by_name", "") for f in new_fix_rows if f.get("captured_by_name")})
+    addition = (new_summary or "").strip()
+    who = ", ".join(contributors) or "an operator"
+
     driver = _get_driver()
     try:
         with driver.session(database=None) as session:
+            existing = session.run(
+                "MATCH (n:Pattern {_id: $id}) RETURN n.operator_summary AS s",
+                {"id": node_id}
+            ).single()
+            current = (existing["s"] if existing else "") or ""
+
+            # Only append text that is genuinely new: approving the same
+            # candidate twice must not duplicate the paragraph.
+            merged = current
+            if addition and addition[:60].lower() not in current.lower():
+                merged = (current + ("\n\n" if current else "")
+                          + f"Also reported by {who}: {addition}")
+
             session.run(
                 """
                 MATCH (n:Pattern {_id: $id})
                 SET n.confirmed_count = $count,
+                    n.contributors     = $contributors,
+                    n.operator_summary = $summary,
                     n.source_type = CASE WHEN $count > 1 THEN 'multi_operator' ELSE 'single_operator' END
                 """,
-                {"id": node_id, "count": new_confirmed_count}
+                {"id": node_id, "count": new_confirmed_count,
+                 "contributors": ", ".join(contributors), "summary": merged}
             )
     finally:
         driver.close()
-    print(f"[KG] Reinforced Pattern node {node_id} -> confirmed_count={new_confirmed_count}")
+
+    print(f"[KG] Reinforced Pattern node {node_id} -> confirmed_count={new_confirmed_count}, "
+          f"contributors={who}, content {'merged' if addition else 'unchanged (no new summary given)'}")
     return node_id
 
 

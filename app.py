@@ -2689,6 +2689,25 @@ def graph_candidate_detail(candidate_id):
         candidate = rows[0]
         candidate["sources"] = _fetch_fix_rows(candidate.get("fix_ids") or [])
         candidate["source_count"] = len(candidate["sources"])
+
+        # For a reinforcement, show WHAT IT WILL MERGE INTO. Without this the
+        # reviewer only ever saw the new capture and had no way to notice a bad
+        # match: three unrelated fixes (duty cycle, gas flow, spatter) were
+        # approved into one arc-voltage note before anyone spotted it.
+        if candidate.get("candidate_type") == "reinforcement" and candidate.get("promoted_node_id"):
+            try:
+                from knowledge_graph import _run as _kg_run
+                target = _kg_run(
+                    "MATCH (n:Pattern {_id: $id}) RETURN n.operator_summary AS summary, "
+                    "n.contributors AS contributors, n.confirmed_count AS confirmed_count, "
+                    "n.status AS status",
+                    {"id": candidate["promoted_node_id"]}
+                )
+                candidate["merge_target"] = target[0] if target else None
+            except Exception as e:
+                print(f"  [graph-candidate] could not load merge target: {e}")
+                candidate["merge_target"] = None
+
         return jsonify({"candidate": candidate})
     except Exception as e:
         print(f"  [graph-candidate] detail error: {e}")
@@ -2730,7 +2749,11 @@ def graph_candidate_approve(candidate_id):
                 [str(f) for f in candidate["fix_ids"]]
             ))
             node_id = reinforce_promoted_node(
-                candidate["promoted_node_id"], _fetch_fix_rows(combined_fix_ids), len(combined_fix_ids)
+                candidate["promoted_node_id"], _fetch_fix_rows(combined_fix_ids),
+                len(combined_fix_ids),
+                # The new capture's own words. Without this the merge keeps only
+                # the original note and the count rises for nothing.
+                new_summary=candidate.get("summary") or ""
             )
         else:
             node_id = promote_candidate_to_graph(candidate, fix_rows)
