@@ -696,6 +696,26 @@ def get_equipment():
     result = q.execute()
     return jsonify({"equipment": result.data})
 
+def _announce_equipment(row):
+    """
+    Tell the plant's message bus that this machine exists (or changed).
+
+    A listener turns that into knowledge-graph facts. Plant Setup does not know
+    the graph exists — it only announces.
+
+    Runs in a background thread and swallows every error on purpose: saving a
+    machine must never fail because a broker is down. If announcing fails, the
+    catch-up path is: venv\\Scripts\\python.exe equipment_publisher.py --apply
+    """
+    def _send():
+        try:
+            from equipment_publisher import publish_definition
+            publish_definition(row)
+        except Exception as e:
+            print(f"  [equipment] announce failed (machine still saved): {str(e)[:100]}")
+    threading.Thread(target=_send, daemon=True).start()
+
+
 @app.route("/api/equipment", methods=["POST"])
 def add_equipment():
     data = request.get_json()
@@ -714,6 +734,7 @@ def add_equipment():
         "equip_tag": equip_tag, "name": name, "plant_site": plant_site,
         "line": line, "type": eq_type, "manufacturer": manufacturer, "active": True
     }).execute()
+    _announce_equipment(result.data[0])
     return jsonify({"success": True, "equipment": result.data[0]})
 
 @app.route("/api/equipment/<equip_id>", methods=["PATCH"])
@@ -724,6 +745,7 @@ def update_equipment(equip_id):
     if not updates:
         return jsonify({"error": "No valid fields"}), 400
     result = supabase.table("equipment").update(updates).eq("id", equip_id).execute()
+    _announce_equipment(result.data[0])
     return jsonify({"success": True, "equipment": result.data[0]})
 
 

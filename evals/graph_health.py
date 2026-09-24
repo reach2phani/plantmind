@@ -68,6 +68,10 @@ ALLOWED_LINKS = {
     ("Procedure", "DOCUMENTED_IN"):  {"Document"},
     ("Procedure", "REFERENCED_IN"):  {"Document"},
     ("Pattern", "REQUIRES"):         {"Procedure"},
+    # The blueprint/plant-map layers (ontology_bootstrap.py). A machine is
+    # LOCATED_AT a place; only places CONTAIN places.
+    ("Equipment", "IS_INSTANCE_OF"): {"Class"},
+    ("Equipment", "IS_LOCATED_AT"):  {"WorkCenter", "Location", "Instance", "Area", "Site"},
 }
 
 # Note types that are allowed to have no source of their own.

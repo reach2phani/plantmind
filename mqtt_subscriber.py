@@ -299,6 +299,19 @@ def on_message(client, userdata, msg):
         print(f"[SUB] Payload parse error: {e}")
         return
 
+    # 2b. Equipment definitions take a different path: they describe what a
+    # machine IS, not what it is doing. The handler resolves the type and the
+    # location against the ontology and writes the machine into the knowledge
+    # graph — or records it flagged as untyped/unplaced rather than dropping it.
+    # Deliberately not added to the live alarm feed: nothing happened here.
+    if event_type == "definition":
+        try:
+            from equipment_definition import handle_definition
+            handle_definition(payload)
+        except Exception as e:
+            print(f"[SUB] equipment definition failed: {str(e)[:120]}")
+        return
+
     # 3. Add to live feed (all events — sensor and alarm)
     live_feed.append({
         "plant_site": plant_site,
