@@ -1,0 +1,80 @@
+{
+  "_about": "Graph-value ablation test (B = documents only, C = documents + graph). Six WM-101 cases, each testing something the knowledge graph is meant to guarantee. Every expected fact is traceable to the SOP, work instruction or NCR. 'code' checks are regex (numbers, codes); 'judge' checks are one narrow yes/no question to the Qwen judge, phrased so YES is always the good answer. Locked 2026-09-25.",
+  "equipment": "WM-101",
+  "cases": [
+    {
+      "id": "GV-01",
+      "name": "New spool",
+      "tests": "Finds the defective-spool cause from the 'new spool' clue",
+      "incident": "WM-101 wire feed motor overload alarm. It started right after we fitted a new wire spool this morning.",
+      "checks": [
+        {"id": "spool_cause", "kind": "judge", "q": "Does the report identify a defective or newly fitted wire spool as a likely cause?", "source": "Shift log 2025-06-25, NCR-2024-047 context"},
+        {"id": "spool_replace", "kind": "judge", "q": "Does the report recommend replacing the suspect spool with a known-good spool?", "source": "SOP 2.1 + shift log"},
+        {"id": "tension_quarter_turn", "kind": "code", "all": ["(quarter|¼|1/4)[ -]?turn"], "label": "tension reset to finger-tight + quarter turn", "source": "SOP 2.1"},
+        {"id": "no_more_tension", "kind": "judge", "q": "Does the report avoid telling the operator to increase drive-roll tension, or to keep adjusting it, as the fix?", "source": "SOP 4.1"}
+      ]
+    },
+    {
+      "id": "GV-02",
+      "name": "Tension trap",
+      "tests": "Warns against the known wrong response and treats repeat alarms as systemic",
+      "incident": "Third wire feed overload alarm on WM-101 this shift. The operator has been tightening the drive rolls each time.",
+      "checks": [
+        {"id": "warn_tension", "kind": "judge", "q": "Does the report explicitly warn NOT to keep adjusting or tightening the drive-roll tension?", "source": "SOP 4.1, NCR-2024-047 lessons learned"},
+        {"id": "stop_inspect", "kind": "judge", "q": "Does the report say to stop production and inspect the drive rolls and the liner?", "source": "SOP 4.1"},
+        {"id": "systemic", "kind": "judge", "q": "Does the report treat three or more overload alarms in one shift as a systemic or recurring equipment fault rather than operator error?", "source": "SOP 4.1"},
+        {"id": "loto", "kind": "judge", "q": "Does the report require lockout/tagout (LOTO) before the repair work?", "source": "SOP 7"},
+        {"id": "burn_in_values", "kind": "code", "all": ["burn[- ]?in", "5(\\.0)?\\s*m/min", "30\\s*(s\\b|sec|seconds)"], "label": "burn-in at 5.0 m/min for 30 s", "source": "WI Step 9"}
+      ]
+    },
+    {
+      "id": "GV-03",
+      "name": "Unstable after liner change",
+      "tests": "Connects liner replacement to burn-in, a fact in a different document",
+      "incident": "We just replaced the liner on WM-101 and the wire feed is a bit unstable for the first few minutes. Is something wrong?",
+      "checks": [
+        {"id": "expected_behaviour", "kind": "judge", "q": "Does the report say that some wire feed instability in the first minutes after a liner replacement is expected or normal, not a new fault?", "source": "WI Step 9"},
+        {"id": "burn_in_values", "kind": "code", "all": ["burn[- ]?in", "5(\\.0)?\\s*m/min", "30\\s*(s\\b|sec|seconds)"], "label": "burn-in at 5.0 m/min for 30 s", "source": "WI Step 9"},
+        {"id": "no_second_replacement", "kind": "judge", "q": "Does the report avoid recommending another liner replacement as the immediate fix?", "source": "WI Step 9"}
+      ]
+    },
+    {
+      "id": "GV-04",
+      "name": "Arc voltage",
+      "tests": "Gives the documented spec and does not use the disputed operator value",
+      "incident": "WM-101 arc voltage is reading 17 V and the arc is unstable. What should it be?",
+      "checks": [
+        {"id": "spec_18_22", "kind": "code", "all": ["18\\s*(–|-|to)\\s*22\\s*V"], "label": "normal range 18-22 V", "source": "SOP 3"},
+        {"id": "no_disputed_value", "kind": "judge", "q": "Does the report avoid instructing the operator to set, reset or target an arc voltage of 15-16 V or 15.5 V?", "source": "SOP 3 overrules the disputed operator note"},
+        {"id": "earth_clamp", "kind": "judge", "q": "Does the report recommend checking or cleaning the earth clamp?", "source": "SOP 4.2"},
+        {"id": "qc_flag", "kind": "judge", "q": "Does the report say parts welded during the arc instability should be flagged or quarantined for QC inspection?", "source": "SOP 4.2"}
+      ]
+    },
+    {
+      "id": "GV-05",
+      "name": "Gas alarm",
+      "tests": "Critical safety response and what to do with affected parts",
+      "incident": "Shielding gas pressure low alarm on WM-101 in the middle of a run.",
+      "checks": [
+        {"id": "stop_welding", "kind": "judge", "q": "Does the report say to stop welding immediately?", "source": "SOP 4.4"},
+        {"id": "cylinder_20_bar", "kind": "code", "all": ["20\\s*bar"], "label": "replace cylinder below 20 bar", "source": "SOP 2.3"},
+        {"id": "regulator_hoses", "kind": "judge", "q": "Does the report say to check the regulator and the hose connections for leaks?", "source": "SOP 2.3"},
+        {"id": "affected_parts", "kind": "judge", "q": "Does the report say what to do with parts welded after the alarm (scrap them, or hold them for inspection)?", "source": "SOP 4.4 (scrap) vs gas procedure (hold, SOP Rev 1.1 pending): either accepted"},
+        {"id": "rated_critical", "kind": "rating", "expect": "CRITICAL", "label": "criticality rated CRITICAL", "source": "SOP 4.4: never weld without shielding gas"}
+      ]
+    },
+    {
+      "id": "GV-06",
+      "name": "Hot contact tip",
+      "tests": "Specific numbers and the safe order: cool first, then replace",
+      "incident": "WM-101 contact tip temperature high alarm. The tip bore looks oval.",
+      "checks": [
+        {"id": "cool_10_min", "kind": "code", "all": ["10\\s*(min|minutes)"], "label": "10 minutes cooling", "source": "SOP 4.3"},
+        {"id": "cool_first", "kind": "judge", "q": "Does the report say to let the tip cool before touching or replacing it?", "source": "SOP 4.3"},
+        {"id": "replace_tip", "kind": "judge", "q": "Does the report recommend replacing the contact tip?", "source": "SOP 2.2"},
+        {"id": "stickout", "kind": "code", "all": ["10\\s*(–|-|to)\\s*15\\s*mm"], "label": "stickout 10-15 mm", "source": "SOP 4.3"},
+        {"id": "torque", "kind": "code", "all": ["hand[- ]?tight", "(quarter|¼|1/4)"], "label": "hand-tight + quarter turn", "source": "SOP 2.2"}
+      ]
+    }
+  ]
+}

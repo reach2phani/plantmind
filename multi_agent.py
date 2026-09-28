@@ -30,6 +30,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from llm_logger import log_llm_call
+from tracing import traceable, llm_inputs, llm_outputs, join_stream
+import contextvars
 
 import time as _time
 
@@ -52,6 +54,7 @@ def _completion_cap(model, call_type, content_tokens):
     return kw.get("max_completion_tokens") or kw.get("max_tokens") or content_tokens
 
 
+@traceable(run_type="llm", name="groq_call", process_inputs=llm_inputs, process_outputs=llm_outputs)
 def _groq_call_with_retry(fn, max_retries=3, call_type="specialist",
                           model=MODEL_FAST,
                           plant_site="", equip_tag="",
@@ -133,6 +136,7 @@ def _increment_expert_fix_citations(expert_fix_ids):
 
 # ── Shared Pinecone search ─────────────────────────────────────────────────────
 
+@traceable(run_type="retriever", name="search_documents")
 def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4):
     """
     Search Pinecone for relevant document chunks.
@@ -218,6 +222,7 @@ def _drop_disputed(matches):
     return [m for m in matches if m.metadata.get("expert_fix_id") not in rejected]
 
 
+@traceable(run_type="retriever", name="search_expert_fixes")
 def search_expert_fixes(query, equipment_filter=None, top_k=3):
     """
     Search Pinecone for Expert Fix documents on this equipment.
@@ -304,6 +309,7 @@ def _flag_if_truncated(response, what):
     return text
 
 
+@traceable(name="alarm_agent")
 def run_alarm_agent(incident, equipment_id=None):
     """
     Specialist: searches shift logs for alarm history and event patterns.
@@ -365,6 +371,7 @@ Analyse the alarm pattern from this data."""
 
 # ── Specialist Agent: Expert Fix Agent (PM-IK-001) ────────────────────────────
 
+@traceable(name="expert_fix_agent")
 def run_expert_fix_agent(incident, equipment_id=None):
     """
     Specialist: searches senior-operator field captures for this equipment.
@@ -445,6 +452,7 @@ Analyse whether a prior expert fix applies to this incident."""
 
 # ── Specialist Agent: Maintenance Agent ───────────────────────────────────────
 
+@traceable(name="maintenance_agent")
 def run_maintenance_agent(incident, equipment_id=None):
     """
     Specialist: searches maintenance records for repair history and service patterns.
@@ -506,6 +514,7 @@ Analyse the maintenance history from this data."""
 
 # ── Specialist Agent: SOP Agent ────────────────────────────────────────────────
 
+@traceable(name="sop_agent")
 def run_sop_agent(incident, equipment_id=None):
     """
     Specialist: searches SOPs for correct response procedures and specifications.
@@ -567,6 +576,7 @@ Extract the relevant procedures and specifications from this data."""
 
 # ── Specialist Agent: NCR Agent ────────────────────────────────────────────────
 
+@traceable(name="ncr_agent")
 def run_ncr_agent(incident, equipment_id=None):
     """
     Specialist: searches NCR history for past quality incidents and corrective actions.
@@ -683,7 +693,13 @@ _DISPUTED_VALUE_RULE = (
 def _build_graph_rules(graph_context):
     """Build the STRICT GRAPH RULES block from the nodes actually retrieved."""
     nodes    = graph_context.get("chain_nodes", []) or []
-    node_ids = {n.get("id") for n in nodes}
+    # Phase 2a: only the matched fault's path. Built from every node, the
+    # burn-in rule fired whenever the burn-in NODE existed, so gas-alarm and
+    # hot-tip reports were ordered to include burn-in. Older contexts (the
+    # backup file) have no relevant_node_ids and keep the old behaviour.
+    relevant = graph_context.get("relevant_node_ids")
+    node_ids = set(relevant) if relevant is not None else {n.get("id") for n in nodes}
+    nodes    = [n for n in nodes if n.get("id") in node_ids]
     rules    = [text for node_id, text in _GRAPH_NODE_RULES if node_id in node_ids]
 
     if any((n.get("properties") or {}).get("operator_summary") for n in nodes):
@@ -702,6 +718,7 @@ def _build_graph_rules(graph_context):
     return "STRICT GRAPH RULES - VIOLATION IS AN ERROR:\n" + numbered
 
 
+@traceable(name="orchestrator")
 def run_orchestrator(incident, specialist_results, graph_context=None, equipment_id=None):
     """
     Receives all four specialist findings and synthesizes the final investigation report.
@@ -1009,6 +1026,7 @@ Incident: "Something seems off on Line 3 but I can't tell what."
 Valid agent names: alarm, expert_fix, maintenance, sop, ncr"""
 
 
+@traceable(name="supervisor")
 def supervisor_route(incident, equipment_id=None):
     """
     Classify the incident and return which agents to dispatch.
@@ -1064,6 +1082,7 @@ def supervisor_route(incident, equipment_id=None):
 
 # ── Parallel Coordinator + Streaming Generator ─────────────────────────────────
 
+@traceable(name="investigation", reduce_fn=join_stream)
 def investigate_incident(incident, equipment_id=None):
     """
     Generator — supervisor routes to relevant agents, then orchestrates.
@@ -1090,7 +1109,15 @@ def investigate_incident(incident, equipment_id=None):
     # ── Fetch knowledge graph context ────────────────────────────────────────
     # Silent fail — graph enrichment is optional, never blocks investigation
     graph_context = None
-    if equipment_id:
+    # EVAL ONLY — PM_EVAL_DISABLE_GRAPH=true skips the graph step entirely (no
+    # Neo4j, no local backup file), so an ablation test can compare "documents
+    # only" against "documents + graph" on the same questions. Read per call,
+    # so evals/graph_value_test.py can flip it between runs. Never set it in
+    # .env: app.py prints a warning at startup if it is on.
+    graph_disabled = os.getenv("PM_EVAL_DISABLE_GRAPH", "").strip().lower() == "true"
+    if graph_disabled:
+        yield "🧪 Knowledge graph OFF (eval switch) — documents only.\n\n"
+    if equipment_id and not graph_disabled:
         try:
             from knowledge_graph import get_fault_chain
             # Pass the operator's own words: the graph text then leads with the
@@ -1151,7 +1178,7 @@ def investigate_incident(incident, equipment_id=None):
     # staying nearly as fast. Matters more on GPT-OSS, which adds reasoning tokens.
     with ThreadPoolExecutor(max_workers=2) as executor:
         future_to_name = {
-            executor.submit(fn, incident, equipment_id): label
+            executor.submit(contextvars.copy_context().run, fn, incident, equipment_id): label
             for label, fn in specialist_functions
         }
         for future in as_completed(future_to_name):

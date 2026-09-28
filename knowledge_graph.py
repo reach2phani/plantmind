@@ -13,6 +13,7 @@ import json
 import neo4j
 from pathlib import Path
 from dotenv import load_dotenv
+from tracing import traceable, fault_chain_outputs
 
 load_dotenv()
 
@@ -173,6 +174,7 @@ def load_graph(json_path=None):
 # Used by /api/graph/fault-chain endpoint
 # ─────────────────────────────────────────────────────────────────────────────
 
+@traceable(name="knowledge_graph_lookup", process_outputs=fault_chain_outputs)
 def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
     """
     Returns the fault chain for equipment and optional fault type.
@@ -281,8 +283,6 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
         # A second machine's graph produced NO warnings at all, however good
         # its data. They are now derived from the notes' own properties, by
         # _derive_warnings() below, so any machine gets them for free.
-        if r.get("type") == "Procedure" and props.get("total_with_burnin"):
-            downtime = props.get("total_with_burnin", "")
 
     # Build chain edges
     chain_edges = []
@@ -301,16 +301,37 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
             "warning":    r["rel_type"] in ["REQUIRES", "REQUIRES_SAFETY"]
         })
 
+    # Phase 2a — only the MATCHED fault's facts. The graph value test found
+    # the warnings, downtime and operator knowledge were built from all ~38
+    # nodes, so a gas-alarm report was told burn-in was mandatory and a tip
+    # report got the liner job's "1 hour". Everything below now comes from
+    # the matched fault's path (plus machine-wide safety such as PPE). When
+    # nothing matches the operator's words, relevant = every node, as before.
+    matched, _, hit = _match_faults(chain_nodes, chain_edges, incident_text)
+    relevant_ids = _relevant_ids(equip_tag, chain_nodes, chain_edges, matched if hit else None)
+    relevant_nodes = [n for n in chain_nodes if n["id"] in relevant_ids]
+    for n in relevant_nodes:
+        p = n["properties"]
+        if n["type"] == "Procedure" and p.get("total_with_burnin"):
+            downtime = p["total_with_burnin"]
+
     # Warnings derived from the notes themselves (see _derive_warnings).
-    warnings.extend(_derive_warnings(chain_nodes))
+    warnings.extend(_derive_warnings(relevant_nodes))
 
     # Add pattern warnings
+    on_a_fault_path = _relevant_ids(equip_tag, chain_nodes, chain_edges,
+                                    [n for n in chain_nodes if n["type"] == "Fault"])
     for r in pattern_results:
         props = r.get("props", {}) or {}
         # A note the reviewer marked as disputed must never become a warning.
         # It is shown separately in the chain text, with the fact that overrules
         # it, so the AI can see the claim AND see that it lost.
         if props.get("status") == "disputed":
+            continue
+        # Only patterns on the matched path, or approved operator patterns
+        # that hang off the machine itself and belong to no fault in particular.
+        pid = props.get("_id")
+        if pid not in relevant_ids and pid in on_a_fault_path:
             continue
         if props.get("wrong_response"):
             warnings.append(f"Do NOT: {props['wrong_response']}")
@@ -332,15 +353,19 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
             warnings.append(f"{lead}: {summary}")
 
     chain_text = _build_chain_text(chain_nodes, chain_edges, warnings, downtime,
-                                   equip_tag, incident_text)
+                                   equip_tag, incident_text, relevant_ids)
 
     return {
         "equip_tag":   equip_tag,
-        "chain_nodes": chain_nodes,
+        "chain_nodes": chain_nodes,   # full chain: the report diagram still gets everything
         "chain_edges": chain_edges,
         "chain_text":  chain_text,
         "warnings":    warnings,
         "downtime":    downtime,
+        # What the AI was actually given facts about (Phase 2a). Used to scope
+        # the orchestrator's graph rules, and later by the supervisor.
+        "relevant_node_ids": sorted(relevant_ids),
+        "matched_faults":    [f["label"] for f in matched] if hit else [],
         "has_data":    len(chain_nodes) > 0,
         "source":      "neo4j",       # live graph: includes promoted operator patterns
         "degraded":    False,
@@ -424,101 +449,174 @@ def _score_fault(fault, nodes, edges, incident_text):
     return sum(1 for w in words if w in text)
 
 
-def _build_chain_text(nodes, edges, warnings, downtime, equip_tag, incident_text=""):
+# Links that make up a fault's path: its causes, their fixes, parts and
+# patterns, what each fix requires or includes, its specs and triggered steps.
+_PATH_LINKS = {"CAUSED_BY", "FIXED_BY", "REPLACED_WITH", "REQUIRES",
+               "REQUIRES_SAFETY", "HAS_PARAMETER", "TRIGGERS", "INCLUDES"}
+
+# Bookkeeping on a note, not a fact for the AI. Everything else is printed.
+_HANDOVER_SKIP = {"equip_tag", "plant_site", "line", "line_name", "source", "added_by",
+                  "created_at", "candidate_id", "reviewed_at", "repaired_at",
+                  "flagged_critical", "status", "overruled_by", "confirmed_count",
+                  "source_type", "contributors", "disputed_reason", "operator_summary"}
+
+
+def _fact_lines(props, indent):
     """
-    Turn the graph into text for the orchestrator — KEEPING THE LINKS.
+    Every fact on a note, one line each.
 
-    The old version printed one list of faults and a separate list of causes,
-    so the AI could not tell which cause belonged to which fault: it received
-    31 of 34 notes for every incident, with the connections stripped out. The
-    graph's whole advantage was thrown away in the last step before the AI.
-
-    Now each fault is written with its own causes, each cause with its own fix
-    and part, plus the fault's specification and the source of every fact. When
-    the operator's description matches a fault, that fault is written in full
-    and the others are listed by name only.
+    Phase 2a: the old builder printed a fixed list of property names per note
+    type, so facts stored under any other name never reached the AI. The graph
+    held "allow 10 minutes cooling" and "20 bar" and the reports never said
+    either. Printing everything but bookkeeping means a fact cannot be dropped
+    because of what it happens to be called, on any machine.
     """
-    if not nodes:
-        return ""
+    out = []
+    for k, v in (props or {}).items():
+        if k.startswith("_") or k in _HANDOVER_SKIP or v in (None, "") or isinstance(v, bool):
+            continue
+        out.append(f'{indent}{k.replace("_", " ")}: {_clean(str(v))}')
+    return out
 
-    by_id = {n["id"]: n for n in nodes}
+
+def _match_faults(nodes, edges, incident_text):
+    """
+    Which fault(s) does the operator's description match?
+    Returns (relevant, others, matched). When nothing matches, every fault is
+    relevant and matched is False.
+    """
     faults = [n for n in nodes if n["type"] == "Fault"]
-    patterns = [n for n in nodes if n["type"] == "Pattern"]
-    documents = [n for n in nodes if n["type"] == "Document"]
-
-    def linked(from_id, rel):
-        return [by_id[e["to"]] for e in edges
-                if e["from"] == from_id and e["type"] == rel and e["to"] in by_id]
-
-    lines = [f"KNOWLEDGE GRAPH FOR {equip_tag} — human-reviewed facts, each with its source.", ""]
-
     scored = sorted(((_score_fault(f, nodes, edges, incident_text), f) for f in faults),
                     key=lambda t: -t[0])
     best = scored[0][0] if scored else 0
     if best > 0:
         # Only the best-matching fault (plus any tie) is written out in full.
-        # Taking every fault with score > 0 was still too loose: a wire-feed
-        # incident pulled in arc instability and contact-tip faults too,
-        # because they share a cause. The rest are listed by name, so the AI
-        # knows they exist without the report drowning in them.
-        relevant = [f for s, f in scored if s == best]
-        others = [f for s, f in scored if s < best]
-    else:
-        relevant, others = [f for _, f in scored], []   # nothing matched — show all
+        # Taking every fault with score > 0 was too loose: a wire-feed incident
+        # pulled in arc instability and contact-tip faults because they share
+        # a cause. The rest are listed by name.
+        return ([f for s, f in scored if s == best],
+                [f for s, f in scored if s < best], True)
+    return [f for _, f in scored], [], False
+
+
+def _relevant_ids(equip_tag, nodes, edges, faults):
+    """
+    Every note on the given faults' paths, plus what applies to the whole
+    machine (e.g. PPE) and the documents those notes cite. faults=None
+    means nothing matched: every note is relevant, as before Phase 2a.
+    """
+    if faults is None:
+        return {n["id"] for n in nodes}
+    by_id = {n["id"]: n for n in nodes}
+    seen = {f["id"] for f in faults}
+    todo = list(seen)
+    while todo:
+        cur = todo.pop()
+        for e in edges:
+            if e["from"] == cur and e["type"] in _PATH_LINKS and e["to"] not in seen:
+                seen.add(e["to"])
+                todo.append(e["to"])
+    # A disputed note belongs to the path of the fact that overrules it.
+    for n in nodes:
+        if (n["properties"] or {}).get("overruled_by") in seen:
+            seen.add(n["id"])
+    for e in edges:
+        # Machine-wide safety (PPE) and the machine's own documents.
+        if e["from"] == equip_tag and e["type"] in ("REQUIRES_SAFETY", "DOCUMENTED_IN"):
+            seen.add(e["to"])
+    for e in edges:
+        # Documents cited by anything on the path.
+        if (e["from"] in seen and e["type"] in ("DOCUMENTED_IN", "REFERENCED_IN")
+                and by_id.get(e["to"], {}).get("type") == "Document"):
+            seen.add(e["to"])
+    return seen
+
+
+def _build_chain_text(nodes, edges, warnings, downtime, equip_tag, incident_text="",
+                      relevant_ids=None):
+    """
+    Turn the graph into text for the orchestrator, KEEPING THE LINKS.
+
+    Each matched fault is written with every fact it holds: its causes (with
+    every fact on each), each cause's fix (with its steps, times, torque...),
+    the fix's parts, what the fix includes and requires (burn-in, LOTO), the
+    fault's specifications and the steps it triggers, each with its source.
+    Other faults are listed by name only. A note shared by two causes is
+    written once and referred to after that.
+
+    relevant_ids limits operator knowledge, disputed notes and documents to
+    the matched path (Phase 2a); None means everything (backup-file path).
+    """
+    if not nodes:
+        return ""
+
+    by_id = {n["id"]: n for n in nodes}
+    patterns = [n for n in nodes if n["type"] == "Pattern"]
+    documents = [n for n in nodes if n["type"] == "Document"]
+    rel = relevant_ids if relevant_ids is not None else {n["id"] for n in nodes}
+
+    def linked(from_id, rel_type):
+        return [by_id[e["to"]] for e in edges
+                if e["from"] == from_id and e["type"] == rel_type and e["to"] in by_id]
+
+    relevant, others, _ = _match_faults(nodes, edges, incident_text)
+    lines = [f"KNOWLEDGE GRAPH FOR {equip_tag} — human-reviewed facts, each with its source.", ""]
+    written = set()
+
+    def note(n, indent, prefix):
+        """Write a note and all its facts once; later, just refer back to it."""
+        if n["id"] in written:
+            lines.append(f"{indent}{prefix}{n['label']} (details above)")
+            return False
+        written.add(n["id"])
+        lines.append(f"{indent}{prefix}{n['label']}{_src(n['properties'])}")
+        lines.extend(_fact_lines(n["properties"], indent + "    "))
+        return True
 
     for fault in relevant:
-        p = fault["properties"]
-        lines.append(f"FAULT: {fault['label']}{_src(p)}")
-        if p.get("alarm_message"):
-            lines.append(f'  Alarm: "{_clean(p["alarm_message"])}"')
-        if p.get("frequency_trigger"):
-            lines.append(f'  Note: {_clean(p["frequency_trigger"])}')
-        if p.get("correct_response"):
-            lines.append(f'  Correct response: {_clean(p["correct_response"])}')
+        written.add(fault["id"])
+        lines.append(f"FAULT: {fault['label']}{_src(fault['properties'])}")
+        lines.extend(_fact_lines(fault["properties"], "  "))
 
         for spec in linked(fault["id"], "HAS_PARAMETER"):
+            written.add(spec["id"])
             sp = spec["properties"]
-            # Print whatever the spec actually holds. An allow-list of property
-            # names printed the tension spec as an empty line, because its
-            # values live under correct_setting / too_tight_effect.
-            detail = ", ".join(f"{k.replace('_', ' ')}: {_clean(v)}"
-                               for k, v in sp.items()
-                               if not k.startswith("_")
-                               and k not in ("equip_tag", "plant_site", "line", "source",
-                                             "added_by"))
+            detail = "; ".join(l.strip() for l in _fact_lines(sp, ""))
             lines.append(f'  SPECIFICATION — {spec["label"]}: {detail}{_src(sp)}')
 
         causes = linked(fault["id"], "CAUSED_BY")
         if causes:
             lines.append("  Possible causes:")
-            for c in causes:
-                cp = c["properties"]
-                lines.append(f'    - {c["label"]}{_src(cp)}')
-                for key in ("wear_indicator", "distinguishing_sign", "service_interval",
-                            "check", "effect", "evidence"):
-                    if cp.get(key):
-                        lines.append(f'        {key.replace("_", " ")}: {_clean(cp[key])}')
-                for fix in linked(c["id"], "FIXED_BY"):
-                    fp = fix["properties"]
-                    mins = fp.get("total_with_burnin") or fp.get("expected_time", "")
-                    lines.append(f'        fix: {fix["label"]}'
-                                 + (f" (~{_clean(mins)})" if mins else "") + _src(fp))
-                for part in linked(c["id"], "REPLACED_WITH"):
-                    lines.append(f'        part: {part["label"]}')
-                # What the fix itself demands — the burn-in after a liner
-                # change, LOTO before opening the machine. These sit one hop
-                # further out, and they are the steps it is dangerous to miss.
-                for fix in linked(c["id"], "FIXED_BY"):
+        for c in causes:
+            note(c, "    ", "- ")
+            for part in linked(c["id"], "REPLACED_WITH"):
+                note(part, "        ", "part: ")
+            for fix in linked(c["id"], "FIXED_BY"):
+                if note(fix, "        ", "fix: "):
+                    # What the fix itself demands: the burn-in after a liner
+                    # change, LOTO before opening the machine. One hop further
+                    # out, and the steps it is dangerous to miss.
+                    for inc in linked(fix["id"], "INCLUDES"):
+                        note(inc, "            ", "includes: ")
                     for req in linked(fix["id"], "REQUIRES") + linked(fix["id"], "REQUIRES_SAFETY"):
-                        rp = req["properties"]
-                        note = _clean(rp.get("method") or rp.get("steps") or
-                                      rp.get("mandatory") or "")
-                        lines.append(f'        then required: {req["label"]}'
-                                     + (f" — {note[:120]}" if note else "") + _src(rp))
-        for safety in linked(fault["id"], "TRIGGERS"):
-            if safety["type"] == "Safety":
-                lines.append(f'  Safety: {safety["label"]}'
-                             f'{_src(safety["properties"])}')
+                        note(req, "            ", "then required: ")
+            for pat in linked(c["id"], "TRIGGERS"):
+                note(pat, "        ", "known pattern: ")
+
+        for t in linked(fault["id"], "TRIGGERS"):
+            if note(t, "  ", f"{t['type'].lower()}: ") and t["type"] == "Pattern":
+                for req in linked(t["id"], "REQUIRES"):
+                    note(req, "      ", "then required: ")
+        lines.append("")
+
+    # Safety that applies to ANY work on this machine (PPE, LOTO), whatever
+    # fault matched. Linked from the machine itself, so it is never scoped out.
+    machine_wide = [by_id[e["to"]] for e in edges
+                    if e["from"] == equip_tag and e["type"] == "REQUIRES_SAFETY" and e["to"] in by_id]
+    if machine_wide:
+        lines.append("Machine-wide safety (applies to any work on this machine):")
+        for s in machine_wide:
+            note(s, "  ", "")
         lines.append("")
 
     if others:
@@ -526,19 +624,18 @@ def _build_chain_text(nodes, edges, warnings, downtime, equip_tag, incident_text
                      + "; ".join(f["label"] for f in others))
         lines.append("")
 
-    confirmed = [p for p in patterns if p["properties"].get("status") != "disputed"]
-    disputed = [p for p in patterns if p["properties"].get("status") == "disputed"]
+    # Approved operator knowledge not already written on the path above.
+    confirmed = [p for p in patterns if p["properties"].get("status") != "disputed"
+                 and p["id"] in rel and p["id"] not in written]
+    disputed = [p for p in patterns if p["properties"].get("status") == "disputed"
+                and p["id"] in rel]
 
     if confirmed:
         lines.append("Operator knowledge (reviewed and approved):")
         for p in confirmed:
             pp = p["properties"]
-            wrong, correct = _clean(pp.get("wrong_response", "")), _clean(pp.get("correct_response", ""))
+            lines.extend(_fact_lines(pp, "  "))
             summary = _clean(pp.get("operator_summary", ""))
-            if wrong:
-                lines.append(f"  Wrong response: {wrong}")
-            if correct:
-                lines.append(f"  Correct response: {correct}")
             if summary:
                 count = pp.get("confirmed_count", 1)
                 who = pp.get("contributors", "")
@@ -573,9 +670,10 @@ def _build_chain_text(nodes, edges, warnings, downtime, equip_tag, incident_text
     if downtime:
         lines.append(f"\nEstimated downtime: {downtime}")
 
-    if documents:
+    docs = [d for d in documents if d["id"] in rel]
+    if docs:
         lines.append("\nRelevant documents:")
-        for d in documents:
+        for d in docs:
             lines.append(f"  - {d['label']}")
 
     return "\n".join(lines)

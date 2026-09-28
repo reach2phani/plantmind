@@ -30,6 +30,7 @@ import os
 import re
 import ssl
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -111,8 +112,26 @@ def publish_definition(row):
                              line=_slug(row.get("line")),
                              tag=row.get("equip_tag"))
         client = _client()
-        client.publish(topic, json.dumps(payload), qos=1, retain=True)
-        client.disconnect()
+        # paho 2.x only finishes connecting while its network loop runs.
+        # Publishing straight after connect() and hanging up at once meant
+        # the message never left the laptop — while this still printed
+        # "announced". Now: wait for the connection, wait for the broker to
+        # confirm receipt, and raise (-> "could not announce") if either fails.
+        client.loop_start()
+        try:
+            for _ in range(50):                      # up to 5 s to connect
+                if client.is_connected():
+                    break
+                time.sleep(0.1)
+            if not client.is_connected():
+                raise ConnectionError("broker did not accept the connection within 5 s")
+            info = client.publish(topic, json.dumps(payload), qos=1, retain=True)
+            info.wait_for_publish(timeout=10)
+            if not info.is_published():
+                raise TimeoutError("broker did not confirm the message within 10 s")
+        finally:
+            client.loop_stop()
+            client.disconnect()
         print(f"[PUB] announced {row.get('equip_tag')} -> {topic}")
         return True
     except Exception as e:

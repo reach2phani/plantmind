@@ -7,6 +7,9 @@ import tempfile
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 load_dotenv()  # load env vars FIRST before any module that needs them
+if os.getenv("PM_EVAL_DISABLE_GRAPH", "").strip().lower() == "true":
+    print("\n" + "!" * 72 + "\n  PM_EVAL_DISABLE_GRAPH=true — knowledge graph is OFF for investigations.\n"
+          "  Eval use only. Restart without it for normal use.\n" + "!" * 72 + "\n")
 from flask import Flask, request, jsonify, render_template, Response, stream_with_context
 from supabase import create_client
 from embedder import embed_document
