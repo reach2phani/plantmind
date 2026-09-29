@@ -947,7 +947,10 @@ TRUST ORDER — by kind of fact:
    - Three or more alarms of same type in one shift = HIGH minimum (recurring fault indicator)
    - Any fault requiring LOTO or production stop = HIGH minimum
    - Worn components with documented NCR history = HIGH
-   - Safety events (electrical, fire, fumes) = CRITICAL
+   - Safety events (electrical, fire, fumes, injury to a person, or foreign material such
+     as glass or metal that could end up in the product) = CRITICAL
+   - If a TIER 1 or TIER 2 document states a criticality for this kind of event, rate it
+     at least that. Never rate below what the document says.
    Never downgrade below HIGH when evidence shows recurring fault or production stop required.
 
 FORMATTING RULES (follow these EXACTLY — do not deviate):

@@ -109,7 +109,7 @@ Record them as known issues (Phase 3) if they fail.
 | Question | Expected | How |
 |---|---|---|
 | How many infeed jams did FL-101 have after the 330 ml changeover in September? | 3 jams, all on 7 September (08:05, 08:20, 08:40); cause: rails left at position A; none after reset at 09:10 | code (3, the times) + judge (cause) + no repeated lines |
-| How many underfill alarms did FL-101 have on the night of 10 September, and what was done? | 3 alarms (01:30, 03:20, 04:45); fill time change refused; systemic, production stopped, seals replaced next morning on valves 3, 9, 15, 21 | code (3, valve numbers) + judge |
+| How many underfill alarms did FL-101 have on the night of 10 September, and what was done? | 3 alarms (01:30, 03:20, 04:45); fill time change refused; production stopped (worn seals). The seal change on valves 3, 9, 15, 21 is in the 11 Sept log, so it must NOT be required here | code (3, the times) + judge |
 
 ## 4. promptfoo — Investigation (3 hard cases)
 

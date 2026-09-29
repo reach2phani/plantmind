@@ -366,7 +366,10 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
         # the orchestrator's graph rules, and later by the supervisor.
         "relevant_node_ids": sorted(relevant_ids),
         "matched_faults":    [f["label"] for f in matched] if hit else [],
-        "has_data":    len(chain_nodes) > 0,
+        # Real knowledge only: a lone Equipment node (e.g. a machine just added
+        # in Plant Setup, before its fault graph exists) is NOT graph data —
+        # counting it made the report claim "knowledge graph verified" (FL-101).
+        "has_data":    any(n.get("type") != "Equipment" for n in chain_nodes),
         "source":      "neo4j",       # live graph: includes promoted operator patterns
         "degraded":    False,
         "degraded_reason": "",
@@ -745,7 +748,10 @@ def _fault_chain_from_file(equip_tag, reason=""):
         "chain_text":  _build_chain_text(chain_nodes, chain_edges, warnings, downtime, equip_tag),
         "warnings":    warnings,
         "downtime":    downtime,
-        "has_data":    len(chain_nodes) > 0,
+        # Real knowledge only: a lone Equipment node (e.g. a machine just added
+        # in Plant Setup, before its fault graph exists) is NOT graph data —
+        # counting it made the report claim "knowledge graph verified" (FL-101).
+        "has_data":    any(n.get("type") != "Equipment" for n in chain_nodes),
         "source":      "local_file",
         "degraded":    True,
         "degraded_reason": reason or "knowledge graph database unreachable",

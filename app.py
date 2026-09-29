@@ -353,8 +353,10 @@ def extract_shift_date(question):
     Scoping to the asked date keeps the answer on the right shift.
 
     Supports: "May 20", "20 May", "May 20 2025", "2025-05-20", "05/20".
-    Returns "YYYY-MM-DD" or "" if no date found. Year defaults to 2025 if absent
-    (the only year present in the current logs).
+    Returns "YYYY-MM-DD" or "" if no date found. When the question has no year,
+    the year is filled with "????" — resolve_shift_year() then picks it from the
+    logs themselves. (It used to default to 2025, which only worked while every
+    shift log was from 2025; FL-101's 2026 logs came back as "no events".)
     """
     if not question:
         return ""
@@ -378,13 +380,53 @@ def extract_shift_date(question):
     if not m:
         m2 = re.search(r'\b(\d{1,2})\s+(' + mon_pat + r')(?:,?\s+(20\d{2}))?\b', q)
         if m2:
-            d = int(m2.group(1)); mo = months[m2.group(2)]; y = int(m2.group(3) or 2025)
-            return f"{y:04d}-{mo:02d}-{d:02d}"
+            d = int(m2.group(1)); mo = months[m2.group(2)]
+            y = m2.group(3) or "????"
+            return f"{y}-{mo:02d}-{d:02d}"
     if m:
-        mo = months[m.group(1)]; d = int(m.group(2)); y = int(m.group(3) or 2025)
-        return f"{y:04d}-{mo:02d}-{d:02d}"
+        mo = months[m.group(1)]; d = int(m.group(2))
+        y = m.group(3) or "????"
+        return f"{y}-{mo:02d}-{d:02d}"
 
     return ""
+
+
+def resolve_shift_year(target_date, base_filter, question_vec):
+    """
+    Fill in a missing year ("????-09-10") from the shift logs themselves.
+
+    Exact lookup, not a guess: asks Pinecone for chunks whose shift_date label
+    is that day in any of the last 10 years (plus next year), for the same
+    machine/line filter. Uses the labels, so it doesn't depend on which top-12
+    chunks a meaning-based search happened to return.
+
+    Returns (date, other_years):
+      - one year found      -> that date, []
+      - several years found -> the most recent, [older years] (shown to the user)
+      - none found          -> "", []   (caller answers "no logs for that day")
+    If the lookup itself fails, falls back to the most recent past occurrence
+    of that day, so a Pinecone hiccup never blocks the answer.
+    """
+    if not target_date.startswith("????"):
+        return target_date, []
+    mm_dd = target_date[5:]
+    this_year = datetime.now().year
+    candidates = [f"{y}-{mm_dd}" for y in range(this_year + 1, this_year - 10, -1)]
+    try:
+        f = dict(base_filter)
+        f["shift_date"] = {"$in": candidates}
+        res = pine_index.query(vector=question_vec, top_k=100,
+                               include_metadata=True, filter=f)
+        years = sorted({get_match_metadata(m).get("shift_date", "")[:4]
+                        for m in res.get("matches", [])} - {""}, reverse=True)
+    except Exception as e:
+        print(f"[shift-date] year lookup failed, using most recent past date: {e}")
+        today = datetime.now().strftime("%Y-%m-%d")
+        y = this_year if f"{this_year}-{mm_dd}" <= today else this_year - 1
+        return f"{y}-{mm_dd}", []
+    if not years:
+        return "", []
+    return f"{years[0]}-{mm_dd}", years[1:]
 
 def get_match_metadata(m):
     """Safely extract metadata from Pinecone match object or dict."""
@@ -1128,6 +1170,27 @@ def ask():
     # Search lives in shared functions (Phase 1 step 1.5) so the retrieval eval
     # measures THIS code, not a copy that would drift when Phase 3 changes it.
     filter_dict  = build_ask_filter(mode, plant, line, equip_tag)
+
+    # Shift date without a year ("10 September"): take the year from the logs,
+    # then search only that day (plus the day before, because a night shift's
+    # batch can start on the previous date). Without this, with many logs the
+    # asked day may never make the top-12 and the answer says "no events".
+    year_note = ""
+    if mode == "shift" and target_date:
+        target_date, other_years = resolve_shift_year(target_date, filter_dict, question_vec)
+        if not target_date:
+            _day = datetime.strptime("2000-" + extract_shift_date(question)[5:], "%Y-%m-%d").strftime("%d %B")
+            def no_day():
+                yield (f"NOANSWER:No shift logs were found for {_day} in any year "
+                       f"for this selection. Check the date, or confirm the shift log is uploaded.")
+            return Response(stream_with_context(no_day()), mimetype="text/plain")
+        _prev = (datetime.strptime(target_date, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+        filter_dict = dict(filter_dict)
+        filter_dict["shift_date"] = {"$in": [_prev, target_date]}
+        if other_years:
+            year_note = (f"\n\nNote: showing {target_date}. Shift logs also exist for the same day in "
+                         f"{', '.join(other_years)}. Add the year to your question to see those.")
+
     matches, was_fallback = retrieve_chunks(question_vec, filter_dict)
     has_equip_filter = bool(filter_dict.get("equip_tag"))
 
@@ -1314,6 +1377,10 @@ def ask():
                 if delta and getattr(delta, "content", None):
                     _output.append(delta.content)
                     yield delta.content
+            if year_note:
+                # Tell the operator which year they're seeing when others exist.
+                _output.append(year_note)
+                yield year_note
             log_streaming_call(
                 call_type  = data.get("mode", "qa"),
                 model      = MODEL_FAST,
