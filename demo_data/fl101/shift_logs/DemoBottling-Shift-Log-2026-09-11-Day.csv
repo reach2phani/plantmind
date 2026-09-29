@@ -1,0 +1,8 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-11,Day,Filling Line 1,06:10,Maintenance,FL-101,"Seal change started. Locked out. Bowl drained. Replacing seal kits on valves 3, 9, 15 and 21 (SEAL-FV-24).",Work instruction WI-FL101-001 followed.,T. Novak,In Progress
+2026-09-11,Day,Filling Line 1,06:55,Maintenance,FL-101,"Old seals flattened and cracked at the edge. Seals had about 1,720 running hours - past the 1,500-hour limit.",Recorded in maintenance log.,T. Novak,Noted
+2026-09-11,Day,Filling Line 1,07:05,Maintenance,FL-101,New seals fitted. Tools and parts counted. Lock removed. Sanitation rinse 10 minutes done.,No action.,T. Novak,Complete
+2026-09-11,Day,Filling Line 1,07:20,Quality Check,FL-101,"First-bottle check: first 6 bottles 506-509 ml in the first 2 minutes, then 499-502 ml.",Operator worried about overfill. Technician explained slight overfill while new seals settle is expected (WI-FL101-001). Checkweigher rejected the 6 bottles. All later bottles in range.,T. Novak,OK
+2026-09-11,Day,Filling Line 1,07:30,Maintenance,FL-101,First-bottle check signed off by shift supervisor. Production restarted at 120 bottles per minute.,No action.,M. Varga,Resolved
+2026-09-11,Day,Filling Line 1,10:00,Quality Check,FL-101,"Reject count back to 2 per 1,000. No dripping valves.",No action.,A. Moreno,OK
+2026-09-11,Day,Filling Line 1,13:50,Handover,FL-101,Seals replaced on 4 valves. Running well.,Next seal change due December.,A. Moreno,Handover complete

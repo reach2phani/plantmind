@@ -1,0 +1,7 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-03,Night,Filling Line 1,22:05,Routine,FL-101,Pre-start checks complete. Supply pressure 1.8 bar. Rails at position A.,Checklist signed.,P. Singh,OK
+2026-09-03,Night,Filling Line 1,23:00,Quality Check,FL-101,"Hourly weights 499, 498, 500, 497, 499 ml. Reject count 6 per 1,000.",Within range. Watching reject count.,P. Singh,OK
+2026-09-03,Night,Filling Line 1,00:40,Routine,LB-103,Label roll changed. Label position checked.,No action.,P. Singh,OK
+2026-09-03,Night,Filling Line 1,02:00,Quality Check,FL-101,Valve check: valve 9 dripping slightly between fills. Checkweigher shows valve 9 filling 494-496 ml.,Reported to shift lead. Maintenance asked to include valve 9 in the seal change.,P. Singh,Noted
+2026-09-03,Night,Filling Line 1,04:00,Quality Check,FL-101,"Hourly weights 498, 496, 499, 500, 497 ml. Reject count 8 per 1,000.",Shift lead informed. Seal change not yet booked.,P. Singh,Noted
+2026-09-03,Night,Filling Line 1,05:50,Handover,FL-101,Rejects rising slowly through the night (0.8 in 100). Valve 9 dripping.,Day shift to chase seal change.,P. Singh,Handover complete

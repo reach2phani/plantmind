@@ -1,0 +1,6 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-21,Night,Filling Line 1,22:05,Routine,FL-101,Pre-start checks. Supply pressure 1.6 bar. Filter tag shows last cleaned 2 September.,Filter clean overdue - noted for day shift.,P. Singh,Noted
+2026-09-21,Night,Filling Line 1,00:15,Alarm,FL-101,Product supply pressure low - below 1.3 bar. Reading 1.2 bar. Some underfilled bottles rejected.,Pressed STOP. Supply filter FLT-PS-10 found blocked. Filter cleaned. Air bled from the supply line.,P. Singh,Resolved
+2026-09-21,Night,Filling Line 1,00:40,Quality Check,FL-101,Pressure back to 1.7 bar. First 20 bottles 498-502 ml.,Restarted at normal speed.,P. Singh,OK
+2026-09-21,Night,Filling Line 1,03:00,Quality Check,FL-101,"Hourly weights 500, 499, 501, 500, 500 ml.",No action.,P. Singh,OK
+2026-09-21,Night,Filling Line 1,05:50,Handover,FL-101,"One low pressure alarm at 00:15 - blocked filter, weekly clean was missed.",Weekly filter clean added to Monday day-shift checklist.,P. Singh,Handover complete

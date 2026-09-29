@@ -1,0 +1,132 @@
+WORK INSTRUCTION
+Equipment: FL-101 Bottle Filler
+Document Type: Work Instruction
+Reference: WI-FL101-001
+Revision: 1.0
+Plant: Demo Bottling Plant
+Line: Filling Line 1
+Owner: Maintenance Supervisor
+Approved by: Maintenance Supervisor — K. Brandt
+Date: February 2026
+Effective from: 1 March 2026
+Uncontrolled when printed. Always check the document system for the latest revision.
+
+DEMO DATA — written for the PlantMind learning project. Not from a real plant.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILL VALVE SEAL REPLACEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. PURPOSE
+
+This work instruction explains how to replace the seal kit in an FL-101
+fill valve. A worn seal is the most common cause of underfill alarms.
+
+2. SCOPE
+
+Applies to all 24 fill valves on the FL-101 Bottle Filler. Only trained
+maintenance technicians may carry out this work.
+
+3. WHEN TO REPLACE THE SEALS
+
+Replace the seal kit when:
+  - A valve drips between fills
+  - The checkweigher shows the same valve underfilling again and again
+  - Three or more underfill alarms happen in one shift
+  - The seal has reached its limit: 3 months or 1,500 running hours,
+    whichever comes first
+
+4. TIME NEEDED
+
+  One valve:                     about 15 minutes
+  A typical job (1 to 4 valves): 30 to 45 minutes
+  Including rinse and check:     about 1 hour
+
+5. PARTS AND TOOLS
+
+  Seal kit, one per valve:  SEAL-FV-24 (main seal and O-ring)
+  Food-grade lubricant:     FGL-1
+  Location:                 Filling Line 1 spares cabinet, shelf 2
+  Tools:                    valve key, seal pick, clean lint-free cloths,
+                            20 empty 500 ml bottles for the check
+
+6. SAFETY
+
+  - Lock out the machine before starting (LOTO, SOP Section 6.2).
+  - Wear safety glasses and gloves.
+  - Only use food-grade lubricant. Any other lubricant contaminates the
+    product.
+  - Keep removed parts and tools on the tray. Nothing may be left inside
+    the machine.
+
+7. BEFORE YOU START
+
+  - Check the checkweigher report to see which valves are underfilling.
+  - Mark those valves with a green tag so the right valves are changed.
+  - Tell the shift lead how long the line will be stopped.
+
+8. PROCEDURE
+
+  Step 1 — Press STOP and lock out the machine (LOTO).
+  Step 2 — Drain the bowl until the product is below the valve level.
+  Step 3 — Remove the valve with the valve key (quarter turn to the left).
+  Step 4 — Remove the old seal and O-ring with the seal pick.
+  Step 5 — Wipe the valve seat clean with a lint-free cloth. Check it for
+           scratches. A scratched seat must be reported to the maintenance
+           supervisor: a new seal will not seal on a scratched seat.
+  Step 6 — Fit the new seal and O-ring from the SEAL-FV-24 kit, with a thin
+           layer of FGL-1 lubricant.
+  Step 7 — Refit the valve (quarter turn to the right until it clicks).
+  Step 8 — Count the tools and parts on the tray. Remove the lock and refill
+           the bowl.
+
+  Step 9 — SANITATION RINSE — MANDATORY
+           Run the sanitation rinse for 10 minutes. This removes lubricant
+           and any particles from the new seals. Never skip this step: the
+           first bottles would carry lubricant into the product.
+
+  Step 10 — FIRST-BOTTLE CHECK — MANDATORY
+           Run at normal speed and weigh the first 20 bottles.
+           All 20 must be between 495 and 505 ml.
+           If any bottle is outside this range, stop and check the valve again.
+
+IMPORTANT: For the first 2 to 3 minutes after a seal change, bottles may be
+slightly overfilled (up to 510 ml) while the new seals settle. This is
+EXPECTED BEHAVIOUR — not a fault. Do not change any settings. The
+checkweigher rejects these bottles automatically.
+
+9. INSPECTING THE OLD SEALS
+
+Look at every seal you remove. Signs of wear:
+  - Flattened or squashed on one side
+  - Small cracks, especially at the edge
+  - Hard instead of soft and springy
+  - A groove cut into the sealing face
+  - Discoloured or swollen
+
+Record what you found. If more than 4 seals are badly worn at the same
+time, tell the maintenance supervisor: the replacement interval may be too
+long.
+
+10. TROUBLESHOOTING AFTER THE JOB
+
+  What you see                        Check                     Action
+  ─────────────────────────────────────────────────────────────────────────
+  Valve still drips                   Seal seated correctly?    Refit the seal
+  Valve still underfills, no drip     Nozzle blocked?           Clean the nozzle
+  All valves underfill                Supply pressure?          SOP Section 12.4
+  Overfill for 2 to 3 minutes only    Normal settling           No action
+  Overfill after 5 minutes            Valve fully clicked in?   Refit the valve
+  Leak at the valve body              O-ring missing?           Fit a new O-ring
+
+11. SIGN-OFF
+
+  - The shift supervisor must sign off the first-bottle check before normal
+    production restarts.
+  - Record in the maintenance log: date, valve numbers changed, seal kits
+    used, condition of the old seals, first-bottle check results, and
+    your name.
+
+12. REVISION HISTORY
+
+  Rev 1.0   February 2026   First issue.

@@ -1,0 +1,8 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-10,Night,Filling Line 1,22:05,Routine,FL-101,Pre-start checks. Valves 9 and 15 dripping between fills.,Reported. Seal change booked for tomorrow.,P. Singh,Noted
+2026-09-10,Night,Filling Line 1,23:00,Quality Check,FL-101,"Reject count 14 per 1,000 - above 1 in 100.",Shift lead told as per SOP 11.,P. Singh,Noted
+2026-09-10,Night,Filling Line 1,01:30,Alarm,FL-101,Underfill alarm - Fill level low - bottles under target volume. Checkweigher report: valves 9 and 15 underfilling (491-494 ml).,Pressed STOP. Valves 9 and 15 dripping. No maintenance on nights. Restarted and watched.,P. Singh,Resolved
+2026-09-10,Night,Filling Line 1,02:10,Routine,CP-102,Cap supply topped up.,No action.,P. Singh,OK
+2026-09-10,Night,Filling Line 1,03:20,Alarm,FL-101,Second underfill alarm tonight. Same valves 9 and 15.,"Operator asked to raise the fill time to stop the underfill. Shift lead said no: fill time must not be changed (SOP 10, NCR-2026-012).",L. Haddad,Resolved
+2026-09-10,Night,Filling Line 1,04:45,Alarm,FL-101,"Third underfill alarm this shift. Valves 9, 15 and now 3 underfilling.",Systemic fault (3 alarms in one shift). Production stopped. Maintenance work order raised. Maintenance supervisor called.,L. Haddad,Escalated
+2026-09-10,Night,Filling Line 1,05:50,Handover,FL-101,Line stopped since 04:45 for worn seals. Fill time left at 3.2 seconds.,Seal change first thing on day shift.,L. Haddad,Production stopped

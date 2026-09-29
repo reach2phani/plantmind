@@ -1,0 +1,4 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-26,Night,Filling Line 1,22:05,Routine,FL-101,Pre-start checks complete. No dripping valves.,Checklist signed.,P. Singh,OK
+2026-09-26,Night,Filling Line 1,01:00,Quality Check,FL-101,"Hourly weights 500, 500, 499, 500, 501 ml. Reject count 1 per 1,000.",No action.,P. Singh,OK
+2026-09-26,Night,Filling Line 1,05:50,Handover,FL-101,"Quiet shift. 56,000 bottles filled.",No action.,P. Singh,Handover complete

@@ -1,0 +1,5 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-14,Night,Filling Line 1,22:05,Routine,FL-101,Pre-start checks complete. No dripping valves. Supply pressure 1.8 bar.,Checklist signed.,P. Singh,OK
+2026-09-14,Night,Filling Line 1,00:00,Quality Check,FL-101,"Hourly weights 500, 500, 501, 499, 500 ml. Reject count 2 per 1,000.",No action.,P. Singh,OK
+2026-09-14,Night,Filling Line 1,02:30,Routine,LB-103,Labeller glue temperature checked.,No action.,P. Singh,OK
+2026-09-14,Night,Filling Line 1,05:50,Handover,FL-101,"Quiet shift. 55,200 bottles filled.",No action.,P. Singh,Handover complete

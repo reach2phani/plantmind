@@ -1,0 +1,8 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-01,Day,Filling Line 1,06:05,Routine,FL-101,Pre-start checks complete. No dripping valves. Rails at position A for 500 ml. Supply pressure 1.8 bar. Glass kit on hook.,Checklist signed by shift lead.,A. Moreno,OK
+2026-09-01,Day,Filling Line 1,06:12,Quality Check,FL-101,"Checkweigher test bottles: 490 ml rejected, 500 ml passed, 510 ml rejected.",No action.,A. Moreno,OK
+2026-09-01,Day,Filling Line 1,06:30,Production,FL-101,Started at 60 bottles per minute. First 20 bottles 499-502 ml. Raised to 120 bottles per minute.,No action.,A. Moreno,Running
+2026-09-01,Day,Filling Line 1,08:00,Quality Check,FL-101,"Hourly weights 500, 501, 499, 500, 502 ml. Reject count 3 per 1,000.",No action.,A. Moreno,OK
+2026-09-01,Day,Filling Line 1,09:40,Routine,CP-102,Capper torque check 1.6 Nm on 5 caps.,No action.,A. Moreno,OK
+2026-09-01,Day,Filling Line 1,11:00,Maintenance,FL-101,Maintenance planner note: seal kits last changed 2 June. 3-month replacement due this week.,Seal change to be scheduled.,M. Varga,Noted
+2026-09-01,Day,Filling Line 1,13:50,Handover,FL-101,"Good shift. 47,800 bottles filled. Rejects 0.3 in 100.",Seal change still to be booked.,A. Moreno,Handover complete

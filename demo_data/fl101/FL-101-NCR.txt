@@ -1,0 +1,140 @@
+NON-CONFORMANCE REPORT
+Equipment: FL-101 Bottle Filler
+Document Type: NCR
+Reference: NCR-2026-012
+Revision: 1.0
+Plant: Demo Bottling Plant
+Line: Filling Line 1
+Raised by: Shift Supervisor — L. Haddad
+Date raised: 18 January 2026
+Category: Process / product quality
+Status: Closed
+
+DEMO DATA — written for the PlantMind learning project. Not from a real plant.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. WHAT HAPPENED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+On the night shift of 16 January 2026, FL-101 raised underfill alarms
+three times: at 21:40, 23:55 and 02:10.
+
+After each alarm the operator increased the fill time to push more water
+into the bottles: first from 3.2 to 3.6 seconds, then to 3.9 seconds.
+
+The longer fill time made most valves overflow. Water spilled onto the
+bottles and the conveyor, labels were damaged at the labeller, and the
+line stopped twice to clean up spillage.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. TIMELINE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  21:40  First underfill alarm. Line stopped 15 minutes. Operator raised
+         fill time 3.2 to 3.6 s and restarted.
+  21:55  Underfill stopped. Overflow started on most valves.
+  23:10  Line stopped 25 minutes to clean spillage from the conveyor.
+  23:55  Second underfill alarm. Line stopped 15 minutes. Operator raised
+         fill time to 3.9 s.
+  01:20  Labeller reported wet, peeling labels. Line stopped 40 minutes.
+  02:10  Third underfill alarm. Line stopped. Shift supervisor called.
+  02:25  Supervisor found valves 7, 12, 13 and 19 dripping.
+  02:45  No spare seal kits in the cabinet. Line stood down until morning.
+         (Stops before this point: 15 + 25 + 15 + 40 + 35 minutes = 2 hours
+         10 minutes.)
+  06:30  Maintenance fitted seal kits from the main store. Fill time
+         restored to 3.2 s.
+  07:35  Rinse and first-bottle check passed. Line restarted.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. IMMEDIATE CONTAINMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  - All bottles filled between 21:40 and 02:10 were put on QA HOLD.
+  - The quality lead checked samples from every pallet.
+  - 1,200 bottles were rejected: overfilled, underfilled or with damaged
+    labels.
+  - Bottles within 495 to 505 ml with good labels were released.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. IMPACT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Bottles rejected:    1,200
+  Downtime:            2 hours 10 minutes during the shift
+                       (plus the stop until morning waiting for parts)
+  Labels wasted:       about 1,400
+  Clean-up:            two conveyor clean-downs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. ROOT CAUSE — FIVE WHYS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Why were bottles rejected?
+    Because most valves overflowed and four valves underfilled.
+  Why did most valves overflow?
+    Because the fill time was raised from 3.2 to 3.9 seconds.
+  Why was the fill time raised?
+    Because the operator tried to fix underfill without finding its cause.
+  Why were four valves underfilling?
+    Because their seals were worn out and dripping between fills.
+  Why were the seals worn out?
+    Because they were 900 running hours past the 1,500-hour replacement
+    limit. The seal change had not been scheduled.
+
+Root cause: the seals on four fill valves (valves 7, 12, 13 and 19) were
+worn out. Raising the fill time did not fix the worn seals. It hid them for
+a while and made the other 20 valves overfill.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. CONTRIBUTING CAUSES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  - The SOP did not say that operators must not change the fill time.
+  - No spare seal kits were in stock on the line that night.
+  - The seal replacement interval was not in the maintenance schedule.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. CORRECTIVE ACTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  No.  Action                                        Owner              Done
+  ──────────────────────────────────────────────────────────────────────────
+  1    Replace seals on valves 7, 12, 13 and 19      Maintenance        17 Jan
+  2    Restore fill time to 3.2 seconds              Maintenance        17 Jan
+  3    Add rule to SOP: operators must not change    Production Mgr     1 Feb
+       the fill time
+  4    Set minimum stock of 10 SEAL-FV-24 kits in    Maintenance Sup.   25 Jan
+       the Filling Line 1 spares cabinet
+  5    Add the 1,500-hour seal change to the         Maintenance Sup.   25 Jan
+       maintenance schedule
+  6    Brief all filler operators on this incident   Shift leads        31 Jan
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. LESSONS LEARNED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  - Underfill is a seal problem until proven otherwise. Check for dripping
+    valves first.
+  - Never increase the fill time to fix underfill. It hides worn seals and
+    causes overflow.
+  - Three or more underfill alarms in one shift means a systemic fault.
+    Stop and call maintenance.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. CHECK THAT THE FIX WORKED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  - Three weeks after the actions, the checkweigher reject rate was below
+    0.5 in 100 bottles on every shift.
+  - No underfill alarm was caused by a seal past its replacement limit.
+  - The fill time was checked on 10 random shifts and was 3.2 seconds
+    every time.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. CLOSE-OUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Verified by: Plant Manager — R. Osei
+Verified date: 5 February 2026
+Status: Closed

@@ -69,17 +69,26 @@ CLASSES = [
     ("Pump",           "Equipment", "EQCLASS-PUMP",         "Moves fluid"),
     ("PaintBooth",     "Equipment", "EQCLASS-PAINT-BOOTH",  "Applies coating"),
     ("AssemblyTool",   "Equipment", "EQCLASS-ASSEMBLY-TOOL", "Fastens parts"),
+    # Added for the second machine (Phase 2a generalisation test).
+    ("Filler",         "Equipment", "EQCLASS-FILLER",       "Fills bottles or containers with product"),
 ]
 
-# ── B. The plant map (Greenfield only — the plant this project is scoped to) ──
-SITE = ("SITE-GSW", "Greenfield Steel Works", "Site")
+# ── B. The plant map ──────────────────────────────────────────────────────────
+# Greenfield Steel Works (the original scope) and the Demo Bottling Plant
+# added for FL-101, a second machine from a different industry.
+SITES = [
+    ("SITE-GSW", "Greenfield Steel Works"),
+    ("SITE-DBP", "Demo Bottling Plant"),
+]
 AREAS = [
-    ("AREA-GSW-FAB",  "Fabrication Area", "Area", SITE[0]),
-    ("AREA-GSW-PROC", "Processing Area",  "Area", SITE[0]),
+    ("AREA-GSW-FAB",  "Fabrication Area", "Area", "SITE-GSW"),
+    ("AREA-GSW-PROC", "Processing Area",  "Area", "SITE-GSW"),
+    ("AREA-DBP-FILL", "Filling Area",     "Area", "SITE-DBP"),
 ]
 WORK_CENTERS = [
     ("WC-GSW-FAB-L1",  "Fabrication Line 1", "WorkCenter", "AREA-GSW-FAB"),
     ("WC-GSW-PROC-L2", "Processing Line 2",  "WorkCenter", "AREA-GSW-PROC"),
+    ("WC-DBP-FILL-L1", "Filling Line 1",     "WorkCenter", "AREA-DBP-FILL"),
 ]
 
 # ── C. Put the machine we already model onto that map ────────────────────────
@@ -113,11 +122,12 @@ def main():
                 n=name, p=parent)
 
     print("\nB. PLANT MAP (instance layer)")
-    print(f'   {SITE[0]:<16} {SITE[1]}')
-    run("MERGE (n:Instance:Location:Site {_id:$i}) SET n._label=$l, n._type='Site', "
-        "n.name=$l, n.source='Supabase plant_sites'", i=SITE[0], l=SITE[1])
-    run("MATCH (n:Instance {_id:$i}), (c:Class {name:'Site'}) MERGE (n)-[:IS_INSTANCE_OF]->(c)",
-        i=SITE[0])
+    for site_id, site_name in SITES:
+        print(f'   {site_id:<16} {site_name}')
+        run("MERGE (n:Instance:Location:Site {_id:$i}) SET n._label=$l, n._type='Site', "
+            "n.name=$l, n.source='Supabase plant_sites'", i=site_id, l=site_name)
+        run("MATCH (n:Instance {_id:$i}), (c:Class {name:'Site'}) MERGE (n)-[:IS_INSTANCE_OF]->(c)",
+            i=site_id)
 
     for _id, label, cls, parent in AREAS + WORK_CENTERS:
         print(f'   {_id:<16} {label:<20} in {parent}')

@@ -24,6 +24,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from models import MODEL_FAST, MODEL_DEEP, extract_json, completion_kwargs
 from token_budget import acquire, settle, estimate_tokens, usage_from_response
 import os
+import re
 import json
 from dotenv import load_dotenv
 
@@ -222,6 +223,33 @@ def _drop_disputed(matches):
     return [m for m in matches if m.metadata.get("expert_fix_id") not in rejected]
 
 
+REVIEW_APPROVED = "TIER 3 APPROVED — reviewed and approved in the Review queue"
+REVIEW_UNREVIEWED = ("TIER 4 UNREVIEWED — nobody has checked this yet: a lead to check, "
+                     "never a setting or an instruction")
+
+
+def _approved_fix_ids(fix_ids):
+    """
+    Which of these operator captures a reviewer has APPROVED (they are part of
+    an approved candidate in the Review queue). Anything else is unreviewed.
+
+    Fails safe: if the lookup fails, every fix counts as unreviewed, so a
+    database hiccup can only make PlantMind MORE cautious, never less.
+    """
+    ids = [i for i in fix_ids if i]
+    if not ids:
+        return set()
+    try:
+        from llm_logger import _get_supabase
+        rows = (_get_supabase().table("graph_candidates")
+                .select("fix_ids").eq("status", "approved").execute().data or [])
+    except Exception as e:
+        print(f"[expert-fix] review status check skipped ({str(e)[:80]}) — treating as unreviewed")
+        return set()
+    approved = {i for r in rows for i in (r.get("fix_ids") or [])}
+    return {i for i in ids if i in approved}
+
+
 @traceable(run_type="retriever", name="search_expert_fixes")
 def search_expert_fixes(query, equipment_filter=None, top_k=3):
     """
@@ -260,6 +288,8 @@ def search_expert_fixes(query, equipment_filter=None, top_k=3):
     if not strong_matches:
         return "LOW_CONFIDENCE: Expert fixes found but similarity too low — do not cite.", []
 
+    approved = _approved_fix_ids([m.metadata.get("expert_fix_id") for m in strong_matches])
+
     output   = []
     fix_ids  = []
     for match in strong_matches:
@@ -270,10 +300,15 @@ def search_expert_fixes(query, equipment_filter=None, top_k=3):
         # report as if it were recorded fact (it was, as "Senior Operator").
         role = (meta.get("captured_by_role", "") or "").strip()
         date = meta.get("captured_at", "")[:10]  # YYYY-MM-DD prefix only
+        # Phase 2a trust order: say whether a person has reviewed this fix.
+        # Search results cannot tell an approved fix from one nobody checked,
+        # and an unchecked "reset tension 18 to 22" was beating the SOP.
+        status = (REVIEW_APPROVED if meta.get("expert_fix_id") in approved
+                  else REVIEW_UNREVIEWED)
         output.append(
             f"[Expert Fix — {name}"
             f"{', ' + role if role else ''}"
-            f"{', ' + date if date else ''} | Score: {round(match.score, 2)}]\n"
+            f"{', ' + date if date else ''} | {status} | Score: {round(match.score, 2)}]\n"
             f"{meta.get('text', '')[:400]}"
         )
         fid = meta.get("expert_fix_id")
@@ -387,9 +422,11 @@ fault pattern on this equipment, from a real incident they personally resolved.
 
 Rules:
 - You have been given ONE tool result from an expert-fix search. Analyse it fully.
-- Expert fixes are cited by the OPERATOR'S NAME — never call them "unverified".
-  The named operator IS the trust signal; do not add hedging language on top of it.
-  Include a job title only if the search result actually shows one; never invent one.
+- Expert fixes are cited by the OPERATOR'S NAME. Include a job title only if the
+  search result actually shows one; never invent one.
+- Each result carries a review status: TIER 3 APPROVED (a reviewer checked it) or
+  TIER 4 UNREVIEWED (nobody has checked it yet). Copy that status into your findings
+  for every fix. Never upgrade an UNREVIEWED fix, and never describe it as proven.
 - If a fix is found, state exactly what the operator found different and what fixed it,
   in your own words, attributed to them by name.
 - CRITICAL — if the search result contains reproducible numbered steps, preserve them
@@ -406,6 +443,7 @@ Return your findings in this exact structure:
 
 EXPERT FIX FINDINGS:
 - Found: [YES, attributed to <name> | NO — no prior expert fix on record]
+- Review status: [TIER 3 APPROVED | TIER 4 UNREVIEWED | N/A]
 - What was different: [from the fix, or N/A]
 - What fixed it: [from the fix, or N/A]
 - When it applies: [any stated conditions, or N/A]
@@ -446,7 +484,11 @@ Analyse whether a prior expert fix applies to this incident."""
         "agent":    "Expert Fix Agent",
         "icon":     "🎙",
         "findings": _flag_if_truncated(response, "specialist findings"),
-        "raw_data": search_result
+        "raw_data": search_result,
+        # The report guardrail (check_report) needs the raw text of any
+        # unreviewed fix, to spot its values being turned into instructions.
+        "unreviewed": [block for block in search_result.split("\n\n---\n\n")
+                       if REVIEW_UNREVIEWED in block],
     }
 
 
@@ -711,11 +753,144 @@ def _build_graph_rules(graph_context):
     rules.append(_DISPUTED_VALUE_RULE)
 
     # True for every machine, so it is always included.
-    rules.append("Use ONLY facts present in the knowledge graph context above. Do not import "
-                 "procedures, part numbers or thresholds from other equipment.")
+    # Phase 2a: this used to say "Use ONLY facts present in the knowledge graph
+    # context", which contradicted the main rule "only use evidence the
+    # specialists found". The trust order in the system prompt replaces both.
+    rules.append("Do not import procedures, part numbers or thresholds from other equipment.")
 
     numbered = "\n".join("{}. {}".format(i + 1, r) for i, r in enumerate(rules))
     return "STRICT GRAPH RULES - VIOLATION IS AN ERROR:\n" + numbered
+
+
+# ── Report guardrails (Phase 2a) ───────────────────────────────────────────────
+# Defence in depth: the prompt ASKS for the trust order; this code CHECKS the
+# finished report for the rules that must never break, and makes any breach
+# visible. No extra AI call. Fixing a breach by re-asking the model is a
+# Phase 4 validator node (at most one retry); here we warn and log.
+
+_RANK = {"LOW": 0, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}
+_TIP_STOPWORDS = {"after", "before", "which", "their", "there", "these", "those", "check",
+                  "replace", "should", "would", "about", "using", "other", "first", "again",
+                  "welding", "machine", "fixed", "operator", "found", "because", "while",
+                  "where", "until", "every", "being", "steps", "reproducible"}
+
+
+def _criticality_floor(graph_context):
+    """A matched fault the graph marks CRITICAL sets a floor on the rating."""
+    if not graph_context or not graph_context.get("has_data"):
+        return None, ""
+    matched = set(graph_context.get("matched_faults") or [])
+    for n in graph_context.get("chain_nodes", []) or []:
+        p = n.get("properties") or {}
+        crit = str(p.get("criticality", "")).strip()
+        if n.get("type") == "Fault" and n.get("label") in matched and crit.upper().startswith("CRITICAL"):
+            src = f" [source: {p['source']}]" if p.get("source") else ""
+            return "CRITICAL", f"{crit}{src}"
+    return None, ""
+
+
+def _tips_to_guard(graph_context, specialist_results):
+    """(who, text, kind) for every unreviewed tip found, and every rejected claim."""
+    tips = []
+    for r in specialist_results or []:
+        for block in r.get("unreviewed", []) or []:
+            m = re.search(r"\[Expert Fix — ([^,|\]]+)", block)
+            body = block.split("]\n", 1)[-1]
+            tips.append(((m.group(1).strip() if m else ""), body, "an UNREVIEWED operator tip"))
+    relevant = set((graph_context or {}).get("relevant_node_ids") or [])
+    for n in (graph_context or {}).get("chain_nodes", []) or []:
+        p = n.get("properties") or {}
+        if p.get("status") == "disputed" and (not relevant or n.get("id") in relevant):
+            tips.append((p.get("contributors", ""), p.get("operator_summary", ""),
+                         "a REJECTED operator claim"))
+    return tips
+
+
+def _flag_lines(section, who, body, kind):
+    """Lines in HOW TO ADDRESS IT that repeat a tip's values or name its author."""
+    body = re.sub(r"\b[A-Z]{1,3}-\d+\b|\d{4}-\d{2}-\d{2}", " ", body)   # tags, dates
+    numbers, keywords = set(), set()
+    for sentence in re.split(r"(?<=[.;:\n])\s+", body):
+        nums = [n for n in re.findall(r"\d+(?:\.\d+)?", sentence) if len(n) >= 2 or "." in n]
+        if nums:
+            numbers.update(nums)
+            keywords.update(w for w in re.findall(r"[a-z]{5,}", sentence.lower())
+                            if w not in _TIP_STOPWORDS)
+    surname = max(re.findall(r"[A-Za-z]{3,}", who or ""), key=len, default="").lower()
+    flagged = []
+    for line in section.splitlines():
+        low = line.lower()
+        by_name = bool(surname) and surname in low
+        by_value = (any(re.search(rf"(?<![\d.]){re.escape(n)}(?![\d.])", line) for n in numbers)
+                    and any(k in low for k in keywords))
+        if line.strip() and (by_name or by_value):
+            flagged.append(line)
+    return flagged
+
+
+@traceable(name="report_guardrails")
+def check_report(report, graph_context, specialist_results):
+    """
+    Check a finished report against the rules that must never break.
+    Returns (report, events): the report with any breach made visible, and a
+    list of what fired (printed, traced in LangSmith, read by evals).
+
+      1. Criticality floor: a matched fault the graph marks CRITICAL (e.g.
+         shielding gas low) cannot be rated lower. The rating is raised and
+         the report says so and why.
+      2. Unreviewed tips: a step in HOW TO ADDRESS IT that repeats an
+         unreviewed tip's values, or names its author, gets a visible warning.
+         Same for a claim a reviewer rejected.
+    """
+    text, events = report or "", []
+
+    floor, why = _criticality_floor(graph_context)
+    at = text.find("HOW CRITICAL IS IT")
+    if floor and at != -1:
+        m = re.search(r"\b(CRITICAL|HIGH|MEDIUM|LOW)\b", text[at + len("HOW CRITICAL IS IT"):])
+        if m and _RANK[m.group(1)] < _RANK[floor]:
+            start = at + len("HOW CRITICAL IS IT") + m.start()
+            end = start + len(m.group(1))
+            rest = text[end:]
+            nl = rest.find("\n")
+            note = f"\n- Raised from {m.group(1)} to {floor} by a safety rule: {why}"
+            rest = rest[:nl] + note + rest[nl:] if nl != -1 else rest + note
+            text = text[:start] + floor + rest
+            events.append(f"criticality raised {m.group(1)} -> {floor}")
+
+    s = text.find("HOW TO ADDRESS IT")
+    if s != -1:
+        e = text.find("PLANT MANAGER SUMMARY", s)
+        e = e if e != -1 else len(text)
+        section = text[s:e]
+        warned, done = section, set()
+        for who, body, kind in _tips_to_guard(graph_context, specialist_results):
+            for line in _flag_lines(section, who, body, kind):
+                if line in done:   # one warning per line, whichever tip matched first
+                    continue
+                done.add(line)
+                warning = (f"\n  ⚠ CHECK: this step comes from {kind}"
+                           f"{' (' + who + ')' if who else ''}. It is not in any SOP or work "
+                           f"instruction. Follow the documented procedure unless an engineer "
+                           f"approves this change.")
+                warned = warned.replace(line, line + warning, 1)
+                events.append(f"{kind} in instructions: {line.strip()[:80]}")
+        text = text[:s] + warned + text[e:]
+
+    for ev in events:
+        print(f"  [guardrail] {ev}")
+    return text, events
+
+
+# Trust tier of each specialist's findings (Phase 2a trust order). Operator
+# knowledge carries its own per-fix label: TIER 3 APPROVED or TIER 4 UNREVIEWED.
+_TIER_BY_AGENT = {
+    "Alarm Agent":       "TIER 2 · EVENTS — shift logs: what happened, not what to do",
+    "Maintenance Agent": "TIER 2 · DOCUMENTS — work instructions",
+    "SOP Agent":         "TIER 2 · DOCUMENTS — standard operating procedures",
+    "NCR Agent":         "TIER 2 · DOCUMENTS — non-conformance reports",
+    "Expert Fix Agent":  "OPERATOR KNOWLEDGE — each fix is labelled TIER 3 APPROVED or TIER 4 UNREVIEWED",
+}
 
 
 @traceable(name="orchestrator")
@@ -734,31 +909,40 @@ def run_orchestrator(incident, specialist_results, graph_context=None, equipment
 You receive structured findings from four specialist agents and synthesize them into a final investigation report.
 
 Your rules:
-1. Only use evidence the specialists found. Never add information they did not surface.
-2. When specialists contradict each other — note the contradiction, do not resolve it by guessing.
+1. Only use the evidence you are given: the knowledge graph context and the specialist
+   findings, together. Never add information that neither of them contains.
+2. Every piece of evidence is labelled with a TRUST TIER. When sources disagree, follow
+   the TRUST ORDER below, state both, and say which one you followed and why. When two
+   sources of the SAME tier disagree, do not pick one: recommend engineering review.
 3. When a specialist returned NO DATA — that absence is itself a finding (e.g. no SOP = procedure gap).
-4. Weight findings by data confidence: HIGH > MEDIUM > LOW > NO DATA.
+4. Data confidence (HIGH > MEDIUM > LOW > NO DATA) ranks findings WITHIN a tier. It never
+   lifts a finding above a higher tier.
 5. The report has TWO sections — technical and plain language. Both are required.
-6. EXPERT FIX RULES — follow strictly:
-   - Cite expert fixes by the operator's NAME, e.g. "Dave found on 14 Jul 2026
-     that..." — never label an expert fix "unverified". The named operator IS the
-     trust signal; do not add hedging qualifiers on top of that. Use a job title
-     ONLY if the source text actually carries one — never invent or assume one.
-   - If the Expert Fix agent found a match, it should normally be the FIRST thing named
-     under IMMEDIATE ACTION — a prior operator's proven fix is the fastest path to
-     resolving the current incident.
-   - When the expert fix contains reproducible numbered steps (the source text says
-     "reproducible steps"), REPRODUCE THOSE STEPS VERBATIM, in order, under IMMEDIATE
-     ACTION — do not summarise or paraphrase them into a single sentence. The goal is
-     that someone unfamiliar with this incident can follow the report like a checklist
-     and resolve it without contacting the operator who captured it.
-   - When the expert fix is flagged as insufficient detail ("treat as a lead, not a
-     procedure"), present it as a starting lead, not as a step-by-step fix — and say so
-     plainly rather than inventing steps that were never given.
-   - If an expert fix CONTRADICTS what the SOP agent reports (e.g. different tension,
-     temperature, or timing values), do NOT decide which one is correct. Surface BOTH
-     explicitly, label it a contradiction, and recommend engineering review before
-     acting on either one. Never silently prefer the SOP over the expert fix or vice versa.
+
+TRUST ORDER — by kind of fact:
+   - Specifications, settings, limits, part numbers and repair procedures:
+     TIER 1 VERIFIED (knowledge graph) > TIER 2 DOCUMENTS (SOP, work instruction, NCR)
+     > TIER 3 APPROVED operator knowledge. A TIER 4 UNREVIEWED operator tip NEVER sets a
+     value, a setting or a step in HOW TO ADDRESS IT.
+   - What is happening now (alarm counts, timing, recent changes): TIER 2 EVENTS (shift logs).
+   - Safety steps: include every safety step from any tier. The most cautious one wins.
+   Why: controlled documents are reviewed and approved; an unreviewed tip is one person's
+   account that nobody has checked yet.
+
+6. OPERATOR KNOWLEDGE RULES — follow strictly:
+   - Cite operator knowledge by the operator's NAME. Use a job title ONLY if the source
+     text actually carries one — never invent or assume one.
+   - TIER 3 APPROVED knowledge (reviewed in the Review queue): may be the FIRST thing
+     named under IMMEDIATE ACTION. When it contains reproducible numbered steps,
+     REPRODUCE THEM VERBATIM, in order, so the report can be followed like a checklist.
+   - TIER 4 UNREVIEWED tip: call it an "unreviewed operator tip (<name>)". Mention it only
+     under diagnosis, as a lead to check. Never copy its values or steps into HOW TO
+     ADDRESS IT. If it disagrees with TIER 1 or TIER 2, say so and follow TIER 1 or 2.
+   - When operator knowledge is flagged as insufficient detail ("treat as a lead, not a
+     procedure"), present it as a lead and say so plainly rather than inventing steps.
+   - If APPROVED knowledge contradicts a TIER 1 or TIER 2 fact, surface BOTH, label it a
+     contradiction, follow the documented fact in HOW TO ADDRESS IT, and recommend
+     engineering review.
 7. CRITICALITY RULES — follow strictly:
    - Three or more alarms of same type in one shift = HIGH minimum (recurring fault indicator)
    - Any fault requiring LOTO or production stop = HIGH minimum
@@ -822,6 +1006,7 @@ RISK IF NOT ACTIONED: [One sentence — what happens if nothing is done]"""
     for result in specialist_results:
         findings_block += f"\n\n{'─'*50}\n"
         findings_block += f"{result['icon']} {result['agent'].upper()} FINDINGS\n"
+        findings_block += f"[{_TIER_BY_AGENT.get(result['agent'], 'TIER 2 · DOCUMENTS')}]\n"
         findings_block += f"{'─'*50}\n"
         findings_block += result["findings"]
 
@@ -844,9 +1029,10 @@ RISK IF NOT ACTIONED: [One sentence — what happens if nothing is done]"""
         graph_block = f"""
 
 ─────────────────────────────────────────────────────
-KNOWLEDGE GRAPH CONTEXT — engineering-verified SOP/NCR facts, plus (where
-shown) human-reviewed operator-confirmed patterns, which are cited
-differently — see the rules below
+[TIER 1 · VERIFIED] KNOWLEDGE GRAPH CONTEXT — facts taken from the SOP, work
+instruction and NCR and checked by a person, each with its source. Operator
+patterns shown here were approved in the Review queue (TIER 3); a DISPUTED
+claim was reviewed and rejected — never use it.
 ─────────────────────────────────────────────────────
 {graph_context["chain_text"]}
 ─────────────────────────────────────────────────────{mandatory_warnings}
@@ -979,7 +1165,7 @@ Available agents:
                 prior fix on this exact fault pattern — check this whenever
                 a specific equipment tag is known, it's often the fastest
                 path to resolution and costs nothing to check
-  maintenance — searches maintenance records and service history
+  maintenance — searches work instructions: repair and replacement procedures
   sop         — searches SOPs for procedures and specifications
   ncr         — searches non-conformance reports for quality incidents
 
@@ -1023,20 +1209,76 @@ Incident: "New robot CV-410 threw an error on first run, no prior history."
 Incident: "Something seems off on Line 3 but I can't tell what."
 {"reason": "Vague/general report with no clear signal — cast wide with all specialists.", "agents": ["alarm", "expert_fix", "maintenance", "sop", "ncr"]}
 
+When the message lists agents as ALREADY REQUIRED, they will run whatever you
+choose. Decide only whether this incident needs any OTHER agent as well.
+
 Valid agent names: alarm, expert_fix, maintenance, sop, ncr"""
+
+ALL_AGENTS = ["alarm", "expert_fix", "maintenance", "sop", "ncr"]
+# Which search holds the facts of each kind of document on the graph.
+_DOC_TYPE_TO_AGENT = {"SOP": "sop", "Work Instruction": "maintenance", "NCR": "ncr"}
+
+
+def required_agents(graph_context, equipment_id=None):
+    """
+    The searches that MUST run, decided in code (Phase 2a step 4).
+
+    Hybrid routing: rules decide what must happen, the supervisor AI may only
+    add to it. The routing check found the supervisor sent every search the
+    graph pointed to in only 1 of 6 cases, and never searched the SOP for a
+    gas alarm, although the gas rules live in the SOP.
+
+      - machine known          -> alarm + expert_fix (was a prompt rule)
+      - graph matched a fault  -> the search for each document type its facts
+                                  come from: SOP -> sop, Work Instruction ->
+                                  maintenance, NCR -> ncr
+    Returns (agents, documents) so the routing line can say why.
+    """
+    need, docs = set(), []
+    if equipment_id:
+        need.update({"alarm", "expert_fix"})
+    ctx = graph_context or {}
+    if ctx.get("has_data") and ctx.get("matched_faults"):
+        by_id = {n["id"]: n for n in ctx.get("chain_nodes", []) or []}
+        for nid in ctx.get("relevant_node_ids", []) or []:
+            n = by_id.get(nid)
+            if n and n.get("type") == "Document":
+                dtype = (n.get("properties") or {}).get("type", "")
+                if dtype in _DOC_TYPE_TO_AGENT:
+                    need.add(_DOC_TYPE_TO_AGENT[dtype])
+                    docs.append(dtype)
+    return [a for a in ALL_AGENTS if a in need], sorted(set(docs))
 
 
 @traceable(name="supervisor")
-def supervisor_route(incident, equipment_id=None):
+def supervisor_route(incident, equipment_id=None, graph_context=None):
     """
-    Classify the incident and return which agents to dispatch.
-    Returns a list of agent names and a routing reason.
+    Decide which specialist searches run. Returns (agents, reason).
 
-    Falls back to all 4 agents if classification fails — safe default.
+    The graph sets a minimum (required_agents); the supervisor AI can only ADD
+    to it, never drop from it. Without a graph match this behaves as before.
+    Falls back to all five agents if the AI's answer is unusable.
     """
+    required, docs = required_agents(graph_context, equipment_id)
     user_msg = f"Incident: {incident}"
     if equipment_id:
         user_msg += "\nEquipment: " + str(equipment_id)
+    matched = (graph_context or {}).get("matched_faults") or []
+    if matched:
+        user_msg += (f"\nKnowledge graph matched: {', '.join(matched)}. "
+                     f"Its facts come from: {', '.join(docs) or 'no linked documents'}.")
+    if required:
+        user_msg += f"\nALREADY REQUIRED (will run): {', '.join(required)}"
+
+    def combine(ai_agents, ai_reason):
+        added = [a for a in ai_agents if a not in required]
+        agents = [a for a in ALL_AGENTS if a in required or a in ai_agents]
+        why = []
+        if required:
+            why.append(f"required by {'the graph' if matched else 'the machine'}: {', '.join(required)}")
+        if added:
+            why.append(f"added by supervisor: {', '.join(added)}")
+        return agents, (" · ".join(why) + (f" — {ai_reason}" if ai_reason else ""))
 
     try:
         response = _groq_call_with_retry(
@@ -1069,15 +1311,14 @@ def supervisor_route(incident, equipment_id=None):
         agents = [a for a in agents if a in valid]
 
         # Always need at least 1 agent — fall back to all 5 if routing fails
-        if len(agents) < 1:
-            agents = ["alarm", "expert_fix", "maintenance", "sop", "ncr"]
-            reason = "fallback — routing returned empty list"
+        if len(agents) < 1 and not required:
+            return list(ALL_AGENTS), "fallback — routing returned empty list"
 
-        return agents, reason
+        return combine(agents, reason)
 
     except Exception as e:
         print(f"  Supervisor routing failed: {e} — using all agents")
-        return ["alarm", "expert_fix", "maintenance", "sop", "ncr"], "fallback — routing error"
+        return list(ALL_AGENTS), "fallback — routing error"
 
 
 # ── Parallel Coordinator + Streaming Generator ─────────────────────────────────
@@ -1149,7 +1390,10 @@ def investigate_incident(incident, equipment_id=None):
     # ── Supervisor routing — decide which agents to call ─────────────────────
     # Teaching note: this is the key change from fixed fan-out to dynamic routing.
     # The supervisor reads the incident and returns only the agents needed.
-    routed_agents, routing_reason = supervisor_route(incident, equipment_id)
+    # Phase 2a step 4: the graph ran first, so the supervisor gets what it
+    # matched and which documents hold its facts (see required_agents).
+    routed_agents, routing_reason = supervisor_route(incident, equipment_id,
+                                                     graph_context=graph_context)
 
     agent_map = {
         "alarm":       ("🚨 Alarm Agent",       run_alarm_agent),
@@ -1212,6 +1456,12 @@ def investigate_incident(incident, equipment_id=None):
         yield f"\n❌ Orchestrator error: {str(e)}\n"
         yield "\nNote: Rate limit hit. Please wait a minute and try again.\n"
         return
+
+    # Phase 2a guardrails: code checks the finished report (see check_report).
+    try:
+        final_report, _guard_events = check_report(final_report, graph_context, specialist_results)
+    except Exception as e:  # a checker bug must never swallow the report
+        print(f"  [guardrail] check skipped: {str(e)[:100]}")
 
     yield "\n" + "═" * 50 + "\n"
     yield "INVESTIGATION REPORT\n"

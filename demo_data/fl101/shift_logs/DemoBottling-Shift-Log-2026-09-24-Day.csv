@@ -1,0 +1,6 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-24,Day,Filling Line 1,06:05,Routine,FL-101,Pre-start checks complete. Supply pressure 1.8 bar.,Checklist signed.,A. Moreno,OK
+2026-09-24,Day,Filling Line 1,06:20,Maintenance,FL-101,Weekly supply filter clean done (FLT-PS-10).,Filter tag updated.,A. Moreno,Complete
+2026-09-24,Day,Filling Line 1,09:00,Quality Check,FL-101,"Hourly weights 501, 500, 500, 499, 501 ml. Reject count 2 per 1,000.",No action.,A. Moreno,OK
+2026-09-24,Day,Filling Line 1,11:15,Routine,CP-102,Capper torque check 1.6 Nm on 5 caps.,No action.,A. Moreno,OK
+2026-09-24,Day,Filling Line 1,13:50,Handover,FL-101,Good shift. No alarms.,No action.,A. Moreno,Handover complete

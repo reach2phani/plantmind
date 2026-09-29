@@ -1,0 +1,234 @@
+{
+  "tag": "before",
+  "at": "2026-09-28T17:39:25",
+  "required_ok": 1,
+  "stable": 5,
+  "cases": [
+    {
+      "case": "GV-01",
+      "name": "New spool",
+      "matched": [
+        "Wire Feed Motor Overload"
+      ],
+      "required": [
+        "alarm",
+        "expert_fix",
+        "maintenance",
+        "ncr",
+        "sop"
+      ],
+      "sent": [
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ]
+      ],
+      "required_ok": false,
+      "missing": [
+        "ncr"
+      ],
+      "stable": true
+    },
+    {
+      "case": "GV-02",
+      "name": "Tension trap",
+      "matched": [
+        "Wire Feed Motor Overload"
+      ],
+      "required": [
+        "alarm",
+        "expert_fix",
+        "maintenance",
+        "ncr",
+        "sop"
+      ],
+      "sent": [
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "ncr",
+          "sop"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "ncr"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "ncr"
+        ]
+      ],
+      "required_ok": false,
+      "missing": [
+        "sop"
+      ],
+      "stable": false
+    },
+    {
+      "case": "GV-03",
+      "name": "Unstable after liner change",
+      "matched": [
+        "Wire Feed Motor Overload"
+      ],
+      "required": [
+        "alarm",
+        "expert_fix",
+        "maintenance",
+        "ncr",
+        "sop"
+      ],
+      "sent": [
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ]
+      ],
+      "required_ok": false,
+      "missing": [
+        "ncr"
+      ],
+      "stable": true
+    },
+    {
+      "case": "GV-04",
+      "name": "Arc voltage",
+      "matched": [
+        "Arc Instability"
+      ],
+      "required": [
+        "alarm",
+        "expert_fix",
+        "maintenance",
+        "ncr",
+        "sop"
+      ],
+      "sent": [
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ]
+      ],
+      "required_ok": false,
+      "missing": [
+        "ncr"
+      ],
+      "stable": true
+    },
+    {
+      "case": "GV-05",
+      "name": "Gas alarm",
+      "matched": [
+        "Shielding Gas Pressure Low"
+      ],
+      "required": [
+        "alarm",
+        "expert_fix",
+        "sop"
+      ],
+      "sent": [
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance"
+        ]
+      ],
+      "required_ok": false,
+      "missing": [
+        "sop"
+      ],
+      "stable": true
+    },
+    {
+      "case": "GV-06",
+      "name": "Hot contact tip",
+      "matched": [
+        "Contact Tip Temperature High"
+      ],
+      "required": [
+        "alarm",
+        "expert_fix",
+        "sop"
+      ],
+      "sent": [
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ],
+        [
+          "alarm",
+          "expert_fix",
+          "maintenance",
+          "sop"
+        ]
+      ],
+      "required_ok": true,
+      "missing": [],
+      "stable": true
+    }
+  ]
+}

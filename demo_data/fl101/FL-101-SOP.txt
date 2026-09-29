@@ -1,0 +1,425 @@
+STANDARD OPERATING PROCEDURE
+Equipment: FL-101 Bottle Filler
+Document Type: SOP
+Reference: FL-101-SOP
+Revision: 1.0
+Plant: Demo Bottling Plant
+Line: Filling Line 1
+Owner: Production Manager
+Approved by: Plant Manager — R. Osei
+Date: February 2026
+Effective from: 1 March 2026
+Next review: March 2027
+Uncontrolled when printed. Always check the document system for the latest revision.
+
+DEMO DATA — written for the PlantMind learning project. Not from a real plant.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. PURPOSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This SOP explains how to run the FL-101 Bottle Filler safely and correctly.
+It covers the checks before starting, the start-up sequence, the normal
+settings, the checks during the shift, what to do for each alarm, bottle
+size changeovers, cleaning, records and shutdown.
+
+Following this SOP keeps people safe, keeps every bottle within the
+declared fill amount, and keeps glass and other foreign objects out of the
+product.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. SCOPE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This SOP applies to:
+  - The FL-101 Bottle Filler on Filling Line 1
+  - 500 ml and 330 ml glass bottles
+  - Still water only
+
+This SOP does not cover the capper (CP-102) or the labeller (LB-103). They
+have their own SOPs. It does not cover repairs: repairs follow the work
+instructions listed in Section 5.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. RESPONSIBILITIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Filler operator
+  - Runs the machine as described in this SOP
+  - Completes the pre-start checks and the checks during the shift
+  - Responds to alarms and records them in the shift log
+  - Stops the machine if anything looks unsafe
+
+Shift lead
+  - Makes sure only trained operators run FL-101
+  - Signs the pre-start checklist and the changeover record
+  - Calls maintenance or the quality lead when this SOP says so
+
+Quality lead
+  - Owns the glass breakage procedure and all QA HOLD decisions
+  - Signs off the line before restart after any glass breakage
+  - Checks the checkweigher records every day
+
+Maintenance technician
+  - Carries out repairs using the work instructions
+  - Replaces fill valve seals using WI-FL101-001
+
+Maintenance supervisor
+  - Is called for repeated alarms, electrical faults and anything this SOP
+    does not cover
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. DEFINITIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Bowl             The product tank on top of the filler. Water flows from
+                   the bowl down through the fill valves.
+  Fill valve       One of the 24 valves that fill the bottles. Each valve is
+                   numbered 1 to 24.
+  Seal kit         The rubber seal and O-ring inside each fill valve
+                   (part SEAL-FV-24). A worn seal lets water drip.
+  Infeed           Where empty bottles enter the machine.
+  Guide rails      The side rails that steer bottles into the infeed. They
+                   are set to a different position for each bottle size.
+  Star wheel       A toothed wheel that holds each bottle in the right place
+                   as it moves through the machine.
+  Checkweigher     A scale on the conveyor that weighs every filled bottle and
+                   pushes out any that are outside the allowed range.
+  Changeover       Switching the machine from one bottle size to another.
+  Underfill        A bottle with less than 495 ml.
+  Overfill         A bottle with more than 505 ml.
+  LOTO             Lockout / tagout. Switching off and locking the power so
+                   the machine cannot start while someone works on it.
+  QA HOLD          A label that means "do not ship until the quality lead has
+                   checked it".
+  Sanitation rinse A 10-minute rinse of the bowl, valves and nozzles with
+                   clean water.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. RELATED DOCUMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  WI-FL101-001   Fill Valve Seal Replacement (work instruction)
+  NCR-2026-012   Underfill and fill time change, 16 January 2026
+  CS-FL101       FL-101 Changeover Sheet (rail and star wheel settings)
+  GBP-001        Glass and Brittle Plastics Policy
+  SAF-003        Lockout / Tagout Procedure
+  CL-FL101       FL-101 Cleaning Schedule
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. SAFETY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6.1 PPE required on Filling Line 1
+  - Safety glasses at all times
+  - Cut-resistant gloves when handling glass or change parts
+  - Hearing protection
+  - Safety shoes
+
+6.2 Lockout / tagout (LOTO)
+LOTO is required before any maintenance, clearing a jam, changing parts, or
+reaching into the machine. Follow SAF-003:
+  1. Switch off power at the main isolator.
+  2. Lock the isolator with your personal padlock.
+  3. Tag it with your name and the date.
+  4. Try to start the machine to prove it cannot run.
+Only the person who fitted a lock may remove it.
+
+6.3 Guards
+All guard doors have safety switches. The machine stops if a guard door is
+opened. Never bypass or tape over a guard switch.
+
+6.4 Main safety rules
+  - Never clear a jam while the machine is running.
+  - Never reach past a guard.
+  - Never use compressed air near open bottles or broken glass.
+  - Keep the floor dry. Report leaks and spills straight away.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. HOW THE MACHINE WORKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Empty bottles arrive on the infeed conveyor.
+  2. The guide rails steer them into the infeed star wheel.
+  3. The star wheel places each bottle under a fill valve on the turning
+     carousel.
+  4. The fill valve opens for the fill time (3.2 seconds) and fills the
+     bottle from the bowl.
+  5. The discharge star wheel moves the full bottle out to the capper.
+  6. After capping, the checkweigher weighs every bottle and rejects any
+     outside 495 to 505 ml.
+  7. Good bottles go on to the labeller.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. PRE-START CHECKS (complete before every shift)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Record every check on the pre-start checklist. The shift lead signs it.
+
+8.1 Fill valves and seals
+  - Look at each of the 24 fill valves for cracks or dripping.
+  - A valve that drips between fills has a worn seal. Report it before
+    starting.
+  - Seal kits (part SEAL-FV-24) are replaced every 3 months or every
+    1,500 running hours, whichever comes first.
+  - Spare seal kits are kept in the Filling Line 1 spares cabinet, shelf 2.
+    The minimum stock is 10 kits.
+
+8.2 Infeed and guide rails
+  - Check the guide rails are set for the bottle size being run:
+      500 ml bottles: rail position A
+      330 ml bottles: rail position B
+  - Check the rails are locked and the matching star wheel is fitted.
+
+8.3 Product supply
+  - Check the bowl level indicator shows NORMAL.
+  - Check the product supply pressure is 1.5 to 2.0 bar.
+  - The supply filter (part FLT-PS-10) is cleaned once a week. Check the
+    date on the filter tag.
+
+8.4 Checkweigher
+  - Pass the three test bottles through the checkweigher: 490 ml, 500 ml
+    and 510 ml.
+  - The 490 ml and 510 ml bottles must be rejected. The 500 ml bottle must
+    pass. If not, do not start: call the quality lead.
+
+8.5 Glass and guards
+  - Check the red glass kit is on its hook: brush, dustpan, sealed bin and
+    QA HOLD labels.
+  - Walk round the machine and check there is no broken glass.
+  - Check every guard door is closed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. START-UP SEQUENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Complete the pre-start checks (Section 8).
+  2. Open the product supply valve and let the bowl fill to NORMAL.
+  3. Run the sanitation rinse (10 minutes) if the machine has been stopped
+     for more than 4 hours.
+  4. Start at 60 bottles per minute.
+  5. Weigh the first 20 bottles. All must be 495 to 505 ml.
+  6. Raise the speed to 120 bottles per minute.
+  7. Record the start time in the shift log.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. OPERATING SETTINGS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Bottle:                  500 ml glass (or 330 ml after a changeover)
+  Target fill:             500 ml
+  Allowed fill range:      495 to 505 ml (checkweigher rejects outside this)
+  Line speed:              120 bottles per minute (maximum 130)
+  Product supply pressure: 1.5 to 2.0 bar
+  Low pressure alarm:      below 1.3 bar
+  Fill time:               3.2 seconds, factory set
+
+The fill time must NOT be changed by operators. Changing it needs written
+approval from engineering. A longer fill time does not fix underfill: it
+hides the real cause and makes bottles overflow (see NCR-2026-012).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+11. CHECKS DURING THE SHIFT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Every hour
+    - Take 5 bottles off the line and weigh them by hand. Record the
+      results. All must be 495 to 505 ml.
+    - Record the checkweigher reject count.
+
+  Every 2 hours
+    - Look at the fill valves for dripping. Report any dripping valve to
+      the shift lead.
+
+  At the start, middle and end of the shift
+    - Walk round the machine and check for broken glass. Sign the glass
+      check sheet.
+
+If the checkweigher rejects more than 1 bottle in 100 over an hour, tell
+the shift lead. A rising reject count is often the first sign of worn seals.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+12. ALARM RESPONSE PROCEDURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+12.1 Underfill
+Alarm message: "Fill level low — bottles under target volume"
+The alarm starts when the checkweigher rejects 3 underfilled bottles in a row.
+
+This is the most common alarm on FL-101. Causes, most common first:
+  1. Worn fill valve seal — the valve drips between fills
+  2. Blocked fill nozzle — debris in the nozzle, no dripping
+  3. Low product supply pressure — see Section 12.4
+
+Immediate action:
+  Step 1 — Press STOP (normal stop, not the emergency stop unless someone
+           is in danger).
+  Step 2 — Read the checkweigher report. It shows which valve numbers are
+           underfilling.
+  Step 3 — Look at those valves. Dripping means a worn seal: call the
+           maintenance technician to replace the seal kit using work
+           instruction WI-FL101-001.
+  Step 4 — No dripping: lock out the machine (Section 6.2) and clean the
+           nozzle of that valve.
+  Step 5 — Check the product supply pressure (Section 12.4).
+
+Do NOT increase the fill time to make up for underfill. It hides worn
+seals and causes overflow and spillage (NCR-2026-012).
+
+Three or more underfill alarms in one shift means a systemic fault, usually
+several worn seals. Stop production, raise a maintenance work order and
+call the maintenance supervisor.
+
+12.2 Infeed Jam
+Alarm message: "Infeed jam — bottles stopped at infeed"
+
+Causes, most common first:
+  1. Guide rails not reset after a bottle size changeover — check the
+     changeover record first if a changeover happened this shift
+  2. Chipped or damaged bottles
+  3. Bottle feed conveyor running too fast
+
+SAFETY: Never reach into the infeed or the star wheel while the machine is
+running. Stop the machine and lock it out (Section 6.2) before clearing
+any jam.
+
+Immediate action:
+  Step 1 — Press STOP.
+  Step 2 — Lock out the machine (Section 6.2).
+  Step 3 — Remove the jammed bottles wearing cut-resistant gloves.
+  Step 4 — Check the guide rail position matches the bottle size
+           (Section 8.2). Reset the rails if they are wrong.
+  Step 5 — Remove any chipped or damaged bottles from the infeed.
+  Step 6 — Remove the lock, restart at 60 bottles per minute for 2 minutes,
+           then return to normal speed.
+
+If a bottle breaks during a jam, stop and follow Section 12.3.
+
+12.3 Glass Breakage
+Alarm message: "Glass breakage detected in filler"
+
+CRITICAL — broken glass can end up inside filled bottles. This is a
+product safety event. Follow GBP-001.
+
+Immediate action:
+  Step 1 — Stop the line at once with the emergency stop.
+  Step 2 — Do not open any guard until the machine has stopped and is
+           locked out (Section 6.2).
+  Step 3 — Put every bottle filled in the last 30 minutes on hold. Label
+           them QA HOLD. Throw away any open bottles within 2 metres of
+           the break.
+  Step 4 — Clean up with the red glass kit only. Use a vacuum, never
+           compressed air (air spreads glass).
+  Step 5 — Rinse the filler (sanitation rinse, 10 minutes).
+  Step 6 — The quality lead must sign off before the line restarts.
+  Step 7 — Record the event in the glass breakage log.
+
+Bottles on QA HOLD may only be released after the quality lead has
+inspected them.
+
+12.4 Product Supply Pressure Low
+Alarm message: "Product supply pressure low — below 1.3 bar"
+
+Low supply pressure makes bottles underfill.
+
+Causes, most common first:
+  1. Supply filter blocked — clean or replace the filter (FLT-PS-10)
+  2. Air in the supply line — bleed the air using the bleed valve on the bowl
+  3. Supply tank running low — check the tank level with the water
+     treatment room
+
+Immediate action:
+  Step 1 — Press STOP.
+  Step 2 — Clean the supply filter.
+  Step 3 — Bleed air from the supply line.
+  Step 4 — Confirm the pressure is back to 1.5 to 2.0 bar.
+  Step 5 — Restart, then weigh the first 20 bottles. All must be 495 to 505 ml.
+
+12.5 Other Messages
+  "Guard door open"            Close the door. The machine will not run with
+                               a door open.
+  "Checkweigher reject bin full" Empty the bin into the reject cage and record
+                               the count.
+  "Emergency stop pressed"     Find out why before resetting. Record it.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+13. ESCALATION — WHEN TO CALL MAINTENANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Call the maintenance supervisor when:
+  - The same alarm happens 3 or more times in one shift
+  - Underfill continues after the seals have been replaced
+  - Any electrical fault code shows on the control panel
+  - A guide rail will not lock in position
+  - Any glass breakage (also call the quality lead)
+
+Do not attempt electrical repairs. Always call maintenance.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+14. BOTTLE SIZE CHANGEOVER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When changing between 500 ml and 330 ml bottles:
+  1. Lock out the machine (Section 6.2).
+  2. Move the guide rails to the position on the changeover sheet CS-FL101
+     (A for 500 ml, B for 330 ml) and lock them.
+  3. Fit the matching star wheel.
+  4. Remove the lock and run 20 bottles at 60 bottles per minute.
+  5. Check none jam and all fill correctly, then return to normal speed.
+  6. Record the changeover in the shift log. The shift lead signs the
+     changeover record.
+
+Most infeed jams in the first hour after a changeover come from rails left
+in the wrong position.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+15. CLEANING AND HYGIENE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  - Run the sanitation rinse (10 minutes) at the end of every shift.
+  - A full deep clean is done every Sunday by the cleaning team (CL-FL101).
+  - Only food-grade lubricant (FGL-1) may be used anywhere product can
+    touch.
+  - Never use compressed air near open bottles.
+  - Wash hands before touching fill valves or nozzles.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+16. QUALITY RECORDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Records kept for every shift:
+  - Pre-start checklist (signed by the shift lead)
+  - Hourly fill weights (5 bottles every hour)
+  - Checkweigher reject count
+  - Glass check sheet (start, middle and end of shift)
+  - Shift log: alarms, actions taken, changeovers, stoppages
+  - Glass breakage log (only when a breakage happens)
+
+Records are kept for 2 years.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+17. END OF SHIFT AND SHUTDOWN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Let the last bottles clear the machine.
+  2. Close the product supply valve.
+  3. Run the sanitation rinse (10 minutes).
+  4. Do the end-of-shift glass check.
+  5. Record bottles filled, bottles rejected and any alarms in the shift log.
+  6. Report any dripping valves to the next shift.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+18. TRAINING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All operators must complete FL-101 induction training before running this
+machine on their own. Induction covers this SOP, LOTO (SAF-003) and the
+glass policy (GBP-001). Training is refreshed every year.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+19. REVISION HISTORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Rev 1.0   February 2026   First issue. Includes the rule that operators
+                            must not change the fill time, added after
+                            NCR-2026-012.

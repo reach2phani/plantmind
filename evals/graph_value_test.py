@@ -107,11 +107,20 @@ def run_one(ma, case, equipment, arm):
     os.environ["PM_EVAL_DISABLE_GRAPH"] = ARMS[arm]
     sink = {}
     real = _capture_orchestrator_inputs(ma, sink)
+    real_check = ma.check_report
+
+    def check_wrapper(report, graph_context, specialist_results):
+        out, events = real_check(report, graph_context, specialist_results)
+        sink["guard_events"] = events
+        return out, events
+
+    ma.check_report = check_wrapper
     started = time.time()
     try:
         streamed = "".join(ma.investigate_incident(case["incident"], equipment_id=equipment))
     finally:
         ma.run_orchestrator = real
+        ma.check_report = real_check
         os.environ.pop("PM_EVAL_DISABLE_GRAPH", None)
     at = streamed.find("INVESTIGATION REPORT")
     report = streamed[at:] if at != -1 else ""
@@ -123,6 +132,7 @@ def run_one(ma, case, equipment, arm):
         "sources": sink.get("sources", ""),
         "agents": sink.get("agents", []),
         "graph_used": sink.get("graph_used", False),
+        "guard_events": sink.get("guard_events", []),
         "seconds": round(time.time() - started),
         "at": dt.datetime.now().isoformat(timespec="seconds"),
     }
@@ -135,8 +145,39 @@ def _norm(text):
 
 
 def check_code(check, report):
+    """
+    'all': every pattern must appear. 'none': no pattern may appear.
+    'section': look only inside that report section (e.g. the repair steps,
+    where an unreviewed tip may not appear, although naming it as a lead to
+    check under diagnosis is allowed).
+    """
     text = _norm(report)
-    return all(re.search(p, text, re.I) for p in check["all"])
+    if check.get("section"):
+        at = text.find(check["section"])
+        end = text.find("PLANT MANAGER SUMMARY", at)
+        text = text[at:end if end != -1 else len(text)] if at != -1 else ""
+    return (all(re.search(p, text, re.I) for p in check.get("all", []))
+            and not any(re.search(p, text, re.I) for p in check.get("none", [])))
+
+
+def guard_events_for(r, case, ctx_cache, tip_cache):
+    """
+    Guardrail events for a report: saved at run time since Phase 2a step 5;
+    for older reports, worked out now by running the same check on the saved
+    report (free: one Pinecone search per case, no AI calls).
+    """
+    if "guard_events" in r:
+        return r["guard_events"]
+    import multi_agent as ma
+    import knowledge_graph as kg
+    if case["id"] not in tip_cache:
+        text, _ = ma.search_expert_fixes(f"fix for WM-101 {case['incident'][:100]}",
+                                         equipment_filter="WM-101")
+        tip_cache[case["id"]] = [b for b in text.split("\n\n---\n\n") if ma.REVIEW_UNREVIEWED in b]
+        ctx_cache[case["id"]] = kg.get_fault_chain("WM-101", incident_text=case["incident"])
+    ctx = ctx_cache[case["id"]] if r["arm"] == "on" else None
+    _, events = ma.check_report(r["report"], ctx, [{"unreviewed": tip_cache[case["id"]]}])
+    return events
 
 
 def check_rating(check, report):
@@ -282,6 +323,8 @@ def cmd_score(args, cases):
 
     by_case = {c["id"]: c for c in cases}
     results = []   # (case, arm, run_index, {check_id: bool|None}, unsupported)
+    guards = []    # guardrail events per report, same order as results
+    ctx_cache, tip_cache = {}, {}
     counter = {}
     for r in runs:
         case = by_case.get(r["case"])
@@ -301,12 +344,13 @@ def cmd_score(args, cases):
                 marks[ch["id"]] = check_judge(ch, r["report"], cache, key, client)
                 cache_path.write_text(json.dumps(cache, indent=1), encoding="utf-8")
         results.append((r["case"], r["arm"], idx, marks, unsupported_specifics(r["report"], r["sources"])))
+        guards.append((r["arm"], guard_events_for(r, case, ctx_cache, tip_cache)))
         print(f"  scored {r['case']} graph {r['arm']} run {idx + 1}")
 
-    write_scorecard(args.tag, cases, results)
+    write_scorecard(args.tag, cases, results, guards)
 
 
-def write_scorecard(tag, cases, results):
+def write_scorecard(tag, cases, results, guards=()):
     def arm_rows(arm):
         return [x for x in results if x[1] == arm]
 
@@ -340,9 +384,16 @@ def write_scorecard(tag, cases, results):
             "consistent": f"{stable}/{total_checks}" if total_checks else "—",
             "runs": str(len(rows)),
         }
+        g = [ev for a, ev in guards if a == arm]
+        tipped = sum(any("operator tip" in e or "operator claim" in e for e in ev) for ev in g)
+        raised = sum(any(e.startswith("criticality raised") for e in ev) for ev in g)
+        cells[arm]["tips"] = f"{tipped}/{len(g)}" if g else "—"
+        cells[arm]["raised"] = f"{raised}/{len(g)}" if g else "—"
     for label, key in (("Required facts present", "facts"),
                        ("Specifics not in any source", "unsup"),
                        ("Checks identical across runs", "consistent"),
+                       ("Unreviewed tip used as an instruction (lower is better)", "tips"),
+                       ("Rating raised by the safety floor", "raised"),
                        ("Reports scored", "runs")):
         lines.append(f"| {label} | {cells['off'][key]} | {cells['on'][key]} |")
 

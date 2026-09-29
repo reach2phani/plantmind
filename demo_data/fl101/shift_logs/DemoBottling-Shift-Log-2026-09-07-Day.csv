@@ -1,0 +1,9 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-07,Day,Filling Line 1,06:05,Routine,FL-101,Pre-start checks complete. Supply pressure 1.7 bar.,Checklist signed.,J. Kim,OK
+2026-09-07,Day,Filling Line 1,07:30,Changeover,FL-101,Changeover to 330 ml bottles for customer order. Star wheel changed to 330 ml.,Changeover record left for shift lead to sign.,J. Kim,Complete
+2026-09-07,Day,Filling Line 1,08:05,Alarm,FL-101,Infeed jam - bottles stopped at infeed. 330 ml bottles falling over at the guide rails.,"Pressed STOP, cleared bottles, restarted.",J. Kim,Resolved
+2026-09-07,Day,Filling Line 1,08:20,Alarm,FL-101,Infeed jam again at the same place.,Pressed STOP and cleared bottles. Shift lead reminded operator to lock out before reaching in (SOP 6.2).,J. Kim,Resolved
+2026-09-07,Day,Filling Line 1,08:40,Alarm,FL-101,Third infeed jam since the changeover. One chipped bottle found in the infeed.,Machine locked out. Chipped bottle removed. Shift lead called.,J. Kim,Escalated
+2026-09-07,Day,Filling Line 1,09:10,Changeover,FL-101,Shift lead checked changeover record: guide rails were still in position A (500 ml). Should be position B for 330 ml.,"Rails moved to position B and locked. Restarted at 60 bottles per minute for 2 minutes, then normal speed.",M. Varga,Resolved
+2026-09-07,Day,Filling Line 1,11:00,Quality Check,FL-101,No jams since the rails were reset. Hourly weights for 330 ml bottles in range.,No action.,J. Kim,OK
+2026-09-07,Day,Filling Line 1,13:50,Handover,FL-101,"3 infeed jams this morning, all caused by rails left at position A after the changeover. Running well since 09:10.",Reminder to all: reset rails from changeover sheet CS-FL101.,J. Kim,Handover complete

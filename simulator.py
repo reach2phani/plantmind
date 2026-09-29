@@ -69,8 +69,9 @@ def get_mqtt_client():
     _mqtt_client = client
     return client
 
-def publish(line, equip_tag, event_type, payload):
-    topic = f"plant/{PLANT_SITE}/{line}/{equip_tag}/{event_type}"
+def publish(line, equip_tag, event_type, payload, plant=None):
+    # plant: machines from other sites (FL-101, Demo Bottling Plant) pass their own.
+    topic = f"plant/{plant or PLANT_SITE}/{line}/{equip_tag}/{event_type}"
     get_mqtt_client().publish(topic, json.dumps(payload), qos=1)
 
 RED = "\033[91m"; YELLOW = "\033[93m"; RESET = "\033[0m"
@@ -206,7 +207,77 @@ def hc401_process(env):
         time.sleep(SIM_STEP_REAL_SECONDS * 1.8)
 
 
+def fl101_process(env):
+    """
+    FL-101 Bottle Filler, Demo Bottling Plant (DEMO DATA).
+
+    Two things wear out, as in the FL-101 SOP:
+      seal_wear   fill valve seals -> fill volume drifts below 495 ml (underfill)
+      filter_clog supply filter    -> supply pressure drops below 1.3 bar
+    Infeed jams and glass breakage are rare random events. Alarm messages use
+    the SOP's own alarm wording, so the alert guidance finds the right section.
+    """
+    plant = "demo-bottling-plant"; line = "filling-line-1"; equip_tag = "FL-101"
+    seal_wear = 0.20; filter_clog = 0.10
+    print(f"[SIM] FL-101 Bottle Filler starting. Seal wear: {seal_wear:.0%}")
+    while True:
+        fill_ml  = round(500.5 - (seal_wear * 9) + random.gauss(0, 0.8), 1)
+        pressure = round(1.85 - (filter_clog * 0.7) + random.gauss(0, 0.04), 2)
+        speed    = int(round(120 + random.gauss(0, 1.5)))
+        rejects  = max(0, int(round(1 + seal_wear * 14 + random.gauss(0, 1))))
+        publish(line, equip_tag, "sensor", {"fill_volume_ml": fill_ml, "supply_pressure_bar": pressure,
+                                            "speed_bottles_per_min": speed, "rejects_per_1000": rejects}, plant)
+        log_sensor(line, equip_tag, {"fill_ml": fill_ml, "bar": pressure, "bpm": speed})
+
+        alarm = None
+        if fill_ml < 495 and random.random() < 0.12:
+            alarm = (fill_ml, "fill_volume_ml", "HIGH" if fill_ml < 492 else "MEDIUM",
+                     f"Fill level low — bottles under target volume. Average fill {fill_ml} ml, "
+                     f"allowed 495 to 505 ml. Check fill valves for dripping. Do not change the fill time.")
+        elif pressure < 1.3 and random.random() < 0.12:
+            alarm = (pressure, "supply_pressure_bar", "MEDIUM",
+                     f"Product supply pressure low — below 1.3 bar. Reading {pressure} bar. "
+                     f"Check the supply filter and bleed air from the supply line.")
+        elif random.random() < 0.015:
+            alarm = (0, "infeed_jam", "MEDIUM",
+                     "Infeed jam — bottles stopped at infeed. Stop and lock out before clearing. "
+                     "Check the guide rail position after any changeover.")
+        elif random.random() < 0.004:
+            alarm = (0, "glass_breakage", "HIGH",
+                     "Glass breakage detected in filler. CRITICAL: emergency stop, lock out, "
+                     "hold every bottle filled in the last 30 minutes.")
+        if alarm:
+            value, unit, sev, msg = alarm
+            publish(line, equip_tag, "alarm", {"value": value, "unit": unit, "severity": sev, "message": msg}, plant)
+            log_alarm(line, equip_tag, sev, msg)
+
+        seal_wear += 0.016 + random.gauss(0, 0.003)
+        filter_clog += 0.010 + random.gauss(0, 0.002)
+        if seal_wear >= 1.0:
+            seal_wear = 0.15      # seals replaced
+        if filter_clog >= 1.0:
+            filter_clog = 0.05    # filter cleaned
+        yield env.timeout(1)
+        time.sleep(SIM_STEP_REAL_SECONDS * 1.5)
+
+
+MACHINES = {
+    "WM-101": wm101_process, "GC-201": gc201_process, "HT-301": ht301_process,
+    "HC-401": hc401_process, "FL-101": fl101_process,
+}
+
+
 if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--only", default="",
+                    help="comma-separated machines to run, e.g. --only FL-101 (default: all)")
+    only = [t.strip().upper() for t in ap.parse_args().only.split(",") if t.strip()]
+    unknown = [t for t in only if t not in MACHINES]
+    if unknown:
+        print(f"Unknown machine(s): {', '.join(unknown)}. Choose from: {', '.join(MACHINES)}")
+        exit(1)
+
     missing = [v for v in ["MQTT_HOST", "MQTT_USERNAME", "MQTT_PASSWORD"] if not os.getenv(v)]
     if missing:
         print(f"Missing env vars: {', '.join(missing)}")
@@ -223,6 +294,7 @@ if __name__ == "__main__":
     print("    line1/GC-201 — Gas Cutter       (wear=15%)")
     print("    line2/HT-301 — Furnace          (wear=10%)")
     print("    line2/HC-401 — Hydraulic Press  (wear=12%)")
+    print("    demo-bottling-plant/filling-line-1/FL-101 — Bottle Filler (seal wear=20%)")
     print()
     print("  Timeline:")
     print("    ~4 min  — WM-101 enters HIGH alarm territory")
@@ -234,10 +306,10 @@ if __name__ == "__main__":
     time.sleep(1)
 
     env = simpy.Environment()
-    env.process(wm101_process(env))
-    env.process(gc201_process(env))
-    env.process(ht301_process(env))
-    env.process(hc401_process(env))
+    for tag, process in MACHINES.items():
+        if not only or tag in only:
+            env.process(process(env))
+    print(f"[SIM] Running: {', '.join(only) if only else 'all machines'}")
 
     print("[SIM] All machines running. Press Ctrl+C to stop.\n")
     print("-"*60)

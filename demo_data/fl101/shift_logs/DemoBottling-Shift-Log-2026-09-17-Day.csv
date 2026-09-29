@@ -1,0 +1,8 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-17,Day,Filling Line 1,06:05,Routine,FL-101,Pre-start checks complete. Glass check sheet signed.,Checklist signed.,J. Kim,OK
+2026-09-17,Day,Filling Line 1,10:42,Alarm,FL-101,Glass breakage detected in filler. Bottle shattered at the discharge star wheel.,Emergency stop pressed. Machine locked out before any guard was opened. Quality lead called.,J. Kim,Emergency stop
+2026-09-17,Day,Filling Line 1,10:50,Quality,FL-101,"All bottles filled 10:12-10:42 put on QA HOLD (about 3,600 bottles). 14 open bottles within 2 metres of the break thrown away.",QA HOLD labels fitted to 4 pallets.,N. Adeyemi,In Progress
+2026-09-17,Day,Filling Line 1,11:05,Quality,FL-101,Glass cleaned up with the red glass kit and vacuum. No compressed air used. Sanitation rinse 10 minutes done.,Glass breakage log completed.,J. Kim,Complete
+2026-09-17,Day,Filling Line 1,11:40,Quality,FL-101,Quality lead inspected the filler and signed off restart.,Line restarted.,N. Adeyemi,Resolved
+2026-09-17,Day,Filling Line 1,13:30,Quality,FL-101,"Held bottles inspected. 3,580 released, 20 rejected. Broken bottle came from a chipped batch from the bottle supplier.",Supplier complaint raised for the chipped batch.,N. Adeyemi,Complete
+2026-09-17,Day,Filling Line 1,13:50,Handover,FL-101,One glass breakage handled by the book. About 1 hour lost.,Watch for chipped bottles from the same supplier batch.,J. Kim,Handover complete

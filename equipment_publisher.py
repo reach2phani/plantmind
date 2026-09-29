@@ -57,6 +57,7 @@ def work_center_id(plant_site, line):
     mapping = {
         ("greenfield-steel-works", "fabrication-line-1"): "WC-GSW-FAB-L1",
         ("greenfield-steel-works", "processing-line-2"):  "WC-GSW-PROC-L2",
+        ("demo-bottling-plant", "filling-line-1"):        "WC-DBP-FILL-L1",
     }
     return mapping.get((_slug(plant_site), _slug(line)))
 

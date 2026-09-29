@@ -1,0 +1,5 @@
+shift_date,shift,line,time,category,equipment,description,action_taken,operator,status
+2026-09-08,Day,Filling Line 1,06:05,Routine,FL-101,Pre-start checks complete for 330 ml. Rails at position B.,Checklist signed.,A. Moreno,OK
+2026-09-08,Day,Filling Line 1,09:00,Quality Check,FL-101,"330 ml run normal. No jams. Reject count 5 per 1,000.",No action.,A. Moreno,OK
+2026-09-08,Day,Filling Line 1,13:00,Changeover,FL-101,Changeover back to 500 ml. Locked out. Rails moved to position A and locked. 500 ml star wheel fitted.,"20 bottles run at 60 bottles per minute: no jams, all 496-503 ml. Record signed by shift lead.",A. Moreno,Complete
+2026-09-08,Day,Filling Line 1,13:50,Handover,FL-101,Back on 500 ml. Valve 9 still dripping. Seal change booked for 11 September.,No action.,A. Moreno,Handover complete

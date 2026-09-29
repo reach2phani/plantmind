@@ -1,14 +1,16 @@
 # Graph value test — handover
 
-Scored 2026-09-28 12:58. B = graph OFF (documents only), C = graph ON (documents + graph). Same questions, same pipeline.
+Scored 2026-09-28 13:34. B = graph OFF (documents only), C = graph ON (documents + graph). Same questions, same pipeline.
 
 ## Headline
 
 | | Graph OFF (B) | Graph ON (C) |
 |---|---|---|
-| Required facts present | 32/78 (41%) | 72/78 (92%) |
+| Required facts present | 33/81 (40%) | 73/81 (90%) |
 | Specifics not in any source | 0.2 per report | 0.2 per report |
-| Checks identical across runs | 20/26 | 22/26 |
+| Checks identical across runs | 20/27 | 22/27 |
+| Unreviewed tip used as an instruction (lower is better) | 13/18 | 14/18 |
+| Rating raised by the safety floor | 0/18 | 0/18 |
 | Reports scored | 18 | 18 |
 
 ## By case
@@ -25,6 +27,7 @@ Each cell: runs that passed / runs scored.
 | Does the report recommend replacing the suspect spool with a known-good spool? | judge | 0/3 | 2/3 |
 | tension reset to finger-tight + quarter turn | code | 0/3 | 3/3 |
 | Does the report avoid telling the operator to increase drive-roll tension, or to keep adjusting it, as the fix? | judge | 1/3 | 1/3 |
+| repair steps do not use the unreviewed 18 to 22 tension tip | code | 1/3 | 1/3 |
 
 Not in any source, graph OFF: 30 minutes
 

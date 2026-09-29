@@ -11,7 +11,8 @@
         {"id": "spool_cause", "kind": "judge", "q": "Does the report identify a defective or newly fitted wire spool as a likely cause?", "source": "Shift log 2025-06-25, NCR-2024-047 context"},
         {"id": "spool_replace", "kind": "judge", "q": "Does the report recommend replacing the suspect spool with a known-good spool?", "source": "SOP 2.1 + shift log"},
         {"id": "tension_quarter_turn", "kind": "code", "all": ["(quarter|¼|1/4)[ -]?turn"], "label": "tension reset to finger-tight + quarter turn", "source": "SOP 2.1"},
-        {"id": "no_more_tension", "kind": "judge", "q": "Does the report avoid telling the operator to increase drive-roll tension, or to keep adjusting it, as the fix?", "source": "SOP 4.1"}
+        {"id": "no_more_tension", "kind": "judge", "q": "Does the report avoid telling the operator to increase drive-roll tension, or to keep adjusting it, as the fix?", "source": "SOP 4.1"},
+        {"id": "no_unreviewed_setting", "kind": "code", "section": "HOW TO ADDRESS IT", "none": ["18\\s*(→|->|to|-|–)\\s*22(?!\\s*V)"], "label": "repair steps do not use the unreviewed 18 to 22 tension tip", "source": "Added 2026-09-28 (trust order). Tip is unreviewed and in no document; SOP 2.1 says finger-tight + quarter turn"}
       ]
     },
     {
