@@ -88,6 +88,24 @@ The original finding:
 - **Plan (Phase 2a A, already planned):** match by meaning (embeddings plus a threshold), keywords as backup, and ask the AI only when unsure. **Before: 1/6 and 3/6 exact matches** on two sets of everyday wording. Test on both machines.
 - **Lesson:** test with the words users actually use. Alarm-style test questions hid this on WM-101.
 
+### 9. The graph value test on the second machine (30 Sep 2026): it generalises
+Source: evals/graph_value/fl101_scorecard.md. Five cases × 3 runs per arm, everyday wording, fault matching by meaning in place. FL-06 waits for the operator tips.
+
+| Machine | Required facts, graph OFF | Graph ON |
+|---|---|---|
+| WM-101 welder (built on) | 41% | 95% |
+| **FL-101 bottle filler (new industry, no special code)** | **41/96 (42%)** | **88/96 (91%)** |
+
+- Made-up specifics: 0.3 per report in both arms. Consistency across runs: 26/32 → 28/32. Unreviewed tip used as an instruction: 0/15.
+- Glass breakage was rated CRITICAL in both arms, but only the graph brought the actual steps: emergency stop, hold 30 minutes of bottles, vacuum only, quality lead sign-off (0/3 → 3/3 each).
+- Overfill after a seal change: "expected, don't touch the settings" went from 0/3 → 3/3.
+
+**Misses with the graph ON, and what was done:**
+1. **A welding word in a bottling report**: "Step 4: Verify: post-fix checks, burn-in if required". It came from the **report template**, a welder leftover that every report copies. **Fixed:** the line now reads "…and any run-in or first-product check the procedure requires" (WM-101 still gets burn-in from its graph). To be confirmed by the WM-101 regression run.
+2. **The 10-minute rinse is missing in the overfill case (0/3):** the FL-101 graph's overfill path leads to the first-bottle check but not to the rinse before it. Small graph data fix, **deferred**.
+3. **One invented number:** "set an alarm if pressure drops below 1.4 bar" (SOP: 1.3) in the preventive ideas, not the repair steps. **Noted.**
+4. Position B 2/3 and restart speed 1/3 in the jam case: the report sometimes skips details it was handed. Orchestrator habit, **Phase 2b**.
+
 ### Side note: one empty answer
 One Docs answer came back blank the first time and correct on retry. No AI call was logged, so it failed before the model was reached. Watching it; investigate if it repeats.
 

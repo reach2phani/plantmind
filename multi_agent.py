@@ -992,7 +992,7 @@ HOW TO ADDRESS IT:
   Step 1: Safety — LOTO, stop production, isolate
   Step 2: Diagnosis — what to inspect
   Step 3: Fix — what to replace or repair
-  Step 4: Verify — post-fix checks, burn-in if required
+  Step 4: Verify — post-fix checks, and any run-in or first-product check the procedure requires
   Step 5: Quality — parts to quarantine or inspect
 - Root cause fix (permanent solution)
 - Preventive action (stops recurrence)
