@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlantMind Case Study</title>
+<meta name="description" content="How PlantMind turns an operator's incident description into a safe, sourced investigation report, and how every improvement was measured.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Palette: "machine shop at first light" — pine, steel, brass, rust on stone ── */
+:root{
+  --bg:#F2F3EE; --surface:#FAFAF7; --sunk:#E9ECE5; --ink:#1D2623; --muted:#5A6560; --faint:#8A948F;
+  --line:#D6DBD2; --pine:#2D6A58; --pine-soft:#DDE9E2; --steel:#3B6585; --steel-soft:#DDE6ED;
+  --brass:#B07F2A; --brass-soft:#F1E6CF; --rust:#A4473A; --rust-soft:#F2DDD8;
+  --shadow:0 1px 2px rgba(29,38,35,.05),0 6px 24px rgba(29,38,35,.06);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121816; --surface:#19211E; --sunk:#0F1413; --ink:#E4E9E4; --muted:#9BA6A0; --faint:#6E7A74;
+    --line:#2A3531; --pine:#71B59F; --pine-soft:#1F3029; --steel:#86AECB; --steel-soft:#1C2A34;
+    --brass:#D5A95A; --brass-soft:#2E2718; --rust:#D5806F; --rust-soft:#33201C;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.25); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121816; --surface:#19211E; --sunk:#0F1413; --ink:#E4E9E4; --muted:#9BA6A0; --faint:#6E7A74;
+  --line:#2A3531; --pine:#71B59F; --pine-soft:#1F3029; --steel:#86AECB; --steel-soft:#1C2A34;
+  --brass:#D5A95A; --brass-soft:#2E2718; --rust:#D5806F; --rust-soft:#33201C;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.25); color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:600;letter-spacing:-.01em;line-height:1.2;margin:0}
+h2{font-size:clamp(1.6rem,3.2vw,2.1rem)}
+h3{font-size:1.15rem}
+p{margin:.6em 0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.muted{color:var(--muted)}
+a{color:var(--steel)}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;align-items:center;gap:14px;height:54px}
+.brand{font-family:Fraunces,serif;font-weight:600;font-size:1.1rem;display:flex;align-items:center;gap:8px}
+.brand i{width:10px;height:10px;border-radius:2px;background:var(--pine);display:inline-block;transform:rotate(45deg)}
+.nav{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{font-size:.83rem;color:var(--muted);text-decoration:none;padding:6px 9px;border-radius:6px;white-space:nowrap}
+.nav a:hover,.nav a.on{color:var(--ink);background:var(--sunk)}
+.tbtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 9px;font:inherit;font-size:.8rem;cursor:pointer;flex:none}
+@media (max-width:760px){.nav{display:none}.tbtn{margin-left:auto}}
+
+/* hero */
+.hero{padding:64px 16px 40px}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--pine)}
+.hero h1{font-size:clamp(2.1rem,5.4vw,3.4rem);margin:.35em 0 .3em;max-width:18ch}
+.hero .lede{font-size:1.15rem;color:var(--muted);max-width:60ch}
+.draft{display:inline-flex;gap:6px;align-items:center;font-size:.75rem;padding:3px 9px;border-radius:99px;background:var(--brass-soft);color:var(--brass);font-weight:600;margin-left:8px;vertical-align:middle}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:34px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;box-shadow:var(--shadow)}
+.stat b{display:block;font-family:Fraunces,serif;font-size:1.8rem;font-weight:600;line-height:1.1}
+.stat b small{font-size:1rem;color:var(--faint);font-weight:500}
+.stat span{font-size:.84rem;color:var(--muted);line-height:1.4;display:block;margin-top:4px}
+@media (max-width:760px){.stats{grid-template-columns:1fr 1fr}}
+
+/* sections */
+section{padding:56px 0;border-top:1px solid var(--line)}
+.sh{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.sh .n{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--faint)}
+.intro{max-width:66ch;color:var(--muted);font-size:1.03rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+@media (max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px;box-shadow:var(--shadow)}
+.card h3{margin-bottom:6px}
+.card p{font-size:.94rem;color:var(--muted);margin:.3em 0}
+.tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;padding:2px 7px;border-radius:5px;background:var(--sunk);color:var(--muted);margin:2px 4px 2px 0}
+.quote{border-left:3px solid var(--brass);padding:10px 16px;background:var(--brass-soft);border-radius:0 10px 10px 0;margin:22px 0;font-size:1.02rem}
+.callout{display:flex;gap:12px;align-items:flex-start;background:var(--pine-soft);border-radius:12px;padding:14px 16px;margin-top:20px;font-size:.96rem}
+.callout .dot{width:8px;height:8px;border-radius:50%;background:var(--pine);margin-top:9px;flex:none}
+
+/* ── Animation 1: pipeline ── */
+.pipe{margin-top:26px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 18px;box-shadow:var(--shadow)}
+.stages{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;position:relative}
+.stage{position:relative;border:1px solid var(--line);border-radius:10px;padding:10px 8px 9px;background:var(--bg);text-align:center;transition:all .45s ease;min-height:92px}
+.stage .ic{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--faint);display:block}
+.stage b{display:block;font-size:.84rem;font-weight:600;margin-top:3px;line-height:1.3}
+.stage small{display:block;font-size:.72rem;color:var(--muted);margin-top:3px;line-height:1.3}
+.stage.on{border-color:var(--pine);background:var(--pine-soft);transform:translateY(-3px)}
+.stage.done{border-color:color-mix(in srgb,var(--pine) 45%,var(--line))}
+.stage::after{content:"";position:absolute;right:-9px;top:50%;width:10px;height:2px;background:var(--line)}
+.stage:last-child::after{display:none}
+.stage.done::after{background:var(--pine)}
+.agents{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:6px}
+.agents i{font-style:normal;font-size:.62rem;font-family:"IBM Plex Mono",monospace;padding:1px 5px;border-radius:4px;background:var(--sunk);color:var(--faint);transition:all .3s}
+.agents i.lit{background:var(--steel);color:var(--surface)}
+.pcap{display:flex;gap:12px;align-items:center;margin-top:18px;min-height:52px;padding:10px 14px;border-radius:10px;background:var(--sunk)}
+.pcap .step{font-family:"IBM Plex Mono",monospace;font-size:.75rem;color:var(--pine);flex:none}
+.pcap p{margin:0;font-size:.93rem}
+.ctrl{display:flex;justify-content:flex-end;margin-top:10px}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 11px;font:inherit;font-size:.8rem;cursor:pointer}
+.ctrl button:hover{color:var(--ink)}
+@media (max-width:860px){
+  .stages{grid-template-columns:1fr;gap:8px}
+  .stage{display:grid;grid-template-columns:62px 1fr;text-align:left;min-height:0;align-items:center;gap:4px 10px}
+  .stage .ic{grid-row:span 2}
+  .stage .agents{grid-column:2;justify-content:flex-start}
+  .stage::after{right:auto;left:30px;top:auto;bottom:-9px;width:2px;height:10px}
+  .stage.on{transform:translateX(3px)}
+}
+.stack{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
+.stack span{font-size:.8rem;border:1px solid var(--line);border-radius:99px;padding:3px 10px;background:var(--surface);color:var(--muted)}
+.stack span b{color:var(--ink);font-weight:500}
+
+/* ── Animation 2: graph ── */
+.gwrap{display:grid;grid-template-columns:minmax(0,420px) 1fr;gap:26px;margin-top:26px;align-items:start}
+@media (max-width:860px){.gwrap{grid-template-columns:1fr}}
+.gsvg{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px}
+.gsvg svg{width:100%;height:auto;display:block}
+.gnode rect{fill:var(--bg);stroke:var(--line);stroke-width:1.2;transition:all .4s}
+.gnode text{font:500 12.5px "IBM Plex Sans",sans-serif;fill:var(--ink)}
+.gnode .t{font:500 9.5px "IBM Plex Mono",monospace;fill:var(--faint);letter-spacing:.06em}
+.gnode{opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s;transform-box:fill-box}
+.gnode.show{opacity:1;transform:none}
+.gnode.hot rect{stroke:var(--pine);stroke-width:2;fill:var(--pine-soft)}
+.gnode.warn rect{stroke:var(--brass)}
+.gnode.warn.hot rect{fill:var(--brass-soft);stroke:var(--brass)}
+.gnode.safe rect{stroke:var(--rust)}
+.gnode.safe.hot rect{fill:var(--rust-soft);stroke:var(--rust)}
+.gedge{fill:none;stroke:var(--faint);stroke-width:1.4;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);transition:stroke-dashoffset .7s ease}
+.gedge.show{stroke-dashoffset:0}
+.gedge.dash{stroke:var(--brass)}
+.elabel{font:500 9.5px "IBM Plex Mono",monospace;fill:var(--muted);opacity:0;transition:opacity .4s}
+.elabel.show{opacity:1}
+.hops{list-style:none;margin:0;padding:0;counter-reset:h}
+.hops li{position:relative;padding:11px 12px 11px 44px;border-radius:10px;color:var(--muted);transition:all .35s;font-size:.95rem}
+.hops li::before{counter-increment:h;content:counter(h);position:absolute;left:12px;top:11px;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);font:500 .72rem/20px "IBM Plex Mono",monospace;text-align:center;color:var(--faint);background:var(--surface)}
+.hops li b{color:var(--ink);font-weight:600}
+.hops li.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.hops li.on::before{background:var(--pine);border-color:var(--pine);color:var(--surface)}
+
+/* trust tiers */
+.tiers{display:grid;gap:8px;margin-top:22px}
+.tier{display:grid;grid-template-columns:130px 1fr auto;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.tier .lv{font-family:"IBM Plex Mono",monospace;font-size:.75rem;color:var(--faint)}
+.tier b{font-weight:600}
+.tier p{margin:2px 0 0;font-size:.88rem;color:var(--muted)}
+.tier .may{font-size:.75rem;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.may.y{background:var(--pine-soft);color:var(--pine)}
+.may.n{background:var(--rust-soft);color:var(--rust)}
+@media (max-width:640px){.tier{grid-template-columns:1fr}.tier .may{justify-self:start}}
+
+/* ── Animation 3: results ── */
+.results{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:24px}
+@media (max-width:860px){.results{grid-template-columns:1fr}}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 20px 16px;box-shadow:var(--shadow)}
+.chart h3{font-size:1.02rem}
+.chart .sub{font-size:.85rem;color:var(--muted);margin:2px 0 16px}
+.brow{display:grid;grid-template-columns:150px 1fr 52px;gap:12px;align-items:center;margin:11px 0}
+.brow .l{font-size:.86rem;color:var(--muted);line-height:1.3}
+.brow .track{height:14px;background:var(--sunk);border-radius:4px;overflow:hidden}
+.brow .fill{height:100%;width:0;border-radius:4px;background:var(--steel);transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+.brow.last .fill{background:var(--pine)}
+.brow .v{font-family:"IBM Plex Mono",monospace;font-size:.88rem;text-align:right}
+@media (max-width:520px){.brow{grid-template-columns:104px 1fr 44px;gap:8px}}
+.pair{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:14px 0 4px}
+.pair .box{text-align:center;padding:10px 6px;border-radius:10px;background:var(--sunk)}
+.pair .box b{display:block;font-family:Fraunces,serif;font-size:1.7rem;line-height:1.1}
+.pair .box span{font-size:.75rem;color:var(--muted)}
+.pair .box.after{background:var(--pine-soft)}
+.pair .box.after b{color:var(--pine)}
+.pair .arr{color:var(--faint);font-size:1.2rem}
+.minis{display:grid;gap:16px}
+.note{font-size:.8rem;color:var(--faint);margin-top:10px}
+
+/* failure log */
+.flog{display:grid;gap:10px;margin-top:22px}
+details.f{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:0 16px}
+details.f summary{cursor:pointer;list-style:none;display:flex;gap:12px;align-items:center;padding:14px 0;font-weight:500}
+details.f summary::-webkit-details-marker{display:none}
+details.f summary::after{content:"+";margin-left:auto;color:var(--faint);font-family:"IBM Plex Mono",monospace}
+details.f[open] summary::after{content:"–"}
+.st{font-size:.7rem;font-family:"IBM Plex Mono",monospace;padding:2px 7px;border-radius:5px;flex:none}
+.st.fx{background:var(--pine-soft);color:var(--pine)}
+.st.op{background:var(--brass-soft);color:var(--brass)}
+.fbody{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 0 16px;font-size:.9rem;color:var(--muted)}
+.fbody b{display:block;font-size:.72rem;font-family:"IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-bottom:3px;font-weight:500}
+@media (max-width:760px){.fbody{grid-template-columns:1fr}}
+
+/* lists */
+.checks{list-style:none;padding:0;margin:20px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:10px 22px}
+.checks li{position:relative;padding-left:22px;font-size:.95rem}
+.checks li::before{content:"";position:absolute;left:0;top:.62em;width:10px;height:10px;border-radius:2px;border:2px solid var(--pine);transform:rotate(45deg) scale(.8)}
+.checks li span{color:var(--muted)}
+@media (max-width:760px){.checks{grid-template-columns:1fr}}
+table.to{width:100%;border-collapse:collapse;margin-top:20px;font-size:.92rem}
+table.to th,table.to td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.to th{font-weight:500;color:var(--faint);font-size:.75rem;font-family:"IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.05em}
+table.to td:first-child{font-weight:500}
+table.to td{color:var(--muted)} table.to td:first-child{color:var(--ink)}
+.road{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+@media (max-width:760px){.road{grid-template-columns:1fr 1fr}}
+@media (max-width:460px){.road{grid-template-columns:1fr}}
+.road .card{border-top:3px solid var(--line)}
+.road .card.now{border-top-color:var(--pine)}
+.road .card ul{margin:6px 0 0;padding-left:18px;font-size:.88rem;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);padding:30px 0 50px;font-size:.85rem;color:var(--muted)}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .7s,transform .7s}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand"><i></i>PlantMind</div>
+    <nav class="nav" id="nav">
+      <a href="#problem">Problem</a><a href="#architecture">Architecture</a><a href="#retrieval">Retrieval</a>
+      <a href="#graph">Graph</a><a href="#reasoning">Rules</a><a href="#evaluation">Evaluation</a>
+      <a href="#results">Results</a><a href="#failures">Failures</a><a href="#next">Next</a>
+    </nav>
+    <button class="tbtn" id="theme" aria-label="Toggle colour theme">Theme</button>
+  </div>
+</header>
+
+<main>
+<div class="wrap hero">
+  <div class="kicker">Case study · AI for manufacturing <span class="draft">● Draft: updated as work continues</span></div>
+  <h1>An AI assistant that knows the machine, not just the manual.</h1>
+  <p class="lede">An operator types <span class="mono">"WM-101 wire feed stuttering, third time this shift"</span>. PlantMind searches the plant's own procedures, maintenance records and shift logs, walks a map of how that machine fails, and returns a sourced investigation report: how critical it is, what to do first, and what never to do.</p>
+  <div class="stats">
+    <div class="stat"><b>41<small>%</small> → 95<small>%</small></b><span>Required facts in the report, documents only vs. with the knowledge graph and trust rules</span></div>
+    <div class="stat"><b>14 → 1</b><span>Unreviewed operator tips used as a repair step (out of 18 reports)</span></div>
+    <div class="stat"><b>1/6 → 6/6</b><span>Investigations that searched every source they needed</span></div>
+    <div class="stat"><b>$0</b><span>Free tiers only: Groq, Pinecone, Neo4j Aura, Supabase</span></div>
+  </div>
+</div>
+
+<!-- 1 PROBLEM -->
+<section id="problem"><div class="wrap">
+  <div class="sh reveal"><span class="n">01</span><h2>The problem</h2></div>
+  <p class="intro reveal">When a machine faults at 2 a.m., the answer usually exists somewhere: a procedure, an old non-conformance report, a note in last month's shift log, or the head of a senior operator who isn't on shift. Finding it takes hours. Guessing is faster, and guessing is how the same fault comes back.</p>
+  <div class="grid3">
+    <div class="card reveal"><h3>Scattered knowledge</h3><p>Procedures, work instructions, quality reports and shift logs live in different places, in different formats.</p></div>
+    <div class="card reveal"><h3>Tempting wrong fixes</h3><p>Some faults have an obvious response that makes things worse. On the welder, tightening the drive rolls <em>feels</em> right and hides the real wear.</p></div>
+    <div class="card reveal"><h3>Tribal knowledge</h3><p>An experienced operator's fix gets shared by phone and never written down, so the next shift starts from zero.</p></div>
+  </div>
+  <div class="quote reveal">Goal: a report an operator can follow like a checklist, where every fact can be traced to its source, and the system says "I don't know" instead of inventing.</div>
+</div></section>
+
+<!-- 2 USERS -->
+<section id="users"><div class="wrap">
+  <div class="sh reveal"><span class="n">02</span><h2>Who it is for</h2></div>
+  <div class="grid3">
+    <div class="card reveal"><span class="tag">first line</span><h3>Operator</h3><p>Needs the first safe action in seconds, in plain words, often with gloves on. Types or speaks the problem.</p></div>
+    <div class="card reveal"><span class="tag">fixes it</span><h3>Maintenance technician</h3><p>Needs the exact steps, parts, values and safety order, straight from the work instruction.</p></div>
+    <div class="card reveal"><span class="tag">decides</span><h3>Shift lead / plant manager</h3><p>Needs criticality, impact and a short summary. Approves work orders and reviews operator knowledge before it becomes trusted.</p></div>
+  </div>
+</div></section>
+
+<!-- 3 ARCHITECTURE -->
+<section id="architecture"><div class="wrap">
+  <div class="sh reveal"><span class="n">03</span><h2>How a report is built</h2></div>
+  <p class="intro reveal">One incident goes through seven steps. Anything exact is done in code; anything that needs judgement goes to AI; anything that changes what is trusted, or what money is spent, needs a person to approve it.</p>
+
+  <div class="pipe reveal" id="pipe">
+    <div class="stages">
+      <div class="stage"><span class="ic">01</span><b>Incident</b><small>typed or spoken</small></div>
+      <div class="stage"><span class="ic">02</span><b>Find the machine</b><small>"the welder on line 1" → WM-101</small></div>
+      <div class="stage"><span class="ic">03</span><b>Read the graph</b><small>matched fault, must-do steps, must-search list</small></div>
+      <div class="stage"><span class="ic">04</span><b>Specialists search</b><small>in parallel</small>
+        <div class="agents"><i>alarms</i><i>operator fixes</i><i>work instr.</i><i>SOP</i><i>NCR</i></div></div>
+      <div class="stage"><span class="ic">05</span><b>Write the report</b><small>by trust order</small></div>
+      <div class="stage"><span class="ic">06</span><b>Check it</b><small>safety floor, tip labels</small></div>
+      <div class="stage"><span class="ic">07</span><b>Report</b><small>sourced, rated, checklist</small></div>
+    </div>
+    <div class="pcap"><span class="step" id="pstep">01 / 07</span><p id="ptext">An operator describes what they see, in their own words.</p></div>
+    <div class="ctrl"><button id="preplay">↻ Replay</button></div>
+  </div>
+
+  <div class="stack reveal">
+    <span><b>Models</b> GPT-OSS 20B (fast) · 120B (deep) on Groq</span>
+    <span><b>Search</b> Pinecone · multilingual-e5-large</span>
+    <span><b>Graph</b> Neo4j Aura</span>
+    <span><b>Data</b> Supabase</span>
+    <span><b>Live signals</b> MQTT (HiveMQ) · SimPy simulator</span>
+    <span><b>App</b> Flask · vanilla JS</span>
+    <span><b>Quality</b> promptfoo · Ragas · LangSmith</span>
+  </div>
+</div></section>
+
+<!-- 4 RETRIEVAL -->
+<section id="retrieval"><div class="wrap">
+  <div class="sh reveal"><span class="n">04</span><h2>Retrieval: finding the right page</h2></div>
+  <p class="intro reveal">Documents are cut into pieces, turned into meaning-vectors, and stored with labels: plant, line, machine, document type. Search always stays inside the machine being asked about.</p>
+  <div class="grid2">
+    <div class="card reveal"><h3>Never answer from the wrong machine</h3><p>If nothing is found for the machine, the answer is "no documents for this machine", never a search across every machine. A plausible answer from the wrong manual is worse than no answer.</p></div>
+    <div class="card reveal"><h3>Each specialist reads one kind of document</h3><p>Alarms read shift logs, the maintenance specialist reads work instructions, and so on. Each gets a narrow, relevant slice instead of one big mixed pile.</p></div>
+    <div class="card reveal"><h3>Measured, not assumed</h3><p>18 labelled questions: the right piece was found in the top 12 for <b>18/18</b>, in the top 3 for <b>14/18</b> (MRR 0.68).</p></div>
+    <div class="card reveal"><h3>Known weakness</h3><p>Pieces are cut every ~1,000 characters, so a mandatory last step can fall just past a cut. Exact codes like a part number are also weak for meaning-based search. Both are planned for Phase 3.</p></div>
+  </div>
+</div></section>
+
+<!-- 5 GRAPH -->
+<section id="graph"><div class="wrap">
+  <div class="sh reveal"><span class="n">05</span><h2>The knowledge graph: how the machine fails</h2></div>
+  <p class="intro reveal">Search finds pages. It doesn't know that a liner replacement <em>requires</em> a burn-in, or that one fault <em>triggers</em> a quality hold. The graph stores those links, built from the documents and checked by hand, so the report can't forget them.</p>
+  <div class="gwrap">
+    <div class="gsvg reveal" id="gbox">
+      <svg viewBox="0 0 400 560" role="img" aria-label="Fault chain for WM-101: wire feed overload caused by worn drive rolls, fixed by liner replacement, which requires burn-in and lockout; a known wrong response is flagged.">
+        <g id="edges"></g><g id="nodes"></g>
+      </svg>
+    </div>
+    <div>
+      <ol class="hops" id="hops">
+        <li><b>The machine.</b> WM-101, a MIG welder on Fabrication Line 1.</li>
+        <li><b>The fault it matched.</b> Wire feed motor overload, from the operator's words.</li>
+        <li><b>The real cause.</b> Worn drive rolls and liner, as recorded in the non-conformance report.</li>
+        <li><b>The trap.</b> "Keep tightening the tension" feels right, and hides the wear. The graph flags it as a known wrong response.</li>
+        <li><b>The fix.</b> Replace the liner, from the work instruction.</li>
+        <li><b>The step people forget.</b> Burn-in is mandatory after a liner change, and some wire wobble during it is expected, not a new fault.</li>
+        <li><b>Safety first.</b> Lockout (LOTO) before any work, and parts welded during the fault are held for inspection.</li>
+      </ol>
+      <div class="ctrl"><button id="greplay">↻ Replay</button></div>
+    </div>
+  </div>
+  <div class="callout reveal"><span class="dot"></span><div>The graph is an <b>overlay</b>: if it's unavailable, the investigation still runs on documents alone. Operator knowledge only enters the graph after a person approves it in a review queue. Nothing is written automatically.</div></div>
+</div></section>
+
+<!-- 6 REASONING -->
+<section id="reasoning"><div class="wrap">
+  <div class="sh reveal"><span class="n">06</span><h2>Reasoning and rules: who to believe</h2></div>
+  <p class="intro reveal">Sources disagree. An operator's tip can contradict the procedure. So every fact carries a trust level, and the level decides what it is allowed to do in the report.</p>
+  <div class="tiers">
+    <div class="tier reveal"><span class="lv">TIER 1</span><div><b>Documented specification</b><p>Values and steps from the SOP and work instructions, confirmed by the graph.</p></div><span class="may y">sets values & steps</span></div>
+    <div class="tier reveal"><span class="lv">TIER 2</span><div><b>Document findings</b><p>Non-conformance reports, shift log history.</p></div><span class="may y">sets causes & steps</span></div>
+    <div class="tier reveal"><span class="lv">TIER 3</span><div><b>Approved operator knowledge</b><p>Reviewed and approved by a person; cited by name.</p></div><span class="may y">can lead the action</span></div>
+    <div class="tier reveal"><span class="lv">TIER 4</span><div><b>Unreviewed operator tip</b><p>Captured but not yet reviewed.</p></div><span class="may n">a lead to check, never a step</span></div>
+  </div>
+  <ul class="checks reveal">
+    <li>Criticality has a floor from the graph <span>(code, not AI)</span></li>
+    <li>A visible ⚠ if an unreviewed tip reaches the repair steps</li>
+    <li>The AI supervisor can add searches, never remove required ones</li>
+    <li>The review step can never change the criticality rating</li>
+    <li>Work-order cost is computed in code, so the model can't talk it into a cheaper approval tier</li>
+    <li>Contradictions are shown side by side and flagged for an engineer, never silently resolved</li>
+  </ul>
+</div></section>
+
+<!-- 7 EVALUATION -->
+<section id="evaluation"><div class="wrap">
+  <div class="sh reveal"><span class="n">07</span><h2>How it's measured</h2></div>
+  <p class="intro reveal">Every change is measured before and after, on the same questions. Code checks anything exact (a value, a step, a time); an AI judge checks judgement (did it warn against the trap?); each case runs three times to catch inconsistency.</p>
+  <div class="grid3">
+    <div class="card reveal"><span class="tag">ablation</span><h3>Graph value test</h3><p>6 hard cases × 3 runs, with the graph switched off and on. Scores required facts, made-up specifics, and consistency.</p></div>
+    <div class="card reveal"><span class="tag">regression</span><h3>promptfoo suites</h3><p>Docs, Shift and Investigation questions with code checks and a judge model. Known failures are tracked separately from new ones.</p></div>
+    <div class="card reveal"><span class="tag">health</span><h3>Graph health & routing</h3><p>8 structural rules for the graph (no orphans, full hand-over, relevance), plus a routing check: did each case search what it needed?</p></div>
+  </div>
+</div></section>
+
+<!-- 8 RESULTS -->
+<section id="results"><div class="wrap">
+  <div class="sh reveal"><span class="n">08</span><h2>Before and after</h2></div>
+  <p class="intro reveal">WM-101, 6 cases × 3 runs = 18 reports per column. Each step was one change, measured on its own.</p>
+  <div class="results">
+    <div class="chart reveal" id="bars">
+      <h3>Required facts present in the report</h3>
+      <p class="sub">Out of 78–81 checks across 18 reports</p>
+      <div class="brow" data-v="41"><span class="l">Documents only</span><div class="track"><div class="fill"></div></div><span class="v">0%</span></div>
+      <div class="brow" data-v="70"><span class="l">+ knowledge graph</span><div class="track"><div class="fill"></div></div><span class="v">0%</span></div>
+      <div class="brow" data-v="90"><span class="l">+ full hand-over of the matched fault</span><div class="track"><div class="fill"></div></div><span class="v">0%</span></div>
+      <div class="brow last" data-v="95"><span class="l">+ trust order</span><div class="track"><div class="fill"></div></div><span class="v">0%</span></div>
+      <p class="note">Made-up specifics stayed at ~0.2 per report in every column. Without the graph, the failure was <b>leaving things out</b>, not inventing.</p>
+    </div>
+    <div class="minis">
+      <div class="chart reveal">
+        <h3>Unreviewed tip used as a repair step</h3><p class="sub">Lower is better · 18 reports</p>
+        <div class="pair"><div class="box"><b data-count="14">0</b><span>before trust order</span></div><span class="arr">→</span><div class="box after"><b data-count="1">0</b><span>after</span></div></div>
+      </div>
+      <div class="chart reveal">
+        <h3>Searched every source it needed</h3><p class="sub">6 cases · graph tells the supervisor what's required</p>
+        <div class="pair"><div class="box"><b data-count="1">0</b><span>of 6 before</span></div><span class="arr">→</span><div class="box after"><b data-count="6">0</b><span>of 6 after</span></div></div>
+      </div>
+    </div>
+  </div>
+  <p class="note reveal">Sources: evals/graph_value/*_scorecard.md, evals/routing/. Judge model: qwen3.8-27b. Second machine (FL-101) results: pending.</p>
+</div></section>
+
+<!-- 9 FAILURES -->
+<section id="failures"><div class="wrap">
+  <div class="sh reveal"><span class="n">09</span><h2>Failure cases: what broke, and what it taught</h2></div>
+  <p class="intro reveal">The most useful results were the failures. The second machine, FL-101 (a bottle filler, a different industry), was added with one rule: <b>no code changes for it</b>. Anything that only worked for the welder had to be fixed for every machine.</p>
+  <div class="flog">
+    <details class="f reveal" open><summary><span class="st fx">fixed</span>An unreviewed tip beat the procedure</summary>
+      <div class="fbody"><div><b>Symptom</b>An operator's untested "raise tension 18 → 22" appeared as a repair step in 14 of 18 reports.</div><div><b>Cause</b>The prompt said "expert fix first", with no difference between reviewed and unreviewed knowledge.</div><div><b>Fix & lesson</b>Trust tiers, labelled in code: 14/18 → 1/18. <em>Trust must be explicit, not implied by order.</em></div></div></details>
+    <details class="f reveal"><summary><span class="st fx">fixed</span>The graph was fetched but half of it never reached the AI</summary>
+      <div class="fbody"><div><b>Symptom</b>With the graph on, reports still missed facts that were in the graph.</div><div><b>Cause</b>The hand-over text used an allow-list of properties, so new facts were silently dropped.</div><div><b>Fix & lesson</b>Hand over every fact of the matched fault: 70% → 90%. <em>Check what the model actually receives.</em></div></div></details>
+    <details class="f reveal"><summary><span class="st fx">fixed</span>Shift questions assumed every date was in 2025</summary>
+      <div class="fbody"><div><b>Symptom</b>On FL-101, "alarms on the night of 10 September" returned "no events on 2025-09-10". The logs are from 2026.</div><div><b>Cause</b>A missing year defaulted to 2025, because every welder log happened to be from 2025.</div><div><b>Fix & lesson</b>Take the year from the logs by exact lookup, and tell the operator when other years exist. <em>One year of test data hides date bugs.</em></div></div></details>
+    <details class="f reveal"><summary><span class="st fx">fixed</span>Safety rules written for a welder</summary>
+      <div class="fbody"><div><b>Symptom</b>Broken glass in the filler was rated HIGH. The SOP itself says CRITICAL.</div><div><b>Cause</b>CRITICAL listed only "electrical, fire, fumes", which are welding hazards.</div><div><b>Fix & lesson</b>Added injury and foreign material, and "never rate below the document's own rating". <em>Rules quietly encode the machine they were written for.</em></div></div></details>
+    <details class="f reveal"><summary><span class="st fx">fixed</span>An empty graph was reported as "verified"</summary>
+      <div class="fbody"><div><b>Symptom</b>An FL-101 report claimed "knowledge graph (verified) confirms SOP steps", but no fault graph existed yet.</div><div><b>Cause</b>The machine's own node counted as "graph available", so the AI got an empty section and filled the gap.</div><div><b>Fix & lesson</b>The graph only counts with real knowledge. <em>An empty context section invites invention.</em></div></div></details>
+    <details class="f reveal"><summary><span class="st fx">fixed</span>The test itself was wrong</summary>
+      <div class="fbody"><div><b>Symptom</b>After the date fix, the answer "missed" the valve numbers.</div><div><b>Cause</b>That seal change is in the next morning's log. The answer key asked for data from the wrong day.</div><div><b>Fix & lesson</b>Corrected the answer key. <em>Answer keys need checking too.</em></div></div></details>
+    <details class="f reveal"><summary><span class="st op">open</span>The mandatory last step falls past a cut</summary>
+      <div class="fbody"><div><b>Symptom</b>Welder: burn-in after a liner change is missed. Filler: the 10-minute rinse after a seal change is missed, and normal overfill was called a fault.</div><div><b>Cause</b>Documents are cut every ~1,000 characters, and the last steps land in a piece search doesn't return.</div><div><b>Plan</b>Cut by section with headings kept (Phase 3), and let the graph carry must-do steps. Same failure on two machines: a general weakness.</div></div></details>
+    <details class="f reveal"><summary><span class="st op">open</span>A false match merged two different faults</summary>
+      <div class="fbody"><div><b>Symptom</b>A gas-flow finding was approved as "reinforcing" an unrelated contact-tip pattern, and its content was lost.</div><div><b>Cause</b>Reinforcement only increases a count, and the reviewer isn't shown what it merges into.</div><div><b>Plan</b>Show "will merge into: …" before approval, and keep both texts.</div></div></details>
+  </div>
+</div></section>
+
+<!-- 10 HARDENING -->
+<section id="hardening"><div class="wrap">
+  <div class="sh reveal"><span class="n">10</span><h2>Production-hardening decisions</h2></div>
+  <ul class="checks reveal">
+    <li>Model choice lives in two settings <span>(rollback is a two-line change, not a code edit)</span></li>
+    <li>A shared token budget queues calls <span>(free-tier limits never crash a report)</span></li>
+    <li>Specialists run 2 at a time <span>(avoids rate-limit bursts)</span></li>
+    <li>Graph, tracing and citation counting fail silently <span>(extras never block the core answer)</span></li>
+    <li>Every AI call is logged with real token counts</li>
+    <li>Work orders: server-side state machine, full audit trail</li>
+    <li>Human review before any operator knowledge is trusted</li>
+    <li>Tracing of every step in LangSmith</li>
+  </ul>
+</div></section>
+
+<!-- 11 TRADE-OFFS -->
+<section id="tradeoffs"><div class="wrap">
+  <div class="sh reveal"><span class="n">11</span><h2>Trade-offs</h2></div>
+  <table class="to reveal">
+    <tr><th>Choice</th><th>Why</th><th>Cost</th></tr>
+    <tr><td>Free tiers only</td><td>A real constraint, and it forces efficiency</td><td>Daily token limits; big evals are spread over days</td></tr>
+    <tr><td>Hand-checked graph, not auto-built</td><td>The graph is trusted, so it must be right</td><td>Slower to add a machine</td></tr>
+    <tr><td>Human gate on operator knowledge</td><td>Nothing becomes a trusted fact without a decision</td><td>Knowledge waits in a queue</td></tr>
+    <tr><td>Meaning-based search only (for now)</td><td>Handles varied wording</td><td>Weak on exact codes; keyword search planned</td></tr>
+    <tr><td>AI judge for judgement checks</td><td>Some qualities can't be string-matched</td><td>The judge can be wrong; paired with code checks and 3 runs</td></tr>
+  </table>
+</div></section>
+
+<!-- 12 NEXT -->
+<section id="next"><div class="wrap">
+  <div class="sh reveal"><span class="n">12</span><h2>What's next</h2></div>
+  <div class="road">
+    <div class="card now reveal"><span class="tag">now</span><h3>Phase 2a</h3><ul><li>Second machine (FL-101)</li><li>Fault matching by meaning</li><li>Confidence score + "needs engineer review"</li></ul></div>
+    <div class="card reveal"><span class="tag">next</span><h3>Phase 2b</h3><ul><li>Rules-only routing for known faults</li><li>Context budget</li><li>Latency target</li></ul></div>
+    <div class="card reveal"><span class="tag">then</span><h3>Phase 3</h3><ul><li>Section-based chunking</li><li>Keyword + meaning (hybrid) search</li><li>Current revisions only</li><li>Evals in CI</li></ul></div>
+    <div class="card reveal"><span class="tag">later</span><h3>Phase 4</h3><ul><li>LangGraph orchestration</li><li>Validator with retry</li></ul></div>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  PlantMind is a learning project built on a career break to learn AI engineering by building something real. All plants, machines, people and documents are demo data. Numbers come from the evaluation files in the repository.
+</div></footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* theme toggle */
+  const root = document.documentElement;
+  try { const t = localStorage.getItem('pm-theme'); if (t) root.dataset.theme = t; } catch(e) {}
+  document.getElementById('theme').onclick = () => {
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('pm-theme', root.dataset.theme); } catch(e) {}
+  };
+
+  /* reveal on scroll */
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* nav highlight */
+  const links = [...document.querySelectorAll('#nav a')];
+  const secIO = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id));
+  }), {rootMargin:'-45% 0px -50% 0px'});
+  document.querySelectorAll('section[id]').forEach(s => secIO.observe(s));
+
+  const once = (el, fn, th=.35) => {
+    const o = new IntersectionObserver(es => { if (es[0].isIntersecting) { fn(); o.disconnect(); } }, {threshold:th});
+    o.observe(el);
+  };
+  const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+
+  /* ── Animation 1: pipeline ── */
+  const stages = [...document.querySelectorAll('.stage')];
+  const chips  = [...document.querySelectorAll('.agents i')];
+  const caps = [
+    'An operator describes what they see, in their own words.',
+    'The machine is identified: a typed tag, or plain words like "the welder on line 1". Wrong machine = wrong answer, so this is done in code.',
+    'The graph finds the matching fault and hands over everything linked to it: causes, fixes, must-do steps, safety, and which sources must be searched.',
+    'Specialists search their own kind of document at the same time: shift logs, approved operator fixes, work instructions, SOP, non-conformance reports.',
+    'The deep model writes the report, following the trust order: documents set values and steps, and unreviewed tips are only leads.',
+    'Code checks the draft: criticality can\'t go below the graph\'s floor, and an unreviewed tip in the repair steps gets a visible warning.',
+    'The operator gets criticality first, the immediate action as a checklist, the root cause, and every source used.'
+  ];
+  let pRun = 0;
+  async function playPipe(){
+    const id = ++pRun;
+    stages.forEach(s => s.classList.remove('on','done')); chips.forEach(c => c.classList.remove('lit'));
+    for (let i = 0; i < stages.length; i++){
+      if (id !== pRun) return;
+      stages.forEach((s,j) => { s.classList.toggle('on', j === i); s.classList.toggle('done', j < i); });
+      document.getElementById('pstep').textContent = String(i+1).padStart(2,'0') + ' / 07';
+      document.getElementById('ptext').textContent = caps[i];
+      if (i === 3){ for (const c of chips){ await wait(260); if (id !== pRun) return; c.classList.add('lit'); } await wait(1500); }
+      else await wait(2300);
+    }
+    stages.forEach(s => s.classList.add('done')); stages[6].classList.add('on');
+  }
+  once(document.getElementById('pipe'), playPipe);
+  document.getElementById('preplay').onclick = playPipe;
+
+  /* ── Animation 2: graph ── */
+  const NS = 'http://www.w3.org/2000/svg';
+  const N = [
+    {id:'eq',   x:200,y:40,  w:170,t:'EQUIPMENT', l:'WM-101 MIG Welder'},
+    {id:'f',    x:200,y:130, w:190,t:'FAULT',     l:'Wire feed overload'},
+    {id:'c',    x:110,y:225, w:170,t:'CAUSE',     l:'Worn drive rolls & liner'},
+    {id:'p',    x:305,y:225, w:170,t:'KNOWN TRAP',l:'Keep tightening tension', k:'warn'},
+    {id:'fx',   x:110,y:320, w:170,t:'FIX',       l:'Replace the liner'},
+    {id:'b',    x:110,y:415, w:170,t:'MUST DO',   l:'Burn-in, 5.0 m/min', k:'warn'},
+    {id:'s',    x:305,y:415, w:170,t:'SAFETY',    l:'Lockout (LOTO) first', k:'safe'},
+    {id:'q',    x:200,y:510, w:190,t:'QUALITY',   l:'Hold parts for inspection', k:'safe'},
+  ];
+  const E = [
+    ['eq','f','HAS FAULT'],['f','c','CAUSED BY'],['f','p','WRONG RESPONSE',1],['c','fx','FIXED BY'],
+    ['fx','b','REQUIRES'],['fx','s','REQUIRES SAFETY'],['f','q','TRIGGERS']
+  ];
+  const steps = [['eq'],['f','eq-f'],['c','f-c'],['p','f-p'],['fx','c-fx'],['b','fx-b'],['s','fx-s','q','f-q']];
+  const byId = Object.fromEntries(N.map(n => [n.id, n]));
+  const gE = document.getElementById('edges'), gN = document.getElementById('nodes');
+  const els = {};
+  E.forEach(([a,b,lab,dash]) => {
+    const A = byId[a], B = byId[b], y1 = A.y + 22, y2 = B.y - 22;
+    let d;
+    if (a === 'f' && b === 'q') d = `M${A.x+95},${A.y} C 398,${A.y+60} 398,${B.y-60} ${B.x+97},${B.y}`;
+    else { const my = (y1+y2)/2; d = `M${A.x},${y1} C ${A.x},${my} ${B.x},${my} ${B.x},${y2}`; }
+    const p = document.createElementNS(NS,'path'); p.setAttribute('d', d); p.setAttribute('class','gedge' + (dash?' dash':''));
+    gE.appendChild(p);
+    const len = p.getTotalLength(); p.style.setProperty('--len', len);
+    const mid = p.getPointAtLength(len/2);
+    const t = document.createElementNS(NS,'text'); t.setAttribute('class','elabel');
+    const right = (a==='f'&&b==='q');
+    t.setAttribute('x', right ? mid.x - 6 : mid.x + 6); t.setAttribute('y', mid.y + 3);
+    if (right) t.setAttribute('text-anchor','end');
+    t.textContent = lab; gE.appendChild(t);
+    els[a+'-'+b] = [p,t];
+  });
+  N.forEach(n => {
+    const g = document.createElementNS(NS,'g'); g.setAttribute('class','gnode' + (n.k?' '+n.k:''));
+    const r = document.createElementNS(NS,'rect'); r.setAttribute('x', n.x - n.w/2); r.setAttribute('y', n.y - 22);
+    r.setAttribute('width', n.w); r.setAttribute('height', 44); r.setAttribute('rx', 9);
+    const t1 = document.createElementNS(NS,'text'); t1.setAttribute('class','t'); t1.setAttribute('x', n.x); t1.setAttribute('y', n.y - 5); t1.setAttribute('text-anchor','middle'); t1.textContent = n.t;
+    const t2 = document.createElementNS(NS,'text'); t2.setAttribute('x', n.x); t2.setAttribute('y', n.y + 12); t2.setAttribute('text-anchor','middle'); t2.textContent = n.l;
+    g.append(r,t1,t2); gN.appendChild(g); els[n.id] = [g];
+  });
+  const hops = [...document.querySelectorAll('#hops li')];
+  let gRun = 0;
+  async function playGraph(){
+    const id = ++gRun;
+    Object.values(els).flat().forEach(e => e.classList.remove('show','hot'));
+    hops.forEach(h => h.classList.remove('on'));
+    for (let i = 0; i < steps.length; i++){
+      if (id !== gRun) return;
+      document.querySelectorAll('.gnode.hot').forEach(g => g.classList.remove('hot'));
+      hops.forEach((h,j) => h.classList.toggle('on', j === i));
+      steps[i].forEach(k => els[k].forEach(e => { e.classList.add('show'); if (e.classList.contains('gnode')) e.classList.add('hot'); }));
+      await wait(2000);
+    }
+    document.querySelectorAll('.gnode.hot').forEach(g => g.classList.remove('hot'));
+    hops.forEach(h => h.classList.add('on'));
+  }
+  once(document.getElementById('gbox'), playGraph);
+  document.getElementById('greplay').onclick = playGraph;
+
+  /* ── Animation 3: results ── */
+  const count = (el, to, dur=1100, suffix='') => {
+    if (reduce) { el.textContent = to + suffix; return; }
+    const t0 = performance.now();
+    const tick = now => { const k = Math.min(1,(now-t0)/dur); el.textContent = Math.round(to*(1-Math.pow(1-k,3))) + suffix; if (k<1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  };
+  once(document.getElementById('bars'), () => {
+    document.querySelectorAll('#bars .brow').forEach((r,i) => setTimeout(() => {
+      r.querySelector('.fill').style.width = r.dataset.v + '%';
+      count(r.querySelector('.v'), +r.dataset.v, 1100, '%');
+    }, reduce ? 0 : i*380));
+  });
+  document.querySelectorAll('[data-count]').forEach(el => once(el, () => count(el, +el.dataset.count, 900), .6));
+})();
+</script>
+</body>
+</html>

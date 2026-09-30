@@ -66,38 +66,45 @@ def favicon():
 
 # ── Knowledge graph — load on startup ────────────────────────────────────────
 def _load_knowledge_graph():
-    """Load graph data into Neo4j on app startup. Silent fail if unavailable."""
+    """
+    Load every machine's graph seed file into Neo4j on startup, but only for
+    a machine that has no knowledge there yet. Silent fail if unavailable.
+
+    Generic since FL-101 (the second machine): it used to look only for
+    wm101_graph.json and only check WM-101. Any file named <tag>_graph.json
+    (wm101_graph.json, fl101_graph.json, ...) is now picked up. A draft named
+    *.draft.json is ignored until it is renamed.
+    """
     try:
-        from knowledge_graph import load_graph, get_graph_stats
-        import os
+        from knowledge_graph import load_graph, get_graph_stats, graph_has_knowledge
+        import glob, json as _json, os
 
-        # Try multiple paths — works locally and on Render
-        base_dir   = os.path.dirname(os.path.abspath(__file__))
-        candidates = [
-            os.path.join(base_dir, "wm101_graph.json"),
-            os.path.join(base_dir, "data", "wm101_graph.json"),
-            "wm101_graph.json",
-        ]
-        graph_file = next((p for p in candidates if os.path.exists(p)), None)
-
-        print(f"[app] Graph file search: {candidates}")
-
-        if not graph_file:
-            print("[app] wm101_graph.json not found in any expected location")
-            print(f"[app] Current dir: {os.getcwd()}")
-            print(f"[app] Dir contents: {os.listdir(base_dir)[:20]}")
+        # Works locally and on Render (repo root, or a data/ folder).
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        files = sorted(set(glob.glob(os.path.join(base_dir, "*_graph.json")) +
+                           glob.glob(os.path.join(base_dir, "data", "*_graph.json"))))
+        if not files:
+            print(f"[app] No *_graph.json files found in {base_dir}")
             return
 
-        print(f"[app] Found graph file: {graph_file}")
-        stats = get_graph_stats(equip_tag="WM-101")
-        if stats.get("nodes", 0) == 0:
-            print("[app] Knowledge graph empty — loading...")
-            success = load_graph(graph_file)
-            if success:
-                stats = get_graph_stats(equip_tag="WM-101")
-                print(f"[app] Graph loaded — {stats.get('nodes',0)} nodes, {stats.get('edges',0)} edges")
-        else:
-            print(f"[app] Graph already loaded — {stats['nodes']} nodes, {stats['edges']} edges")
+        for graph_file in files:
+            try:
+                with open(graph_file, encoding="utf-8") as f:
+                    equip = (_json.load(f).get("metadata") or {}).get("equipment", "")
+            except Exception as e:
+                print(f"[app] Skipping unreadable graph file {graph_file}: {e}")
+                continue
+            if not equip:
+                print(f"[app] Skipping {graph_file}: no metadata.equipment")
+                continue
+            if graph_has_knowledge(equip):
+                stats = get_graph_stats(equip_tag=equip)
+                print(f"[app] {equip} graph already loaded — {stats['nodes']} nodes, {stats['edges']} edges")
+                continue
+            print(f"[app] {equip} graph empty — loading {os.path.basename(graph_file)}...")
+            if load_graph(graph_file):
+                stats = get_graph_stats(equip_tag=equip)
+                print(f"[app] {equip} graph loaded — {stats.get('nodes',0)} nodes, {stats.get('edges',0)} edges")
     except Exception as e:
         import traceback
         print(f"[app] Knowledge graph error: {e}")

@@ -2,8 +2,8 @@
 graph_value_test.py — does the knowledge graph actually make reports better?
 
 WHAT THIS IS (simple version)
-    An ablation test. The same six WM-101 questions go through the real
-    investigation pipeline twice:
+    An ablation test. The same questions about one machine go through the
+    real investigation pipeline twice (cases file per machine: --file):
         graph OFF  (B) — documents only: specialists search Pinecone, no graph
         graph ON   (C) — documents + the knowledge graph (today's pipeline)
     Each question runs 3 times per version, because AI answers vary.
@@ -25,7 +25,9 @@ HOW EACH REPORT IS MARKED
     invention; read the examples, some will be harmless.
     Plus, per case: CONSISTENCY — did the 3 runs agree on every check?
 
-    Cases and checks: evals/graph_value_cases.json (locked 2026-09-25).
+    Cases and checks: evals/graph_value_cases.json (WM-101, locked 2026-09-25)
+    and evals/fl101/graph_value_cases.json (FL-101, the second machine). Each
+    file names its machine; any machine with a cases file works the same way.
 
 COST — why it runs one version at a time
     One investigation ~5.5K tokens on gpt-oss-20b and ~5K on gpt-oss-120b,
@@ -39,7 +41,8 @@ RUN (from C:\\plantmind — the Flask app does NOT need to be running)
     venv\\Scripts\\python.exe evals\\graph_value_test.py --arm off --run <- day 2
     venv\\Scripts\\python.exe evals\\graph_value_test.py --score         <- scorecard
     Options: --runs N (default 3), --cases GV-01,GV-03, --tag NAME (results
-    file name; default "baseline" — use a new tag after a Phase 2 change).
+    file name; default: the cases file's default_tag, else "baseline"),
+    --file PATH (another machine's cases, e.g. evals/fl101/graph_value_cases.json).
 
 OUTPUT
     evals/graph_value/<tag>_runs.jsonl        every report + what it was given
@@ -160,7 +163,7 @@ def check_code(check, report):
             and not any(re.search(p, text, re.I) for p in check.get("none", [])))
 
 
-def guard_events_for(r, case, ctx_cache, tip_cache):
+def guard_events_for(r, case, ctx_cache, tip_cache, equipment):
     """
     Guardrail events for a report: saved at run time since Phase 2a step 5;
     for older reports, worked out now by running the same check on the saved
@@ -171,10 +174,10 @@ def guard_events_for(r, case, ctx_cache, tip_cache):
     import multi_agent as ma
     import knowledge_graph as kg
     if case["id"] not in tip_cache:
-        text, _ = ma.search_expert_fixes(f"fix for WM-101 {case['incident'][:100]}",
-                                         equipment_filter="WM-101")
+        text, _ = ma.search_expert_fixes(f"fix for {equipment} {case['incident'][:100]}",
+                                         equipment_filter=equipment)
         tip_cache[case["id"]] = [b for b in text.split("\n\n---\n\n") if ma.REVIEW_UNREVIEWED in b]
-        ctx_cache[case["id"]] = kg.get_fault_chain("WM-101", incident_text=case["incident"])
+        ctx_cache[case["id"]] = kg.get_fault_chain(equipment, incident_text=case["incident"])
     ctx = ctx_cache[case["id"]] if r["arm"] == "on" else None
     _, events = ma.check_report(r["report"], ctx, [{"unreviewed": tip_cache[case["id"]]}])
     return events
@@ -186,7 +189,8 @@ def check_rating(check, report):
     if at == -1:
         return False
     m = re.search(r"\b(CRITICAL|HIGH|MEDIUM|LOW)\b", text[at + len("HOW CRITICAL IS IT"):])
-    return bool(m) and m.group(1) == check["expect"]
+    allowed = check.get("expect_any") or [check["expect"]]   # e.g. ["LOW", "MEDIUM"]
+    return bool(m) and m.group(1) in allowed
 
 
 def check_judge(check, report, cache, key, client):
@@ -220,8 +224,11 @@ def check_judge(check, report, cache, key, client):
 # "SOP-defined" is not mistaken for a document id. "Step N" is not checked:
 # the report template numbers its own steps (Step 1: Safety ...).
 SPECIFIC = [
-    (r"\b\d+(?:\.\d+)?(?:\s*(?:–|-|to)\s*\d+(?:\.\d+)?)?\s*(?:V|volts?|bar|m/min|mm|L/min|°C|degrees|minutes?|mins?|seconds?|sec|hours?|hrs?)\b", True),
-    (r"\bGSW-[A-Z0-9-]+\b", False),
+    # Units: welding (WM-101) and bottling (FL-101: ml, bottles per minute).
+    (r"\b\d+(?:\.\d+)?(?:\s*(?:–|-|to)\s*\d+(?:\.\d+)?)?\s*(?:V|volts?|bar|m/min|mm|ml|L/min|°C|degrees|bottles per minute|bpm|minutes?|mins?|seconds?|sec|hours?|hrs?)\b", True),
+    # Part and document codes of any machine (GSW-DROLL-08, SEAL-FV-24, GBP-001).
+    # Was GSW- only, so an invented filler part number would go uncounted.
+    (r"\b[A-Z]{2,5}-[A-Z0-9]{1,6}(?:-[A-Z0-9]+)*\b", False),
     (r"\b(?:NCR|WI|SOP)-[A-Z0-9][A-Z0-9-]*\b", False),
     (r"\bSection\s+\d+(?:\.\d+)?\b", True),
 ]
@@ -229,7 +236,8 @@ SPECIFIC = [
 
 UNIT_FAMILY = [
     (r"^(v|volts?)$", r"(v\b|volt)"), (r"^bar$", r"bar"), (r"^m/min$", r"m/min"),
-    (r"^mm$", r"mm"), (r"^l/min$", r"l/min"), (r"^(°c|degrees)$", r"(°c|degree)"),
+    (r"^mm$", r"mm"), (r"^ml$", r"ml\b"), (r"^bpm$", r"(bpm|bottles per minute)"),
+    (r"^l/min$", r"l/min"), (r"^(°c|degrees)$", r"(°c|degree)"),
     (r"^(minutes?|mins?)$", r"min"), (r"^(seconds?|sec|s)$", r"(s\b|sec)"),
     (r"^(hours?|hrs?)$", r"(h\b|hour|hr)"),
 ]
@@ -311,7 +319,7 @@ def cmd_run(args, cases, equipment):
     print(f"\nSaved to {runs_path}. When both arms are done: --score")
 
 
-def cmd_score(args, cases):
+def cmd_score(args, cases, equipment):
     runs_path = OUT_DIR / f"{args.tag}_runs.jsonl"
     runs = [r for r in load_runs(runs_path) if not r.get("failed")]
     if not runs:
@@ -344,7 +352,7 @@ def cmd_score(args, cases):
                 marks[ch["id"]] = check_judge(ch, r["report"], cache, key, client)
                 cache_path.write_text(json.dumps(cache, indent=1), encoding="utf-8")
         results.append((r["case"], r["arm"], idx, marks, unsupported_specifics(r["report"], r["sources"])))
-        guards.append((r["arm"], guard_events_for(r, case, ctx_cache, tip_cache)))
+        guards.append((r["arm"], guard_events_for(r, case, ctx_cache, tip_cache, equipment)))
         print(f"  scored {r['case']} graph {r['arm']} run {idx + 1}")
 
     write_scorecard(args.tag, cases, results, guards)
@@ -434,18 +442,21 @@ def main():
     ap.add_argument("--arm", choices=["on", "off", "both"], default="both")
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--cases", default="")
-    ap.add_argument("--tag", default="baseline")
+    ap.add_argument("--tag", default=None)
+    ap.add_argument("--file", default=str(CASES_FILE),
+                    help="cases file; each file names its machine")
     ap.add_argument("--run", action="store_true")
     ap.add_argument("--score", action="store_true")
     args = ap.parse_args()
 
-    spec = json.loads(CASES_FILE.read_text(encoding="utf-8"))
+    spec = json.loads(Path(args.file).read_text(encoding="utf-8"))
     cases = spec["cases"]
+    args.tag = args.tag or spec.get("default_tag", "baseline")
     if args.cases:
         wanted = {c.strip() for c in args.cases.split(",")}
         cases = [c for c in cases if c["id"] in wanted]
     if args.score:
-        cmd_score(args, cases)
+        cmd_score(args, cases, spec["equipment"])
     else:
         cmd_run(args, cases, spec["equipment"])
 

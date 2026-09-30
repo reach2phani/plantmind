@@ -779,6 +779,10 @@ def _criticality_floor(graph_context):
     """A matched fault the graph marks CRITICAL sets a floor on the rating."""
     if not graph_context or not graph_context.get("has_data"):
         return None, ""
+    # Never from a guess (Phase 2a step A): a close call between "pressure
+    # dropped" and Glass Breakage must not push a pressure drop to CRITICAL.
+    if graph_context.get("match_confidence") in ("unsure", "none"):
+        return None, ""
     matched = set(graph_context.get("matched_faults") or [])
     for n in graph_context.get("chain_nodes", []) or []:
         p = n.get("properties") or {}
@@ -1378,6 +1382,15 @@ def investigate_incident(incident, equipment_id=None):
                            f"patterns are not included.\n\n")
                 else:
                     yield f"🔗 Knowledge graph context loaded — {node_count} nodes, {warn_count} warnings\n\n"
+                # Which fault, and how sure (Phase 2a step A) — visible, not silent.
+                conf = graph_context.get("match_confidence")
+                faults = ", ".join(graph_context.get("matched_faults") or []) or "no single fault"
+                if conf == "sure":
+                    yield f"🎯 Fault: {faults} ({graph_context.get('match_method')})\n\n"
+                elif conf == "unsure":
+                    yield f"❓ Fault not confirmed — close call: {faults}\n\n"
+                elif conf:
+                    yield f"❓ No fault matched ({graph_context.get('match_method')}) — all faults considered\n\n"
             elif graph_context and graph_context.get("degraded"):
                 # Graph unreachable AND no local data for this equipment: keep the
                 # context object so the report still declares degraded mode.

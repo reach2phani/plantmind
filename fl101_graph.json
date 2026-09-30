@@ -1,0 +1,1075 @@
+{
+  "metadata": {
+    "equipment": "FL-101",
+    "equipment_name": "Bottle Filler",
+    "plant_site": "Demo Bottling Plant",
+    "line": "Filling Line 1",
+    "line_name": "Filling Line 1",
+    "version": "1.0",
+    "created": "2026-09-29",
+    "status": "DRAFT for review. Not loaded. Rename to fl101_graph.json to load it.",
+    "sources": [
+      "FL-101-SOP Rev 1.0",
+      "WI-FL101-001 Rev 1.0",
+      "NCR-2026-012"
+    ],
+    "total_nodes": 45,
+    "total_relationships": 81,
+    "note": "Built only from the three FL-101 documents (demo data). Every fact carries its section. No operator tips: those come later through the Review queue."
+  },
+  "nodes": [
+    {
+      "id": "FL-101",
+      "label": "FL-101 Bottle Filler",
+      "type": "Equipment",
+      "properties": {
+        "equip_tag": "FL-101",
+        "name": "Bottle Filler",
+        "product": "Still water in 500 ml and 330 ml glass bottles",
+        "fill_valves": "24 fill valves, numbered 1 to 24",
+        "induction_required": "true — FL-101 induction covers the SOP, LOTO (SAF-003) and the glass policy (GBP-001), refreshed every year",
+        "notes": "Most common fault: underfill"
+      }
+    },
+    {
+      "id": "fl101_underfill",
+      "label": "Underfill",
+      "type": "Fault",
+      "properties": {
+        "alarm_message": "Fill level low — bottles under target volume",
+        "alarm_trigger": "The alarm starts when the checkweigher rejects 3 underfilled bottles in a row",
+        "definition": "A bottle with less than 495 ml",
+        "frequency": "The most common alarm on FL-101",
+        "causes_in_order": "1. Worn fill valve seal (the valve drips between fills). 2. Blocked fill nozzle (no dripping). 3. Low product supply pressure (see Product Supply Pressure Low).",
+        "first_check": "Read the checkweigher report: it shows which valve numbers are underfilling. Look at those valves for dripping.",
+        "correct_response": "Press STOP (normal stop, not the emergency stop unless someone is in danger). Dripping valve: call the maintenance technician to replace the seal kit using WI-FL101-001. No dripping: lock out the machine and clean that valve's nozzle. Then check the product supply pressure.",
+        "wrong_response": "increase the fill time to make up for underfill. It hides worn seals and causes overflow and spillage (NCR-2026-012)",
+        "systemic_rule": "Three or more underfill alarms in one shift means a systemic fault, usually several worn seals. Stop production, raise a maintenance work order and call the maintenance supervisor.",
+        "early_warning": "If the checkweigher rejects more than 1 bottle in 100 over an hour, tell the shift lead. A rising reject count is often the first sign of worn seals.",
+        "source": "FL-101-SOP Sections 11 and 12.1"
+      }
+    },
+    {
+      "id": "fl101_overfill",
+      "label": "Overfill",
+      "type": "Fault",
+      "properties": {
+        "symptom": "Bottles above 505 ml, overfilling or overflowing; the checkweigher rejects them",
+        "definition": "A bottle with more than 505 ml",
+        "causes_in_order": "1. New seals settling in the first 2 to 3 minutes after a seal change (expected, not a fault). 2. Valve not fully clicked in (overfill still there after 5 minutes). 3. Fill time raised above the factory setting (NCR-2026-012).",
+        "first_check": "Was a seal change done in the last few minutes? If the overfill stops within 2 to 3 minutes, it is normal settling: take no action and do not change any settings.",
+        "source": "WI-FL101-001 Sections 8 and 10, FL-101-SOP Section 4, NCR-2026-012 Section 5"
+      }
+    },
+    {
+      "id": "fl101_infeed_jam",
+      "label": "Infeed Jam",
+      "type": "Fault",
+      "properties": {
+        "alarm_message": "Infeed jam — bottles stopped at infeed",
+        "causes_in_order": "1. Guide rails not reset after a bottle size changeover. 2. Chipped or damaged bottles. 3. Bottle feed conveyor running too fast.",
+        "first_check": "If a changeover happened this shift, check the changeover record first.",
+        "safety_rule": "Never reach into the infeed or the star wheel while the machine is running. Stop the machine and lock it out before clearing any jam.",
+        "if_a_bottle_breaks": "If a bottle breaks during a jam, stop and follow SOP Section 12.3.",
+        "source": "FL-101-SOP Section 12.2"
+      }
+    },
+    {
+      "id": "fl101_glass_breakage",
+      "label": "Glass Breakage",
+      "type": "Fault",
+      "properties": {
+        "alarm_message": "Glass breakage detected in filler",
+        "symptom": "Broken glass on the star wheel, inside the filler or near the line",
+        "criticality": "CRITICAL — broken glass can end up inside filled bottles. This is a product safety event. Follow GBP-001 (Glass and Brittle Plastics Policy).",
+        "quality_impact": "Every bottle filled in the last 30 minutes goes on QA HOLD, and open bottles within 2 metres of the break are thrown away",
+        "who_to_call": "The quality lead and the maintenance supervisor, for any glass breakage",
+        "source": "FL-101-SOP Sections 12.3 and 13"
+      }
+    },
+    {
+      "id": "fl101_supply_pressure_low",
+      "label": "Product Supply Pressure Low",
+      "type": "Fault",
+      "properties": {
+        "alarm_message": "Product supply pressure low — below 1.3 bar",
+        "effect": "Low supply pressure makes bottles underfill",
+        "causes_in_order": "1. Supply filter blocked. 2. Air in the supply line. 3. Supply tank running low.",
+        "source": "FL-101-SOP Section 12.4"
+      }
+    },
+    {
+      "id": "fl101_worn_seal",
+      "label": "Worn Fill Valve Seal",
+      "type": "Component",
+      "properties": {
+        "symptom": "The valve drips between fills",
+        "check": "The checkweigher report shows which valves are underfilling. A valve that drips between fills has a worn seal.",
+        "signs_of_wear": "Flattened on one side, small cracks at the edge, hard instead of soft, a groove in the sealing face, discoloured or swollen",
+        "service_interval": "Every 3 months or 1,500 running hours, whichever comes first",
+        "many_worn": "If more than 4 seals are badly worn at the same time, tell the maintenance supervisor: the replacement interval may be too long",
+        "ncr_reference": "NCR-2026-012: seals on valves 7, 12, 13 and 19 were 900 running hours past the 1,500-hour limit",
+        "source": "FL-101-SOP Sections 8.1 and 12.1, WI-FL101-001 Sections 3 and 9, NCR-2026-012 Section 5"
+      }
+    },
+    {
+      "id": "fl101_blocked_nozzle",
+      "label": "Blocked Fill Nozzle",
+      "type": "Component",
+      "properties": {
+        "symptom": "The valve underfills but does not drip: debris in the nozzle",
+        "source": "FL-101-SOP Section 12.1, WI-FL101-001 Section 10"
+      }
+    },
+    {
+      "id": "fl101_seals_settling",
+      "label": "New Seals Settling",
+      "type": "Component",
+      "properties": {
+        "when": "The first 2 to 3 minutes after a seal change",
+        "expected_behaviour": "Bottles may be slightly overfilled (up to 510 ml) while the new seals settle. This is EXPECTED BEHAVIOUR — not a fault. Do not change any settings. The checkweigher rejects these bottles automatically.",
+        "source": "WI-FL101-001 Section 8 (IMPORTANT note) and Section 10"
+      }
+    },
+    {
+      "id": "fl101_valve_not_seated",
+      "label": "Valve Not Fully Clicked In",
+      "type": "Component",
+      "properties": {
+        "symptom": "Overfill still there after 5 minutes following a seal change",
+        "source": "WI-FL101-001 Section 10"
+      }
+    },
+    {
+      "id": "fl101_fill_time_raised",
+      "label": "Fill Time Raised Above Factory Setting",
+      "type": "Component",
+      "properties": {
+        "effect": "Most valves overflow: water spills onto the bottles and conveyor, and labels get wet and peel",
+        "ncr_reference": "NCR-2026-012: the fill time was raised from 3.2 to 3.6, then 3.9 seconds; 1,200 bottles were rejected",
+        "source": "NCR-2026-012 Sections 1 and 5"
+      }
+    },
+    {
+      "id": "fl101_rails_not_reset",
+      "label": "Guide Rails Not Reset After Changeover",
+      "type": "Component",
+      "properties": {
+        "check": "Check the guide rail position matches the bottle size, and that the rails are locked",
+        "note": "Most infeed jams in the first hour after a changeover come from rails left in the wrong position",
+        "source": "FL-101-SOP Sections 8.2, 12.2 and 14"
+      }
+    },
+    {
+      "id": "fl101_chipped_bottles",
+      "label": "Chipped or Damaged Bottles",
+      "type": "Component",
+      "properties": {
+        "fix": "Remove any chipped or damaged bottles from the infeed, wearing cut-resistant gloves",
+        "source": "FL-101-SOP Section 12.2"
+      }
+    },
+    {
+      "id": "fl101_conveyor_fast",
+      "label": "Bottle Feed Conveyor Running Too Fast",
+      "type": "Component",
+      "properties": {
+        "note": "Third most common cause of infeed jams. The SOP gives no specific fix for it.",
+        "source": "FL-101-SOP Section 12.2"
+      }
+    },
+    {
+      "id": "fl101_bottle_broken_in_jam",
+      "label": "Bottle Broken During a Jam",
+      "type": "Component",
+      "properties": {
+        "note": "If a bottle breaks during a jam, stop and follow the glass breakage steps",
+        "source": "FL-101-SOP Sections 12.2 and 12.3"
+      }
+    },
+    {
+      "id": "fl101_filter_blocked",
+      "label": "Supply Filter Blocked",
+      "type": "Component",
+      "properties": {
+        "fix": "Clean or replace the supply filter (FLT-PS-10)",
+        "service_interval": "Cleaned once a week. Check the date on the filter tag.",
+        "source": "FL-101-SOP Sections 8.3 and 12.4"
+      }
+    },
+    {
+      "id": "fl101_air_in_line",
+      "label": "Air in the Supply Line",
+      "type": "Component",
+      "properties": {
+        "fix": "Bleed the air using the bleed valve on the bowl",
+        "source": "FL-101-SOP Section 12.4"
+      }
+    },
+    {
+      "id": "fl101_tank_low",
+      "label": "Supply Tank Running Low",
+      "type": "Component",
+      "properties": {
+        "fix": "Check the tank level with the water treatment room",
+        "source": "FL-101-SOP Section 12.4"
+      }
+    },
+    {
+      "id": "fl101_seal_replacement",
+      "label": "Fill Valve Seal Replacement",
+      "type": "Procedure",
+      "properties": {
+        "reference": "WI-FL101-001",
+        "who": "Trained maintenance technicians only",
+        "when_to_replace": "A valve drips between fills; the checkweigher shows the same valve underfilling again and again; three or more underfill alarms in one shift; or the seal has reached 3 months or 1,500 running hours",
+        "before_you_start": "Check the checkweigher report to see which valves are underfilling, mark them with a green tag, and tell the shift lead how long the line will be stopped",
+        "steps": "1. Press STOP and lock out the machine (LOTO). 2. Drain the bowl until the product is below the valve level. 3. Remove the valve with the valve key (quarter turn to the left). 4. Remove the old seal and O-ring with the seal pick. 5. Wipe the valve seat clean with a lint-free cloth and check it for scratches. 6. Fit the new seal and O-ring from the SEAL-FV-24 kit with a thin layer of FGL-1 lubricant. 7. Refit the valve (quarter turn to the right until it clicks). 8. Count the tools and parts on the tray, remove the lock and refill the bowl. 9. Sanitation rinse (mandatory). 10. First-bottle check (mandatory).",
+        "scratched_seat": "A scratched valve seat must be reported to the maintenance supervisor: a new seal will not seal on a scratched seat",
+        "lubricant_rule": "Only food-grade lubricant FGL-1. Any other lubricant contaminates the product.",
+        "time": "One valve about 15 minutes; a typical job (1 to 4 valves) 30 to 45 minutes",
+        "total_downtime": "about 1 hour including the rinse and the first-bottle check",
+        "important_note": "For the first 2 to 3 minutes after a seal change, bottles may be slightly overfilled (up to 510 ml) while the new seals settle. This is EXPECTED BEHAVIOUR — not a fault. Do not change any settings.",
+        "signoff": "The shift supervisor signs off the first-bottle check before normal production restarts. Record the date, valve numbers, seal kits used, condition of the old seals, first-bottle results and your name in the maintenance log.",
+        "source": "WI-FL101-001 Sections 2 to 8 and 11"
+      }
+    },
+    {
+      "id": "fl101_sanitation_rinse",
+      "label": "Sanitation Rinse",
+      "type": "Procedure",
+      "properties": {
+        "mandatory": "true — never skip it after a seal change: the first bottles would carry lubricant into the product",
+        "method": "Rinse the bowl, valves and nozzles with clean water for 10 minutes. This removes lubricant and particles from the new seals.",
+        "also_required": "At start-up if the machine has been stopped for more than 4 hours, after glass breakage, and at the end of every shift",
+        "source": "WI-FL101-001 Step 9, FL-101-SOP Sections 4, 9, 12.3 and 17"
+      }
+    },
+    {
+      "id": "fl101_first_bottle_check",
+      "label": "First-Bottle Check",
+      "type": "Procedure",
+      "properties": {
+        "mandatory": "true — normal production must not restart without it",
+        "method": "Run at normal speed and weigh the first 20 bottles. All 20 must be between 495 and 505 ml. If any bottle is outside this range, stop and check the valve again.",
+        "signoff": "The shift supervisor signs off the first-bottle check",
+        "source": "WI-FL101-001 Step 10 and Section 11"
+      }
+    },
+    {
+      "id": "fl101_nozzle_cleaning",
+      "label": "Fill Nozzle Cleaning",
+      "type": "Procedure",
+      "properties": {
+        "method": "Lock out the machine and clean the nozzle of the underfilling valve",
+        "source": "FL-101-SOP Section 12.1 Step 4, WI-FL101-001 Section 10"
+      }
+    },
+    {
+      "id": "fl101_refit_valve",
+      "label": "Refit the Fill Valve",
+      "type": "Procedure",
+      "properties": {
+        "method": "Refit the valve: quarter turn to the right until it clicks",
+        "when": "Overfill is still there 5 minutes after a seal change",
+        "source": "WI-FL101-001 Step 7 and Section 10"
+      }
+    },
+    {
+      "id": "fl101_restore_fill_time",
+      "label": "Restore Fill Time to Factory Setting",
+      "type": "Procedure",
+      "properties": {
+        "method": "Maintenance restores the fill time to the factory setting",
+        "rule": "Operators must not change the fill time. Any change needs written approval from engineering.",
+        "source": "NCR-2026-012 Section 7, FL-101-SOP Section 10"
+      }
+    },
+    {
+      "id": "fl101_jam_clearing",
+      "label": "Infeed Jam Clearing",
+      "type": "Procedure",
+      "properties": {
+        "steps": "1. Press STOP. 2. Lock out the machine. 3. Remove the jammed bottles wearing cut-resistant gloves. 4. Check the guide rail position matches the bottle size, and reset the rails if they are wrong. 5. Remove any chipped or damaged bottles from the infeed. 6. Remove the lock, restart at 60 bottles per minute for 2 minutes, then return to normal speed.",
+        "source": "FL-101-SOP Section 12.2"
+      }
+    },
+    {
+      "id": "fl101_changeover",
+      "label": "Bottle Size Changeover",
+      "type": "Procedure",
+      "properties": {
+        "steps": "1. Lock out the machine. 2. Move the guide rails to the position on changeover sheet CS-FL101 and lock them. 3. Fit the matching star wheel. 4. Remove the lock and run 20 bottles at 60 bottles per minute. 5. Check none jam and all fill correctly, then return to normal speed. 6. Record the changeover in the shift log; the shift lead signs the changeover record.",
+        "source": "FL-101-SOP Section 14"
+      }
+    },
+    {
+      "id": "fl101_glass_response",
+      "label": "Glass Breakage Response",
+      "type": "Procedure",
+      "properties": {
+        "steps": "1. Stop the line at once with the emergency stop. 2. Do not open any guard until the machine has stopped and is locked out. 3. Put every bottle filled in the last 30 minutes on QA HOLD; throw away open bottles within 2 metres of the break. 4. Clean up with the red glass kit only, using a vacuum. 5. Run the sanitation rinse (10 minutes). 6. The quality lead signs off before the line restarts. 7. Record the event in the glass breakage log.",
+        "cleanup_rule": "Never use compressed air: air spreads glass",
+        "reference": "GBP-001 Glass and Brittle Plastics Policy",
+        "source": "FL-101-SOP Section 12.3"
+      }
+    },
+    {
+      "id": "fl101_pressure_restore",
+      "label": "Supply Pressure Restore",
+      "type": "Procedure",
+      "properties": {
+        "steps": "1. Press STOP. 2. Clean the supply filter. 3. Bleed air from the supply line. 4. Confirm the pressure is back in range. 5. Restart, then weigh the first 20 bottles: all must be within the allowed fill range.",
+        "source": "FL-101-SOP Section 12.4"
+      }
+    },
+    {
+      "id": "fl101_escalate",
+      "label": "Escalate to Maintenance Supervisor",
+      "type": "Procedure",
+      "properties": {
+        "trigger_1": "The same alarm happens 3 or more times in one shift",
+        "trigger_2": "Underfill continues after the seals have been replaced",
+        "trigger_3": "Any electrical fault code shows on the control panel",
+        "trigger_4": "A guide rail will not lock in position",
+        "trigger_5": "Any glass breakage (also call the quality lead)",
+        "electrical_rule": "Do not attempt electrical repairs. Always call maintenance.",
+        "source": "FL-101-SOP Section 13"
+      }
+    },
+    {
+      "id": "fl101_loto",
+      "label": "LOTO (SAF-003)",
+      "type": "Safety",
+      "properties": {
+        "required_before": "Any maintenance, clearing a jam, changing parts, or reaching into the machine",
+        "steps": "1. Switch off power at the main isolator. 2. Lock the isolator with your personal padlock. 3. Tag it with your name and the date. 4. Try to start the machine to prove it cannot run.",
+        "lock_rule": "Only the person who fitted a lock may remove it",
+        "source": "FL-101-SOP Section 6.2"
+      }
+    },
+    {
+      "id": "fl101_ppe",
+      "label": "PPE Required on Filling Line 1",
+      "type": "Safety",
+      "properties": {
+        "eyes": "Safety glasses at all times",
+        "hands": "Cut-resistant gloves when handling glass or change parts",
+        "hearing": "Hearing protection",
+        "feet": "Safety shoes",
+        "source": "FL-101-SOP Section 6.1"
+      }
+    },
+    {
+      "id": "fl101_machine_safety",
+      "label": "Machine Safety Rules",
+      "type": "Safety",
+      "properties": {
+        "rule": "Never clear a jam while the machine is running, never reach past a guard, and never bypass or tape over a guard switch",
+        "air_rule": "Never use compressed air near open bottles or broken glass",
+        "floor": "Keep the floor dry. Report leaks and spills straight away.",
+        "guards": "All guard doors have safety switches; the machine stops if a guard door is opened",
+        "source": "FL-101-SOP Sections 6.3 and 6.4"
+      }
+    },
+    {
+      "id": "fl101_qa_hold",
+      "label": "QA HOLD",
+      "type": "Safety",
+      "properties": {
+        "action": "Label the held bottles QA HOLD: do not ship until the quality lead has checked them",
+        "release": "Bottles on QA HOLD may only be released after the quality lead has inspected them",
+        "source": "FL-101-SOP Sections 4 and 12.3"
+      }
+    },
+    {
+      "id": "fl101_fill_volume_spec",
+      "label": "Fill Volume Specification",
+      "type": "Parameter",
+      "properties": {
+        "target": "500 ml",
+        "allowed_range": "495 to 505 ml — the checkweigher rejects anything outside this",
+        "hourly_check": "Every hour, take 5 bottles off the line and weigh them by hand; all must be in range",
+        "checkweigher_test": "Before starting, the 490 ml and 510 ml test bottles must be rejected and the 500 ml bottle must pass. If not, do not start: call the quality lead.",
+        "source": "FL-101-SOP Sections 8.4, 10 and 11"
+      }
+    },
+    {
+      "id": "fl101_fill_time_spec",
+      "label": "Fill Time Setting",
+      "type": "Parameter",
+      "properties": {
+        "setting": "3.2 seconds, factory set",
+        "rule": "The fill time must NOT be changed by operators. Changing it needs written approval from engineering. A longer fill time does not fix underfill: it hides the real cause and makes bottles overflow.",
+        "source": "FL-101-SOP Section 10"
+      }
+    },
+    {
+      "id": "fl101_supply_pressure_spec",
+      "label": "Product Supply Pressure Specification",
+      "type": "Parameter",
+      "properties": {
+        "normal_range": "1.5 to 2.0 bar",
+        "alarm": "Below 1.3 bar",
+        "source": "FL-101-SOP Sections 8.3 and 10"
+      }
+    },
+    {
+      "id": "fl101_rail_setting_spec",
+      "label": "Guide Rail Setting",
+      "type": "Parameter",
+      "properties": {
+        "bottle_500_ml": "Rail position A",
+        "bottle_330_ml": "Rail position B",
+        "also_check": "Rails locked and the matching star wheel fitted",
+        "reference": "Changeover sheet CS-FL101",
+        "source": "FL-101-SOP Sections 8.2 and 14"
+      }
+    },
+    {
+      "id": "fl101_line_speed_spec",
+      "label": "Line Speed",
+      "type": "Parameter",
+      "properties": {
+        "normal": "120 bottles per minute (maximum 130)",
+        "start": "Start at 60 bottles per minute, then raise to normal speed once the first bottles are in range",
+        "source": "FL-101-SOP Sections 9 and 10"
+      }
+    },
+    {
+      "id": "fl101_fill_time_trap",
+      "label": "Fill Time Trap",
+      "type": "Pattern",
+      "properties": {
+        "description": "The operator raises the fill time to make up for underfill caused by worn seals, and most valves then overflow",
+        "chain": "Worn seals drip → underfill alarms → fill time raised 3.2 → 3.6 → 3.9 s → most valves overflow → spillage and wet labels → 1,200 bottles rejected, 2 hours 10 minutes downtime",
+        "lesson_from": "NCR-2026-012, night shift of 16 January 2026",
+        "wrong_response": "raise the fill time to fix underfill",
+        "correct_response": "Underfill is a seal problem until proven otherwise: check for dripping valves first and replace worn seals (WI-FL101-001). Leave the fill time at the factory setting.",
+        "source": "NCR-2026-012 Sections 5 and 8"
+      }
+    },
+    {
+      "id": "fl101_systemic_underfill",
+      "label": "Systemic Underfill Indicator",
+      "type": "Pattern",
+      "properties": {
+        "trigger": "3 or more underfill alarms in one shift",
+        "meaning": "Several worn seals: a systemic fault, not bad luck",
+        "correct_response": "Stop production, raise a maintenance work order and call the maintenance supervisor",
+        "source": "FL-101-SOP Sections 12.1 and 13, NCR-2026-012 Section 8"
+      }
+    },
+    {
+      "id": "FL-101-SOP",
+      "label": "FL-101 SOP Rev 1.0",
+      "type": "Document",
+      "properties": {
+        "reference": "FL-101-SOP Rev 1.0",
+        "type": "SOP",
+        "date": "February 2026",
+        "covers": "Pre-start checks, start-up, settings, checks during the shift, alarm response, changeover, cleaning, records and shutdown"
+      }
+    },
+    {
+      "id": "WI-FL101-001",
+      "label": "WI-FL101-001 Rev 1.0",
+      "type": "Document",
+      "properties": {
+        "reference": "WI-FL101-001",
+        "type": "Work Instruction",
+        "date": "February 2026",
+        "covers": "Fill valve seal replacement"
+      }
+    },
+    {
+      "id": "NCR-2026-012",
+      "label": "NCR-2026-012",
+      "type": "Document",
+      "properties": {
+        "reference": "NCR-2026-012",
+        "type": "NCR",
+        "date_raised": "18 January 2026",
+        "status": "Closed",
+        "incident": "3 underfill alarms on the night shift of 16 January 2026; the fill time was raised instead of finding the cause",
+        "impact": "1,200 bottles rejected, 2 hours 10 minutes downtime, about 1,400 labels wasted",
+        "root_cause": "Worn seals on valves 7, 12, 13 and 19, 900 running hours past the replacement limit",
+        "verified_date": "5 February 2026"
+      }
+    },
+    {
+      "id": "SEAL-FV-24",
+      "label": "SEAL-FV-24",
+      "type": "Part",
+      "properties": {
+        "description": "Fill valve seal kit: main seal and O-ring, one per valve",
+        "location": "Filling Line 1 spares cabinet, shelf 2",
+        "minimum_stock": "10 kits"
+      }
+    },
+    {
+      "id": "FLT-PS-10",
+      "label": "FLT-PS-10",
+      "type": "Part",
+      "properties": {
+        "description": "Product supply filter"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "from": "FL-101",
+      "to": "fl101_underfill",
+      "type": "HAS_FAULT",
+      "properties": {
+        "frequency": "most common alarm"
+      }
+    },
+    {
+      "from": "FL-101",
+      "to": "fl101_overfill",
+      "type": "HAS_FAULT",
+      "properties": {}
+    },
+    {
+      "from": "FL-101",
+      "to": "fl101_infeed_jam",
+      "type": "HAS_FAULT",
+      "properties": {}
+    },
+    {
+      "from": "FL-101",
+      "to": "fl101_glass_breakage",
+      "type": "HAS_FAULT",
+      "properties": {
+        "criticality": "CRITICAL"
+      }
+    },
+    {
+      "from": "FL-101",
+      "to": "fl101_supply_pressure_low",
+      "type": "HAS_FAULT",
+      "properties": {}
+    },
+    {
+      "from": "FL-101",
+      "to": "fl101_loto",
+      "type": "REQUIRES_SAFETY",
+      "properties": {
+        "reason": "LOTO is required before any maintenance, jam clearing or reaching into the machine (FL-101-SOP Section 6.2)"
+      }
+    },
+    {
+      "from": "FL-101",
+      "to": "fl101_ppe",
+      "type": "REQUIRES_SAFETY",
+      "properties": {}
+    },
+    {
+      "from": "FL-101",
+      "to": "fl101_machine_safety",
+      "type": "REQUIRES_SAFETY",
+      "properties": {}
+    },
+    {
+      "from": "FL-101",
+      "to": "FL-101-SOP",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_underfill",
+      "to": "fl101_worn_seal",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "1",
+        "note": "most common cause"
+      }
+    },
+    {
+      "from": "fl101_underfill",
+      "to": "fl101_blocked_nozzle",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "2"
+      }
+    },
+    {
+      "from": "fl101_underfill",
+      "to": "fl101_fill_volume_spec",
+      "type": "HAS_PARAMETER",
+      "properties": {}
+    },
+    {
+      "from": "fl101_underfill",
+      "to": "fl101_fill_time_spec",
+      "type": "HAS_PARAMETER",
+      "properties": {}
+    },
+    {
+      "from": "fl101_underfill",
+      "to": "fl101_systemic_underfill",
+      "type": "TRIGGERS",
+      "properties": {
+        "condition": "3 or more alarms in one shift"
+      }
+    },
+    {
+      "from": "fl101_underfill",
+      "to": "fl101_fill_time_trap",
+      "type": "TRIGGERS",
+      "properties": {
+        "note": "the known wrong response to underfill"
+      }
+    },
+    {
+      "from": "fl101_underfill",
+      "to": "NCR-2026-012",
+      "type": "REFERENCED_IN",
+      "properties": {
+        "note": "January 2026 incident: 3 alarms, fill time raised"
+      }
+    },
+    {
+      "from": "fl101_supply_pressure_low",
+      "to": "fl101_underfill",
+      "type": "CAUSES",
+      "properties": {
+        "note": "low supply pressure makes bottles underfill"
+      }
+    },
+    {
+      "from": "fl101_overfill",
+      "to": "fl101_seals_settling",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "1",
+        "note": "expected for 2 to 3 minutes after a seal change, not a fault"
+      }
+    },
+    {
+      "from": "fl101_overfill",
+      "to": "fl101_valve_not_seated",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "2"
+      }
+    },
+    {
+      "from": "fl101_overfill",
+      "to": "fl101_fill_time_raised",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "3"
+      }
+    },
+    {
+      "from": "fl101_overfill",
+      "to": "fl101_fill_volume_spec",
+      "type": "HAS_PARAMETER",
+      "properties": {}
+    },
+    {
+      "from": "fl101_overfill",
+      "to": "fl101_fill_time_spec",
+      "type": "HAS_PARAMETER",
+      "properties": {}
+    },
+    {
+      "from": "fl101_overfill",
+      "to": "WI-FL101-001",
+      "type": "REFERENCED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_infeed_jam",
+      "to": "fl101_rails_not_reset",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "1",
+        "note": "check first if a changeover happened this shift"
+      }
+    },
+    {
+      "from": "fl101_infeed_jam",
+      "to": "fl101_chipped_bottles",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "2"
+      }
+    },
+    {
+      "from": "fl101_infeed_jam",
+      "to": "fl101_conveyor_fast",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "3"
+      }
+    },
+    {
+      "from": "fl101_infeed_jam",
+      "to": "fl101_jam_clearing",
+      "type": "TRIGGERS",
+      "properties": {}
+    },
+    {
+      "from": "fl101_infeed_jam",
+      "to": "fl101_escalate",
+      "type": "TRIGGERS",
+      "properties": {
+        "condition": "same alarm 3 or more times in one shift"
+      }
+    },
+    {
+      "from": "fl101_infeed_jam",
+      "to": "fl101_line_speed_spec",
+      "type": "HAS_PARAMETER",
+      "properties": {}
+    },
+    {
+      "from": "fl101_infeed_jam",
+      "to": "fl101_glass_breakage",
+      "type": "CAUSES",
+      "properties": {
+        "note": "a bottle can break during a jam"
+      }
+    },
+    {
+      "from": "fl101_glass_breakage",
+      "to": "fl101_bottle_broken_in_jam",
+      "type": "CAUSED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_glass_breakage",
+      "to": "fl101_glass_response",
+      "type": "TRIGGERS",
+      "properties": {}
+    },
+    {
+      "from": "fl101_glass_breakage",
+      "to": "fl101_qa_hold",
+      "type": "TRIGGERS",
+      "properties": {
+        "note": "every bottle filled in the last 30 minutes"
+      }
+    },
+    {
+      "from": "fl101_glass_breakage",
+      "to": "fl101_escalate",
+      "type": "TRIGGERS",
+      "properties": {
+        "condition": "any glass breakage"
+      }
+    },
+    {
+      "from": "fl101_supply_pressure_low",
+      "to": "fl101_filter_blocked",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "1"
+      }
+    },
+    {
+      "from": "fl101_supply_pressure_low",
+      "to": "fl101_air_in_line",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "2"
+      }
+    },
+    {
+      "from": "fl101_supply_pressure_low",
+      "to": "fl101_tank_low",
+      "type": "CAUSED_BY",
+      "properties": {
+        "frequency_rank": "3"
+      }
+    },
+    {
+      "from": "fl101_supply_pressure_low",
+      "to": "fl101_pressure_restore",
+      "type": "TRIGGERS",
+      "properties": {}
+    },
+    {
+      "from": "fl101_supply_pressure_low",
+      "to": "fl101_supply_pressure_spec",
+      "type": "HAS_PARAMETER",
+      "properties": {}
+    },
+    {
+      "from": "fl101_worn_seal",
+      "to": "fl101_seal_replacement",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_worn_seal",
+      "to": "SEAL-FV-24",
+      "type": "REPLACED_WITH",
+      "properties": {}
+    },
+    {
+      "from": "fl101_worn_seal",
+      "to": "fl101_fill_time_trap",
+      "type": "TRIGGERS",
+      "properties": {
+        "note": "operator raises fill time to compensate: wrong response"
+      }
+    },
+    {
+      "from": "fl101_worn_seal",
+      "to": "NCR-2026-012",
+      "type": "REFERENCED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_blocked_nozzle",
+      "to": "fl101_nozzle_cleaning",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_seals_settling",
+      "to": "fl101_first_bottle_check",
+      "type": "FIXED_BY",
+      "properties": {
+        "note": "no adjustment: confirm with the first-bottle check"
+      }
+    },
+    {
+      "from": "fl101_valve_not_seated",
+      "to": "fl101_refit_valve",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_fill_time_raised",
+      "to": "fl101_restore_fill_time",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_fill_time_raised",
+      "to": "fl101_fill_time_trap",
+      "type": "TRIGGERS",
+      "properties": {}
+    },
+    {
+      "from": "fl101_fill_time_raised",
+      "to": "NCR-2026-012",
+      "type": "REFERENCED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_rails_not_reset",
+      "to": "fl101_changeover",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_infeed_jam",
+      "to": "fl101_rail_setting_spec",
+      "type": "HAS_PARAMETER",
+      "properties": {}
+    },
+    {
+      "from": "fl101_chipped_bottles",
+      "to": "fl101_jam_clearing",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_bottle_broken_in_jam",
+      "to": "fl101_glass_response",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_filter_blocked",
+      "to": "fl101_pressure_restore",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_filter_blocked",
+      "to": "FLT-PS-10",
+      "type": "REPLACED_WITH",
+      "properties": {}
+    },
+    {
+      "from": "fl101_air_in_line",
+      "to": "fl101_pressure_restore",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_tank_low",
+      "to": "fl101_pressure_restore",
+      "type": "FIXED_BY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_seal_replacement",
+      "to": "fl101_sanitation_rinse",
+      "type": "REQUIRES",
+      "properties": {
+        "mandatory": "true",
+        "warning": "never skip: lubricant would reach the product"
+      }
+    },
+    {
+      "from": "fl101_seal_replacement",
+      "to": "fl101_first_bottle_check",
+      "type": "REQUIRES",
+      "properties": {
+        "mandatory": "true"
+      }
+    },
+    {
+      "from": "fl101_seal_replacement",
+      "to": "fl101_loto",
+      "type": "REQUIRES_SAFETY",
+      "properties": {
+        "timing": "before starting"
+      }
+    },
+    {
+      "from": "fl101_seal_replacement",
+      "to": "WI-FL101-001",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_seal_replacement",
+      "to": "NCR-2026-012",
+      "type": "REFERENCED_IN",
+      "properties": {
+        "note": "corrective action after January 2026 incident"
+      }
+    },
+    {
+      "from": "fl101_sanitation_rinse",
+      "to": "WI-FL101-001",
+      "type": "DOCUMENTED_IN",
+      "properties": {
+        "section": "Step 9"
+      }
+    },
+    {
+      "from": "fl101_first_bottle_check",
+      "to": "WI-FL101-001",
+      "type": "DOCUMENTED_IN",
+      "properties": {
+        "section": "Step 10"
+      }
+    },
+    {
+      "from": "fl101_nozzle_cleaning",
+      "to": "fl101_loto",
+      "type": "REQUIRES_SAFETY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_nozzle_cleaning",
+      "to": "FL-101-SOP",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_refit_valve",
+      "to": "fl101_loto",
+      "type": "REQUIRES_SAFETY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_refit_valve",
+      "to": "WI-FL101-001",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_restore_fill_time",
+      "to": "FL-101-SOP",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_restore_fill_time",
+      "to": "NCR-2026-012",
+      "type": "REFERENCED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_jam_clearing",
+      "to": "fl101_loto",
+      "type": "REQUIRES_SAFETY",
+      "properties": {
+        "timing": "before clearing any jam"
+      }
+    },
+    {
+      "from": "fl101_jam_clearing",
+      "to": "FL-101-SOP",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_changeover",
+      "to": "fl101_loto",
+      "type": "REQUIRES_SAFETY",
+      "properties": {}
+    },
+    {
+      "from": "fl101_changeover",
+      "to": "FL-101-SOP",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_glass_response",
+      "to": "fl101_sanitation_rinse",
+      "type": "REQUIRES",
+      "properties": {}
+    },
+    {
+      "from": "fl101_glass_response",
+      "to": "fl101_loto",
+      "type": "REQUIRES_SAFETY",
+      "properties": {
+        "timing": "before opening any guard"
+      }
+    },
+    {
+      "from": "fl101_glass_response",
+      "to": "FL-101-SOP",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_pressure_restore",
+      "to": "FL-101-SOP",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_escalate",
+      "to": "FL-101-SOP",
+      "type": "DOCUMENTED_IN",
+      "properties": {}
+    },
+    {
+      "from": "fl101_systemic_underfill",
+      "to": "fl101_escalate",
+      "type": "REQUIRES",
+      "properties": {}
+    },
+    {
+      "from": "fl101_systemic_underfill",
+      "to": "fl101_seal_replacement",
+      "type": "REQUIRES",
+      "properties": {}
+    }
+  ]
+}

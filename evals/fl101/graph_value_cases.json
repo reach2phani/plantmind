@@ -1,0 +1,390 @@
+{
+  "_about": "Graph value cases for FL-101 (bottle filler), the second machine. Same method as evals/graph_value_cases.json (WM-101). Incidents are worded the way an operator would say them: everyday words, no alarm names. FL-06 needs the wrong operator tip (answer key section 7) captured and left unreviewed first. Every case has the isolation check: no welding facts from WM-101. Source of every check: evals/fl101/ANSWER_KEY.md. Drafted 2026-09-30. Incidents reworded by the user 2026-09-30; the first draft wording is kept under 'paraphrases' for the fault-matching check (Phase 2a A).",
+  "equipment": "FL-101",
+  "default_tag": "fl101",
+  "cases": [
+    {
+      "id": "FL-01",
+      "name": "Short fills, third alarm",
+      "tests": "Seals first, systemic after 3 alarms, rinse + 20 bottles after the fix, fill time untouched",
+      "incident": "getting underfill alarms again for the third time tonight and checkweigher is rejecting them. what should i check?",
+      "checks": [
+        {
+          "id": "seal_check",
+          "kind": "judge",
+          "q": "Does the report say to check the fill valves for dripping or worn seals as the likely cause?",
+          "source": "SOP 12.1"
+        },
+        {
+          "id": "fill_range",
+          "kind": "code",
+          "all": [
+            "495\\s*(to|-|–)\\s*505"
+          ],
+          "label": "allowed fill range 495 to 505 ml",
+          "source": "SOP 10"
+        },
+        {
+          "id": "systemic",
+          "kind": "judge",
+          "q": "Does the report treat three or more underfill alarms in one shift as a systemic fault, and say to stop production and call maintenance?",
+          "source": "SOP 12.1"
+        },
+        {
+          "id": "loto",
+          "kind": "judge",
+          "q": "Does the report require lockout/tagout (LOTO) before the seals are replaced?",
+          "source": "WI 6, SOP 6.2"
+        },
+        {
+          "id": "rinse",
+          "kind": "code",
+          "all": [
+            "rins",
+            "10[ -]?min"
+          ],
+          "label": "10-minute sanitation rinse after the seal change",
+          "source": "WI Step 9"
+        },
+        {
+          "id": "first_20",
+          "kind": "code",
+          "all": [
+            "\\b20 bottles\\b"
+          ],
+          "label": "weigh the first 20 bottles",
+          "source": "WI Step 10"
+        },
+        {
+          "id": "no_fill_time",
+          "kind": "judge",
+          "q": "Does the report avoid telling the operator to increase or change the fill time? (A warning NOT to change it counts as YES.)",
+          "source": "SOP 10, NCR-2026-012"
+        },
+        {
+          "id": "isolation",
+          "kind": "code",
+          "none": [
+            "wire feed",
+            "drive roll",
+            "\\bliner\\b",
+            "burn-in",
+            "arc voltage",
+            "contact tip",
+            "shielding gas",
+            "weld"
+          ],
+          "label": "no welding facts from WM-101",
+          "source": "isolation"
+        }
+      ],
+      "paraphrases": [
+        "Third time tonight the filler's thrown an underfill alarm. The checkweigher keeps kicking out short bottles. What do I do?"
+      ]
+    },
+    {
+      "id": "FL-02",
+      "name": "A bit over after new seals",
+      "tests": "Slight overfill just after a seal change is expected: no fault, no setting changes",
+      "incident": "replaced the filler seals and now bottles are running heavy around 508. is that normal or did we mess something up?",
+      "checks": [
+        {
+          "id": "expected",
+          "kind": "judge",
+          "q": "Does the report say that slight overfill in the first 2 to 3 minutes after a seal change is expected or normal, not a fault?",
+          "source": "WI 8 (IMPORTANT)"
+        },
+        {
+          "id": "no_settings",
+          "kind": "judge",
+          "q": "Does the report tell the operator not to change any settings (such as the fill time) because of this overfill?",
+          "source": "WI 8"
+        },
+        {
+          "id": "rinse",
+          "kind": "code",
+          "all": [
+            "rins",
+            "10[ -]?min"
+          ],
+          "label": "10-minute sanitation rinse",
+          "source": "WI Step 9"
+        },
+        {
+          "id": "first_20",
+          "kind": "code",
+          "all": [
+            "\\b20 bottles\\b",
+            "495\\s*(to|-|–)\\s*505"
+          ],
+          "label": "first 20 bottles within 495 to 505 ml",
+          "source": "WI Step 10"
+        },
+        {
+          "id": "no_reseal",
+          "kind": "judge",
+          "q": "Does the report avoid recommending replacing the seals again as the fix?",
+          "source": "WI 8"
+        },
+        {
+          "id": "not_high",
+          "kind": "rating",
+          "expect_any": [
+            "LOW",
+            "MEDIUM"
+          ],
+          "label": "rated LOW or MEDIUM, not HIGH",
+          "source": "WI 8: expected behaviour"
+        },
+        {
+          "id": "isolation",
+          "kind": "code",
+          "none": [
+            "wire feed",
+            "drive roll",
+            "\\bliner\\b",
+            "burn-in",
+            "arc voltage",
+            "contact tip",
+            "shielding gas",
+            "weld"
+          ],
+          "label": "no welding facts from WM-101",
+          "source": "isolation"
+        }
+      ],
+      "paraphrases": [
+        "Just put new seals in the filler and now the bottles are coming out a bit over, like 508. Did we do something wrong?"
+      ]
+    },
+    {
+      "id": "FL-03",
+      "name": "Falling over since the swap",
+      "tests": "Rails not moved for the 330 ml bottles; lock out before reaching in",
+      "incident": "330s are jamming up right at the infeed starwheel. bottles keep tipping over since the changeover.",
+      "checks": [
+        {
+          "id": "rails",
+          "kind": "judge",
+          "q": "Does the report identify guide rails not reset after the bottle size changeover as the likely cause?",
+          "source": "SOP 12.2"
+        },
+        {
+          "id": "position_b",
+          "kind": "code",
+          "all": [
+            "position\\s*B\\b"
+          ],
+          "label": "rails to position B for 330 ml",
+          "source": "SOP 8.2, 14"
+        },
+        {
+          "id": "loto",
+          "kind": "judge",
+          "q": "Does the report say to stop and lock out the machine before clearing the jam, never reaching in while it runs?",
+          "source": "SOP 12.2, 6.2"
+        },
+        {
+          "id": "restart",
+          "kind": "code",
+          "all": [
+            "60 (bottles per minute|bpm)",
+            "2 min"
+          ],
+          "label": "restart at 60 bottles per minute for 2 minutes",
+          "source": "SOP 12.2"
+        },
+        {
+          "id": "isolation",
+          "kind": "code",
+          "none": [
+            "wire feed",
+            "drive roll",
+            "\\bliner\\b",
+            "burn-in",
+            "arc voltage",
+            "contact tip",
+            "shielding gas",
+            "weld"
+          ],
+          "label": "no welding facts from WM-101",
+          "source": "isolation"
+        }
+      ],
+      "paraphrases": [
+        "Bottles keep falling over and jamming where they come into the filler. Started right after we swapped over to the small 330s this morning."
+      ]
+    },
+    {
+      "id": "FL-04",
+      "name": "Something shattered",
+      "tests": "Glass in a food line is CRITICAL: e-stop, hold 30 minutes of bottles, vacuum, quality sign-off",
+      "incident": "glass smash!! bottle popped inside the filler and there's shards on the starwheel, what's the immediate shutdown step?",
+      "checks": [
+        {
+          "id": "critical",
+          "kind": "rating",
+          "expect": "CRITICAL",
+          "label": "rated exactly CRITICAL",
+          "source": "SOP 12.3"
+        },
+        {
+          "id": "estop",
+          "kind": "judge",
+          "q": "Does the report say to stop the line at once with the emergency stop?",
+          "source": "SOP 12.3"
+        },
+        {
+          "id": "hold_30",
+          "kind": "code",
+          "all": [
+            "30 min",
+            "hold"
+          ],
+          "label": "hold bottles from the last 30 minutes",
+          "source": "SOP 12.3"
+        },
+        {
+          "id": "vacuum",
+          "kind": "judge",
+          "q": "Does the report say to clean up with a vacuum or the glass kit and never with compressed air?",
+          "source": "SOP 12.3"
+        },
+        {
+          "id": "signoff",
+          "kind": "judge",
+          "q": "Does the report say the quality lead must sign off before the line restarts?",
+          "source": "SOP 12.3"
+        },
+        {
+          "id": "no_early_restart",
+          "kind": "judge",
+          "q": "Does the report avoid letting production continue or restart before clean-up and quality sign-off?",
+          "source": "SOP 12.3"
+        },
+        {
+          "id": "isolation",
+          "kind": "code",
+          "none": [
+            "wire feed",
+            "drive roll",
+            "\\bliner\\b",
+            "burn-in",
+            "arc voltage",
+            "contact tip",
+            "shielding gas",
+            "weld"
+          ],
+          "label": "no welding facts from WM-101",
+          "source": "isolation"
+        }
+      ],
+      "paraphrases": [
+        "Heard a bang, a bottle's shattered inside the filler. There's glass on the star wheel."
+      ]
+    },
+    {
+      "id": "FL-05",
+      "name": "Pressure's dropped",
+      "tests": "Low supply pressure: filter, bleed air, back to range, weigh 20 bottles",
+      "incident": "supply pressure dropped down to 1.2 bar and now we're getting short fills, how do we fix this?",
+      "checks": [
+        {
+          "id": "range",
+          "kind": "code",
+          "all": [
+            "1\\.5\\s*(to|-|–)\\s*2(\\.0)?\\s*bar"
+          ],
+          "label": "normal range 1.5 to 2.0 bar",
+          "source": "SOP 10"
+        },
+        {
+          "id": "filter",
+          "kind": "judge",
+          "q": "Does the report say to clean or replace the supply filter?",
+          "source": "SOP 12.4"
+        },
+        {
+          "id": "bleed",
+          "kind": "judge",
+          "q": "Does the report say to bleed air from the supply line?",
+          "source": "SOP 12.4"
+        },
+        {
+          "id": "first_20",
+          "kind": "code",
+          "all": [
+            "\\b20 bottles\\b"
+          ],
+          "label": "weigh the first 20 bottles after restart",
+          "source": "SOP 12.4"
+        },
+        {
+          "id": "isolation",
+          "kind": "code",
+          "none": [
+            "wire feed",
+            "drive roll",
+            "\\bliner\\b",
+            "burn-in",
+            "arc voltage",
+            "contact tip",
+            "shielding gas",
+            "weld"
+          ],
+          "label": "no welding facts from WM-101",
+          "source": "isolation"
+        }
+      ],
+      "paraphrases": [
+        "The filler's supply pressure has dropped to 1.2 bar and we're starting to see short fills."
+      ]
+    },
+    {
+      "id": "FL-06",
+      "name": "Just bump the fill time",
+      "tests": "Trust order: an unreviewed tip to raise the fill time must not become a repair step",
+      "incident": "getting short fills again. last shift said i should just bump up the fill time to fix it—is that actually okay to do?",
+      "needs": "The wrong tip from ANSWER_KEY section 7 captured on the Capture page and left unreviewed",
+      "checks": [
+        {
+          "id": "sop_first",
+          "kind": "judge",
+          "q": "Does the report tell the operator to check the seals (dripping valves) rather than change the fill time?",
+          "source": "SOP 10, 12.1"
+        },
+        {
+          "id": "tip_rejected",
+          "kind": "judge",
+          "q": "Does the report treat the idea of increasing the fill time as wrong, unreviewed, or not to be followed?",
+          "source": "trust order, NCR-2026-012"
+        },
+        {
+          "id": "no_fill_time",
+          "kind": "judge",
+          "q": "Does the repair section (HOW TO ADDRESS IT) avoid any step that increases the fill time? (A warning NOT to change it counts as YES.)",
+          "source": "SOP 10"
+        },
+        {
+          "id": "isolation",
+          "kind": "code",
+          "none": [
+            "wire feed",
+            "drive roll",
+            "\\bliner\\b",
+            "burn-in",
+            "arc voltage",
+            "contact tip",
+            "shielding gas",
+            "weld"
+          ],
+          "label": "no welding facts from WM-101",
+          "source": "isolation"
+        }
+      ],
+      "paraphrases": [
+        "Short fills on the filler again. Someone on the last shift reckons you just bump the fill time up a bit and it sorts itself out."
+      ]
+    }
+  ]
+}

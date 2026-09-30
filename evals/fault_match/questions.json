@@ -1,0 +1,236 @@
+{
+  "_about": "Fault-matching check (Phase 2a step A): does the graph pick the right fault from the operator's words? Sets: 'alarm' = alarm-style wording (the original WM-101 graph value cases), 'everyday' = how people actually talk, 'user' = written by the project owner, 'fresh' = the exam, written AFTER the matcher was tuned (add them later, never tune on them). 'expect' is the fault label in the graph. Fresh set FL-f1..f7 written by the user 2026-09-30, after tuning; never tune on them.",
+  "questions": [
+    {
+      "equip": "FL-101",
+      "set": "user",
+      "id": "FL-01",
+      "expect": "Underfill",
+      "q": "getting underfill alarms again for the third time tonight and checkweigher is rejecting them. what should i check?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "user",
+      "id": "FL-02",
+      "expect": "Overfill",
+      "q": "replaced the filler seals and now bottles are running heavy around 508. is that normal or did we mess something up?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "user",
+      "id": "FL-03",
+      "expect": "Infeed Jam",
+      "q": "330s are jamming up right at the infeed starwheel. bottles keep tipping over since the changeover."
+    },
+    {
+      "equip": "FL-101",
+      "set": "user",
+      "id": "FL-04",
+      "expect": "Glass Breakage",
+      "q": "glass smash!! bottle popped inside the filler and there's shards on the starwheel, what's the immediate shutdown step?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "user",
+      "id": "FL-05",
+      "expect": "Product Supply Pressure Low",
+      "q": "supply pressure dropped down to 1.2 bar and now we're getting short fills, how do we fix this?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "user",
+      "id": "FL-06",
+      "expect": "Underfill",
+      "q": "getting short fills again. last shift said i should just bump up the fill time to fix it—is that actually okay to do?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "everyday",
+      "id": "FL-01b",
+      "expect": "Underfill",
+      "q": "Third time tonight the filler's thrown an underfill alarm. The checkweigher keeps kicking out short bottles. What do I do?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "everyday",
+      "id": "FL-02b",
+      "expect": "Overfill",
+      "q": "Just put new seals in the filler and now the bottles are coming out a bit over, like 508. Did we do something wrong?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "everyday",
+      "id": "FL-03b",
+      "expect": "Infeed Jam",
+      "q": "Bottles keep falling over and jamming where they come into the filler. Started right after we swapped over to the small 330s this morning."
+    },
+    {
+      "equip": "FL-101",
+      "set": "everyday",
+      "id": "FL-04b",
+      "expect": "Glass Breakage",
+      "q": "Heard a bang, a bottle's shattered inside the filler. There's glass on the star wheel."
+    },
+    {
+      "equip": "FL-101",
+      "set": "everyday",
+      "id": "FL-05b",
+      "expect": "Product Supply Pressure Low",
+      "q": "The filler's supply pressure has dropped to 1.2 bar and we're starting to see short fills."
+    },
+    {
+      "equip": "FL-101",
+      "set": "everyday",
+      "id": "FL-06b",
+      "expect": "Underfill",
+      "q": "Short fills on the filler again. Someone on the last shift reckons you just bump the fill time up a bit and it sorts itself out."
+    },
+    {
+      "equip": "WM-101",
+      "set": "alarm",
+      "id": "GV-01",
+      "expect": "Wire Feed Motor Overload",
+      "q": "WM-101 wire feed motor overload alarm. It started right after we fitted a new wire spool this morning."
+    },
+    {
+      "equip": "WM-101",
+      "set": "alarm",
+      "id": "GV-02",
+      "expect": "Wire Feed Motor Overload",
+      "q": "Third wire feed overload alarm on WM-101 this shift. The operator has been tightening the drive rolls each time."
+    },
+    {
+      "equip": "WM-101",
+      "set": "alarm",
+      "id": "GV-03",
+      "expect": "Wire Feed Motor Overload",
+      "q": "We just replaced the liner on WM-101 and the wire feed is a bit unstable for the first few minutes. Is something wrong?"
+    },
+    {
+      "equip": "WM-101",
+      "set": "alarm",
+      "id": "GV-04",
+      "expect": "Arc Instability",
+      "q": "WM-101 arc voltage is reading 17 V and the arc is unstable. What should it be?"
+    },
+    {
+      "equip": "WM-101",
+      "set": "alarm",
+      "id": "GV-05",
+      "expect": "Shielding Gas Pressure Low",
+      "q": "Shielding gas pressure low alarm on WM-101 in the middle of a run."
+    },
+    {
+      "equip": "WM-101",
+      "set": "alarm",
+      "id": "GV-06",
+      "expect": "Contact Tip Temperature High",
+      "q": "WM-101 contact tip temperature high alarm. The tip bore looks oval."
+    },
+    {
+      "equip": "WM-101",
+      "set": "everyday",
+      "id": "WM-e1",
+      "expect": "Wire Feed Motor Overload",
+      "q": "wire keeps stopping and the feeder motor has tripped again, third time this shift"
+    },
+    {
+      "equip": "WM-101",
+      "set": "everyday",
+      "id": "WM-e2",
+      "expect": "Wire Feed Motor Overload",
+      "q": "the welder's wire is stuttering and bunching up at the rollers, feed won't stay steady"
+    },
+    {
+      "equip": "WM-101",
+      "set": "everyday",
+      "id": "WM-e3",
+      "expect": "Arc Instability",
+      "q": "arc keeps wandering and the volts on the display are jumping all over, welds look rough"
+    },
+    {
+      "equip": "WM-101",
+      "set": "everyday",
+      "id": "WM-e4",
+      "expect": "Arc Instability",
+      "q": "loads of spatter and the arc sounds crackly and uneven, can't hold a steady bead"
+    },
+    {
+      "equip": "WM-101",
+      "set": "everyday",
+      "id": "WM-e5",
+      "expect": "Contact Tip Temperature High",
+      "q": "tip's overheating again, the temp alarm keeps going off every few minutes"
+    },
+    {
+      "equip": "WM-101",
+      "set": "everyday",
+      "id": "WM-e6",
+      "expect": "Contact Tip Temperature High",
+      "q": "the end of the torch is running way too hot, getting a temperature warning on the tip"
+    },
+    {
+      "equip": "WM-101",
+      "set": "everyday",
+      "id": "WM-e7",
+      "expect": "Shielding Gas Pressure Low",
+      "q": "gas bottle's nearly empty and the welds are coming out full of little holes"
+    },
+    {
+      "equip": "WM-101",
+      "set": "everyday",
+      "id": "WM-e8",
+      "expect": "Shielding Gas Pressure Low",
+      "q": "barely any gas coming out of the torch, the gauge is showing 6 bar"
+    },
+    {
+      "equip": "FL-101",
+      "set": "fresh",
+      "id": "FL-f1",
+      "expect": "Underfill",
+      "q": "We're getting another low-fill alarm on the filler. That's the third one tonight, and the reject table's starting to pile up. What should we check?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "fresh",
+      "id": "FL-f2",
+      "expect": "Overfill",
+      "q": "Ever since we changed the seals in the bowls, we're running heavy—seeing around 508 on the scale. Could the stack height be off?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "fresh",
+      "id": "FL-f3",
+      "expect": "Infeed Jam",
+      "q": "Bottles are starting to tip and back up at the infeed star. We changed over to the 330s about an hour ago. Could the guide rails be set wrong?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "fresh",
+      "id": "FL-f4",
+      "expect": "Glass Breakage",
+      "q": "We've got a broken bottle inside the turret. There's glass all over the starwheel deck. What's the lockout and cleanup procedure?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "fresh",
+      "id": "FL-f5",
+      "expect": "Product Supply Pressure Low",
+      "q": "Product pressure has dropped to about 1.1 bar and we're getting short fills. What could be restricting the product feed?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "fresh",
+      "id": "FL-f6",
+      "expect": "Underfill",
+      "q": "We're getting short fills again. Someone suggested increasing the fill time on the HMI. Should we be doing that, or do we need to find the actual cause first?"
+    },
+    {
+      "equip": "FL-101",
+      "set": "fresh",
+      "id": "FL-f7",
+      "expect": "Infeed Jam",
+      "q": "The worm screw's catching bottles right at the entry. We just finished the changeover—could the guide setting be too wide?"
+    }
+  ]
+}

@@ -52,6 +52,42 @@ What broke:
 - **Cause:** without a fault graph, only the AI supervisor picks the searches, based on wording.
 - **Plan:** build the FL-101 graph. On WM-101 the graph-required searches took routing from 1/6 to 6/6.
 
+### 6. Loading a machine's graph would have erased its place on the plant map (fixed before it happened)
+- **Found by reading the loader before using it**, not by a failure. The loader first deletes every note tagged with the machine, then writes the new ones. That included the machine's own node, and with it the links "FL-101 is a Filler" and "is located at Filling Line 1" created in Plant Setup. A read-only check confirmed the old code would have deleted that node.
+- Two more one-machine assumptions sat in the same place: on startup the app only looked for `wm101_graph.json`, and it treated "has any node" as "graph already loaded". A machine added in Plant Setup already has one node, so its graph would never have loaded.
+- Also found: notes are matched by id alone, so two machines both using an id like `loto_procedure` would have merged into one note.
+- **Fixes (generic):** the machine's node is updated in place, never deleted. The loader refuses a file whose ids belong to another machine. Links only join notes of the same machine. Startup loads every `<tag>_graph.json` for any machine with no knowledge yet.
+- **Lesson:** read the code path before the first run on new data. The cheapest bug is the one that never runs.
+
+### 8. Everyday words confuse the fault matching (FIXED: Phase 2a step A, 30 Sep 2026)
+
+**Result** (evals/fault_match/*_scorecard.md; free check, no report writing):
+
+| Matcher | Right | Unsure (flagged) | Wrong | False CRITICAL |
+|---|---|---|---|---|
+| Before: word counting, 26 tuning questions | 14/26 | 5/26 | 7/26 | 0 |
+| After: meaning + AI tie-break, all 33 questions | **33/33** | 0 | **0** | **0** |
+| **Exam** (7 fresh questions written by the user after tuning, never tuned on): word counting | 4/7 | 1/7 | 2/7 | **1** |
+| **Exam**: meaning + AI tie-break | **7/7** | 0 | **0** | **0** |
+
+- On the exam, the old matcher read "another low-fill alarm… reject table's starting to pile up" as **Glass Breakage**. That's a false CRITICAL, which would have pushed an underfill report to CRITICAL.
+- The new matcher got all 7 right, including words found nowhere in the documents ("stack height", "turret", "worm screw", "HMI"). Meaning settled 4; the AI tie-breaker settled the 3 close calls.
+- WM-101 everyday wording: 4/8 → 8/8. WM-101 alarm wording stayed 6/6.
+- **How it works:** each fault gets a short description card. The card and the question are turned into meaning vectors (the same embedding model as document search), and the closest fault wins if it's clearly closest (gap ≥ 0.03). A close call gets a word-count second opinion, then one short AI multiple-choice question. Still unsure → the close candidates go to the report marked "fault not confirmed", and the safety floor is **not** applied from a guess.
+- **Tuning found a data gap:** the Underfill card lacked "checkweigher rejects", because that fact was stored as `alarm_trigger`, which the card didn't read. The fix was generic: cards read every "how it shows up" field.
+- **Honesty:** the 26 tuning questions were used to set the threshold, so the exam is the real number.
+- **Cost trade-off:** across the 33 questions, meaning alone decided 19, meaning plus word count 1, and the AI tie-breaker 13. Alarm-style wording rarely needs the AI (WM-101 alarm set: 0/6); everyday wording needs it about 40% of the time, at one extra small call (a few hundred tokens, about a second). Richer fault cards with real operator words would move more decisions to the free path.
+
+The original finding:
+- **Found by a free check (no AI calls):** the 6 FL-101 test questions were reworded the way an operator talks ("the checkweigher keeps kicking out short bottles", "bottles keep falling over since we swapped to the 330s"). The graph then picked exactly the right fault for only **1 of 6**.
+  - Four picked two faults at once (a tie).
+  - One picked the wrong fault: "someone says bump the fill time up" matched **Overfill** instead of Underfill, because "fill time" is a word on the overfill path.
+- **Why it matters:** with a tie, the AI gets both faults' facts. Worse, "pressure dropped to 1.2 bar" tied with Glass Breakage. Glass is CRITICAL, so the safety floor would push a pressure drop to CRITICAL.
+- **Cause:** the matcher counts shared words (label, alarm text, cause names). Operators don't use alarm words.
+- **A second, independently written set of wordings** (from the user) scored **3/6**. Its sharpest miss: "getting underfill alarms again for the third time tonight and checkweigher is rejecting them" matched **Overfill**, although the word *underfill* is in the question. The overfill notes share more small words ("checkweigher", "reject", "fill", "time").
+- **Plan (Phase 2a A, already planned):** match by meaning (embeddings plus a threshold), keywords as backup, and ask the AI only when unsure. **Before: 1/6 and 3/6 exact matches** on two sets of everyday wording. Test on both machines.
+- **Lesson:** test with the words users actually use. Alarm-style test questions hid this on WM-101.
+
 ### Side note: one empty answer
 One Docs answer came back blank the first time and correct on retry. No AI call was logged, so it failed before the model was reached. Watching it; investigate if it repeats.
 
@@ -65,4 +101,27 @@ One Docs answer came back blank the first time and correct on retry. No AI call 
 | Overfill 2 min after seal change | HIGH, "seals fitted wrong" | LOW/MEDIUM, "expected, don't touch" | ❌ |
 | 3 jams after 330 ml changeover | HIGH, cause hedged | HIGH, rails left at 500 ml position | 🟡 |
 
-After fixes 1 to 3: _to be run_. After the FL-101 graph: _to be run_.
+After fixes 1 to 3, graph still OFF: _not run separately; the graph was loaded first. Recover later with the graph-off switch in the graph value test._
+
+## Spot check with the FL-101 graph loaded (30 Sep 2026, one run each)
+
+| Test | Before (no graph) | With graph + fixes | Result |
+|---|---|---|---|
+| Glass breakage | HIGH | **CRITICAL**; all 7 SOP steps in order; LOTO before opening guards; QA HOLD 30 min; no compressed air; rinse; quality lead signs off | ✅ |
+| Overfill 2 min after seal change | HIGH, "seals fitted wrong, re-seat them" | **MEDIUM, "expected settling, up to 510 ml for 2 to 3 min"**; do NOT change the fill time; first-bottle check; refit the valve only if still overfilling after 5 min | ✅ |
+| 3 jams after 330 ml changeover | cause hedged, SOP not searched | **Rails left in the wrong position → move to position B**; LOTO first; SOP now required by the graph | ✅ |
+
+Routing: the graph now makes the SOP search mandatory (it was skipped for the jam before).
+
+Still wrong in these reports:
+- **"First recorded instance"**: the jam and glass reports both said there was no history, while citing the very shift logs that record the same event (7 Sept jams, 17 Sept glass breakage). The report can't tell a past log entry from the current incident. This happens on both machines' reports, so it's a general issue (finding 7, below).
+- Small invented details outside the documented steps: "inspect the first 100 bottles", "torque check of star wheel fasteners", "guide-rail sensor warning". They appear in preventive or verify steps, not in the documented procedure.
+- The glass report says "Safety risk: HIGH" inside a CRITICAL report.
+- The overfill report didn't mention the 10-minute sanitation rinse (step 9, which comes before the first-bottle check).
+
+**Caveat:** one run per case, scored by eye. The real number comes from the graph value test (3 runs, code checks plus judge) once the FL-101 cases are added.
+
+### 7. "First time ever", while citing the earlier event (open)
+- **Symptom:** "This is the first recorded infeed jam after a changeover", with the 7 Sept shift log (3 jams, same cause) listed in the sources.
+- **Likely cause:** the history comparison doesn't separate "past events in the logs" from "the incident being reported now", and a similar past event gets read as the current one.
+- **Plan:** investigate with the trace (LangSmith) before fixing. Candidate: hand the orchestrator past events as a dated list and ask "has this happened before?" explicitly.

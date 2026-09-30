@@ -1,0 +1,741 @@
+[
+ {
+  "equip": "FL-101",
+  "set": "user",
+  "id": "FL-01",
+  "expect": "Underfill",
+  "q": "getting underfill alarms again for the third time tonight and checkweigher is rejecting them. what should i check?",
+  "faults": [
+   "Underfill"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Underfill",
+    0.895
+   ],
+   [
+    "Overfill",
+    0.863
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.836
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "user",
+  "id": "FL-02",
+  "expect": "Overfill",
+  "q": "replaced the filler seals and now bottles are running heavy around 508. is that normal or did we mess something up?",
+  "faults": [
+   "Overfill",
+   "Underfill"
+  ],
+  "confidence": "unsure",
+  "method": "close call between faults",
+  "scores": [
+   [
+    "Overfill",
+    0.86
+   ],
+   [
+    "Underfill",
+    0.837
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.811
+   ]
+  ],
+  "verdict": "unsure",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "user",
+  "id": "FL-03",
+  "expect": "Infeed Jam",
+  "q": "330s are jamming up right at the infeed starwheel. bottles keep tipping over since the changeover.",
+  "faults": [
+   "Infeed Jam"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Infeed Jam",
+    0.855
+   ],
+   [
+    "Glass Breakage",
+    0.817
+   ],
+   [
+    "Overfill",
+    0.811
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "user",
+  "id": "FL-04",
+  "expect": "Glass Breakage",
+  "q": "glass smash!! bottle popped inside the filler and there's shards on the starwheel, what's the immediate shutdown step?",
+  "faults": [
+   "Glass Breakage"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Glass Breakage",
+    0.864
+   ],
+   [
+    "Infeed Jam",
+    0.818
+   ],
+   [
+    "Overfill",
+    0.799
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "user",
+  "id": "FL-05",
+  "expect": "Product Supply Pressure Low",
+  "q": "supply pressure dropped down to 1.2 bar and now we're getting short fills, how do we fix this?",
+  "faults": [
+   "Product Supply Pressure Low"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Product Supply Pressure Low",
+    0.874
+   ],
+   [
+    "Underfill",
+    0.829
+   ],
+   [
+    "Overfill",
+    0.813
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "user",
+  "id": "FL-06",
+  "expect": "Underfill",
+  "q": "getting short fills again. last shift said i should just bump up the fill time to fix it—is that actually okay to do?",
+  "faults": [
+   "Overfill",
+   "Underfill",
+   "Product Supply Pressure Low"
+  ],
+  "confidence": "unsure",
+  "method": "close call between faults",
+  "scores": [
+   [
+    "Overfill",
+    0.825
+   ],
+   [
+    "Underfill",
+    0.818
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.804
+   ]
+  ],
+  "verdict": "unsure",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "everyday",
+  "id": "FL-01b",
+  "expect": "Underfill",
+  "q": "Third time tonight the filler's thrown an underfill alarm. The checkweigher keeps kicking out short bottles. What do I do?",
+  "faults": [
+   "Underfill",
+   "Overfill"
+  ],
+  "confidence": "unsure",
+  "method": "close call between faults",
+  "scores": [
+   [
+    "Underfill",
+    0.887
+   ],
+   [
+    "Overfill",
+    0.86
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.838
+   ]
+  ],
+  "verdict": "unsure",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "everyday",
+  "id": "FL-02b",
+  "expect": "Overfill",
+  "q": "Just put new seals in the filler and now the bottles are coming out a bit over, like 508. Did we do something wrong?",
+  "faults": [
+   "Overfill",
+   "Underfill"
+  ],
+  "confidence": "unsure",
+  "method": "close call between faults",
+  "scores": [
+   [
+    "Overfill",
+    0.85
+   ],
+   [
+    "Underfill",
+    0.829
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.816
+   ]
+  ],
+  "verdict": "unsure",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "everyday",
+  "id": "FL-03b",
+  "expect": "Infeed Jam",
+  "q": "Bottles keep falling over and jamming where they come into the filler. Started right after we swapped over to the small 330s this morning.",
+  "faults": [
+   "Infeed Jam",
+   "Underfill",
+   "Glass Breakage"
+  ],
+  "confidence": "unsure",
+  "method": "close call between faults",
+  "scores": [
+   [
+    "Infeed Jam",
+    0.834
+   ],
+   [
+    "Underfill",
+    0.833
+   ],
+   [
+    "Glass Breakage",
+    0.823
+   ]
+  ],
+  "verdict": "unsure",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "everyday",
+  "id": "FL-04b",
+  "expect": "Glass Breakage",
+  "q": "Heard a bang, a bottle's shattered inside the filler. There's glass on the star wheel.",
+  "faults": [
+   "Glass Breakage"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Glass Breakage",
+    0.886
+   ],
+   [
+    "Underfill",
+    0.786
+   ],
+   [
+    "Infeed Jam",
+    0.785
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "everyday",
+  "id": "FL-05b",
+  "expect": "Product Supply Pressure Low",
+  "q": "The filler's supply pressure has dropped to 1.2 bar and we're starting to see short fills.",
+  "faults": [
+   "Product Supply Pressure Low",
+   "Underfill"
+  ],
+  "confidence": "unsure",
+  "method": "close call between faults",
+  "scores": [
+   [
+    "Product Supply Pressure Low",
+    0.829
+   ],
+   [
+    "Underfill",
+    0.803
+   ],
+   [
+    "Overfill",
+    0.778
+   ]
+  ],
+  "verdict": "unsure",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "everyday",
+  "id": "FL-06b",
+  "expect": "Underfill",
+  "q": "Short fills on the filler again. Someone on the last shift reckons you just bump the fill time up a bit and it sorts itself out.",
+  "faults": [
+   "Overfill",
+   "Underfill",
+   "Product Supply Pressure Low"
+  ],
+  "confidence": "unsure",
+  "method": "close call between faults",
+  "scores": [
+   [
+    "Overfill",
+    0.811
+   ],
+   [
+    "Underfill",
+    0.809
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.799
+   ]
+  ],
+  "verdict": "unsure",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "alarm",
+  "id": "GV-01",
+  "expect": "Wire Feed Motor Overload",
+  "q": "WM-101 wire feed motor overload alarm. It started right after we fitted a new wire spool this morning.",
+  "faults": [
+   "Wire Feed Motor Overload"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Wire Feed Motor Overload",
+    0.872
+   ],
+   [
+    "Arc Instability",
+    0.797
+   ],
+   [
+    "Contact Tip Temperature High",
+    0.784
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "alarm",
+  "id": "GV-02",
+  "expect": "Wire Feed Motor Overload",
+  "q": "Third wire feed overload alarm on WM-101 this shift. The operator has been tightening the drive rolls each time.",
+  "faults": [
+   "Wire Feed Motor Overload"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Wire Feed Motor Overload",
+    0.842
+   ],
+   [
+    "Arc Instability",
+    0.802
+   ],
+   [
+    "Contact Tip Temperature High",
+    0.778
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "alarm",
+  "id": "GV-03",
+  "expect": "Wire Feed Motor Overload",
+  "q": "We just replaced the liner on WM-101 and the wire feed is a bit unstable for the first few minutes. Is something wrong?",
+  "faults": [
+   "Wire Feed Motor Overload"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Wire Feed Motor Overload",
+    0.833
+   ],
+   [
+    "Arc Instability",
+    0.798
+   ],
+   [
+    "Contact Tip Temperature High",
+    0.787
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "alarm",
+  "id": "GV-04",
+  "expect": "Arc Instability",
+  "q": "WM-101 arc voltage is reading 17 V and the arc is unstable. What should it be?",
+  "faults": [
+   "Arc Instability"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Arc Instability",
+    0.856
+   ],
+   [
+    "Wire Feed Motor Overload",
+    0.796
+   ],
+   [
+    "Contact Tip Temperature High",
+    0.792
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "alarm",
+  "id": "GV-05",
+  "expect": "Shielding Gas Pressure Low",
+  "q": "Shielding gas pressure low alarm on WM-101 in the middle of a run.",
+  "faults": [
+   "Shielding Gas Pressure Low"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Shielding Gas Pressure Low",
+    0.821
+   ],
+   [
+    "Arc Instability",
+    0.78
+   ],
+   [
+    "Wire Feed Motor Overload",
+    0.776
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "alarm",
+  "id": "GV-06",
+  "expect": "Contact Tip Temperature High",
+  "q": "WM-101 contact tip temperature high alarm. The tip bore looks oval.",
+  "faults": [
+   "Contact Tip Temperature High"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Contact Tip Temperature High",
+    0.863
+   ],
+   [
+    "Arc Instability",
+    0.81
+   ],
+   [
+    "Wire Feed Motor Overload",
+    0.788
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "everyday",
+  "id": "WM-e1",
+  "expect": "Wire Feed Motor Overload",
+  "q": "wire keeps stopping and the feeder motor has tripped again, third time this shift",
+  "faults": [
+   "Wire Feed Motor Overload"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Wire Feed Motor Overload",
+    0.845
+   ],
+   [
+    "Arc Instability",
+    0.807
+   ],
+   [
+    "Contact Tip Temperature High",
+    0.777
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "everyday",
+  "id": "WM-e2",
+  "expect": "Wire Feed Motor Overload",
+  "q": "the welder's wire is stuttering and bunching up at the rollers, feed won't stay steady",
+  "faults": [
+   "Wire Feed Motor Overload"
+  ],
+  "confidence": "sure",
+  "method": "meaning + word count agree",
+  "scores": [
+   [
+    "Wire Feed Motor Overload",
+    0.833
+   ],
+   [
+    "Arc Instability",
+    0.816
+   ],
+   [
+    "Contact Tip Temperature High",
+    0.785
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "everyday",
+  "id": "WM-e3",
+  "expect": "Arc Instability",
+  "q": "arc keeps wandering and the volts on the display are jumping all over, welds look rough",
+  "faults": [
+   "Arc Instability"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Arc Instability",
+    0.846
+   ],
+   [
+    "Contact Tip Temperature High",
+    0.783
+   ],
+   [
+    "Wire Feed Motor Overload",
+    0.781
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "everyday",
+  "id": "WM-e4",
+  "expect": "Arc Instability",
+  "q": "loads of spatter and the arc sounds crackly and uneven, can't hold a steady bead",
+  "faults": [
+   "Arc Instability"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Arc Instability",
+    0.819
+   ],
+   [
+    "Wire Feed Motor Overload",
+    0.761
+   ],
+   [
+    "Contact Tip Temperature High",
+    0.757
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "everyday",
+  "id": "WM-e5",
+  "expect": "Contact Tip Temperature High",
+  "q": "tip's overheating again, the temp alarm keeps going off every few minutes",
+  "faults": [
+   "Contact Tip Temperature High",
+   "Arc Instability"
+  ],
+  "confidence": "unsure",
+  "method": "close call between faults",
+  "scores": [
+   [
+    "Contact Tip Temperature High",
+    0.825
+   ],
+   [
+    "Arc Instability",
+    0.796
+   ],
+   [
+    "Wire Feed Motor Overload",
+    0.782
+   ]
+  ],
+  "verdict": "unsure",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "everyday",
+  "id": "WM-e6",
+  "expect": "Contact Tip Temperature High",
+  "q": "the end of the torch is running way too hot, getting a temperature warning on the tip",
+  "faults": [
+   "Contact Tip Temperature High"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Contact Tip Temperature High",
+    0.824
+   ],
+   [
+    "Arc Instability",
+    0.789
+   ],
+   [
+    "Wire Feed Motor Overload",
+    0.776
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "everyday",
+  "id": "WM-e7",
+  "expect": "Shielding Gas Pressure Low",
+  "q": "gas bottle's nearly empty and the welds are coming out full of little holes",
+  "faults": [
+   "Shielding Gas Pressure Low"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Shielding Gas Pressure Low",
+    0.803
+   ],
+   [
+    "Arc Instability",
+    0.747
+   ],
+   [
+    "Contact Tip Temperature High",
+    0.745
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "WM-101",
+  "set": "everyday",
+  "id": "WM-e8",
+  "expect": "Shielding Gas Pressure Low",
+  "q": "barely any gas coming out of the torch, the gauge is showing 6 bar",
+  "faults": [
+   "Shielding Gas Pressure Low"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Shielding Gas Pressure Low",
+    0.818
+   ],
+   [
+    "Arc Instability",
+    0.784
+   ],
+   [
+    "Wire Feed Motor Overload",
+    0.772
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ }
+]

@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlantMind Lessons</title>
+<meta name="description" content="Seven lessons from building an AI assistant for factory operators, each shown as problem, mechanism and evidence.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F3EE; --surface:#FAFAF7; --sunk:#E9ECE5; --ink:#1D2623; --muted:#5A6560; --faint:#8A948F;
+  --line:#D6DBD2; --pine:#2D6A58; --pine-soft:#DDE9E2; --steel:#3B6585; --steel-soft:#DDE6ED;
+  --brass:#B07F2A; --brass-soft:#F1E6CF; --rust:#A4473A; --rust-soft:#F2DDD8; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121816; --surface:#19211E; --sunk:#0F1413; --ink:#E4E9E4; --muted:#9BA6A0; --faint:#6E7A74;
+  --line:#2A3531; --pine:#71B59F; --pine-soft:#1F3029; --steel:#86AECB; --steel-soft:#1C2A34;
+  --brass:#D5A95A; --brass-soft:#2E2718; --rust:#D5806F; --rust-soft:#33201C; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#121816; --surface:#19211E; --sunk:#0F1413; --ink:#E4E9E4; --muted:#9BA6A0; --faint:#6E7A74;
+  --line:#2A3531; --pine:#71B59F; --pine-soft:#1F3029; --steel:#86AECB; --steel-soft:#1C2A34;
+  --brass:#D5A95A; --brass-soft:#2E2718; --rust:#D5806F; --rust-soft:#33201C; color-scheme:dark;}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1220px;margin:0 auto;padding:0 16px}
+
+header{padding:44px 0 26px;display:flex;gap:16px;align-items:flex-start}
+header h1{font:600 clamp(1.7rem,3.6vw,2.3rem)/1.2 Fraunces,Georgia,serif;margin:0;letter-spacing:-.01em}
+header p{margin:8px 0 0;color:var(--muted);max-width:72ch}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer;flex:none}
+
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:26px;align-items:start;padding-bottom:40px}
+.steps{list-style:none;margin:0;padding:0;position:sticky;top:20px}
+.steps button{all:unset;box-sizing:border-box;display:flex;gap:16px;width:100%;padding:11px 14px;border-radius:9px;cursor:pointer;color:var(--ink);font-size:.98rem}
+.steps button span{color:var(--faint);font-family:"IBM Plex Mono",monospace;font-size:.85rem;width:14px;padding-top:2px}
+.steps button:hover{background:var(--sunk)}
+.steps button.on{background:var(--pine-soft);font-weight:600}
+.steps button.on span{color:var(--pine)}
+.steps button:focus-visible{outline:2px solid var(--pine)}
+
+.panel{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 26px 18px}
+.kick{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.lesson{font:500 clamp(1.25rem,2.4vw,1.6rem)/1.3 Fraunces,Georgia,serif;margin:4px 0 16px}
+
+.cap{margin-top:14px;display:flex;gap:14px;align-items:flex-start;background:var(--sunk);border-radius:10px;padding:12px 14px;min-height:70px}
+.cap .n{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;flex:none;width:118px;padding-top:3px}
+.cap p{margin:0;font-size:.95rem}
+.a-P{--ac:var(--rust)} .a-M{--ac:var(--steel)} .a-E{--ac:var(--pine)}
+.cap .n{color:var(--ac)}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 11px;font:inherit;font-size:.8rem;cursor:pointer}
+.ctrl button:hover{color:var(--ink)}
+.acts{display:flex;gap:18px;margin-left:auto;align-items:flex-end}
+.act{display:flex;flex-direction:column;gap:5px}
+.act span{font:500 .66rem "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);cursor:pointer}
+.act.on span{color:var(--ac)}
+.act .tk{display:flex;gap:3px}
+.act .tk i{width:16px;height:5px;border-radius:3px;background:var(--line);cursor:pointer}
+.act .tk i.done{background:color-mix(in srgb,var(--ac) 40%,var(--line))}
+.act .tk i.on{background:var(--ac)}
+
+/* ── drawn scenes ── */
+.scene{overflow-x:auto}
+.scene svg{width:100%;height:auto;display:block}
+.scene [data-f],.scene [data-h]{opacity:0;transition:opacity .5s}
+.scene .vis{opacity:1}
+.scene [data-tf]{transition:transform .9s cubic-bezier(.3,.7,.3,1),opacity .5s;transform-box:fill-box;transform-origin:center}
+.scene .grow{transform-origin:left center}
+.scene .dim{opacity:.18!important}
+.drop{transform:translateY(-16px);transition:opacity .5s,transform .5s!important}
+.drop.vis{transform:none}
+.sn rect,.sn polygon{fill:var(--bg);stroke:var(--line);stroke-width:1.3;transition:stroke-width .3s,fill .3s,stroke .3s}
+.t{fill:var(--ink);font:600 15px "IBM Plex Sans",sans-serif}
+.s{fill:var(--muted);font:400 12.5px "IBM Plex Sans",sans-serif}
+.m{fill:var(--faint);font:500 10.5px "IBM Plex Mono",monospace;letter-spacing:.05em}
+.hd{fill:var(--muted);font:500 14px "IBM Plex Sans",sans-serif}
+.big{fill:var(--ink);font:600 28px Fraunces,serif}
+.quote{fill:var(--ink);font:italic 500 24px Fraunces,serif}
+.cht{fill:var(--ink);font:500 12.5px "IBM Plex Sans",sans-serif}
+.k-steel rect{fill:var(--steel-soft);stroke:var(--steel)}
+.k-brass rect{fill:var(--brass-soft);stroke:var(--brass)}
+.k-rust rect{fill:var(--rust-soft);stroke:var(--rust)}
+.k-pine rect,.k-pine polygon{fill:var(--pine-soft);stroke:var(--pine)}
+.sn.hot rect,.sn.hot polygon,.sn.on rect{stroke-width:2.6}
+.sn.hot:not([class*="k-"]) rect,.sn.hot:not([class*="k-"]) polygon{stroke:var(--pine)}
+.sn.good rect{fill:var(--pine-soft);stroke:var(--pine)} .sn.good .cht{fill:var(--pine)}
+.sn.bad rect{fill:var(--rust-soft);stroke:var(--rust)} .sn.bad .cht{fill:var(--rust);text-decoration:line-through}
+.ed{fill:none;stroke:var(--faint);stroke-width:1.4;transition:stroke-dashoffset .8s ease,opacity .5s}
+.ed.dash{stroke:var(--pine);stroke-dasharray:4 4}
+.ed.warn{stroke:var(--brass)}
+.ed.bad{stroke:var(--rust)}
+.doc path{fill:var(--surface);stroke:var(--faint);stroke-width:1.2}
+.doc line{stroke:var(--faint);stroke-width:1.2}
+.doc.keep path{stroke:var(--pine);stroke-width:2;fill:var(--pine-soft)} .doc.keep .m{fill:var(--pine)}
+.doc.bad path{stroke:var(--rust);stroke-width:2;fill:var(--rust-soft)} .doc.bad .m{fill:var(--rust)}
+.gate rect{transition:fill .4s}
+.gate.lit rect{fill:var(--pine)!important}
+.gate.done rect{fill:color-mix(in srgb,var(--pine) 45%,var(--faint))!important}
+.tok{fill:var(--brass)}
+@media (max-width:860px){.scene svg{min-width:720px}}
+
+footer{border-top:1px solid var(--line);padding:24px 0 44px;font-size:.85rem;color:var(--muted)}
+.strip{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.strip span{border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:.78rem;background:var(--surface)}
+
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:14px}
+  .steps{min-width:0;position:static;display:flex;overflow-x:auto;gap:4px;scrollbar-width:none}
+  .steps button{white-space:nowrap;padding:8px 12px;font-size:.88rem}
+  .panel{padding:18px 14px 14px}
+  .cap{flex-direction:column;gap:4px}
+  .acts{margin-left:0;width:100%;justify-content:space-between}
+  header{padding-top:28px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>PlantMind: seven lessons from building an AI for the factory floor</h1>
+      <p>An operator describes a machine fault in plain words, and PlantMind returns a sourced report. Each lesson plays in three parts: the problem, the mechanism that fixed it, and the evidence that it worked.</p>
+    </div>
+    <button class="tbtn" id="theme">Theme</button>
+  </header>
+
+  <div class="layout">
+    <ol class="steps" id="steps"></ol>
+    <div class="panel">
+      <div class="kick" id="kick"></div>
+      <div class="lesson" id="lesson"></div>
+      <div class="scene" id="stage"></div>
+      <div class="cap" id="cap"><span class="n" id="cn"></span><p id="ct"></p></div>
+      <div class="ctrl">
+        <button id="prev" aria-label="Previous step">←</button><button id="play">▶ Play</button><button id="next" aria-label="Next step">→</button>
+        <div class="acts" id="acts"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer><div class="wrap">
+  <div class="strip"><span>GPT-OSS 20B / 120B on Groq</span><span>Pinecone</span><span>Neo4j</span><span>Supabase</span><span>Flask</span><span>promptfoo</span><span>LangSmith</span><span>$0, free tiers only</span></div>
+  Draft. A learning project; all plants, machines and documents are demo data. Numbers come from the evaluation files in the repository (evals/graph_value, evals/routing, evals/baselines).
+</div></footer>
+
+<script>
+/* ── SVG helpers. o = {f: frame it appears, h: frame it hides, c: {frame: class}, tf: {frame: transform}, flow} ── */
+const A = (o={}) => (o.f!=null?` data-f="${o.f}"`:'') + (o.h!=null?` data-h="${o.h}"`:'')
+  + (o.c?` data-c='${JSON.stringify(o.c)}'`:'') + (o.tf?` data-tf='${JSON.stringify(o.tf)}'`:'') + (o.flow?' data-flow':'');
+const G = (o,cls,inner) => `<g class="${cls||''}"${A(o)}>${inner}</g>`;
+const R = (x,y,w,h,st='',rx=10) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"${st?` style="${st}"`:''}/>`;
+const T = (x,y,s,cls='s',a='start',st='') => `<text class="${cls}" x="${x}" y="${y}" text-anchor="${a}"${st?` style="${st}"`:''}>${s}</text>`;
+const txt = (x,y,s,o={},cls='hd',a='start',st='') => `<text class="${cls}" x="${x}" y="${y}" text-anchor="${a}"${st?` style="${st}"`:''}${A(o)}>${s}</text>`;
+const box = (x,y,w,h,t,s,o={},k='') => G(o,'sn '+k, R(x,y,w,h) + T(x+14,y+(s?21:h/2+5),t,'t') + (s?T(x+14,y+38,s):''));
+const node = (cx,cy,w,type,label,o={},k='') => G(o,'sn '+k, R(cx-w/2,cy-23,w,46,'',9) + T(cx,cy-6,type,'m','middle') + T(cx,cy+13,label,'t','middle','font-size:13.5px'));
+const chip = (x,y,s,o={},k='') => { const w = s.length*7.1+24; return G(o,'sn '+k, R(x,y,w,28,'',14) + T(x+w/2,y+18,s,'cht','middle')); };
+const edge = (d,o={},cls='') => `<path class="ed ${cls}" data-edge d="${d}"${A(o)}/>`;
+const vc = (ax,ay,bx,by) => `M${ax},${ay} C ${ax},${(ay+by)/2} ${bx},${(ay+by)/2} ${bx},${by}`;
+const doc = (x,y,tag,o={}) => `<g class="doc"${A(o)} transform="translate(${x},${y})"><path d="M0 0h17l7 7v25H0z"/><line x1="5" y1="13" x2="19" y2="13"/><line x1="5" y1="19" x2="19" y2="19"/><line x1="5" y1="25" x2="14" y2="25"/>${tag?T(12,48,tag,'m','middle'):''}</g>`;
+const mini = (x,y,o={}) => `<g class="doc"${A(o)} transform="translate(${x},${y})"><path d="M0 0h13l5 5v19H0z"/><line x1="4" y1="10" x2="14" y2="10"/><line x1="4" y1="15" x2="14" y2="15"/></g>`;
+const skel = (x,y,w,c='faint') => R(x,y,w,6,`fill:var(--${c});stroke:none;opacity:.4`,3);
+const svg = (inner,label) => `<svg viewBox="0 0 1000 480" role="img" aria-label="${label}">${inner}<g class="toks"></g></svg>`;
+
+/* ── 1 Scope & architecture ── */
+const specs = [['Alarms','shift logs'],['Operator fixes','captured by voice'],['Maintenance','work instructions'],['Procedures','SOP'],['Quality','NCR reports']];
+function sScope(){
+  let s = txt(10,150,'Operator',{f:0});
+  s += G({f:0},'sn', R(10,175,180,96,'',12) + T(24,206,'“The welder on line 1:') + T(24,228,'wire feed stuttering,') + T(24,250,'third time this shift”'));
+  s += txt(400,24,'Plant document library',{f:1});
+  ['WR-401','CV-401','WM-101','PC-701','WM-101','AT-301','P-201','WM-101'].forEach((t,i) =>
+    s += doc(400+i*52,38,t,{f:1,c: t==='WM-101' ? {4:'keep'} : i===0 ? {2:'bad',3:'',4:'dim'} : {4:'dim'}}));
+  s += edge('M190,196 C 300,196 300,54 394,54',{f:2,h:3,flow:1},'bad');
+  s += edge('M426,46 C 640,0 917,30 917,142',{f:2,h:3,flow:1},'bad');
+  s += G({f:2,h:3},'sn k-rust', R(842,142,150,150,'',12) + T(856,170,'ANSWER','m') + T(856,198,'Steps taken from') + T(856,218,'WR-401’s manual') + T(856,266,'WRONG MACHINE','m','start','fill:var(--rust)'));
+  s += edge('M190,223 C 212,223 212,260 232,260',{f:3,flow:1});
+  s += G({f:3},'sn', `<polygon points="290,202 348,260 290,318 232,260"/>` + T(290,256,'find the','t','middle') + T(290,274,'machine','t','middle'));
+  s += G({f:3},'sn k-pine', R(252,166,76,26,'',13) + T(290,184,'WM-101','t','middle','font-size:13px'));
+  s += txt(290,344,'tag typed → exact match',{f:3},'s','middle') + txt(290,364,'“the welder on line 1” → WM-101',{f:3},'s','middle');
+  s += txt(430,128,'Specialists search, in parallel',{f:5});
+  specs.forEach(([t,d],i) => { const y = 142+i*62, cy = y+23;
+    s += edge(`M348,260 C 392,260 392,${cy} 430,${cy}`,{f:5,flow:1}) + box(430,y,180,46,t,d,{f:5},'k-steel');
+    s += edge(`M610,${cy} C 636,${cy} 636,266 660,266`,{f:6,flow:1}); });
+  s += box(660,142,152,48,'Knowledge graph','WM-101 fault chain',{f:6},'k-brass') + edge('M736,190 L736,240',{f:6,flow:1});
+  s += box(660,240,152,52,'Write the report','120B · trust order',{f:6});
+  s += edge('M736,292 L736,332',{f:7,flow:1}) + box(660,332,152,50,'Code check','safety floor · tip labels',{f:7});
+  s += txt(842,128,'Report',{f:8}) + edge('M812,357 C 828,357 828,300 842,300',{f:8,flow:1});
+  s += G({f:8},'sn k-pine', R(842,142,150,300,'',12)
+     + T(856,170,'CRITICALITY','m') + R(856,178,110,9,'fill:var(--rust);stroke:none',3)
+     + T(856,212,'IMMEDIATE ACTION','m')
+     + [0,1,2].map(i => R(856,221+i*16,8,8,'fill:none;stroke:var(--pine)',2) + R(870,222+i*16,96-i*18,6,'fill:var(--pine);stroke:none;opacity:.5',3)).join('')
+     + T(856,292,'ROOT CAUSE','m') + skel(856,300,118) + skel(856,312,84)
+     + T(856,346,'SOURCES','m') + T(856,366,'SOP · WI · NCR','m','start','fill:var(--steel)')
+     + T(856,384,'SHIFT LOG','m','start','fill:var(--steel)') + T(856,402,'GRAPH','m','start','fill:var(--brass)'));
+  s += txt(10,408,'RIGHT PAGE FOUND · 18 LABELLED QUESTIONS',{f:9},'m');
+  s += txt(10,448,'18/18',{f:9},'big') + txt(92,446,'in the top 12',{f:9},'s') + txt(200,448,'14/18',{f:9},'big') + txt(282,446,'in the top 3',{f:9},'s');
+  return svg(s,'How a report is built, and how search stays on the right machine');
+}
+
+/* ── 2 Evals ── */
+function paper(x,y,title,rating,ok,o){
+  const c = ok ? 'pine' : 'rust';
+  return G(o,'sn', R(x,y,150,190,'',8) + T(x+14,y+24,title,'m') + skel(x+14,y+38,112) + skel(x+14,y+50,90) + skel(x+14,y+62,104)
+    + T(x+14,y+104,'CRITICALITY','m') + T(x+14,y+130,rating,'t','start',`fill:var(--${c})`)
+    + T(x+128,y+172,ok?'✓':'✗','t','middle',`font-size:24px;fill:var(--${c})`));
+}
+function sEvals(){
+  let s = txt(40,40,'Test case GV-05: “Shielding gas pressure low alarm on WM-101 in the middle of a run.”',{h:2});
+  s += txt(40,62,'The report must rate it CRITICAL.',{h:2},'s');
+  s += paper(40,90,'EARLIER SINGLE RUN','CRITICAL',1,{f:0,h:1});
+  s += paper(40,90,'RUN 1','HIGH',0,{f:1,h:2}) + paper(210,90,'RUN 2','HIGH',0,{f:1,h:2}) + paper(380,90,'RUN 3','CRITICAL',1,{f:1,h:2});
+  s += txt(590,170,'1 of 3',{f:1,h:2},'big') + txt(590,196,'correct. The single pass was luck.',{f:1,h:2},'s');
+  s += G({f:2},'sn', R(30,24,420,430,'',8) + T(50,52,'TEST CASE GV-02 · TENSION TRAP','m')
+     + T(50,80,'“Third wire feed overload alarm on WM-101 this shift.','s','start','font-style:italic')
+     + T(50,100,'The operator has been tightening the drive rolls','s','start','font-style:italic')
+     + T(50,120,'each time.”','s','start','font-style:italic') + T(50,160,'MUST BE IN THE REPORT','m'));
+  [['Warns NOT to keep tightening the tension','judge'],['Stop production; inspect rolls and liner','judge'],
+   ['Treats 3+ alarms in a shift as systemic','judge'],['Lockout (LOTO) before the repair','judge'],['Burn-in at 5.0 m/min for 30 s','code']]
+   .forEach(([t,how],i) => { const y = 176+i*52;
+     s += txt(50,y+22,`${i+1}. ${t}`,{f:2},'s','start','fill:var(--ink)');
+     s += how==='code' ? chip(362,y+4,'CODE',{f:3},'k-steel') : chip(356,y+4,'JUDGE',{f:4},'k-brass'); });
+  s += txt(480,40,'6 cases × 3 runs = 18 reports per change',{f:5});
+  [['GV-01','New spool'],['GV-02','Tension trap'],['GV-03','After liner change'],['GV-04','Arc voltage'],['GV-05','Gas alarm'],['GV-06','Hot contact tip']]
+   .forEach(([id,n],i) => { const y = 62+i*56;
+     s += txt(480,y+18,id,{f:5},'m') + txt(530,y+18,n,{f:5},'s') + [0,1,2].map(j => mini(660+j*28,y,{f:5})).join(''); });
+  s += txt(780,100,'0.2',{f:6},'big') + txt(780,124,'made-up specifics per report,',{f:6},'s') + txt(780,142,'graph off and on alike',{f:6},'s');
+  s += txt(780,222,'20/26 → 24/27',{f:7},'big') + txt(780,246,'checks identical in all 3 runs',{f:7},'s');
+  s += txt(780,342,'1/3 → 3/3',{f:8},'big') + txt(780,366,'gas alarm rated CRITICAL',{f:8},'s');
+  return svg(s,'How each change is tested');
+}
+
+/* ── 3 Context ── */
+function sContext(){
+  let s = txt(20,36,'Fetched from the graph',{h:2});
+  const facts = [['Replace the contact tip',1],['Hand-tight + quarter turn',1],['Let the tip cool 10 minutes',0],['Replace cylinder below 20 bar',0],['Tension: finger-tight + quarter turn',0]];
+  let j = 0;
+  facts.forEach(([t,ok],i) => { const y = 56+i*54;
+    s += G({h:2,c:{1:ok?'good':'bad'}},'sn', R(20,y,262,40,'',8) + T(34,y+25,t,'cht'));
+    s += edge(`M282,${y+20} L330,${y+20}`,{f:1,h:2,flow:1});
+    if (ok) { s += edge(`M364,${y+20} C 460,${y+20} 460,${112+j*54} 580,${112+j*54}`,{f:1,h:2,flow:1}); j++; }
+    else s += txt(378,y+26,'✗',{f:1,h:2},'t','start','fill:var(--rust)'); });
+  s += G({f:1,h:2},'sn k-brass', R(330,46,34,270,'',6)) + txt(347,340,'allow-list:',{f:1,h:2},'m','middle') + txt(347,356,'known names only',{f:1,h:2},'m','middle');
+  s += G({f:1,h:2},'sn', R(560,46,420,270,'',12) + T(580,76,'WHAT THE AI SAW','m'));
+  s += G({f:1,h:2},'sn good', R(580,92,262,40,'',8) + T(594,117,'Replace the contact tip','cht'));
+  s += G({f:1,h:2},'sn good', R(580,146,262,40,'',8) + T(594,171,'Hand-tight + quarter turn','cht'));
+  s += txt(580,240,'3 of 5 fetched facts never arrived.',{f:1,h:2},'s','start','fill:var(--rust)');
+  s += G({f:5},'sn k-pine', R(236,24,508,436,'fill:none',14)) + txt(490,56,'THIS IS ALL THE AI SEES',{f:5},'m','middle');
+  [[380,'Rules','trust order · safety · report format',2,''],[320,'Machine','WM-101 · MIG welder · Line 1',2,''],
+   [260,'Graph','every fact of the matched fault, no allow-list',3,'k-pine'],[200,'Findings','5 specialists, each labelled with its trust tier',4,'k-steel'],
+   [140,'Question','the operator’s own words',5,'']]
+   .forEach(([y,t,d,f,k]) => s += box(250,y,480,50,t,d,{f},k+' drop'));
+  s += txt(780,110,'70% → 90%',{f:6},'big') + txt(780,134,'required facts in the report',{f:6},'s') + txt(780,152,'55/78 → 73/81',{f:6},'m');
+  s += txt(780,240,'0/3 → 3/3',{f:7},'big') + txt(780,264,'“let the tip cool 10 minutes”',{f:7},'s');
+  s += txt(780,330,'0/3 → 3/3',{f:7},'big') + txt(780,354,'“replace cylinder below 20 bar”',{f:7},'s');
+  return svg(s,'What the AI actually sees');
+}
+
+/* ── 4 Knowledge graph ── */
+function sGraph(){
+  let s = `<line x1="290" y1="14" x2="290" y2="466" style="stroke:var(--line)"/>`;
+  s += txt(20,30,'What search sees',{h:8}) + txt(20,30,'Required facts · 6 cases × 3 runs',{f:8});
+  s += txt(310,30,'What the graph sees',{f:2});
+  [[50,'WM-101-SOP','Operating procedure'],[130,'NCR-2024-047','Quality report · the tension trap'],[210,'WI-WM101-001','Work instruction · burn-in step']]
+   .forEach(([y,id,d]) => s += G({h:8},'sn', R(20,y,250,62,'',8) + `<g class="doc" transform="translate(34,${y+17})"><path d="M0 0h13l5 5v22H0z"/></g>` + T(66,y+27,id,'t','start','font-size:13.5px') + T(66,y+46,d)));
+  s += txt(20,318,'GRAPH OFF · 3 RUNS EACH',{f:1,h:8},'m');
+  s += txt(20,344,'Burn-in after a liner change: 0 of 3',{f:1,h:8},'s','start','fill:var(--rust)');
+  s += txt(20,366,'Warns not to keep tightening: 0 of 3',{f:1,h:8},'s','start','fill:var(--rust)');
+  s += node(640,52,150,'MACHINE','WM-101',{f:2}) + edge(vc(640,75,640,109),{f:2}) + node(640,132,210,'FAULT','Wire feed motor overload',{f:2});
+  s += edge(vc(640,155,600,192),{f:3}) + edge(vc(640,155,790,192),{f:3}) + edge('M745,132 L780,132',{f:3});
+  s += node(600,215,170,'CAUSE','Drive rolls worn',{f:3}) + node(790,215,170,'CAUSE','Liner blocked',{f:3}) + node(880,132,200,'SAFETY','Hold parts for inspection',{f:3},'k-rust');
+  s += edge('M515,215 L495,215',{f:4},'warn') + node(400,215,190,'KNOWN TRAP','Keep tightening tension',{f:4},'k-brass');
+  s += edge(vc(600,238,700,275),{f:5}) + edge(vc(790,238,700,275),{f:5}) + node(700,298,220,'FIX','Replace liner & drive rolls',{f:5});
+  s += edge(vc(700,321,600,362),{f:6}) + edge(vc(700,321,830,362),{f:6});
+  s += node(600,385,190,'MUST DO','Burn-in 5.0 m/min, 30 s',{f:6},'k-brass') + node(830,385,190,'SAFETY','Lockout (LOTO) first',{f:6},'k-rust');
+  s += txt(628,352,'REQUIRES',{f:6},'m','end');
+  s += edge('M565,52 C 420,52 400,81 270,81',{f:7,h:8},'dash') + edge('M535,132 C 420,132 400,161 270,161',{f:7,h:8},'dash') + edge('M505,385 C 360,385 360,241 270,241',{f:7,h:8},'dash');
+  [[70,'Documents only','41%',.41,'32/78','steel'],[150,'+ knowledge graph','70%',.70,'55/78','pine']].forEach(([y,l,v,w,fr,c]) => {
+    s += txt(20,y,l,{f:8},'s','start','fill:var(--ink)') + txt(270,y,v,{f:8},'m','end');
+    s += G({f:8},'', R(20,y+10,250,14,'fill:var(--sunk)',4));
+    s += `<rect class="grow" x="20" y="${y+10}" width="250" height="14" rx="4" style="fill:var(--${c})"${A({f:8,tf:{'-1':'scaleX(0)',8:`scaleX(${w})`}})}/>`;
+    s += txt(20,y+44,fr+' checks',{f:8},'m'); });
+  s += txt(20,290,'0/3 → 3/3',{f:9},'big') + txt(20,314,'burn-in after a liner change',{f:9},'s');
+  s += txt(20,370,'0/3 → 3/3',{f:9},'big') + txt(20,394,'warns not to keep tightening',{f:9},'s');
+  return svg(s,'Search sees pages, the graph sees how the machine fails');
+}
+
+/* ── 5 Trust ── */
+function sTrust(){
+  let s = R(306,140,8,250,'fill:var(--faint)',2) + R(230,390,160,10,'fill:var(--faint)',4);
+  s += `<g${A({tf:{1:'rotate(-7deg)',4:'rotate(7deg)'}})}><line x1="130" y1="140" x2="490" y2="140" style="stroke:var(--ink);stroke-width:4;stroke-linecap:round"/></g>`;
+  s += `<circle cx="310" cy="140" r="8" style="fill:var(--ink)"/>`;
+  const pan = (bx,o,card) => `<g${A(o)}><line x1="${bx}" y1="140" x2="${bx-85}" y2="250" style="stroke:var(--faint)"/><line x1="${bx}" y1="140" x2="${bx+85}" y2="250" style="stroke:var(--faint)"/><line x1="${bx-95}" y1="250" x2="${bx+95}" y2="250" style="stroke:var(--ink);stroke-width:3;stroke-linecap:round"/>${card}</g>`;
+  s += pan(130,{tf:{1:'translateY(22px)',4:'translateY(-22px)'}},
+      G({f:0},'sn k-brass', R(55,178,150,68,'',8) + T(68,198,'OPERATOR TIP','m') + T(68,218,'Reset tension','t','start','font-size:13.5px') + T(68,237,'from 18 to 22','t','start','font-size:13.5px'))
+      + chip(52,142,'TIER 4 · UNREVIEWED',{f:3},'k-brass'));
+  s += pan(490,{tf:{1:'translateY(-22px)',4:'translateY(22px)'}},
+      G({f:0},'sn k-steel', R(415,178,150,68,'',8) + T(428,198,'SOP 2.1','m') + T(428,218,'Finger-tight +','t','start','font-size:13.5px') + T(428,237,'quarter turn','t','start','font-size:13.5px'))
+      + chip(420,142,'TIER 2 · DOCUMENT',{f:3},'k-steel'));
+  s += txt(640,20,'Trust order',{f:2});
+  [['TIER 1 · VERIFIED','knowledge graph facts',''],['TIER 2 · DOCUMENTS','SOP, work instructions, NCRs, shift logs','k-steel'],
+   ['TIER 3 · APPROVED','operator knowledge a reviewer approved',''],['TIER 4 · UNREVIEWED','a lead to check, never a step','k-brass']]
+   .forEach(([t,d,k],i) => s += box(640,30+i*50,350,44,t,d,{f:2,c:(i===1||i===3)?{3:'on'}:{}},k));
+  s += G({f:1},'sn', R(640,262,350,190,'',12) + T(656,286,'REPORT · HOW TO ADDRESS IT','m') + T(656,314,'1. Lockout (LOTO) first','s','start','fill:var(--ink)'));
+  s += G({f:1,h:5},'', R(648,326,334,30,'fill:var(--rust-soft);stroke:var(--rust)',6) + T(656,346,'2. Fix: “Reset tension from 18 to 22”','s','start','fill:var(--rust)'));
+  s += G({f:5},'', R(648,326,334,30,'fill:var(--pine-soft);stroke:var(--pine)',6) + T(656,346,'2. Fix: tension finger-tight + quarter turn','s','start','fill:var(--pine)')
+     + T(656,378,'SOP 2.1','m') + T(656,404,'Unreviewed operator tip (18 → 22):','s','start','fill:var(--brass)') + T(656,422,'a lead to check, not a step.','s','start','fill:var(--brass)'));
+  s += txt(20,444,'14/18 → 1/18',{f:6},'big') + txt(20,466,'reports using the tip as a repair step',{f:6},'s');
+  s += txt(360,444,'90% → 95%',{f:7},'big') + txt(360,466,'required facts (73/81 → 77/81)',{f:7},'s');
+  return svg(s,'When two sources disagree, the trust order decides');
+}
+
+/* ── 6 Rules ── */
+function sRules(){
+  let s = box(20,44,150,56,'AI router','picks the searches',{f:0});
+  s += txt(206,40,'SEARCHES FOR TEST CASE GV-01 (NEW SPOOL)',{f:0},'m') + edge('M170,72 L200,72',{f:0});
+  let x = 206;
+  ['Alarms','Operator fixes','Maintenance','SOP','NCR'].forEach(n => {
+    s += chip(x,58,n,{f:0,c:n==='NCR'?{1:'bad',3:'good'}:{}});
+    if (n==='NCR') s += txt(x,108,'skipped',{f:1,h:3},'m','start','fill:var(--rust)') + txt(x,108,'required by the graph',{f:3},'m','start','fill:var(--pine)');
+    x += n.length*7.1+34; });
+  s += G({f:2},'', R(20,292,960,14,'fill:var(--sunk);stroke:var(--line)',7) + [...Array(16)].map((_,i) => `<circle cx="${40+i*61}" cy="299" r="4" style="fill:var(--faint)"/>`).join(''));
+  const gates = [[230,'Required searches','add, never remove'],[390,'Criticality floor','set by the graph'],[550,'Unreviewed tip','→ visible ⚠'],[710,'Review pass','can’t change the rating'],[870,'Work-order cost','computed in code']];
+  gates.forEach(([g,a,b],i) => {
+    s += G({f:2,c:{[3+i]:'lit',[4+i]:'done'}},'gate', R(g-62,192,6,100,'fill:var(--faint)',2) + R(g+56,192,6,100,'fill:var(--faint)',2) + R(g-62,188,124,8,'fill:var(--faint)',3));
+    s += txt(g,156,a,{f:2},'t','middle','font-size:13px') + txt(g,174,b,{f:2},'s','middle','font-size:11.5px'); });
+  s += G({f:2,tf:{3:'translateX(140px)',4:'translateX(300px)',5:'translateX(460px)',6:'translateX(620px)',7:'translateX(780px)'}},'sn',
+       R(40,224,100,64,'',8) + T(52,244,'AI DRAFT','m') + skel(52,254,76) + skel(52,266,60) + skel(52,278,70));
+  s += txt(20,390,'1/6 → 6/6',{f:8},'big') + txt(20,414,'cases that searched every required source',{f:8},'s');
+  s += txt(980,400,'LLM generates. Rules constrain.',{f:8},'quote','end');
+  s += txt(20,456,'The criticality floor had to act in 0 of 18 test reports: it is a safety net, not a crutch.',{f:9},'s');
+  return svg(s,'The AI draft passes through rules written in code');
+}
+
+/* ── 7 People in the loop ── */
+function sPeople(){
+  const cols = [[30,'CAPTURED'],[350,'WAITING FOR REVIEW'],[670,'APPROVED / REJECTED']];
+  let s = G({h:2},'sn', R(30,90,300,90,'',14) + T(50,120,'VOICE CAPTURE','m') + T(50,146,'A fix, explained aloud by') + T(50,166,'an experienced operator'));
+  s += edge('M330,135 L670,135',{f:1,h:2,flow:1},'bad');
+  s += G({f:1,h:2},'sn k-rust', R(670,90,300,90,'',14) + T(690,120,'TRUSTED KNOWLEDGE GRAPH','m') + T(690,146,'Written in automatically?') + T(690,166,'One wrong tip = a “verified” fact','s','start','fill:var(--rust)'));
+  cols.forEach(([x,n]) => s += G({f:2},'', R(x,56,300,262,'fill:var(--sunk);stroke:none',12)) + txt(x+14,44,n,{f:2},'m'));
+  s += G({f:2,tf:{3:'translateX(320px)',5:'translateX(640px)'}},'sn k-steel',
+       R(45,72,270,110,'',10) + T(60,96,'CAPTURED FIX · WM-101','m') + T(60,120,'Voice → transcript → steps','t','start','font-size:13.5px')
+       + T(60,144,'Searchable at once,') + T(60,162,'as an unreviewed lead')
+       + G({f:4},'', R(206,146,96,26,'fill:var(--pine);stroke:none',6) + T(254,163,'APPROVED','m','middle','fill:var(--surface)')));
+  s += txt(365,212,'Grouped when fixes match (≥ 0.75),',{f:3},'s') + txt(365,230,'or flagged critical by an operator',{f:3},'s');
+  s += txt(365,266,'A person reads the raw quotes',{f:4},'s') + txt(365,284,'next to the AI’s summary',{f:4},'s');
+  s += txt(685,206,'Joins the graph as a pattern,',{f:5},'s') + txt(685,224,'credited to its contributors (Tier 3)',{f:5},'s');
+  s += G({f:6},'sn k-rust', R(685,240,270,64,'',10) + T(700,262,'REJECTED','m') + T(700,284,'Suppressed; captures stay searchable'));
+  [[362,'✓','Proven end-to-end once with real data: report text, report diagram, graph explorer.','pine',7],
+   [404,'○','Not yet used by real operators on real incidents.','brass',8],
+   [446,'!','Open bug: a false match merged two different faults, and one finding was lost.','rust',9]]
+   .forEach(([y,i,t,c,f]) => s += txt(40,y,i,{f},'t','middle',`fill:var(--${c});font-size:18px`) + txt(62,y,t,{f},'s','start','fill:var(--ink);font-size:13.5px'));
+  return svg(s,'Operator knowledge waits for a person before it is trusted');
+}
+
+/* ── Lessons: [act, caption] per frame ── */
+const L = [
+ {name:'Scope & architecture', lesson:'Know what it is for, and get the machine right first.', scene:sScope, caps:[
+  ['P','An operator describes a fault in plain words, without typing a machine tag.'],
+  ['P','The plant’s library holds documents for many machines.'],
+  ['P','Before the fix, a question like this searched every machine and could drift to the wrong one. The answer still looks right, and it is about the wrong machine.'],
+  ['M','Step one is finding the machine, in code: “the welder on line 1” resolves to WM-101.'],
+  ['M','Scope: every search is filtered to WM-101. If nothing is found, the answer is “no documents for this machine”, never a guess from another manual.'],
+  ['M','Five specialists search at the same time, each in one kind of document.'],
+  ['M','Their findings and the machine’s fault map go to the deep model, which writes the report in trust order.'],
+  ['M','Code checks the draft before anyone sees it.'],
+  ['M','The operator gets criticality first, then the first actions as a checklist, the cause, and every source.'],
+  ['E','Measured on 18 labelled questions: the right piece was in the top 12 every time, and in the top 3 for 14.'],
+ ]},
+ {name:'Evals', lesson:'Measure every change, more than once.', scene:sEvals, caps:[
+  ['P','A real test: a low shielding-gas alarm must be rated CRITICAL. One early run passed.'],
+  ['P','Run the same question three times: HIGH, HIGH, CRITICAL. The pass was luck. One run proves nothing.'],
+  ['M','So every test is a real-looking incident, plus the facts a good report must contain.'],
+  ['M','Exact things are checked by code: the burn-in must say 5.0 m/min for 30 s.'],
+  ['M','Judgement is checked by a separate judge model: does the report actually warn against tightening?'],
+  ['M','Six hard cases, three runs each: 18 reports, before and after every change.'],
+  ['E','What the tests showed: made-up specifics stayed at 0.2 per report, graph off and on. The real failure was leaving facts out, not inventing them.'],
+  ['E','Answers got steadier: checks identical across all 3 runs went from 20/26 to 24/27 (one check was added along the way).'],
+  ['E','And the lucky pass became a real one: the gas alarm is now rated CRITICAL in 3 of 3 runs.'],
+ ]},
+ {name:'Context', lesson:'The AI only knows what you put in front of it.', scene:sContext, caps:[
+  ['P','The graph fetched the facts for the matched faults.'],
+  ['P','But the hand-over only passed properties on a fixed allow-list. New facts were silently dropped, so reports kept missing things the system had already found.'],
+  ['M','Fix: treat the prompt as something to inspect. Build it layer by layer, and check what actually lands in it.'],
+  ['M','The graph layer now carries every fact of the matched fault, with no allow-list.'],
+  ['M','Each specialist’s findings arrive labelled with their trust tier.'],
+  ['M','Then the operator’s question. This stack is all the AI sees: anything missing here cannot reach the report.'],
+  ['E','Required facts in the report: 70% → 90% (55/78 → 73/81).'],
+  ['E','Facts that had been dropped now appear in every run: cool the tip for 10 minutes, replace the cylinder below 20 bar.'],
+ ]},
+ {name:'Knowledge graph', lesson:'Search finds pages. It does not know how a machine fails.', scene:sGraph, caps:[
+  ['P','Search returns pages that match the words: the SOP, the quality report, the work instruction.'],
+  ['P','But the important links sit between documents. With documents only, the burn-in after a liner change (in a different document) appeared in 0 of 3 reports.'],
+  ['M','The graph stores how the machine fails, starting from the machine and the fault.'],
+  ['M','The causes, and the rule that parts welded during the fault are held for inspection.'],
+  ['M','The known trap: tightening the tension hides worn drive rolls. It comes from quality report NCR-2024-047.'],
+  ['M','The fix: replace the liner and drive rolls.'],
+  ['M','Which REQUIRES a burn-in at 5.0 m/min for 30 s, and lockout before any work.'],
+  ['M','Every fact points back to its document, so the report can cite it. The graph is hand-checked, and only an overlay: if it is down, search still works.'],
+  ['E','Required facts across 6 cases × 3 runs: 41% with documents only, 70% with the graph.'],
+  ['E','The two missing links now show up in every run: the burn-in, and the warning not to keep tightening.'],
+ ]},
+ {name:'Trust', lesson:'Who to believe has to be explicit, not implied.', scene:sTrust, caps:[
+  ['P','Two sources disagree about drive-roll tension: an unreviewed operator tip, and the SOP.'],
+  ['P','The prompt said “expert fix first”, so the tip won. In a real report it appeared word for word as a repair step, and it did so in 14 of 18 test reports.'],
+  ['M','Fix: an explicit trust order, written into the prompt and checked in code.'],
+  ['M','Every piece of evidence arrives labelled. The SOP is a Tier 2 document. The tip is Tier 4: unreviewed.'],
+  ['M','Now the document outweighs the tip.'],
+  ['M','The report follows the SOP, and mentions the tip only as a lead to check.'],
+  ['E','Reports using the unreviewed tip as a repair step: 14 of 18 → 1 of 18.'],
+  ['E','Required facts rose too: 90% → 95% (73/81 → 77/81).'],
+ ]},
+ {name:'Rules', lesson:'LLM generates. Rules constrain.', scene:sRules, caps:[
+  ['P','An AI router decides which kinds of document to search for each incident.'],
+  ['P','It skipped ones it needed. In the new-spool case it left out the quality reports (NCR), where the tension-trap lesson lives. Only 1 of 6 cases searched everything required.'],
+  ['M','Fix: the AI still writes, but rules in code sit between the AI and the operator.'],
+  ['M','Gate 1: the graph lists the required searches. The router can add more, never remove one.'],
+  ['M','Gate 2: criticality can never be rated below what the graph marks CRITICAL.'],
+  ['M','Gate 3: an unreviewed tip in the repair steps gets a visible ⚠.'],
+  ['M','Gate 4: the review pass can polish the wording, never change the rating.'],
+  ['M','Gate 5: work-order cost is computed in code, so the model cannot talk a job into a cheaper approval tier.'],
+  ['E','Cases that searched every required source: 1 of 6 → 6 of 6.'],
+  ['E','An honest detail: the criticality floor never had to act in these 18 reports. It is there for the day the AI gets it wrong.'],
+ ]},
+ {name:'People in the loop', lesson:'Operator knowledge matters, but a person approves it first.', scene:sPeople, caps:[
+  ['P','Experienced operators know fixes that are in no document. PlantMind lets them capture one by voice.'],
+  ['P','The tempting shortcut: write every capture straight into the trusted knowledge graph. One thin or wrong tip would become a “verified” fact in every future report.'],
+  ['M','Instead, a capture is saved and searchable at once, but only as an unreviewed lead.'],
+  ['M','Captures that closely match each other (similarity ≥ 0.75), or that an operator flags as critical, go to a review queue.'],
+  ['M','A person reads the raw quotes next to the AI’s summary, and decides. Nothing is promoted automatically.'],
+  ['M','Approved knowledge joins the graph as a pattern, credited to its contributors. Future reports cite it as Tier 3.'],
+  ['M','Rejected: that exact combination is suppressed. The captures themselves stay searchable as leads.'],
+  ['E','Proven end-to-end once with real data: it appeared in the report text, the report’s diagram, and the graph explorer.'],
+  ['E','Not proven yet: no real operator has used it on a real incident.'],
+  ['E','And one open bug: a false match merged two different faults, and one finding’s content was lost. The fix is planned.'],
+ ]},
+];
+
+/* ── Player ── */
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+const NAMES = {P:'Problem', M:'Mechanism', E:'Evidence'};
+let cur = 0, step = 0, caps = [], timer = null, run = 0;
+
+L.forEach((l,i) => {
+  const li = document.createElement('li');
+  li.innerHTML = `<button><span>${i+1}</span>${l.name}</button>`;
+  li.firstChild.onclick = () => open(i);
+  $('steps').appendChild(li);
+});
+
+function open(i){
+  cur = i; stop();
+  document.querySelectorAll('.steps button').forEach((b,j) => { b.classList.toggle('on', j === i); if (j === i) b.scrollIntoView({block:'nearest',inline:'nearest'}); });
+  const l = L[i];
+  $('kick').textContent = `Lesson ${i+1} of ${L.length} · ${l.name}`;
+  $('lesson').textContent = l.lesson;
+  $('stage').innerHTML = l.scene();
+  $('stage').querySelectorAll('[data-edge]:not(.dash)').forEach(p => { const n = p.getTotalLength(); p.dataset.len = n; p.style.strokeDasharray = n; p.style.strokeDashoffset = n; });
+  caps = l.caps;
+  $('acts').innerHTML = ['P','M','E'].map(a => `<div class="act a-${a}" data-a="${a}"><span>${NAMES[a]}</span><div class="tk">`
+    + caps.map((c,j) => c[0]===a ? `<i data-j="${j}"></i>` : '').join('') + '</div></div>').join('');
+  $('acts').querySelectorAll('i').forEach(t => t.onclick = () => { stop(); show(+t.dataset.j); });
+  $('acts').querySelectorAll('.act span').forEach(sp => sp.onclick = () => { stop(); show(caps.findIndex(c => c[0] === sp.parentNode.dataset.a)); });
+  show(reduce ? caps.length-1 : 0);
+  if (!reduce) play();
+}
+
+function latest(map,k){ let b = null; for (const key in map) if (+key <= k && (b === null || +key > b)) b = +key; return b; }
+function scene(k){
+  const st = $('stage'), id = ++run;
+  st.querySelectorAll('[data-f],[data-h]').forEach(e => {
+    const f = e.dataset.f != null ? +e.dataset.f : -1, h = e.dataset.h != null ? +e.dataset.h : 1e9, v = f <= k && k < h;
+    e.classList.toggle('vis', v); e.classList.toggle('hot', f === k);
+    if (e.dataset.len) e.style.strokeDashoffset = v ? 0 : e.dataset.len;
+  });
+  st.querySelectorAll('[data-c]').forEach(e => {
+    const m = JSON.parse(e.dataset.c); Object.values(m).forEach(c => c && e.classList.remove(c));
+    const b = latest(m,k); if (b !== null && m[b]) e.classList.add(m[b]);
+  });
+  st.querySelectorAll('[data-tf]').forEach(e => { const m = JSON.parse(e.dataset.tf), b = latest(m,k); e.style.transform = b !== null ? m[b] : ''; });
+  const toks = st.querySelector('.toks'); toks.innerHTML = '';
+  if (reduce) return;
+  [...st.querySelectorAll('[data-flow]')].filter(p => +p.dataset.f === k).forEach((p,i) => {
+    const c = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    c.setAttribute('class','tok'); c.setAttribute('width',10); c.setAttribute('height',10); c.setAttribute('rx',2); c.style.opacity = 0;
+    toks.appendChild(c);
+    const n = p.getTotalLength(), t0 = performance.now() + i*180 + 350;
+    const tick = now => {
+      if (id !== run) return;
+      const u = Math.max(0, Math.min(1, (now - t0) / 1100)), pt = p.getPointAtLength(n * (1 - Math.pow(1-u, 2)));
+      c.setAttribute('x', pt.x - 5); c.setAttribute('y', pt.y - 5); c.style.opacity = now < t0 || u >= 1 ? 0 : 1;
+      if (u < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+function show(k){
+  step = k; scene(k);
+  const [a, text] = caps[k], inAct = caps.filter(c => c[0] === a), idx = caps.slice(0,k+1).filter(c => c[0] === a).length;
+  $('cap').className = 'cap a-' + a;
+  $('cn').textContent = `${NAMES[a]} · ${idx}/${inAct.length}`;
+  $('ct').textContent = text;
+  $('acts').querySelectorAll('i').forEach(t => { const j = +t.dataset.j; t.classList.toggle('on', j === k); t.classList.toggle('done', j < k); });
+  $('acts').querySelectorAll('.act').forEach(e => e.classList.toggle('on', e.dataset.a === a));
+}
+const wait = () => Math.max(2800, caps[step][1].length * 40);
+function play(){
+  stop(); if (step >= caps.length-1) show(0);
+  $('play').textContent = '❚❚ Pause';
+  const tick = () => { if (step >= caps.length-1) return stop(); show(step+1); timer = setTimeout(tick, wait()); };
+  timer = setTimeout(tick, wait());
+}
+function stop(){ clearTimeout(timer); timer = null; $('play').textContent = '▶ Play'; }
+$('play').onclick = () => timer ? stop() : play();
+$('next').onclick = () => { stop(); show(Math.min(step+1, caps.length-1)); };
+$('prev').onclick = () => { stop(); show(Math.max(step-1, 0)); };
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') $('next').click(); if (e.key === 'ArrowLeft') $('prev').click(); });
+
+const root = document.documentElement;
+try { const t = localStorage.getItem('pm-theme'); if (t) root.dataset.theme = t; } catch(e) {}
+$('theme').onclick = () => {
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  try { localStorage.setItem('pm-theme', root.dataset.theme); } catch(e) {}
+};
+open(0);
+</script>
+</body>
+</html>

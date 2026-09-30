@@ -56,6 +56,27 @@ def _run(cypher, params=None):
 # LOAD GRAPH FROM JSON INTO NEO4J
 # ─────────────────────────────────────────────────────────────────────────────
 
+def graph_file_name(equip_tag):
+    """The seed file for a machine: WM-101 -> wm101_graph.json, FL-101 -> fl101_graph.json."""
+    return f"{equip_tag.lower().replace('-', '')}_graph.json"
+
+
+def graph_has_knowledge(equip_tag):
+    """
+    True when the machine has real knowledge in Neo4j (faults, fixes, ...),
+    not just its own Equipment node. A machine added in Plant Setup has that
+    one node, so counting all nodes said "already loaded" and the seed file
+    was never loaded for it.
+    """
+    try:
+        r = _run("MATCH (n) WHERE n.equip_tag = $e AND NOT n:Equipment "
+                 "RETURN count(n) AS c", {"e": equip_tag})
+        return bool(r and r[0]["c"])
+    except Exception as e:
+        print(f"[KG] graph_has_knowledge error: {e}")
+        return True   # unknown: never trigger a reload on a failed check
+
+
 def load_graph(json_path=None):
     """
     Load graph data from JSON file into Neo4j.
@@ -66,7 +87,9 @@ def load_graph(json_path=None):
 
     print(f"\n[KG] Loading graph from {json_path}...")
 
-    with open(json_path) as f:
+    # utf-8 explicitly: the default on Windows (cp1252) silently garbles
+    # dashes and arrows into "â€”" instead of failing.
+    with open(json_path, encoding="utf-8") as f:
         data = json.load(f)
 
     meta  = data.get("metadata", {})
@@ -81,6 +104,21 @@ def load_graph(json_path=None):
     driver = _get_driver()
     try:
         with driver.session(database=None) as session:
+
+            # Refuse a file whose note ids are already used by ANOTHER machine.
+            # Nodes are found by _id alone, so a shared id (two machines both
+            # calling a note "loto_procedure") would silently take over the
+            # other machine's note and cross-link the two graphs.
+            clash = session.run(
+                "MATCH (n) WHERE n._id IN $ids AND n.equip_tag IS NOT NULL "
+                "AND n.equip_tag <> $e RETURN n._id AS id, n.equip_tag AS owner",
+                {"ids": [n["id"] for n in nodes], "e": equip}
+            ).data()
+            if clash:
+                for c in clash:
+                    print(f"[KG]   ✗ id '{c['id']}' already belongs to {c['owner']}")
+                print(f"[KG] ✗ Not loaded: rename those ids in {json_path} (e.g. prefix them)")
+                return False
 
             # Clear existing nodes for this equipment — EXCEPT operator
             # knowledge promoted through the review queue.
@@ -98,8 +136,13 @@ def load_graph(json_path=None):
             ).data()
             preserved_ids = [p["id"] for p in preserved]
 
+            # The Equipment node is NOT deleted, only updated in place below.
+            # It also carries the plant map ("is a Filler", "is located at
+            # Filling Line 1") from Plant Setup / ontology_bootstrap.py, and
+            # deleting it wiped those links on every full reload (known risk).
             session.run(
-                "MATCH (n) WHERE n.equip_tag = $e AND NOT n._id IN $keep DETACH DELETE n",
+                "MATCH (n) WHERE n.equip_tag = $e AND NOT n._id IN $keep "
+                "AND NOT n:Equipment DETACH DELETE n",
                 {"e": equip, "keep": preserved_ids}
             )
             print(f"[KG]   Cleared existing {equip} nodes "
@@ -128,20 +171,20 @@ def load_graph(json_path=None):
                 props    = rel.get("properties", {})
                 session.run(
                     f"""
-                    MATCH (a {{_id: $f}})
-                    MATCH (b {{_id: $t}})
+                    MATCH (a {{_id: $f, equip_tag: $e}})
+                    MATCH (b {{_id: $t, equip_tag: $e}})
                     MERGE (a)-[r:{rel_type}]->(b)
                     SET r += $props
                     """,
-                    {"f": rel["from"], "t": rel["to"], "props": props}
+                    {"f": rel["from"], "t": rel["to"], "e": equip, "props": props}
                 )
 
             print(f"[KG]   Created {len(rels)} relationships")
 
-            # Re-attach the preserved operator notes. Deleting the Equipment
-            # node above also cut the link to them, so without this they would
-            # survive the reload but float unreachable — which is exactly the
-            # bug that hid the correct arc-voltage spec from every report.
+            # Re-attach the preserved operator notes. The Equipment node is no
+            # longer deleted, so the link normally survives; this MERGE stays
+            # as a safety net — a note left floating unreachable is exactly the
+            # bug that once hid the correct arc-voltage spec from every report.
             if preserved_ids:
                 session.run(
                     """
@@ -307,13 +350,17 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
     # report got the liner job's "1 hour". Everything below now comes from
     # the matched fault's path (plus machine-wide safety such as PPE). When
     # nothing matches the operator's words, relevant = every node, as before.
-    matched, _, hit = _match_faults(chain_nodes, chain_edges, incident_text)
+    # Phase 2a step A: by meaning, with a confidence. Decided ONCE here and
+    # passed to the text builder, so both always agree.
+    match = match_faults(chain_nodes, chain_edges, incident_text)
+    matched, hit = match["relevant"], match["hit"]
     relevant_ids = _relevant_ids(equip_tag, chain_nodes, chain_edges, matched if hit else None)
     relevant_nodes = [n for n in chain_nodes if n["id"] in relevant_ids]
     for n in relevant_nodes:
         p = n["properties"]
-        if n["type"] == "Procedure" and p.get("total_with_burnin"):
-            downtime = p["total_with_burnin"]
+        # "total_downtime" is the generic name; "total_with_burnin" is WM-101's.
+        if n["type"] == "Procedure" and (p.get("total_downtime") or p.get("total_with_burnin")):
+            downtime = p.get("total_downtime") or p["total_with_burnin"]
 
     # Warnings derived from the notes themselves (see _derive_warnings).
     warnings.extend(_derive_warnings(relevant_nodes))
@@ -353,7 +400,7 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
             warnings.append(f"{lead}: {summary}")
 
     chain_text = _build_chain_text(chain_nodes, chain_edges, warnings, downtime,
-                                   equip_tag, incident_text, relevant_ids)
+                                   equip_tag, incident_text, relevant_ids, match=match)
 
     return {
         "equip_tag":   equip_tag,
@@ -366,6 +413,11 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
         # the orchestrator's graph rules, and later by the supervisor.
         "relevant_node_ids": sorted(relevant_ids),
         "matched_faults":    [f["label"] for f in matched] if hit else [],
+        # How sure the fault match is (Phase 2a step A). The safety floor is
+        # only applied from a "sure" match, never from a close call.
+        "match_confidence":  match["confidence"],
+        "match_method":      match["method"],
+        "match_scores":      match["scores"][:3],
         # Real knowledge only: a lone Equipment node (e.g. a machine just added
         # in Plant Setup, before its fault graph exists) is NOT graph data —
         # counting it made the report claim "knowledge graph verified" (FL-101).
@@ -482,8 +534,189 @@ def _fact_lines(props, indent):
     return out
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# FAULT MATCHING BY MEANING (Phase 2a step A)
+#
+# Which fault is the operator describing? Everything downstream depends on it:
+# the facts handed to the AI, the required searches, the safety floor.
+# Counting shared words (_match_faults below) broke on everyday wording: FL-101
+# "underfill alarms ... checkweigher is rejecting them" matched OVERFILL, and
+# "pressure dropped to 1.2 bar" tied with Glass Breakage (CRITICAL).
+#
+# Now: each fault gets a short description card; the card and the question
+# are turned into meaning vectors with the same embedding model as document
+# search; the closest fault wins IF it is clearly closest. A close call gets a
+# second opinion from the word count, then (only then) one short AI question.
+# Still unsure -> the close candidates are handed over, marked "unsure", and
+# the safety floor is not applied from a guess.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Tuned on evals/fault_match_check.py. e5 similarities sit in a narrow band
+# (roughly 0.75-0.90), so the GAP to the runner-up matters more than the level.
+MATCH_MIN_SIMILARITY = 0.80
+MATCH_MIN_GAP        = 0.03    # 0.02 let two wrong "sure" answers through
+MATCH_WORDS_MIN_GAP  = 0.01    # the word count may settle a close call, not a coin toss
+MATCH_AI_CANDIDATES  = 3
+
+_card_vectors = {}   # card text -> vector, kept for the life of the process
+_pinecone     = None
+
+
+def _embed(texts, input_type):
+    """Meaning vectors from the same model document search uses."""
+    global _pinecone
+    if _pinecone is None:
+        from pinecone import Pinecone
+        _pinecone = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+    res = _pinecone.inference.embed(
+        model="multilingual-e5-large", inputs=[t[:2000] for t in texts],
+        parameters={"input_type": input_type, "truncate": "END"})
+    return [r.values for r in res]
+
+
+def _fault_card(fault, nodes, edges):
+    """A short description of a fault, in the words its notes use."""
+    p = fault.get("properties") or {}
+    parts = [fault.get("label", "")]
+    # How the fault SHOWS UP, in any of the names a graph uses for it.
+    # alarm_trigger was missing at first: FL-101's Underfill card had no
+    # "checkweigher rejects" while Overfill's did, so "checkweigher is
+    # rejecting them" read as Overfill.
+    parts += [str(p[k]) for k in ("alarm_message", "alarm_trigger", "symptom",
+                                  "definition", "effect") if p.get(k)]
+    by_id = {n["id"]: n for n in nodes}
+    causes = []
+    for e in edges:
+        if e["from"] == fault["id"] and e["type"] == "CAUSED_BY" and e["to"] in by_id:
+            c = by_id[e["to"]]
+            symptom = (c.get("properties") or {}).get("symptom")
+            causes.append(c["label"] + (f" ({symptom})" if symptom else ""))
+    if causes:
+        parts.append("Causes: " + "; ".join(causes))
+    return ". ".join(_clean(x).rstrip(". ") for x in parts if x) + "."
+
+
+def _cosine(a, b):
+    dot = sum(x * y for x, y in zip(a, b))
+    na = sum(x * x for x in a) ** 0.5
+    nb = sum(y * y for y in b) ** 0.5
+    return dot / (na * nb) if na and nb else 0.0
+
+
+def _ai_pick_fault(incident_text, options):
+    """
+    The tie-breaker: one short multiple-choice question to the small model.
+    options = [(fault, card), ...]. Returns a fault, "none", or None (no answer).
+    """
+    try:
+        from groq import Groq
+        from models import MODEL_FAST, completion_kwargs
+        from token_budget import acquire, settle, estimate_tokens, usage_from_response
+        from llm_logger import log_llm_call
+    except Exception:
+        return None
+    listing = "\n".join(f"{i}. {card}" for i, (_, card) in enumerate(options, 1))
+    prompt = ("An operator on the plant floor wrote:\n"
+              f'"{incident_text[:600]}"\n\n'
+              "Which ONE of these machine faults are they describing?\n"
+              f"{listing}\n0. None of these, or it is not clear\n\n"
+              "Reply with the number only.")
+    kwargs = completion_kwargs(MODEL_FAST, "supervisor", 10)
+    reservation = acquire(MODEL_FAST, estimate_tokens([prompt], 600))
+    try:
+        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        resp = log_llm_call(
+            fn=lambda: client.chat.completions.create(
+                model=MODEL_FAST, temperature=0,
+                messages=[{"role": "user", "content": prompt}], **kwargs),
+            call_type="fault_match", model=MODEL_FAST)
+        settle(reservation, usage_from_response(resp))
+    except Exception as e:
+        settle(reservation, None)
+        print(f"[KG] fault-match AI tie-break failed: {str(e)[:80]}")
+        return None
+    import re as _re
+    m = _re.search(r"\d+", resp.choices[0].message.content or "")
+    if not m:
+        return None
+    n = int(m.group(0))
+    if n == 0:
+        return "none"
+    return options[n - 1][0] if 1 <= n <= len(options) else None
+
+
+def match_faults(nodes, edges, incident_text, use_ai=True):
+    """
+    Which fault is the operator describing, and how sure are we?
+
+    Returns a dict:
+      relevant    faults to write out in full
+      others      the rest (listed by name only)
+      hit         False = no match: every fault is handed over, as before
+      confidence  "sure" | "unsure" | "none" | "words only"
+      method      how it was decided (shown in the progress line)
+      scores      [(fault label, similarity), ...] best first
+    """
+    faults = [n for n in nodes if n["type"] == "Fault"]
+    w_rel, w_others, w_hit = _match_faults(nodes, edges, incident_text)
+
+    def all_faults(confidence, method, scores=()):
+        return {"relevant": faults, "others": [], "hit": False,
+                "confidence": confidence, "method": method, "scores": list(scores)}
+
+    if not faults or not (incident_text or "").strip():
+        return all_faults("none", "no description")
+
+    try:
+        cards = {f["id"]: _fault_card(f, nodes, edges) for f in faults}
+        missing = [c for c in cards.values() if c not in _card_vectors]
+        if missing:
+            for c, v in zip(missing, _embed(missing, "passage")):
+                _card_vectors[c] = v
+        q = _embed([incident_text], "query")[0]
+    except Exception as e:
+        # Embedding service down: today's word count, clearly labelled.
+        print(f"[KG] meaning match unavailable ({str(e)[:80]}) — using word count")
+        return {"relevant": w_rel, "others": w_others, "hit": w_hit,
+                "confidence": "words only", "method": "word count (meaning unavailable)",
+                "scores": []}
+
+    ranked = sorted(((_cosine(q, _card_vectors[cards[f["id"]]]), f) for f in faults),
+                    key=lambda t: -t[0])
+    scores = [(f["label"], round(s, 3)) for s, f in ranked]
+    best_s, best = ranked[0]
+    second_s = ranked[1][0] if len(ranked) > 1 else 0.0
+
+    def chosen(picked, confidence, method):
+        ids = {f["id"] for f in picked}
+        return {"relevant": picked, "others": [f for f in faults if f["id"] not in ids],
+                "hit": True, "confidence": confidence, "method": method, "scores": scores}
+
+    # 1. Clearly closest by meaning.
+    if best_s >= MATCH_MIN_SIMILARITY and best_s - second_s >= MATCH_MIN_GAP:
+        return chosen([best], "sure", "meaning")
+    # 2. Close call, but the word count independently points at the same fault.
+    if (best_s >= MATCH_MIN_SIMILARITY and best_s - second_s >= MATCH_WORDS_MIN_GAP
+            and w_hit and len(w_rel) == 1 and w_rel[0]["id"] == best["id"]):
+        return chosen([best], "sure", "meaning + word count agree")
+    # 3. Still unsure: ask the small model to choose between the closest few.
+    top = [f for _, f in ranked[:MATCH_AI_CANDIDATES]]
+    if use_ai:
+        pick = _ai_pick_fault(incident_text, [(f, cards[f["id"]]) for f in top])
+        if pick == "none":
+            return all_faults("none", "AI: none of these faults", scores)
+        if pick:
+            return chosen([pick], "sure", "AI tie-break")
+    # 4. No confident answer: hand over the close candidates, marked unsure.
+    if best_s < MATCH_MIN_SIMILARITY:
+        return all_faults("none", "nothing close by meaning", scores)
+    close = [f for s, f in ranked if best_s - s < MATCH_MIN_GAP][:MATCH_AI_CANDIDATES]
+    return chosen(close, "unsure", "close call between faults")
+
+
 def _match_faults(nodes, edges, incident_text):
     """
+    Word-count matcher: the backup, and the second opinion for match_faults().
     Which fault(s) does the operator's description match?
     Returns (relevant, others, matched). When nothing matches, every fault is
     relevant and matched is False.
@@ -536,7 +769,7 @@ def _relevant_ids(equip_tag, nodes, edges, faults):
 
 
 def _build_chain_text(nodes, edges, warnings, downtime, equip_tag, incident_text="",
-                      relevant_ids=None):
+                      relevant_ids=None, match=None):
     """
     Turn the graph into text for the orchestrator, KEEPING THE LINKS.
 
@@ -562,8 +795,16 @@ def _build_chain_text(nodes, edges, warnings, downtime, equip_tag, incident_text
         return [by_id[e["to"]] for e in edges
                 if e["from"] == from_id and e["type"] == rel_type and e["to"] in by_id]
 
-    relevant, others, _ = _match_faults(nodes, edges, incident_text)
+    if match:
+        relevant, others = match["relevant"], match["others"]
+    else:
+        relevant, others, _ = _match_faults(nodes, edges, incident_text)
     lines = [f"KNOWLEDGE GRAPH FOR {equip_tag} — human-reviewed facts, each with its source.", ""]
+    if match and match.get("confidence") == "unsure":
+        names = " or ".join(f["label"] for f in relevant)
+        lines += [f"FAULT NOT CONFIRMED: the description could be {names}. Say so in the "
+                  "report, give the check that tells them apart, and ask the operator to "
+                  "confirm. Do not rate criticality from a fault that is not confirmed.", ""]
     written = set()
 
     def note(n, indent, prefix):
@@ -693,7 +934,8 @@ def _fault_chain_from_file(equip_tag, reason=""):
       * promoted operator patterns are MISSING -- they live only in Neo4j, so a
         degraded report is missing the human-reviewed field knowledge.
     """
-    path = Path(__file__).parent / "wm101_graph.json"
+    # Each machine's file is named after its tag: WM-101 -> wm101_graph.json.
+    path = Path(__file__).parent / graph_file_name(equip_tag or "")
     try:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
@@ -728,8 +970,8 @@ def _fault_chain_from_file(equip_tag, reason=""):
             warnings.append("Parts welded during fault event must be quarantined for quality inspection.")
         if node["id"] == "shielding_gas_low":
             warnings.append("CRITICAL — never weld without shielding gas. Parts welded after alarm must be scrapped.")
-        if node.get("type") == "Procedure" and props.get("total_with_burnin"):
-            downtime = props["total_with_burnin"]
+        if node.get("type") == "Procedure" and (props.get("total_downtime") or props.get("total_with_burnin")):
+            downtime = props.get("total_downtime") or props["total_with_burnin"]
         if node.get("type") == "Pattern" and props.get("wrong_response"):
             warnings.append(f"Do NOT: {props['wrong_response']}")
 

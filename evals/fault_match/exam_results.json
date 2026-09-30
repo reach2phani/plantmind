@@ -1,0 +1,198 @@
+[
+ {
+  "equip": "FL-101",
+  "set": "fresh",
+  "id": "FL-f1",
+  "expect": "Underfill",
+  "q": "We're getting another low-fill alarm on the filler. That's the third one tonight, and the reject table's starting to pile up. What should we check?",
+  "faults": [
+   "Underfill"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Underfill",
+    0.867
+   ],
+   [
+    "Overfill",
+    0.829
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.821
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh",
+  "id": "FL-f2",
+  "expect": "Overfill",
+  "q": "Ever since we changed the seals in the bowls, we're running heavy—seeing around 508 on the scale. Could the stack height be off?",
+  "faults": [
+   "Overfill"
+  ],
+  "confidence": "sure",
+  "method": "AI tie-break",
+  "scores": [
+   [
+    "Overfill",
+    0.828
+   ],
+   [
+    "Underfill",
+    0.813
+   ],
+   [
+    "Infeed Jam",
+    0.791
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh",
+  "id": "FL-f3",
+  "expect": "Infeed Jam",
+  "q": "Bottles are starting to tip and back up at the infeed star. We changed over to the 330s about an hour ago. Could the guide rails be set wrong?",
+  "faults": [
+   "Infeed Jam"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Infeed Jam",
+    0.865
+   ],
+   [
+    "Overfill",
+    0.822
+   ],
+   [
+    "Underfill",
+    0.82
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh",
+  "id": "FL-f4",
+  "expect": "Glass Breakage",
+  "q": "We've got a broken bottle inside the turret. There's glass all over the starwheel deck. What's the lockout and cleanup procedure?",
+  "faults": [
+   "Glass Breakage"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Glass Breakage",
+    0.846
+   ],
+   [
+    "Infeed Jam",
+    0.804
+   ],
+   [
+    "Overfill",
+    0.799
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh",
+  "id": "FL-f5",
+  "expect": "Product Supply Pressure Low",
+  "q": "Product pressure has dropped to about 1.1 bar and we're getting short fills. What could be restricting the product feed?",
+  "faults": [
+   "Product Supply Pressure Low"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Product Supply Pressure Low",
+    0.895
+   ],
+   [
+    "Underfill",
+    0.835
+   ],
+   [
+    "Overfill",
+    0.828
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh",
+  "id": "FL-f6",
+  "expect": "Underfill",
+  "q": "We're getting short fills again. Someone suggested increasing the fill time on the HMI. Should we be doing that, or do we need to find the actual cause first?",
+  "faults": [
+   "Underfill"
+  ],
+  "confidence": "sure",
+  "method": "AI tie-break",
+  "scores": [
+   [
+    "Overfill",
+    0.824
+   ],
+   [
+    "Underfill",
+    0.819
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.812
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh",
+  "id": "FL-f7",
+  "expect": "Infeed Jam",
+  "q": "The worm screw's catching bottles right at the entry. We just finished the changeover—could the guide setting be too wide?",
+  "faults": [
+   "Infeed Jam"
+  ],
+  "confidence": "sure",
+  "method": "AI tie-break",
+  "scores": [
+   [
+    "Infeed Jam",
+    0.808
+   ],
+   [
+    "Overfill",
+    0.802
+   ],
+   [
+    "Underfill",
+    0.788
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ }
+]
