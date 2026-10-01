@@ -31,6 +31,7 @@ TEST IT WITHOUT MQTT
 """
 
 import datetime as dt
+import re
 import sys
 from pathlib import Path
 
@@ -87,13 +88,49 @@ def _resolve_class(definition_id, class_id):
     return None, None
 
 
-def _resolve_location(work_center_id):
-    """Where does it exist? The work centre must already be on the plant map."""
+def _slug(text):
+    return re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-")
+
+
+def _resolve_location(work_center_id, parent=None, apply=True):
+    """
+    Where does it exist? Returns (work_centre_id or None, note).
+
+    A work centre already on the plant map is used as is. A new one is ADDED
+    when the message carries its plant and line names (Phase 2a D1): the
+    publisher only sends an id for a line that exactly matches Plant Setup's
+    official lists, so this never invents a place from free text. Before, a new
+    line needed hand edits to ontology_bootstrap.py first.
+    """
     if not work_center_id:
-        return None
+        return None, ""
     rows = kg._run("MATCH (w:Instance {_id: $w}) RETURN w._id AS id LIMIT 1",
                    {"w": work_center_id})
-    return rows[0]["id"] if rows else None
+    if rows:
+        return rows[0]["id"], ""
+    parent = parent or {}
+    site_name, line_name = parent.get("siteName", ""), parent.get("workCenterName", "")
+    if not (site_name and line_name):
+        return None, ""
+    found = kg._run("MATCH (s:Site) WHERE s.name = $n RETURN s._id AS id LIMIT 1", {"n": site_name})
+    site_id = found[0]["id"] if found else f"SITE-{_slug(site_name).upper()}"
+    note = (f"new line added to the plant map: {site_name} > {line_name} ({work_center_id})"
+            + ("" if found else f", with new site {site_id}"))
+    if not apply:
+        return work_center_id, note + "  [preview]"
+    kg._run("MERGE (s:Instance:Location:Site {_id:$i}) "
+            "ON CREATE SET s._label=$l, s._type='Site', s.name=$l, s.source='auto: Plant Setup'",
+            {"i": site_id, "l": site_name})
+    kg._run("MATCH (s:Instance {_id:$i}), (c:Class {name:'Site'}) MERGE (s)-[:IS_INSTANCE_OF]->(c)",
+            {"i": site_id})
+    kg._run("MERGE (w:Instance:Location:WorkCenter {_id:$i}) "
+            "ON CREATE SET w._label=$l, w._type='WorkCenter', w.name=$l, w.source='auto: Plant Setup'",
+            {"i": work_center_id, "l": line_name})
+    kg._run("MATCH (w:Instance {_id:$i}), (c:Class {name:'WorkCenter'}) MERGE (w)-[:IS_INSTANCE_OF]->(c)",
+            {"i": work_center_id})
+    kg._run("MATCH (s:Instance {_id:$s}), (w:Instance {_id:$w}) MERGE (s)-[:CONTAINS]->(w)",
+            {"s": site_id, "w": work_center_id})
+    return work_center_id, note
 
 
 def handle_definition(payload, apply=True):
@@ -113,7 +150,8 @@ def handle_definition(payload, apply=True):
     source = payload.get("source") or {}
 
     class_name, matched_on = _resolve_class(eq_def.get("id"), eq_class.get("id"))
-    work_center = _resolve_location((payload.get("parent") or {}).get("workCenterId"))
+    parent = payload.get("parent") or {}
+    work_center, place_note = _resolve_location(parent.get("workCenterId"), parent, apply)
 
     warnings = []
     if not class_name:
@@ -167,10 +205,18 @@ def handle_definition(payload, apply=True):
                     {"id": eq_id})
             kg._run("MATCH (e:Equipment {_id:$id}), (w:Instance {_id:$w}) "
                     "MERGE (e)-[:IS_LOCATED_AT]->(w)", {"id": eq_id, "w": work_center})
+            # Phase 2a D2: the machine carries its plant and line names, read
+            # from the map (not typed), so filters by plant/line find machines
+            # that have no graph file yet.
+            kg._run("MATCH (e:Equipment {_id:$id})-[:IS_LOCATED_AT]->(w) "
+                    "OPTIONAL MATCH (s:Site)-[:CONTAINS*1..3]->(w) "
+                    "SET e.line_name = w.name, e.site_name = s.name", {"id": eq_id})
 
     where = f"at {work_center}" if work_center else "UNPLACED"
     what = f"{class_name} (matched on {matched_on})" if class_name else "UNTYPED"
     print(f"[DEF] {eq_id}: {what}, {where}" + ("  [preview]" if not apply else ""))
+    if place_note:
+        print(f"[DEF]   {place_note}")
     for w in warnings:
         print(f"[DEF]   warning: {w}")
 

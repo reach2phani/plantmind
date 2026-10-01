@@ -46,20 +46,52 @@ def _slug(text):
     return re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-")
 
 
+_official = None
+
+
+def _official_lines():
+    """
+    The (plant, line) pairs Plant Setup says exist: names from plant_sites and
+    active rows in lines, exactly as saved. Read once per process.
+    """
+    global _official
+    if _official is None:
+        try:
+            from llm_logger import _get_supabase
+            sb = _get_supabase()
+            plants = {r["name"] for r in (sb.table("plant_sites").select("name").execute().data or [])}
+            rows = sb.table("lines").select("name,plant_site,active").execute().data or []
+            _official = {(r["plant_site"], r["name"]) for r in rows
+                         if r.get("plant_site") in plants and r.get("active") is not False}
+        except Exception as e:
+            print(f"[PUB] could not read the plant list: {str(e)[:80]}")
+            return set()
+    return _official
+
+
 def work_center_id(plant_site, line):
     """
     Which work centre on the plant map this machine belongs to.
 
-    Kept as a small explicit map rather than guessed from the name. Guessing
-    from names is exactly what the misspelt "Greenfiled Steel Works" row in
-    your lines table would break.
+    1. The explicit map below, for lines placed by hand (ontology_bootstrap.py).
+    2. Otherwise, generated from the names, BUT only when the plant and the line
+       exactly match the official lists in Plant Setup (Phase 2a D1). Before,
+       any new line needed a code edit here and in ontology_bootstrap.py (it
+       did for FL-101). Still no guessing from free text: the misspelt
+       "Greenfiled Steel Works" row in the lines table is not in plant_sites,
+       so it stays off the map instead of creating a fake plant.
     """
     mapping = {
         ("greenfield-steel-works", "fabrication-line-1"): "WC-GSW-FAB-L1",
         ("greenfield-steel-works", "processing-line-2"):  "WC-GSW-PROC-L2",
         ("demo-bottling-plant", "filling-line-1"):        "WC-DBP-FILL-L1",
     }
-    return mapping.get((_slug(plant_site), _slug(line)))
+    known = mapping.get((_slug(plant_site), _slug(line)))
+    if known:
+        return known
+    if plant_site and line and (plant_site.strip(), line.strip()) in _official_lines():
+        return f"WC-{_slug(plant_site).upper()}-{_slug(line).upper()}"
+    return None
 
 
 def build_definition(row):
@@ -85,7 +117,11 @@ def build_definition(row):
             "manufacturer": row.get("manufacturer") or "",
             "model": "",
         },
-        "parent": {"workCenterId": work_center_id(row.get("plant_site"), row.get("line"))},
+        # The names travel with the id, so the listener can add a line it has
+        # not seen yet to the plant map (Phase 2a D1).
+        "parent": {"workCenterId": work_center_id(row.get("plant_site"), row.get("line")),
+                   "siteName": (row.get("plant_site") or "").strip(),
+                   "workCenterName": (row.get("line") or "").strip()},
         "source": {"origin": "PlantMind Plant Setup", "system": "supabase.equipment"},
         "quality": "Good",
         "timestamp": int(dt.datetime.utcnow().timestamp() * 1000),

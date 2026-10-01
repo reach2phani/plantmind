@@ -79,6 +79,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;hei
 .card-actions{padding:9px 14px;border-top:1px solid #f1f5f9;display:flex;align-items:center;gap:6px}
 .act-btn{font-size:12px;padding:4px 10px;border:1px solid #e2e8f0;border-radius:5px;cursor:pointer;background:#fff;color:#475569;transition:all .15s}
 .act-btn:hover{border-color:#a5b4fc;color:#4f46e5}
+.mq-msg{font-size:13px;color:#334155;font-weight:600;margin:2px 0 4px}
+.mq-hint{font-size:12px;color:#64748b}
 .helpful{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px;color:#94a3b8}
 .thumb{cursor:pointer;opacity:.4;font-size:15px;background:none;border:none;padding:0;transition:opacity .15s}
 .thumb:hover,.thumb.active{opacity:1}
@@ -1168,7 +1170,8 @@ function submitQuestion() {
             // Equipment-specific message is self-contained — render heading + body, no generic hint
             // Detect the equipment message by CONTENT, not emoji-at-position-0.
             // Emoji/whitespace differences between backend and frontend must not break this.
-            var isEquipMsg = msg.indexOf('No manuals found for') !== -1;
+            var isEquipMsg = msg.indexOf('No manuals found for') !== -1 ||
+                             msg.indexOf('No matching equipment manual found') !== -1;
             var msgHtml;
             if (isEquipMsg) {
               var parts   = msg.split(/\\n|\n/);  // split on real OR literal newline
@@ -1398,6 +1401,13 @@ function submitInvestigation(incident) {
           btn.disabled    = false;
           btn.textContent = '⚡ Investigate';
 
+          // No single machine was clear: the server asks instead of searching
+          // every machine. Show the choices; a click re-runs with that machine.
+          if (fullContent.indexOf('NEEDMACHINE:') === 0) {
+            showMachineQuestion(stepsEl, progEl, incident, fullContent.substring('NEEDMACHINE:'.length));
+            return;
+          }
+
           // DONE_MARKER: parse from fullContent — reportText may be empty
           var DONE_MARKER = 'INVESTIGATION REPORT';
           var bodyText = '';
@@ -1451,6 +1461,7 @@ function submitInvestigation(incident) {
 
         var chunk = decoder.decode(result.value, {stream:true});
         fullContent += chunk;
+        if (fullContent.indexOf('NEEDMACHINE:') === 0) { read(); return; }  // shown when complete
 
         // Separator can be: "INVESTIGATION REPORT" surrounded by = or ═ lines
         var REPORT_MARKER = 'INVESTIGATION REPORT';
@@ -1514,6 +1525,18 @@ function submitInvestigation(incident) {
     btn.disabled    = false;
     btn.textContent = '⚡ Investigate';
   });
+}
+
+// ── NO MACHINE ────────────────────────────────────────────────────────────────
+// Shown when the incident doesn't name one machine clearly. PlantMind stops
+// rather than searching every machine's documents (2026-10-01).
+function showMachineQuestion(stepsEl, progEl, incident, payload) {
+  var q;
+  try { q = JSON.parse(payload); } catch (e) { q = {}; }
+  var parts = (q.message || 'No matching equipment manual found.').split('\n');
+  stepsEl.innerHTML =
+    '<div class="mq-msg">' + escHtml(parts[0]) + '</div>' +
+    (parts.length > 1 ? '<div class="mq-hint">' + escHtml(parts.slice(1).join(' ')) + '</div>' : '');
 }
 
 // ── DRAFT WORK ORDER (M1) ─────────────────────────────────────────────────────

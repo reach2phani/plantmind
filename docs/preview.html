@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlantMind Lessons</title>
+<meta name="description" content="Learn how retrieval-augmented generation works through one bottling plant, and see what it took to make it trustworthy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --brass:#C08A3E; --brass-soft:#F4E8D3; --rust:#B85C50; --rust-soft:#F4E0DB; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; color-scheme:dark;}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1220px;margin:0 auto;padding:0 16px}
+
+header{padding:44px 0 26px;display:flex;gap:16px;align-items:flex-start}
+header h1{font:600 clamp(1.7rem,3.6vw,2.3rem)/1.2 Fraunces,Georgia,serif;margin:0;letter-spacing:-.01em}
+header p{margin:8px 0 0;color:var(--muted);max-width:72ch}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer;flex:none}
+
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:26px;align-items:start;padding-bottom:40px}
+.steps{list-style:none;margin:0;padding:0;position:sticky;top:20px}
+.steps button{all:unset;box-sizing:border-box;display:flex;gap:14px;width:100%;padding:10px 14px;border-radius:9px;cursor:pointer;color:var(--ink);font-size:.97rem}
+.steps button span{color:var(--faint);font-family:"IBM Plex Mono",monospace;font-size:.85rem;width:16px;padding-top:2px}
+.steps button:hover{background:var(--sunk)}
+.steps button.on{background:var(--pine-soft);font-weight:600}
+.steps button.on span{color:var(--pine)}
+.steps button:focus-visible{outline:2px solid var(--pine)}
+.steps .soon button{cursor:default;color:var(--faint)}
+.steps .soon button:hover{background:none}
+.steps .soon em{font-style:normal;font-size:.7rem;font-family:"IBM Plex Mono",monospace;margin-left:auto;padding-top:3px}
+
+.panel{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 26px 20px}
+.kick{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.lesson{font:500 clamp(1.3rem,2.5vw,1.7rem)/1.3 Fraunces,Georgia,serif;margin:4px 0 10px}
+.plain{max-width:74ch;color:var(--muted);margin:0 0 18px;font-size:1rem}
+.plain b{color:var(--ink);font-weight:500}
+.plain .sub{display:block;font:500 1.12rem/1.4 Fraunces,Georgia,serif;margin-bottom:6px}
+.kick:empty,.lesson:empty,.plain:empty{display:none}
+header .sub{font:500 1.15rem/1.4 Fraunces,Georgia,serif;color:var(--ink);margin-top:10px}
+header .sub + p{margin-top:4px}
+
+.cap{margin-top:14px;display:flex;gap:14px;align-items:flex-start;background:var(--sunk);border-radius:10px;padding:12px 14px;min-height:74px}
+.cap .n{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;flex:none;width:118px;padding-top:3px;color:var(--ac)}
+.cap p{margin:0;font-size:.97rem}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 11px;font:inherit;font-size:.8rem;cursor:pointer}
+.ctrl button:hover{color:var(--ink)}
+.acts{display:flex;gap:18px;margin-left:auto;align-items:flex-end}
+.act{display:flex;flex-direction:column;gap:5px}
+.act span{font:500 .66rem "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);cursor:pointer}
+.act.on span{color:var(--ac)}
+.act .tk{display:flex;gap:3px}
+.act .tk i{width:16px;height:5px;border-radius:3px;background:var(--line);cursor:pointer}
+.act .tk i.done{background:color-mix(in srgb,var(--ac) 40%,var(--line))}
+.act .tk i.on{background:var(--ac)}
+
+/* evidence + surprise under the player */
+.below:empty{display:none}
+.below{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-top:22px}
+.card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--bg)}
+.card h3{margin:0 0 10px;font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.9rem}
+.card dt{color:var(--faint)}
+.card dd{margin:0}
+.card code{font:.8rem "IBM Plex Mono",monospace;background:var(--sunk);padding:1px 5px;border-radius:4px;word-break:break-all}
+.card p{margin:0 0 8px;font-size:.93rem}
+.card .pend{color:var(--brass)}
+.card.note{border-left:3px solid var(--brass)}
+.card.note p:last-child{margin:0}
+
+/* glossary */
+.g{border-bottom:1px dotted var(--faint);cursor:help;position:relative;color:inherit}
+.g:hover::after,.g:focus::after{content:attr(data-tip);position:absolute;left:0;top:130%;z-index:5;width:260px;padding:9px 11px;border-radius:8px;background:var(--ink);color:var(--bg);font:400 .82rem/1.45 "IBM Plex Sans",sans-serif}
+.g:focus{outline:none}
+
+.model{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:14px}
+.model:empty{display:none}
+.model .mh{font:500 .68rem "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);grid-column:1/-1}
+.model b{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:9px;padding:6px 10px;min-width:0;font-weight:600;font-size:.9rem;background:var(--bg);transition:all .4s}
+.model b small{font-weight:400;font-size:.74rem;color:var(--faint)}
+.model b.on{border-color:var(--pine);background:var(--pine-soft);color:var(--pine)}
+.model b.seen{border-color:color-mix(in srgb,var(--pine) 40%,var(--line))}
+.model i{display:none}
+@media (max-width:860px){.model{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.sn.stage.cur rect{stroke-width:1.8}
+.sn.stage.cur.tone-ink rect{fill:var(--sunk);stroke:var(--ink)}
+.sn.stage.cur.tone-pine rect{fill:var(--pine-soft);stroke:var(--pine)}
+.sn.stage.cur.tone-steel rect{fill:var(--steel-soft);stroke:var(--steel)}
+.sn.stage.cur.tone-brass rect{fill:var(--brass-soft);stroke:var(--brass)}
+.sn.stage.done rect{stroke:color-mix(in srgb,var(--pine) 45%,var(--line))}
+.scene .fade{opacity:.22!important}
+.scene .grow{transform-origin:left center}
+.sn.mach rect{fill:var(--steel-soft);stroke:var(--steel);stroke-width:2.2}
+.clue{transition:fill .4s,font-weight .4s}
+.clue.lit{transition-delay:var(--d,0s)}
+.clue.cm.lit{fill:var(--pine);font-weight:600;font-style:normal}
+.clue.cf.lit{fill:var(--brass);font-weight:600;font-style:normal}
+@keyframes ring{0%,100%{opacity:.15}50%{opacity:1}}
+.rays{opacity:.35}
+.scene .vis .rays.flash,.scene .vis.hot .rays.flash{animation:ring .9s ease-in-out infinite;animation-delay:calc(var(--d,0s) + .2s)}
+.ed.road{stroke:var(--rust);stroke-width:4}
+.scene .hl{transform:scaleX(0);transform-origin:left center;transform-box:fill-box;transition:opacity .2s,transform .7s ease}
+.scene .hl.vis{transform:scaleX(1)}
+@keyframes ping{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.scene .ping.vis{animation:ping 1.6s ease-out both;animation-delay:var(--d,0s)}
+.scene .ping.loop.vis{animation-iteration-count:3}
+@keyframes sink{to{opacity:.15}}
+.scene .vis.sink{animation:sink .7s ease forwards;animation-delay:calc(var(--d,0s) + 1.3s)}
+.arch-code rect{rx:3}
+.wire{fill:none;stroke:var(--line);stroke-width:1.5}
+.wire-amber{fill:none;stroke:var(--brass);stroke-width:1.3;opacity:.5}
+.store{fill:none;stroke:var(--faint);stroke-width:1;stroke-dasharray:3 3;opacity:.7}
+.ed.store{stroke-dasharray:3 3}
+.chunk.pick.lit rect:first-child{stroke:var(--steel);stroke-width:1.6;fill:var(--steel-soft)}
+.scene [data-on]{transition:opacity .45s}
+.scene [data-on].off:not([data-f]):not([data-h]){opacity:.2}
+.scene .vis.off{opacity:.2!important}
+.tdot{fill:var(--surface);stroke:var(--line);stroke-width:1.5;transition:fill .4s,stroke .4s}
+.tdot.on{fill:var(--pine);stroke:var(--pine)}
+/* ── drawn scenes ── */
+.scene{overflow-x:auto}
+.scene svg{width:100%;height:auto;display:block}
+.scene [data-f],.scene [data-h]{opacity:0;transition:opacity .5s}
+.scene .vis{opacity:1;transition-delay:var(--d,0s)}
+.scene [data-tf]{transition:transform .9s cubic-bezier(.3,.7,.3,1),opacity .5s;transform-box:fill-box;transform-origin:center}
+.scene .dim{opacity:.16!important}
+.sn rect,.sn polygon{fill:var(--bg);stroke:var(--line);stroke-width:1;transition:stroke-width .3s,fill .3s,stroke .3s}
+.t{fill:var(--ink);font:600 15px "IBM Plex Sans",sans-serif}
+.s{fill:var(--muted);font:400 12.5px "IBM Plex Sans",sans-serif}
+.i{fill:var(--ink);font:italic 400 13px "IBM Plex Sans",sans-serif}
+.m{fill:var(--faint);font:500 10.5px "IBM Plex Mono",monospace;letter-spacing:.05em}
+.hd{fill:var(--muted);font:500 14px "IBM Plex Sans",sans-serif}
+.big{fill:var(--ink);font:600 30px Fraunces,serif}
+.k-steel rect{fill:var(--steel-soft);stroke:var(--steel)}
+.k-brass rect{fill:var(--brass-soft);stroke:var(--brass)}
+.k-rust rect{fill:var(--rust-soft);stroke:var(--rust)}
+.k-pine rect,.k-pine polygon{fill:var(--pine-soft);stroke:var(--pine)}
+.sn.hot rect,.sn.hot polygon{stroke-width:2.6}
+.sn.hot:not([class*="k-"]) rect,.sn.hot:not([class*="k-"]) polygon{stroke:var(--pine)}
+.sn.good rect{fill:var(--pine-soft)!important;stroke:var(--pine)!important;stroke-width:2.4}
+.sn.bad rect{fill:var(--rust-soft)!important;stroke:var(--rust)!important;stroke-width:2.4}
+.pc{stroke:none;transition:fill .4s,opacity .4s}
+.pc.sop{fill:var(--steel)} .pc.wi{fill:var(--pine)} .pc.ncr{fill:var(--brass)} .pc.wm{fill:var(--faint)}
+.pc{fill-opacity:.4} .pc.lit{fill-opacity:1;stroke:var(--ink);stroke-width:2.5}
+.ed{fill:none;stroke:var(--faint);stroke-width:1.5;transition:stroke-dashoffset .8s ease,opacity .5s}
+.ed.bad{stroke:var(--rust)} .ed.good{stroke:var(--pine);stroke-width:2}
+.tok{fill:var(--brass)}
+@media (max-width:860px){.scene svg{min-width:720px}}
+
+
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:14px}
+  .steps{min-width:0;position:static;display:flex;overflow-x:auto;gap:4px;scrollbar-width:none}
+  .steps button{white-space:nowrap;padding:8px 12px;font-size:.88rem}
+  .steps .soon{display:none}
+  .panel{padding:18px 14px 14px}
+  .cap{flex-direction:column;gap:4px}
+  .acts{margin-left:0;width:100%;justify-content:space-between}
+  .below{grid-template-columns:1fr}
+  header{padding-top:28px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Inside PlantMind</h1>
+      <p class="sub">What happens between an operator’s question and the answer?</p>
+      <p>An animated walkthrough of the journey from identifying the problem and building context to gathering evidence, validating it, and producing the final answer.</p>
+    </div>
+    <button class="tbtn" id="theme">Theme</button>
+  </header>
+
+  <div class="layout">
+    <ol class="steps" id="steps"></ol>
+    <div class="panel">
+      <div class="kick" id="kick"></div>
+      <div class="lesson" id="lesson"></div>
+      <p class="plain" id="plain"></p>
+      <div class="scene" id="stage"></div>
+      <div class="model" id="model"></div>
+      <div class="cap" id="cap"><span class="n" id="cn"></span><p id="ct"></p></div>
+      <div class="ctrl">
+        <button id="prev" aria-label="Previous step">←</button><button id="play">▶ Play</button><button id="next" aria-label="Next step">→</button>
+        <div class="acts" id="acts"></div>
+      </div>
+      <div class="below" id="below"></div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+/* ── SVG helpers. o = {f: step it appears, h: step it hides, c: {step: class}, tf: {step: transform}, flow} ── */
+const A = (o={}) => (o.f!=null?` data-f="${o.f}"`:'') + (o.h!=null?` data-h="${o.h}"`:'')
+  + (o.c?` data-c='${JSON.stringify(o.c)}'`:'') + (o.tf?` data-tf='${JSON.stringify(o.tf)}'`:'') + (o.flow?' data-flow':'') + (o.d!=null?` data-d="${o.d}"`:'');
+const G = (o,cls,inner) => `<g class="${cls||''}"${A(o)}>${inner}</g>`;
+const R = (x,y,w,h,st='',rx=10) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"${st?` style="${st}"`:''}/>`;
+const T = (x,y,s,cls='s',a='start',st='') => `<text class="${cls}" x="${x}" y="${y}" text-anchor="${a}"${st?` style="${st}"`:''}>${s}</text>`;
+const txt = (x,y,s,o={},cls='hd',a='start',st='') => `<text class="${cls}" x="${x}" y="${y}" text-anchor="${a}"${st?` style="${st}"`:''}${A(o)}>${s}</text>`;
+const edge = (d,o={},cls='') => `<path class="ed ${cls}" data-edge d="${d}"${A(o)}/>`;
+const svg = (inner,label) => `<svg viewBox="0 0 1000 480" role="img" aria-label="${label}">${inner}<g class="toks"></g></svg>`;
+const bubble = (x,y,w,lines,who,o) => G(o,'sn', R(x,y,w,28+lines.length*19,'',12) + T(x+14,y+22,who,'m') + lines.map((l,i) => T(x+14,y+44+i*19,l,'i')).join(''));
+
+/* ════════ Start here · the journey ════════ */
+const node = (cx,cy,w,type,label,o={},k='') => G(o,'sn '+k, R(cx-w/2,cy-24,w,48,'',9) + T(cx,cy-6,type,'m','middle') + T(cx,cy+13,label,'t','middle','font-size:13.5px'));
+const vc = (ax,ay,bx,by) => `M${ax},${ay} C ${ax},${(ay+by)/2} ${bx},${(ay+by)/2} ${bx},${by}`;
+function sJourney(){
+  const stages = [['Question',['what’s wrong?']],['Scope',['what exactly are','we dealing with?']],['Context',['what’s happening','right now?']],['Evidence',['what do the plant’s','documents say?']],['Validate',['does it hold','together?']],['Answer',['what does the operator','need to know now?']]];
+  const starts = [0,1,2,3,4,5], ends = [1,2,3,4,5,6];
+  let s = '';
+  const tone = ['ink','pine','steel','steel','brass','ink'];
+  stages.forEach(([t,d],i) => { const x = 10+i*168;
+    s += G({c:{[starts[i]]:'cur',[ends[i]]:'done'}},'sn stage tone-'+tone[i], R(x,18,150,60,'',10) + T(x+75,d.length>1?38:44,t,'t','middle')
+       + d.map((l,j) => T(x+75,(d.length>1?55:64)+j*14,l,'s','middle',d.length>1?'font-size:11.5px':'')).join(''));
+    if (i < 5) s += `<path d="M${x+152},48 L${x+164},48" style="stroke:var(--faint);stroke-width:1.5"/><path d="M${x+160},44 L${x+165},48 L${x+160},52" style="fill:none;stroke:var(--faint);stroke-width:1.5"/>`; });
+
+  // the trace: the question travels through the stages and leaves a line behind it
+  const cxs = [85,253,421,589,757,925];
+  s += T(10,101,'TRACE','m');
+  s += R(85,95,840,3,'fill:var(--line);stroke:none',2);
+  s += `<rect class="grow" x="85" y="95" width="840" height="3" rx="2" style="fill:var(--pine)"${A({tf:Object.fromEntries(cxs.map((c,i) => [starts[i], `scaleX(${((c-85)/840).toFixed(4)})`]).concat([[6,'scaleX(1)']]))})}/>`;
+  cxs.forEach((c,i) => s += `<circle cx="${c}" cy="96.5" r="5" class="tdot"${A({c:{[starts[i]]:'on'}})}/>`);
+  s += `<g${A({tf:Object.fromEntries(cxs.map((c,i) => [starts[i], `translateX(${c-85}px)`]).concat([[6,'translateX(840px)']]))})}>`
+     + R(58,85,54,23,'fill:var(--brass);stroke:none',12) + T(85,101,'question','m','middle','fill:var(--surface)') + `</g>`;
+
+  // 0 · the question
+  s += bubble(240,170,520,['We’re getting underfill alarms again on Filling Line 1, and the','checkweigher is rejecting bottles. Third time tonight.','What should I check?'],'OPERATOR · FILLING LINE 1 · NIGHT SHIFT',{f:0,h:1});
+
+  // 1 · scope: two plain questions, answered from the operator's own words, then what it is not
+  const pill = (cx,y,w,label,o,c) => G(o,'sn', R(cx-w/2,y,w,26,`fill:var(--${c}-soft);stroke:var(--${c})`,13) + T(cx,y+17,label,'i','middle',`fill:var(--${c});font-style:normal;font-weight:500`));
+  const clue = (w,cls,d) => `<tspan class="clue ${cls}"${A({c:{1:'lit'},d})}>${w}</tspan>`;
+  const o = (d,extra={}) => Object.assign({f:1,h:2,d},extra);
+  s += `<g${A(o(0))}><text class="i" x="500" y="128" text-anchor="middle" style="fill:var(--muted)">“We’re getting ${clue('underfill alarms','cf',2.4)} again on ${clue('Filling Line 1','cm',0.4)}, and the</text>`
+     + `<text class="i" x="500" y="147" text-anchor="middle" style="fill:var(--muted)">${clue('checkweigher is rejecting bottles','cf',2.4)}. Third time tonight. What should I check?”</text></g>`;
+  s += `<line x1="500" y1="170" x2="500" y2="392" style="stroke:var(--line);stroke-dasharray:4 4"${A(o(0.6))}/>`;
+
+  // which machine is it?
+  s += txt(250,186,'Which machine is it?',o(0.6),'t','middle');
+  s += pill(250,198,140,'“Filling Line 1”',o(0.9),'pine') + edge('M250,226 L250,250',o(1.2,{flow:1}));
+  s += G(o(1.5),'sn k-pine', R(90,252,320,56,'',10) + T(250,276,'The bottle filler (FL-101)','t','middle') + T(250,296,'on Filling Line 1','s','middle'));
+
+  // what's wrong with it?
+  s += txt(750,186,'What’s wrong with it?',o(2.2),'t','middle');
+  s += pill(620,198,150,'“underfill alarms”',o(2.6),'brass') + txt(708,216,'+',o(2.6),'t','middle','fill:var(--brass)')
+     + pill(852,198,262,'“checkweigher is rejecting bottles”',o(2.6),'brass');
+  s += edge('M750,226 L750,250',o(3.0,{flow:1}));
+  s += G(o(3.3),'sn k-brass', R(590,252,320,56,'',10) + T(750,276,'Underfill <tspan class="s" style="font-weight:400">(fault name)</tspan>','t','middle') + T(750,296,'bottles filled below 495 ml','s','middle'));
+
+  // not this
+  s += txt(90,338,'NOT THIS',o(4.2),'m') + txt(90,358,'the welder, or any other machine',o(4.2),'s','start','text-decoration:line-through;fill-opacity:.6');
+  s += txt(590,338,'NOT THIS',o(4.2),'m') + txt(590,358,'overfilled bottles · a jam',o(4.2),'s','start','text-decoration:line-through;fill-opacity:.6')
+     + txt(590,376,'broken glass · low supply pressure',o(4.2),'s','start','text-decoration:line-through;fill-opacity:.6');
+
+  // so we're dealing with
+  s += G(o(5.0),'sn k-pine', R(170,406,660,50,'',12) + T(500,425,'SO THE PROBLEM IS','m','middle','fill:var(--pine)')
+     + T(500,446,'The bottle filler on Filling Line 1 is putting too little in each bottle.','t','middle','fill:var(--pine);font-size:14.5px'));
+
+  // 2 · context: one timeline from four kinds of source, then PlantMind connects the entries
+  const oc = (d,extra={}) => Object.assign({f:2,h:3,d},extra);
+  const beacon = (x,y,c,sc,flash) => `<g transform="translate(${x},${y}) scale(${sc})">`
+    + `<g class="rays${flash?' flash':''}" style="stroke:var(--${c});stroke-width:2.6;stroke-linecap:round"><path d="M-20,-8 L-27,-11 M20,-8 L27,-11 M-17,-20 L-23,-26 M17,-20 L23,-26 M0,-27 L0,-34"/></g>`
+    + `<path d="M-11,9 V-5 A11,11 0 0 1 11,-5 V9 Z" style="fill:var(--${c})"/><rect x="-15" y="9" width="30" height="7" rx="2" style="fill:var(--ink)"/></g>`;
+  // source icons, about 16px
+  const ic = {
+    live: (x,y) => `<g transform="translate(${x},${y})" style="fill:none;stroke:var(--steel);stroke-width:1.6;stroke-linecap:round"><circle cx="0" cy="2" r="2" style="fill:var(--steel)"/><path d="M-5,-3 A7,7 0 0 1 5,-3 M-8,-6 A11,11 0 0 1 8,-6"/><path d="M0,4 L0,8"/></g>`,
+    log: (x,y) => `<g transform="translate(${x},${y})" style="fill:none;stroke:var(--muted);stroke-width:1.5"><rect x="-6" y="-7" width="12" height="15" rx="1.5"/><path d="M-3,-8 h6 v3 h-6 z" style="fill:var(--muted)"/><path d="M-3,-1 h6 M-3,2 h6 M-3,5 h4"/></g>`,
+    past: (x,y) => `<g transform="translate(${x},${y})" style="fill:var(--brass-soft);stroke:var(--brass);stroke-width:1.5;stroke-linejoin:round"><path d="M-8,-5 h5 l2,2 h9 v10 h-16 z"/></g>`,
+    said: (x,y) => `<g transform="translate(${x},${y})" style="fill:var(--pine-soft);stroke:var(--pine);stroke-width:1.5;stroke-linejoin:round"><path d="M-8,-6 h16 v10 h-9 l-4,4 v-4 h-3 z"/></g>`,
+  };
+
+  // what Scope told us
+  s += G(oc(0),'sn', R(40,112,946,40,'fill:var(--sunk);stroke:none',10) + T(58,136,'FROM SCOPE','m')
+     + T(140,137,'FL-101 on Filling Line 1 is underfilling bottles.','t','start','font-size:13.5px'));
+
+  // the timeline
+  s += G(oc(0.3),'sn', R(40,162,572,252,'',10) + T(58,181,'WHAT HAS HAPPENED','m') + `<line x1="40" y1="188" x2="612" y2="188" style="stroke:var(--line)"/>`);
+  const rows = [
+    [['past'],'Jan 2026','Same fault · fill time raised 3.2 → 3.9 s','1,200 bottles rejected (NCR-2026-012)',null,'','PAST INCIDENT','brass'],
+    [['log'],'22:05','Valves 9 & 15 dripping','Seal change booked for tomorrow',null,'','EARLY WARNING','steel'],
+    [['live','log'],'01:30','Live alarm: fill level low','Restarted and monitored','brass','','RECURRENCE','brass'],
+    [['live','log'],'03:20','Live alarm again · same valves','Request to increase fill time declined','brass','','RECURRENCE','brass'],
+    [['live','log'],'04:45','Third alarm · valves 9, 15 and 3','Valve 3 joins valves 9 and 15','rust','rust','SPREADING','rust'],
+    [['said'],'Now','“Third time tonight… what should I check?”','The operator asks PlantMind',null,'pine','QUESTION','pine']];
+  s += `<line x1="99" y1="206" x2="99" y2="396" style="stroke:var(--line);stroke-width:2"${A(oc(0.5))}/>`;
+  rows.forEach(([src,t,e,sub,bc,tint,phase,pc],i) => { const y = 190+i*37, m = y+18;
+    s += G(oc(0.7+i*0.45),'', (tint ? R(42,y,568,36,`fill:var(--${tint}-soft);stroke:none`,0) : '')
+       + (i ? `<line x1="52" y1="${y}" x2="600" y2="${y}" style="stroke:var(--line);stroke-dasharray:2 3"/>` : '')
+       + R(50,m-10,98,20,`fill:var(--${pc}-soft);stroke:var(--${pc})`,10) + T(99,m+4,phase,'m','middle',`fill:var(--${pc});font-size:9.5px;font-weight:600`)
+       + src.map((k,j) => ic[k](168+j*20,m)).join('')
+       + T(208,m+4,t,'m','start','fill:var(--ink);font-size:11.5px')
+       + T(268,y+15,e,'t','start',`font-size:13px${tint==='rust'?';fill:var(--rust)':''}`)
+       + T(268,y+30,sub,'i','start','font-size:12px')
+       + (bc ? beacon(588,m+2,bc,0.4,tint==='rust') : '')); });
+
+  // what PlantMind connects
+  s += txt(662,181,'WHAT WE KNOW SO FAR',oc(3.6),'m');
+  const mid = i => 208+i*37;
+  const note = (y,h,l1,l2,k,d,links) => {
+    let g = links.map(r => `<path d="M612,${mid(r)} C 636,${mid(r)} 636,${y+h/2} 660,${y+h/2}" style="fill:none;stroke:var(--${k==='k-rust'?'rust':'faint'});stroke-width:1.3"/>`).join('');
+    g += R(660,y,326,h,'',8) + T(676,y+(l2?19:22),l1,'t','start','font-size:13.5px') + (l2 ? T(676,y+35,l2,'m') : '');
+    return G(oc(d),'sn '+k, g); };
+  s += note(192,34,'Same valves','',                          '',       3.8,[1,3,4]);
+  s += note(234,34,'Same failure pattern','',                 '',       4.3,[2,3,4]);
+  s += note(276,44,'Prior incident: 1,200 rejects','SAME SHORTCUT REQUESTED AGAIN','k-brass',4.8,[0,3]);
+  s += note(328,34,'Now spreading to another valve','',       'k-rust', 5.3,[4]);
+  s += G(oc(5.3),'', T(662,384,'SOURCES','m')
+     + ic.live(670,398) + T(684,402,'Live machine alarms (MQTT)','s','start','font-size:11.5px')
+     + ic.log(850,398) + T(864,402,'Shift log','s','start','font-size:11.5px')
+     + ic.past(670,416) + T(684,420,'Past incident report','s','start','font-size:11.5px')
+     + ic.said(850,416) + T(864,420,'Operator’s words','s','start','font-size:11.5px'));
+
+  // the conclusion
+  s += G(oc(6.0),'sn k-pine', R(250,428,480,44,'',12) + T(490,446,'THE SITUATION HAS CHANGED','m','middle','fill:var(--pine)')
+     + T(490,465,'Recurring  →  spreading','t','middle','fill:var(--pine);font-size:15px'));
+
+  // 3 · evidence: each thing we know, matched to the exact sentence in the plant's documents
+  const oe = (d,extra={}) => Object.assign({f:3,h:4,d},extra);
+  s += G(oe(0),'sn', R(40,112,946,40,'fill:var(--sunk);stroke:none',10) + T(58,136,'FROM CONTEXT','m')
+     + T(150,137,'FL-101 is underfilling. The problem is recurring and now spreading.','t','start','font-size:13.5px'));
+  s += txt(40,172,'WHAT WE KNOW',oe(0.3),'m') + txt(272,172,'WHAT THE DOCUMENTS SAY',oe(0.3),'m') + txt(986,172,'SOURCE',oe(0.3),'m','end');
+  const evid = [
+    ['Valves 9 & 15 dripping','Worn seal → replace the seal kit','“Dripping means a worn seal … replace the seal kit”','SOP 12.1'],
+    ['3 alarms this shift','3+ alarms → stop production, call maintenance','“Three or more underfill alarms in one shift means a systemic fault.”','SOP 12.1'],
+    ['Request to raise fill time','Operators must not change the fill time','“The fill time must NOT be changed by operators.”','SOP 10'],
+    ['Fill time raised, Jan 2026','It hid worn seals: 1,200 bottles rejected','“Never increase the fill time to fix underfill. It hides worn seals…”','NCR-2026-012 · LESSONS'],
+    ['After seal replacement','Rinse 10 min → weigh the first 20 bottles','“Run the sanitation rinse for 10 minutes … weigh the first 20 bottles.”','WORK INSTR. · STEPS 9–10']];
+  evid.forEach(([k,say,quote,src],i) => { const y = 180+i*46, d = 0.6+i*0.9, qw = quote.length*6.05;
+    s += G(oe(d),'sn', R(40,y,212,40,'',8) + T(54,y+25,k,'t','start','font-size:13px'));
+    s += edge(`M252,${y+20} L270,${y+20}`,oe(d+0.2));
+    s += txt(282,y+16,say,oe(d+0.2),'t','start','font-size:13.5px');
+    s += `<rect class="hl" x="280" y="${y+22}" width="${qw}" height="16" rx="3" style="fill:var(--brass-soft)"${A(oe(d+0.5))}/>`;
+    s += txt(284,y+34,quote,oe(d+0.3),'i','start','font-size:12px;fill:var(--ink)');
+    s += G(oe(d+0.8),'sn k-steel', R(986-src.length*7.2-18,y+8,src.length*7.2+18,24,'',12) + T(986-9,y+24,src,'m','end','fill:var(--steel)')); });
+
+  // an honest result: what we could not find
+  s += G(oe(5.3),'sn', R(270,418,460,50,'fill:var(--surface);stroke:var(--faint);stroke-dasharray:5 4',10)
+     + T(290,440,'NOT FOUND','m','start','fill:var(--steel);font-weight:600')
+     + T(290,459,'Last seal service: no record found','t','start','font-size:14px'));
+
+  // 4 · validate: independent checks applied to a draft, each gate's outcome written under it
+  const ov = (d,extra={}) => Object.assign({f:4,h:5,d},extra);
+
+  // draft
+  s += G(ov(0),'sn', R(24,150,176,176,'',12) + T(40,174,'DRAFT','m')
+     + ['Worn seals','→ systemic fault','→ stop production','→ replace the seals'].map((l,i) => T(40,204+i*24,l,'t','start','font-size:13px')).join(''));
+  s += txt(518,172,'CHECKS APPLIED TO THE DRAFT',ov(0.6),'m','middle');
+
+  const gates = [
+    ['1 · CONSISTENCY',['Does this fit','what we know?']],
+    ['2 · COMPLETENESS',['Did we include the','required procedure?']],
+    ['3 · AUTHORITY',['Which source wins','when they disagree?']]];
+  gates.forEach(([title,q],i) => { const x = 236+i*200, d = 1.3+i*2.6;
+    s += edge(`M${x-36},238 L${x},238`,ov(d-0.3,{flow:1}));
+    s += G(ov(d),'sn', R(x,188,164,100,'fill:var(--surface);stroke:var(--brass)',10) + T(x+16,214,title,'m','start','fill:var(--brass);font-weight:600')
+       + q.map((l,j) => T(x+16,240+j*18,l,'s','start','font-size:12.5px')).join(''));
+    s += `<line x1="${x+82}" y1="288" x2="${x+82}" y2="300" style="stroke:var(--line);stroke-width:1.5"${A(ov(d+0.9))}/>`; });
+  const out = (x,y,l,c,d,sz=13) => txt(x,y,l,ov(d),'t','middle',`fill:var(--${c});font-size:${sz}px`);
+
+  // 1 · consistency: it matches the situation
+  ['✓ Underfill pattern','✓ Same valves','✓ 3 alarms'].forEach((l,j) => s += out(318,320+j*21,l,'pine',2.2+j*0.3));
+  // 2 · completeness: the required procedure is added
+  ['+ Rinse 10 min','+ Weigh first 20 bottles','+ SOP 12.1'].forEach((l,j) => s += out(518,320+j*21,l,'pine',4.8+j*0.3));
+  s += txt(518,388,'required by the procedure',ov(5.8),'s','middle','font-size:11.5px');
+  // 3 · authority: the ranking decides, not the AI
+  s += G(ov(7.4),'', R(672,300,92,22,'fill:var(--pine-soft);stroke:var(--pine)',11) + T(718,315,'SOP','m','middle','fill:var(--pine);font-weight:600'));
+  s += txt(718,340,'↑ outranks',ov(7.7),'s','middle','font-size:11.5px');
+  s += G(ov(7.9),'', R(672,348,92,22,'fill:var(--bg);stroke:var(--line)',11) + T(718,363,'SHIFT LOG','m','middle'));
+  s += out(718,392,'✕ Raise fill time','rust',8.4);
+
+  // checks passed
+  s += edge('M800,238 L814,238',ov(9.4,{flow:1}));
+  s += G(ov(9.7),'sn k-pine', R(814,150,174,176,'stroke-width:2',12) + T(828,174,'CHECKS PASSED ✓','m','start','fill:var(--pine);font-weight:600'));
+  ['Stop production','Replace the seals','Rinse 10 min','Weigh first 20 bottles','Do not change fill time'].forEach((l,i) =>
+    s += txt(828,204+i*24,l,ov(10.0+i*0.2),'t','start',`font-size:12px;fill:var(--${i===4?'rust':'ink'})`));
+  s += txt(506,440,'SOURCES: SOP 12.1 · SOP 10 · WI-FL101-001 STEPS 9–10 · NCR-2026-012',ov(11.2),'m','middle');
+
+  // 5 · answer: what the operator gets. As each line lands, the stage it came from lights up above.
+  const oa = (d,extra={}) => Object.assign({f:5,h:6,d},extra);
+  const ping = (stage,d) => `<rect class="ping" x="${10+stage*168}" y="18" width="150" height="60" rx="10" style="fill:none;stroke:var(--pine);stroke-width:3"${A(oa(d))}/>`;
+  const from = (x,y,stage,d) => txt(x,y,'● '+['','','CONTEXT','EVIDENCE','VALIDATE'][stage],oa(d),'m','end','fill:var(--pine);font-size:9.5px');
+
+  s += G(oa(0),'sn', R(150,112,700,360,'',14));
+  s += G(oa(0.4),'', R(172,128,52,22,'fill:var(--brass);stroke:none',11) + T(198,143,'HIGH','m','middle','fill:var(--surface);font-weight:600')
+     + T(236,144,'Systemic fault: 3 underfill alarms this shift','t','start','font-size:14px')) + from(830,144,2,0.4) + ping(2,0.4);
+  s += txt(172,178,'DO THIS NOW',oa(1.0),'m');
+  const steps = [
+    ['1. Press STOP, then lock out the machine','SOP 6.2',3],
+    ['2. Check the underfilling valves for dripping','SOP 12.1',3],
+    ['3. Replace the seal kit on dripping valves','WORK INSTRUCTION',3],
+    ['4. Sanitation rinse · 10 minutes','WORK INSTRUCTION · STEP 9',4],
+    ['5. Weigh the first 20 bottles · 495–505 ml','WORK INSTRUCTION · STEP 10',4]];
+  steps.forEach(([l,src,st],i) => { const y = 202+i*27, d = 1.3+i*0.6;
+    s += txt(172,y,l,oa(d),'t','start','font-size:13.5px;font-weight:500') + txt(740,y,src,oa(d+0.2),'m','end','fill:var(--steel)') + from(830,y,st,d);
+    if (i === 0 || i === 3) s += ping(st,d); });
+  s += txt(172,352,'DON’T',oa(4.6),'m');
+  s += txt(172,375,'✕ Change the fill time',oa(4.8),'t','start','font-size:13.5px;fill:var(--rust)') + txt(740,375,'SOP 10 · NCR-2026-012',oa(5.0),'m','end','fill:var(--steel)') + from(830,375,4,4.8) + ping(4,4.8);
+  s += txt(172,408,'TELL',oa(5.6),'m') + txt(172,430,'Maintenance supervisor · Quality lead',oa(5.8),'t','start','font-size:13.5px');
+  s += txt(172,458,'The operator decides. Every step shows where it came from.',oa(6.5),'s','start','fill:var(--pine);font-weight:500');
+
+  return svg(s,'The journey from an operator question to an answer you can trust');
+}
+
+/* ════════ 1 · Architecture: the full flow, told by motion only ════════ */
+/* Line language: solid grey = the question's live path · solid amber = graph constraints · dashed grey = storage. Right-angled routing. */
+function sArch(){
+  let s = '';
+  const spark = (x,y,sc=1,c='pine') => `<path transform="translate(${x},${y}) scale(${sc})" d="M0,-7 C0.9,-1.8 1.8,-0.9 7,0 C1.8,0.9 0.9,1.8 0,7 C-0.9,1.8 -1.8,0.9 -7,0 C-1.8,-0.9 -0.9,-1.8 0,-7 Z" style="fill:var(--${c})"/>`;
+  const codeMark = (x,y) => T(x,y,'▣','m','middle','font-size:10px');
+  const person = (x,y,c='muted') => `<g transform="translate(${x},${y})" style="fill:var(--${c})"><circle cx="0" cy="-5" r="4"/><path d="M-7,8 C-7,1 7,1 7,8 Z"/></g>`;
+  const mic = (x,y) => `<g transform="translate(${x},${y})" style="fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linecap:round"><rect x="-3" y="-8" width="6" height="10" rx="3" style="fill:var(--ink)"/><path d="M-6,-1 a6,6 0 0 0 12,0 M0,5 v3"/></g>`;
+  const code = (x,y,w,h,label,sub) => G({},'sn', R(x,y,w,h,'',3) + T(x+w/2,y+h/2+(sub?-2:5),label,'t','middle','font-size:13px')
+    + (sub?T(x+w/2,y+h/2+13,sub,'m','middle'):'') + codeMark(x+w-9,y+13));
+  const ai = (x,y,w,h,label,sub) => G({},'sn', R(x,y,w,h,'',h/2) + T(x+w/2-6,y+h/2+(sub?-2:5),label,'t','middle','font-size:13px')
+    + (sub?T(x+w/2-6,y+h/2+13,sub,'m','middle'):'') + spark(x+w-15,y+h/2,0.9));
+  const cyl = (cx,y,label) => `<path d="M${cx-26},${y+6} v20 a26,6 0 0 0 52,0 v-20" style="fill:var(--sunk);stroke:var(--faint);stroke-width:1"/>`
+    + `<ellipse cx="${cx}" cy="${y+6}" rx="26" ry="6" style="fill:var(--surface);stroke:var(--faint);stroke-width:1"/>` + T(cx,y+46,label,'m','middle');
+  const chunk = (x,y,c) => `<g transform="translate(${x},${y})"><path d="M0,0 h10 l4,4 v12 h-14 z" style="fill:var(--surface);stroke:var(--${c});stroke-width:1.2"/>`
+    + `<path d="M10,0 v4 h4" style="fill:none;stroke:var(--${c});stroke-width:1"/><path d="M3,7 h8 M3,10 h8 M3,13 h5" style="stroke:var(--faint);stroke-width:1"/></g>`;
+  const pingR = (x,y,w,h,rx,f,d,c='pine') => `<rect class="ping" x="${x-3}" y="${y-3}" width="${w+6}" height="${h+6}" rx="${rx+3}" style="fill:none;stroke:var(--${c});stroke-width:2.5"${A({f,d})}/>`;
+  const pingC = (cx,cy,r,f,d) => `<circle class="ping" cx="${cx}" cy="${cy}" r="${r}" style="fill:none;stroke:var(--pine);stroke-width:2.5"${A({f,d})}/>`;
+  const line = (d,cls) => `<path d="${d}" class="${cls}"/>`;   // static wiring: 'wire' (flow), 'wire-amber' (graph constraint), 'store' (storage)
+
+  // the paths, defined once and used for both the static wiring and the moving markers
+  const P = {
+    mqttAlert: 'M80,204 V222', alertPerson: 'M140,240 H154', join: 'M166,228 V118', chatFinder: 'M140,118 H180',
+    alertStore: 'M20,240 H12 V396 H224',
+    finderStore: 'M250,380 V140',
+    finderGraph: 'M320,118 H340 V256 H360',
+    writerIn: 'M510,300 H690 V180 H712 V154',
+    pineSpec: 'M597,380 V272',
+    writerChecks: 'M775,154 V206', checksReport: 'M850,228 H866 V186 H882',
+    reportStore: 'M930,250 V436 H250 V418',
+    voicePine: 'M156,316 H170 V350 H244 a6,6 0 0 1 12,0 H585 V386',
+    voiceReview: 'M156,316 H170 V350 H244 a6,6 0 0 1 12,0 H414',
+    reviewNeo: 'M425,362 V382' };
+
+  // legend and section headers
+  s += codeMark(694,18) + T(703,18,'CODE','m') + spark(746,14.5,0.8) + T(756,18,'AI','m')
+     + `<path d="M786,15 h22" style="stroke:var(--faint);stroke-width:1.5"/>` + T(813,18,'FLOW','m')
+     + `<path d="M852,15 h22" style="stroke:var(--brass);stroke-width:1.5"/>` + T(879,18,'GRAPH','m')
+     + `<path d="M922,15 h22" style="stroke:var(--faint);stroke-width:1.2;stroke-dasharray:3 3"/>` + T(949,18,'STORE','m');
+  [['INPUTS',20],['IDENTIFY',180],['INVESTIGATE',360],['WRITE & CHECK',700],['OUTPUT',880]].forEach(([t,x]) => s += T(x,48,t,'m','start','fill:var(--muted);font-weight:600'));
+
+  // static wiring first, so boxes sit on top of it
+  s += line(P.mqttAlert,'wire') + line(P.alertPerson,'wire') + line(P.join,'wire') + line(P.chatFinder,'wire') + line(P.finderGraph,'wire')
+     + line(P.writerChecks,'wire') + line(P.checksReport,'wire') + line(P.pineSpec,'wire')
+     + line(P.writerIn,'wire-amber') + [398,425,452].map(x => line(`M${x},216 V174`,'wire-amber')).join('')
+     + line(P.alertStore,'store') + line(P.finderStore,'store') + line(P.reportStore,'store') + line(P.voicePine,'store')
+     + line('M425,332 V338 M425,362 V380','store');
+
+  // inputs: the operator asks; an alarm raises an alert and the operator chooses to investigate; an operator shares a fix
+  s += person(32,118) + G({},'sn', R(50,96,90,44,'',8) + T(95,123,'Chat','t','middle','font-size:13px'));
+  s += G({},'sn', R(20,168,120,36,'',8) + T(86,191,'MQTT alarms','t','middle','font-size:12.5px')
+     + `<g transform="translate(34,189) scale(.4)"><path d="M-11,9 V-5 A11,11 0 0 1 11,-5 V9 Z" style="fill:var(--brass)"/><rect x="-15" y="9" width="30" height="7" rx="2" style="fill:var(--ink)"/></g>`);
+  s += G({},'sn', R(20,222,120,36,'',8) + T(80,245,'Alerts page','t','middle','font-size:12.5px'));
+  s += person(166,242,'faint');
+  s += person(32,318) + G({},'sn', R(48,298,108,36,'',8) + mic(62,318) + T(106,321,'Voice capture','t','middle','font-size:11.5px') + spark(148,306,0.6));
+
+  // identify, investigate, write & check, output
+  s += code(180,96,140,44,'Machine finder');
+  s += ai(360,130,130,44,'Router','GPT-OSS 20B');
+  s += G({},'sn', R(360,216,150,116,'',3) + T(435,236,'Graph','t','middle','font-size:13px') + codeMark(501,229)
+     + R(372,246,126,24,'fill:var(--surface);stroke:var(--line)',12) + T(428,262,'Fault match','t','middle','font-size:11.5px') + spark(486,258,0.6));
+  const spec = ['Shift logs','Operator fixes','Work instructions','SOPs','Quality reports'];
+  spec.forEach((n,i) => s += `<path d="M490,152 C506,152 506,${80+i*44} 522,${80+i*44}" class="wire"/>` + `<path d="M672,${80+i*44} C686,${80+i*44} 686,132 700,132" class="wire"/>`);
+  spec.forEach((n,i) => s += ai(522,64+i*44,150,32,n));
+  s += ai(700,110,150,44,'Report writer','GPT-OSS 120B');
+  s += code(700,206,150,44,'Code checks');
+  s += G({},'', `<path d="M882,120 h78 l18,18 v112 h-96 z" style="fill:var(--surface);stroke:var(--line)"/>` + T(930,270,'Report','m','middle'));
+  s += person(425,350,'faint');
+
+  // stores: Supabase holds the records, Neo4j the fault map, Pinecone the document pieces
+  s += `<line x1="20" y1="366" x2="988" y2="366" style="stroke:var(--line);stroke-dasharray:2 4"/>` + T(20,384,'STORES','m');
+  s += cyl(250,380,'SUPABASE') + cyl(425,380,'NEO4J') + cyl(597,380,'PINECONE');
+  const chunkCol = ['faint','steel','pine','brass','steel','faint','steel','pine','steel','brass','faint','steel'];
+  chunkCol.forEach((c,i) => { const cx = 634+(i%6)*17, cy = 378+Math.floor(i/6)*21;
+    s += chunk(cx,cy,c);
+    const k = [1,6,9].indexOf(i);
+    if (k >= 0) s += `<rect x="${cx-3}" y="${cy-3}" width="20" height="22" rx="3" style="fill:var(--steel-soft);stroke:var(--steel);stroke-width:1.6;fill-opacity:.35"${A({f:4,d:0.5+k*1.1})}/>`; });
+  s += `<g${A({f:8,d:0.9})}>` + chunk(634+6*17,378,'brass') + `</g>`;
+
+  // 0 · a live alarm raises an alert (stored in Supabase); the operator chooses to investigate
+  s += `<rect class="ping loop" x="17" y="165" width="126" height="42" rx="11" style="fill:none;stroke:var(--brass);stroke-width:2.5"${A({f:0,h:1,d:0.2})}/>`;
+  s += edge(P.mqttAlert,{f:0,d:0.8,flow:1},'warn') + pingR(20,222,120,36,8,0,1.1,'brass');
+  s += edge(P.alertStore,{f:0,d:1.5,flow:1},'store');
+  s += edge(P.alertPerson,{f:0,d:2.1,flow:1}) + pingC(166,240,12,0,2.4);
+  s += edge(P.join,{f:0,d:2.8,flow:1});
+
+  // 1 · find the machine (code), reading the equipment list
+  s += edge(P.chatFinder,{f:1,d:0.2,flow:1}) + pingR(180,96,140,44,3,1,0.5);
+  s += edge(P.finderStore,{f:1,d:0.7,flow:1},'store');
+  s += G({f:1,d:1.3},'', R(222,72,56,18,'fill:var(--pine-soft);stroke:var(--pine)',9) + T(250,85,'FL-101','m','middle','fill:var(--pine);font-weight:600'));
+
+  // 2 · into the graph: the fault is matched against the graph's own fault descriptions
+  s += edge(P.finderGraph,{f:2,d:0.2,flow:1}) + pingR(372,246,126,24,12,2,0.8);
+  [['Underfill',374,280,1],['Overfill',438,280,0],['Jam',374,302,0],['Glass',410,302,0],['Pressure',454,302,0]].forEach(([n,x,y,keep]) =>
+    s += G({f:2,d:1.1},keep?'':'sink', R(x,y,keep?58:(n.length*6.2+10),17,keep?'fill:var(--pine-soft);stroke:var(--pine)':'fill:var(--bg);stroke:var(--line)',8)
+       + T(x+(keep?29:(n.length*3.1+5)),y+12,n,'m','middle',keep?'fill:var(--pine);font-weight:600':'')));
+
+  // 3 · the graph sets what must be searched
+  s += pingR(360,216,150,116,3,3,0.3);
+  [398,425,452].forEach((x,i) => s += edge(`M${x},216 V174`,{f:3,d:0.9+i*0.25,flow:1},'warn'));
+
+  // 4 · the router fans out; specialists run two at a time, pulling pieces from Pinecone
+  spec.forEach((n,i) => { const y = 64+i*44, d = 0.4+Math.floor(i/2)*1.1;
+    s += edge(`M490,152 C506,152 506,${y+16} 522,${y+16}`,{f:4,d});
+    s += `<rect x="522" y="${y}" width="150" height="32" rx="16" style="fill:var(--steel-soft);stroke:var(--steel);stroke-width:1.5"${A({f:4,d:d+0.2})}/>`
+       + T(591,y+21,n,'t','middle','font-size:13px').replace('<text','<text'+A({f:4,d:d+0.2})) + spark(657,y+16,0.9).replace('<path','<path'+A({f:4,d:d+0.2})); });
+  [0.6,1.7,2.8].forEach(d => s += edge(P.pineSpec,{f:4,d,flow:1}));
+
+  // 5 · findings and the graph's must-do steps reach the writer
+  spec.forEach((n,i) => { const y = 64+i*44; s += edge(`M672,${y+16} C686,${y+16} 686,132 700,132`,{f:5,d:0.2+i*0.12,flow:1}); });
+  s += edge(P.writerIn,{f:5,d:0.8,flow:1},'warn') + pingR(700,110,150,44,22,5,1.3);
+
+  // 6 · code checks: flag an unreviewed tip (⚠) and raise a rating to its safety floor (↑), then pass
+  s += edge(P.writerChecks,{f:6,d:0.2,flow:1}) + pingR(700,206,150,44,3,6,0.6,'brass');
+  s += G({f:6,d:0.9},'', `<path d="M714,218 L724,236 L704,236 Z" style="fill:var(--brass)"/>` + T(714,234,'!','m','middle','fill:var(--surface);font-size:10px;font-weight:700'));
+  s += G({f:6,d:1.3},'', T(729,233,'↑','t','middle','fill:var(--brass);font-size:14px;font-weight:700'));
+  s += G({f:6,d:1.8},'', `<circle cx="834" cy="228" r="9" style="fill:var(--pine)"/>` + T(834,232,'✓','m','middle','fill:var(--surface);font-size:11px;font-weight:600'));
+
+  // 7 · the report, saved
+  s += edge(P.checksReport,{f:7,d:0.2,flow:1});
+  s += G({f:7,d:0.6},'', `<path d="M882,120 h78 l18,18 v112 h-96 z" style="fill:var(--surface);stroke:var(--pine);stroke-width:1.6"/>`
+     + R(894,140,40,14,'fill:var(--brass);stroke:none',7) + T(914,150,'HIGH','m','middle','fill:var(--surface);font-size:8.5px;font-weight:600')
+     + [0,1,2,3,4].map(i => R(894,166+i*14,58-(i%2)*12,5,'fill:var(--ink);stroke:none;opacity:.35',2) + R(958,165+i*14,12,7,'fill:var(--steel);stroke:none;opacity:.7',2)).join(''));
+  s += edge(P.reportStore,{f:7,d:1.3,flow:1},'store');
+
+  // 8 · the learning loop: a captured fix is searchable at once (Operator fixes can use it as a lead);
+  //     only a person can promote it into the graph
+  s += pingR(48,298,108,36,8,8,0.1,'brass');
+  s += edge(P.voicePine,{f:8,d:0.4,flow:1},'store');
+  s += edge(P.pineSpec,{f:8,d:1.4,flow:1},'warn') + pingR(522,108,150,32,16,8,2.0,'brass');
+  s += edge(P.voiceReview,{f:8,d:2.7,flow:1},'store') + pingC(425,346,12,8,3.3);
+  s += edge(P.reviewNeo,{f:8,d:3.7,flow:1},'store') + `<ellipse class="ping" cx="425" cy="398" rx="31" ry="20" style="fill:none;stroke:var(--pine);stroke-width:2.5"${A({f:8,d:4.0})}/>`;
+  return svg(s,'PlantMind architecture: a question flows from inputs through identification, investigation and checks to a report');
+}
+
+/* ════════ Lessons ════════ */
+const GL = {
+  rag:'Retrieval-augmented generation: look things up first, then write the answer from what was found.',
+  llm:'Large language model: the AI that writes text. PlantMind uses GPT-OSS models, run on Groq.',
+  piece:'Also called a chunk: a short slice of a document, here about 1,000 characters (a few paragraphs).',
+  meaning:'Each piece is turned into a list of numbers (an embedding) that captures what it is about. Pieces with similar meaning get similar numbers, so search can match ideas, not just words.',
+  label:'Also called metadata: tags stored with each piece, such as plant, line, machine and document type.',
+  sop:'Standard operating procedure: the official instructions for running a machine.',
+  ncr:'Non-conformance report: the write-up of something that went wrong, its cause and the lesson.',
+};
+const g = (k,w) => `<span class="g" tabindex="0" data-tip="${GL[k]}">${w}</span>`;
+
+const L = [
+ {name:'How it works', lesson:'', plain:'',
+  acts:[['J','The journey','var(--pine)']],
+  scene:sJourney, caps:[
+  ['J','Before answering, PlantMind needs to work out what equipment and operating context matter, find the relevant evidence, and determine which information can be trusted.',4000],
+  ['J','First, identify what we’re dealing with: which machine, and what’s wrong with it. If we get either one wrong, everything that follows is built on the wrong foundation.',11000],
+  ['J','Context turns isolated events into a situation. Live alarms, the shift log and a past incident, read together, reveal a recurring problem, and a pattern that’s now changing.',13000],
+  ['J','Now we check the story against the plant’s own documents: finding the guidance that applies, showing where it came from, and calling out what we couldn’t find.',13000],
+  ['J','Evidence shows us what the plant’s sources say. Validation is where we pressure-test the answer: does it fit what we know, did we include the steps that matter, and what do we do when two sources disagree?',15000],
+  ['J','Only now does PlantMind answer: how serious is the situation, what should the operator check, and where did each recommendation come from? The operator remains in charge.',12000],
+ ],
+  below:''},
+
+ {name:'Architecture', lesson:'', plain:'', kick:'',
+  acts:[['F','The flow','var(--pine)']],
+  scene:sArch, caps:[['F','',4200],['F','',2600],['F','',3400],['F','',2800],['F','',4600],['F','',3000],['F','',3000],['F','',3400],['F','',5600]],
+  below:''},
+];
+const SOON = ['Evals','Context','Knowledge graph','Trust','Rules','Tracing','People in the loop'];
+
+/* ── Player ── */
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+let cur = 0, step = 0, caps = [], acts = [], timer = null, run = 0;
+
+L.forEach((l,i) => {
+  const li = document.createElement('li');
+  li.innerHTML = `<button><span>${i || '·'}</span>${l.name}</button>`;
+  li.firstChild.onclick = () => open(i);
+  $('steps').appendChild(li);
+});
+SOON.forEach((n,i) => { const li = document.createElement('li'); li.className = 'soon';
+  li.innerHTML = `<button disabled><span>${i+2}</span>${n}<em>soon</em></button>`; $('steps').appendChild(li); });
+
+function open(i){
+  cur = i; stop();
+  document.querySelectorAll('.steps li:not(.soon) button').forEach((b,j) => b.classList.toggle('on', j === i));
+  const l = L[i];
+  $('kick').textContent = i === 0 || l.kick === '' ? '' : `Lesson ${i} · ${l.name}`;
+  $('lesson').textContent = l.lesson;
+  $('plain').innerHTML = l.plain;
+  $('below').innerHTML = l.below;
+  $('model').innerHTML = l.model ? '<span class="mh">The mental model</span>' + l.model.map(([n,d],j) => (j?'<i>›</i>':'') + `<b data-j="${j}">${n}<small>${d}</small></b>`).join('') : '';
+  $('stage').innerHTML = l.scene();
+  $('stage').querySelectorAll('[data-d]').forEach(e => e.style.setProperty('--d', e.dataset.d + 's'));
+  $('stage').querySelectorAll('.hl').forEach(r => { const t = r.nextElementSibling; if (t) r.setAttribute('width', t.getBBox().width + 8); });
+  $('stage').querySelectorAll('[data-edge]:not(.store)').forEach(p => { const n = p.getTotalLength(); p.dataset.len = n; p.style.strokeDasharray = n; p.style.strokeDashoffset = n; });
+  caps = l.caps; acts = l.acts;
+  $('acts').innerHTML = acts.map(([k,n,c]) => `<div class="act" data-a="${k}" style="--ac:${c}"><span>${n}</span><div class="tk">`
+    + caps.map((cp,j) => cp[0]===k ? `<i data-j="${j}"></i>` : '').join('') + '</div></div>').join('');
+  $('acts').querySelectorAll('i').forEach(t => t.onclick = () => { stop(); show(+t.dataset.j); });
+  $('acts').querySelectorAll('.act span').forEach(sp => sp.onclick = () => { stop(); show(caps.findIndex(c => c[0] === sp.parentNode.dataset.a)); });
+  show(reduce ? caps.length-1 : 0);
+  if (!reduce) play();
+}
+
+function latest(map,k){ let b = null; for (const key in map) if (+key <= k && (b === null || +key > b)) b = +key; return b; }
+function scene(k){
+  const st = $('stage'), id = ++run;
+  st.querySelectorAll('[data-f],[data-h]').forEach(e => {
+    const f = e.dataset.f != null ? +e.dataset.f : -1, h = e.dataset.h != null ? +e.dataset.h : 1e9, v = f <= k && k < h;
+    e.classList.toggle('vis', v); e.classList.toggle('hot', f === k);
+    if (e.dataset.len) e.style.strokeDashoffset = v ? 0 : e.dataset.len;
+  });
+  st.querySelectorAll('[data-c]').forEach(e => {
+    const m = JSON.parse(e.dataset.c); Object.values(m).forEach(c => c && e.classList.remove(c));
+    const b = latest(m,k); if (b !== null && m[b]) e.classList.add(m[b]);
+  });
+  const lastStep = caps.length - 1;
+  st.querySelectorAll('[data-on]').forEach(e => e.classList.toggle('off', k !== lastStep && !e.dataset.on.split(',').map(Number).includes(k)));
+  st.querySelectorAll('[data-tf]').forEach(e => { const m = JSON.parse(e.dataset.tf), b = latest(m,k); e.style.transform = b !== null ? m[b] : ''; });
+  const toks = st.querySelector('.toks'); toks.innerHTML = '';
+  if (reduce) return;
+  [...st.querySelectorAll('[data-flow]')].filter(p => +p.dataset.f === k).forEach((p,i) => {
+    const c = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    c.setAttribute('class','tok'); c.setAttribute('width',10); c.setAttribute('height',10); c.setAttribute('rx',2); c.style.opacity = 0;
+    toks.appendChild(c);
+    const n = p.getTotalLength(), t0 = performance.now() + (p.dataset.d != null ? p.dataset.d*1000 + 250 : i*220 + 350);
+    const tick = now => {
+      if (id !== run) return;
+      const u = Math.max(0, Math.min(1, (now - t0) / 1100)), pt = p.getPointAtLength(n * (1 - Math.pow(1-u, 2)));
+      c.setAttribute('x', pt.x - 5); c.setAttribute('y', pt.y - 5); c.style.opacity = now < t0 || u >= 1 ? 0 : 1;
+      if (u < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+function show(k){
+  step = k; scene(k);
+  const md = L[cur].model, last = caps.length-1;
+  if (md) $('model').querySelectorAll('b').forEach(b => { const at = md[+b.dataset.j][2][0]; b.classList.toggle('on', k === at || k === last); b.classList.toggle('seen', k > at && k !== last); });
+  const [a, text] = caps[k], act = acts.find(x => x[0] === a), inAct = caps.filter(c => c[0] === a), idx = caps.slice(0,k+1).filter(c => c[0] === a).length;
+  $('cap').style.setProperty('--ac', act[2]);
+  $('cn').textContent = `${act[1]} · ${idx}/${inAct.length}`;
+  $('ct').textContent = text;
+  $('cap').style.display = text ? '' : 'none';
+  $('acts').querySelectorAll('i').forEach(t => { const j = +t.dataset.j; t.classList.toggle('on', j === k); t.classList.toggle('done', j < k); });
+  $('acts').querySelectorAll('.act').forEach(e => e.classList.toggle('on', e.dataset.a === a));
+}
+const wait = () => caps[step][2] || Math.max(3000, caps[step][1].length * 42);
+function play(){
+  stop(); if (step >= caps.length-1) show(0);
+  $('play').textContent = '❚❚ Pause';
+  const tick = () => { if (step >= caps.length-1) return stop(); show(step+1); timer = setTimeout(tick, wait()); };
+  timer = setTimeout(tick, wait());
+}
+function stop(){ clearTimeout(timer); timer = null; $('play').textContent = '▶ Play'; }
+$('play').onclick = () => timer ? stop() : play();
+$('next').onclick = () => { stop(); show(Math.min(step+1, caps.length-1)); };
+$('prev').onclick = () => { stop(); show(Math.max(step-1, 0)); };
+document.addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input,textarea')) return; if (e.key === 'ArrowRight') $('next').click(); if (e.key === 'ArrowLeft') $('prev').click(); });
+
+const root = document.documentElement;
+try { const t = localStorage.getItem('pm-theme'); if (t) root.dataset.theme = t; } catch(e) {}
+$('theme').onclick = () => {
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  try { localStorage.setItem('pm-theme', root.dataset.theme); } catch(e) {}
+};
+open(0);
+</script>
+</body>
+</html>

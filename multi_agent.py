@@ -886,6 +886,113 @@ def check_report(report, graph_context, specialist_results):
     return text, events
 
 
+# ── Report confidence (Phase 2a step B) ──────────────────────────────────────
+# Every report used to SOUND equally sure, whether the fault was confirmed and
+# the SOP found, or the system was guessing. This works out, in code, how much
+# the report can be trusted and whether an engineer should look at it. Three
+# levels with reasons, not a percentage: a number like "83%" would claim a
+# precision nobody has. Separate from criticality (danger), which it never touches.
+
+_DOC_AGENTS = {"Alarm Agent", "Maintenance Agent", "SOP Agent", "NCR Agent"}
+
+
+def _found_evidence(result):
+    raw = str(result.get("raw_data") or "")
+    findings = str(result.get("findings") or "")
+    return (bool(raw.strip()) and not raw.startswith("NO_DATA")
+            and "Data confidence: NO DATA" not in findings
+            and not findings.startswith("Agent failed"))
+
+
+def assess_confidence(graph_context, specialist_results, guard_events=()):
+    """
+    Returns {"level": HIGH|MEDIUM|LOW, "reasons": [...], "review": bool,
+             "review_reasons": [...]}.
+
+      LOW     no known fault matched, or no documents found at all, or 2+
+              reasons for doubt together
+      MEDIUM  one reason for doubt (fault not confirmed, no graph for this
+              machine, graph in backup mode, only one source, no SOP section...)
+      HIGH    fault confirmed, graph available, documents found
+    Engineer review is needed when the level is not HIGH, or a safety guard
+    fired (an unreviewed tip reached the repair steps; the rating was raised).
+    """
+    low, medium, review_reasons = [], [], []
+    ctx = graph_context or {}
+
+    if not ctx.get("has_data"):
+        medium.append("knowledge graph unavailable: documents only" if ctx.get("degraded")
+                      else "no knowledge graph for this machine: documents only")
+    else:
+        if ctx.get("degraded"):
+            medium.append("knowledge graph in backup mode (database unreachable)")
+        conf = ctx.get("match_confidence")
+        faults = " or ".join(ctx.get("matched_faults") or [])
+        if conf == "unsure":
+            medium.append(f"fault not confirmed (close call: {faults})")
+        elif conf == "none":
+            low.append("no known fault matched the description")
+        elif conf == "words only":
+            medium.append("fault matched by word count only (meaning check unavailable)")
+
+    results = specialist_results or []
+    searched = [r for r in results if r.get("agent") in _DOC_AGENTS]
+    found = [r for r in searched if _found_evidence(r)]
+    failed = [r["agent"] for r in results if str(r.get("findings", "")).startswith("Agent failed")]
+    if searched and not found:
+        low.append("no documents found for this incident")
+    elif len(searched) > 1 and len(found) == 1:
+        medium.append(f"only one source found evidence ({found[0]['agent'].replace(' Agent', '')})")
+    if any(r["agent"] == "SOP Agent" for r in searched) and not any(r["agent"] == "SOP Agent" for r in found):
+        medium.append("no SOP section found")
+    for a in failed:
+        medium.append(f"{a} failed")
+
+    for ev in guard_events or ():
+        if ev.startswith("criticality raised"):
+            review_reasons.append("the rating was raised by a safety rule")
+        elif "operator tip" in ev or "operator claim" in ev:
+            review_reasons.append("an unreviewed or rejected operator tip reached the repair steps")
+
+    level = "LOW" if low or len(medium) >= 2 else ("MEDIUM" if medium else "HIGH")
+    review_reasons = list(dict.fromkeys(review_reasons))
+    return {"level": level, "reasons": low + medium, "review": level != "HIGH" or bool(review_reasons),
+            "review_reasons": review_reasons,
+            "found": [r["agent"].replace(" Agent", "") for r in found]}
+
+
+def add_confidence_block(report, assessment, graph_context=None):
+    """A short REPORT CONFIDENCE section right under the report title."""
+    a = assessment
+    if a["reasons"]:
+        why = "; ".join(a["reasons"])
+    else:
+        fault = ", ".join((graph_context or {}).get("matched_faults") or []) or "the fault"
+        why = (f"fault identified ({fault}), knowledge graph available, evidence from "
+               f"{', '.join(a['found']) or 'the documents'}")
+    if a["review"]:
+        need = "; ".join(a["review_reasons"]) or "confidence is not HIGH"
+        review = f"NEEDED — {need}"
+    else:
+        review = "not needed"
+    block = ("REPORT CONFIDENCE:\n"
+             f"- Level: {a['level']} (worked out by code from the evidence, not by the AI)\n"
+             f"- Why: {why}\n"
+             f"- Engineer review: {review}\n")
+    text = report or ""
+    title = text.find("INVESTIGATION REPORT")
+    if title == -1:
+        return block + "\n" + text
+    eol = text.find("\n", title)
+    # Keep a divider line (═══) that follows the title attached to it.
+    nxt = text.find("\n", eol + 1) if eol != -1 else -1
+    if eol != -1 and nxt != -1 and re.fullmatch(r"[\s═=\-─]*", text[eol + 1:nxt]) and text[eol + 1:nxt].strip():
+        eol = nxt
+    if eol == -1:
+        return text + "\n\n" + block
+    return text[:eol + 1] + "\n" + block + "\n" + text[eol + 1:]
+
+
 # Trust tier of each specialist's findings (Phase 2a trust order). Operator
 # knowledge carries its own per-fix label: TIER 3 APPROVED or TIER 4 UNREVIEWED.
 _TIER_BY_AGENT = {
@@ -1350,9 +1457,16 @@ def investigate_incident(incident, equipment_id=None):
         equipment_match = re.search(r'\b([A-Z]{1,3}-\d{2,4})\b', incident)
         equipment_id = equipment_match.group(1) if equipment_match else None
 
+    # Never investigate across every machine (2026-10-01). The web page stops
+    # with "No matching equipment manual found" before getting here; this
+    # stops any other caller too.
+    if not equipment_id:
+        yield ("⚠️ No matching equipment manual found. Please select the machine selector "
+               "below (e.g., WM-101) or upload the required documents to proceed.\n")
+        return
+
     yield "🔍 Multi-agent investigation started...\n\n"
-    if equipment_id:
-        yield f"📍 Equipment identified: {equipment_id}\n\n"
+    yield f"📍 Equipment identified: {equipment_id}\n\n"
 
     # ── Fetch knowledge graph context ────────────────────────────────────────
     # Silent fail — graph enrichment is optional, never blocks investigation
@@ -1474,10 +1588,20 @@ def investigate_incident(incident, equipment_id=None):
         return
 
     # Phase 2a guardrails: code checks the finished report (see check_report).
+    _guard_events = []
     try:
         final_report, _guard_events = check_report(final_report, graph_context, specialist_results)
     except Exception as e:  # a checker bug must never swallow the report
         print(f"  [guardrail] check skipped: {str(e)[:100]}")
+
+    # Phase 2a step B: how far can this report be trusted? (code, not AI)
+    try:
+        _confidence = assess_confidence(graph_context, specialist_results, _guard_events)
+        final_report = add_confidence_block(final_report, _confidence, graph_context)
+        print(f"  [confidence] {_confidence['level']}; review "
+              f"{'needed' if _confidence['review'] else 'not needed'}; {_confidence['reasons']}")
+    except Exception as e:  # never lose a report over its confidence line
+        print(f"  [confidence] skipped: {str(e)[:100]}")
 
     yield "\n" + "═" * 50 + "\n"
     yield "INVESTIGATION REPORT\n"

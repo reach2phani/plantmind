@@ -179,6 +179,84 @@ def _detect_line_in_text(text):
     return f"line {m.group(1)}" if m else ""
 
 
+# Shown wherever PlantMind will not answer because no single machine is clear
+# (Investigate, Docs, Shift). One constant, so the wording never drifts apart.
+NO_MACHINE_MSG = ("No matching equipment manual found.\n"
+                  "Please select the machine selector below (e.g., WM-101) or upload the "
+                  "required documents to proceed.")
+
+
+def _word_matches(word, keyword):
+    """
+    Does an operator's word refer to a machine keyword? Exact, plural or a
+    small typo: "bottles" and "botles" both mean "bottle". The typo rule only
+    applies to words of 5+ letters with 80%+ similarity, so short everyday
+    words ("pump" vs "jump") never match by accident.
+    """
+    import difflib
+    if word == keyword:
+        return True
+    for end in ("es", "s"):
+        if word.endswith(end) and word[: -len(end)] == keyword:
+            return True
+    if len(word) >= 5 and len(keyword) >= 5:
+        return difflib.SequenceMatcher(None, word, keyword).ratio() >= 0.8
+    return False
+
+
+def find_equipment_candidates(text, plant_site="", line=""):
+    """
+    Machines the operator's words could mean, best first.
+    Returns [{"tag", "name", "type", "plant_site", "line", "score"}].
+
+    Matches the words against each machine's type and name ("Bottle Filler",
+    "MIG Welder"), allowing plurals and small typos. Scoped by the plant and
+    line from the UI, or a "line N" in the text, when present.
+    """
+    try:
+        rows = (supabase.table("equipment")
+                .select("equip_tag,name,type,plant_site,line,active")
+                .execute().data) or []
+    except Exception as e:
+        print(f"  [resolve] equipment lookup failed: {e} — skipping name resolution")
+        return []
+
+    words = set(_re.findall(r"[a-z]+", (text or "").lower()))
+    line_ctx = (line or "").strip().lower() or _detect_line_in_text(text)
+    ctx_num = _line_number(line_ctx)
+    plant_ctx = (plant_site or "").strip().lower()
+
+    def line_matches(cand_line):
+        if not line_ctx:
+            return True  # no line context → don't filter on line
+        cl = (cand_line or "").strip().lower()
+        if not cl:
+            return False
+        cand_num = _line_number(cl)
+        if ctx_num and cand_num:
+            # Compare on the line NUMBER so "line 1" matches "Fabrication Line 1"
+            # but not "Line 10" or "Processing Line 2".
+            return ctx_num == cand_num
+        return line_ctx in cl
+
+    out = []
+    for r in rows:
+        if r.get("active") is False or not r.get("equip_tag"):
+            continue
+        if plant_ctx and (r.get("plant_site") or "").strip().lower() != plant_ctx:
+            continue
+        if not line_matches(r.get("line")):
+            continue
+        keywords = set(_re.findall(r"[a-z]+", (r.get("type") or "").lower()))
+        keywords |= {w for w in _re.findall(r"[a-z]+", (r.get("name") or "").lower()) if len(w) > 2}
+        score = sum(1 for k in keywords if any(_word_matches(w, k) for w in words))
+        out.append({"tag": r["equip_tag"], "name": r.get("name") or "", "type": r.get("type") or "",
+                    "plant_site": r.get("plant_site") or "", "line": r.get("line") or "",
+                    "score": score})
+    out.sort(key=lambda c: (-c["score"], c["tag"]))
+    return out
+
+
 def resolve_equipment_reference(text, plant_site="", line=""):
     """
     Fallback equipment resolver for when the operator names a machine in plain
@@ -195,65 +273,15 @@ def resolve_equipment_reference(text, plant_site="", line=""):
 
     Safety contract (never guesses, never regresses):
         Returns a single equip_tag ONLY when the match is UNAMBIGUOUS (exactly
-        one candidate). Returns None on no match, multiple matches, or any
-        lookup error — so tagged queries and ambiguous references behave exactly
-        as before.
+        one machine matched). Returns None on no match, multiple matches, or any
+        lookup error. Since 2026-10-01 plurals and small typos count as a match
+        ("bottles", "botles" -> Bottle Filler); before, "Bottles aren't full
+        enough" found no machine and the investigation searched every machine.
     """
     if not text:
         return None
-    try:
-        rows = (supabase.table("equipment")
-                .select("equip_tag,name,type,plant_site,line,active")
-                .execute().data) or []
-    except Exception as e:
-        print(f"  [resolve] equipment lookup failed: {e} — skipping name resolution")
-        return None
-
-    low = text.lower()
-
-    # Scope by line — prefer the UI-supplied line, else one detected in the text.
-    line_ctx = (line or "").strip().lower() or _detect_line_in_text(text)
-    ctx_num  = _line_number(line_ctx)
-    plant_ctx = (plant_site or "").strip().lower()
-
-    def line_matches(cand_line):
-        if not line_ctx:
-            return True  # no line context → don't filter on line
-        cl = (cand_line or "").strip().lower()
-        if not cl:
-            return False
-        cand_num = _line_number(cl)
-        if ctx_num and cand_num:
-            # Compare on the line NUMBER so "line 1" matches "Fabrication Line 1"
-            # but not "Line 10" or "Processing Line 2".
-            return ctx_num == cand_num
-        return line_ctx in cl
-
-    candidates = []
-    for r in rows:
-        if r.get("active") is False:
-            continue
-        if plant_ctx and (r.get("plant_site") or "").strip().lower() != plant_ctx:
-            continue
-        if not line_matches(r.get("line")):
-            continue
-        # Does the text reference this machine by its type ("welder") or by a
-        # meaningful word from its name ("MIG Welder" -> "welder")?
-        type_word  = (r.get("type") or "").strip().lower()
-        name_words = [w for w in _re.findall(r'[a-z]+', (r.get("name") or "").lower())
-                      if len(w) > 2]
-        hit = bool(type_word) and _re.search(rf'\b{_re.escape(type_word)}\b', low) is not None
-        if not hit:
-            for w in name_words:
-                if _re.search(rf'\b{_re.escape(w)}\b', low):
-                    hit = True
-                    break
-        tag = r.get("equip_tag")
-        if hit and tag and tag not in candidates:
-            candidates.append(tag)
-
-    # Require an unambiguous single match — otherwise fall back to no filter.
-    return candidates[0] if len(candidates) == 1 else None
+    hits = [c for c in find_equipment_candidates(text, plant_site, line) if c["score"] > 0]
+    return hits[0]["tag"] if len(hits) == 1 else None
 
 
 def get_embedding(text, input_type="query"):
@@ -1132,6 +1160,14 @@ def ask():
             yield "NOANSWER:Please enter a question."
         return Response(stream_with_context(err()), mimetype="text/plain")
 
+    # Never search every machine (2026-10-01): a question needs a machine, or
+    # at least a selected line (line-level questions such as PPE, or a whole
+    # night shift on one line, are fine). Neither -> ask the operator to pick.
+    if not equip_tag and not (line or "").strip():
+        def no_machine():
+            yield "NOANSWER:" + NO_MACHINE_MSG
+        return Response(stream_with_context(no_machine()), mimetype="text/plain")
+
     # ── Multi-equipment & scope-conflict fail-closed check (doc mode) ──
     # Two related failures this catches, both BEFORE retrieval:
     #  (a) Scope conflict: operator is viewing one machine (equip_tag) but
@@ -1209,7 +1245,7 @@ def ask():
                 yield "NOANSWER:No shift log events found for this time range. Check that a shift log has been uploaded for this period."
             elif equip_tag:
                 # Equipment was detected but no documents exist for it
-                yield f"NOANSWER:\u26a0\ufe0f No manuals found for {equip_tag}.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance."
+                yield "NOANSWER:" + NO_MACHINE_MSG
             else:
                 yield "NOANSWER:I could not find a confident answer in the uploaded documents. Try rephrasing your question or check that the relevant document has been uploaded."
         return Response(stream_with_context(no_ans()), mimetype="text/plain")
@@ -1222,10 +1258,7 @@ def ask():
         trustworthy, _reason = equipment_results_trustworthy(matches, equip_tag)
         if not trustworthy:
             def no_ans_equip():
-                if equip_tag:
-                    yield f"NOANSWER:\u26a0\ufe0f No manuals found for {equip_tag}.\nI don't have the documentation for this specific equipment loaded yet. Please check the physical maintenance log or follow up with your supervisor for assistance."
-                else:
-                    yield "NOANSWER:\u26a0\ufe0f No manuals found for the equipment in your question.\nI won't answer from another machine's manuals. Please include the equipment tag (e.g. WM-101), or check that its documents are uploaded."
+                yield "NOANSWER:" + NO_MACHINE_MSG
             return Response(stream_with_context(no_ans_equip()), mimetype="text/plain")
 
     # For shift mode — scope to the asked date first, then the time window
@@ -1528,6 +1561,15 @@ def investigate():
     # matches only — otherwise equip stays empty and behaviour is unchanged.
     if not equip:
         equip = resolve_equipment_reference(incident, plant_site=plant, line=line)
+
+    # No single machine: ASK, never search every machine (2026-10-01). A plant
+    # has many machines; an answer from the wrong machine's manual sounds sure
+    # and can be dangerous. The page shows the choices and re-sends with one.
+    if not equip:
+        def ask_machine():
+            yield "NEEDMACHINE:" + json.dumps({"message": NO_MACHINE_MSG})
+        return Response(stream_with_context(ask_machine()), mimetype="text/plain",
+                        headers={"X-Accel-Buffering": "no"})
 
     if plant or line:
         context  = f"[Plant: {plant}, Line: {line}] "
