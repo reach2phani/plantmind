@@ -99,6 +99,18 @@ def _capture_orchestrator_inputs(ma, sink):
         sink["sources"] = "\n".join(parts)
         sink["agents"] = [r.get("agent", "") for r in specialist_results or []]
         sink["graph_used"] = bool(graph_context and graph_context.get("has_data"))
+        # For component evaluation (which part failed?): what each search
+        # returned and what each specialist made of it, the graph text, and
+        # which fault the graph matched and how sure it was.
+        sink["specialists"] = [{"agent": r.get("agent", ""),
+                                "search": str(r.get("raw_data", ""))[:6000],
+                                "findings": str(r.get("findings", ""))}
+                               for r in specialist_results or []]
+        gc = graph_context or {}
+        sink["graph_text"] = gc.get("chain_text", "") if gc.get("has_data") else ""
+        sink["matched_faults"] = gc.get("matched_faults", [])
+        sink["match_confidence"] = gc.get("match_confidence", "")
+        sink["match_method"] = gc.get("match_method", "")
         return real(incident, specialist_results, graph_context=graph_context,
                     equipment_id=equipment_id)
 
@@ -106,24 +118,54 @@ def _capture_orchestrator_inputs(ma, sink):
     return real
 
 
+_app = None
+
+
+def find_machine(text):
+    """
+    The machine the Investigate page would pick from these words, with no
+    machine selected: the app's own finder (tag in the text, else plain words
+    such as "the filler", plurals and small typos allowed). None = the page
+    would show "No matching equipment manual found".
+    """
+    global _app
+    if _app is None:
+        import contextlib
+        import io
+        with contextlib.redirect_stdout(io.StringIO()):   # app.py prints on import
+            import app as _a
+        _app = _a
+    return _app.extract_equipment_id(text) or _app.resolve_equipment_reference(text)
+
+
 def run_one(ma, case, equipment, arm):
     os.environ["PM_EVAL_DISABLE_GRAPH"] = ARMS[arm]
+    # equipment "find": no machine is given, it is found from the words.
+    machine = find_machine(case["incident"]) if equipment == "find" else equipment
     sink = {}
     real = _capture_orchestrator_inputs(ma, sink)
     real_check = ma.check_report
+    real_conf = ma.assess_confidence
 
     def check_wrapper(report, graph_context, specialist_results):
         out, events = real_check(report, graph_context, specialist_results)
         sink["guard_events"] = events
         return out, events
 
+    def conf_wrapper(*a, **kw):
+        result = real_conf(*a, **kw)
+        sink["confidence"] = result
+        return result
+
     ma.check_report = check_wrapper
+    ma.assess_confidence = conf_wrapper
     started = time.time()
     try:
-        streamed = "".join(ma.investigate_incident(case["incident"], equipment_id=equipment))
+        streamed = "".join(ma.investigate_incident(case["incident"], equipment_id=machine))
     finally:
         ma.run_orchestrator = real
         ma.check_report = real_check
+        ma.assess_confidence = real_conf
         os.environ.pop("PM_EVAL_DISABLE_GRAPH", None)
     at = streamed.find("INVESTIGATION REPORT")
     report = streamed[at:] if at != -1 else ""
@@ -136,6 +178,14 @@ def run_one(ma, case, equipment, arm):
         "agents": sink.get("agents", []),
         "graph_used": sink.get("graph_used", False),
         "guard_events": sink.get("guard_events", []),
+        # Component evaluation: each part's output for this run.
+        "machine": machine,
+        "matched_faults": sink.get("matched_faults", []),
+        "match_confidence": sink.get("match_confidence", ""),
+        "match_method": sink.get("match_method", ""),
+        "confidence": sink.get("confidence", {}),
+        "specialists": sink.get("specialists", []),
+        "graph_text": sink.get("graph_text", ""),
         "seconds": round(time.time() - started),
         "at": dt.datetime.now().isoformat(timespec="seconds"),
     }
@@ -144,7 +194,16 @@ def run_one(ma, case, equipment, arm):
 # ── Marking ──────────────────────────────────────────────────────────────────
 
 def _norm(text):
-    return (text or "").replace("\u2011", "-").replace("\u2013", "–").replace("\u202f", " ")
+    """
+    Plain characters before any check, exactly like evals/promptfoo/lib/normalise.js:
+    models write dashes, quotes and spaces that LOOK plain but aren't, and a
+    correct answer must never fail on a non-breaking hyphen. (Was a 3-character
+    version that also left the en dash as it was.)
+    """
+    return (re.sub(r"[‐-―−]", "-", text or "")
+            .translate({0x2018: "'", 0x2019: "'", 0x201B: "'", 0x201C: '"', 0x201D: '"',
+                        0x00A0: " ", 0x2007: " ", 0x2009: " ", 0x202F: " "})
+            .replace("…", "..."))
 
 
 def check_code(check, report):
@@ -452,6 +511,13 @@ def main():
     spec = json.loads(Path(args.file).read_text(encoding="utf-8"))
     cases = spec["cases"]
     args.tag = args.tag or spec.get("default_tag", "baseline")
+    # A cases file may write its checkers ONCE for every case (the teaching
+    # set: same 5-line key for all 3 wordings), and keep its own results folder.
+    for c in cases:
+        c.setdefault("checks", spec.get("checks", []))
+    if spec.get("out_dir"):
+        global OUT_DIR
+        OUT_DIR = ROOT / spec["out_dir"]
     if args.cases:
         wanted = {c.strip() for c in args.cases.split(",")}
         cases = [c for c in cases if c["id"] in wanted]

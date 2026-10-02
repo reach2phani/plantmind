@@ -1,0 +1,225 @@
+{
+ "answers": [
+  {
+   "part": "answers",
+   "answer": "K-PERFECT",
+   "check": "L1",
+   "kind": "judge",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-PERFECT",
+   "check": "L2",
+   "kind": "code",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-PERFECT",
+   "check": "L3",
+   "kind": "judge",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-PERFECT",
+   "check": "L4",
+   "kind": "code",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-PERFECT",
+   "check": "L5",
+   "kind": "judge",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-BAD",
+   "check": "L1",
+   "kind": "judge",
+   "expected": "fail",
+   "got": "fail",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-BAD",
+   "check": "L2",
+   "kind": "code",
+   "expected": "fail",
+   "got": "fail",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-BAD",
+   "check": "L3",
+   "kind": "judge",
+   "expected": "fail",
+   "got": "fail",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-BAD",
+   "check": "L4",
+   "kind": "code",
+   "expected": "fail",
+   "got": "fail",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-BAD",
+   "check": "L5",
+   "kind": "judge",
+   "expected": "fail",
+   "got": "fail",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-TRICKY",
+   "check": "L1",
+   "kind": "judge",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-TRICKY",
+   "check": "L2",
+   "kind": "code",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-TRICKY",
+   "check": "L3",
+   "kind": "judge",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-TRICKY",
+   "check": "L4",
+   "kind": "code",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "answers",
+   "answer": "K-TRICKY",
+   "check": "L5",
+   "kind": "judge",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  }
+ ],
+ "variants": [
+  {
+   "part": "variants",
+   "check": "L2",
+   "text": "495 to 505 ml",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "variants",
+   "check": "L2",
+   "text": "495–505 ml (en dash)",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "variants",
+   "check": "L2",
+   "text": "between 495 and 505 ml",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "variants",
+   "check": "L2",
+   "text": "about 500 ml",
+   "expected": "fail",
+   "got": "fail",
+   "as_expected": true
+  },
+  {
+   "part": "variants",
+   "check": "L4",
+   "text": "weigh the first 20 bottles",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "variants",
+   "check": "L4",
+   "text": "check 20 bottles on the scale",
+   "expected": "pass",
+   "got": "pass",
+   "as_expected": true
+  },
+  {
+   "part": "variants",
+   "check": "L4",
+   "text": "weigh a few bottles",
+   "expected": "fail",
+   "got": "fail",
+   "as_expected": true
+  },
+  {
+   "part": "variants",
+   "check": "L4",
+   "text": "wait 20 minutes, then weigh bottles",
+   "expected": "report",
+   "got": "pass",
+   "as_expected": null
+  }
+ ],
+ "lazy_l5": [
+  {
+   "answer": "K-PERFECT",
+   "expected": "pass",
+   "got": "fail",
+   "as_expected": false
+  },
+  {
+   "answer": "K-BAD",
+   "expected": "fail",
+   "got": "fail",
+   "as_expected": true
+  },
+  {
+   "answer": "K-TRICKY",
+   "expected": "pass",
+   "got": "fail",
+   "as_expected": false
+  }
+ ]
+}

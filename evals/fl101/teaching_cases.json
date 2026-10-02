@@ -1,0 +1,34 @@
+{
+  "_about": "Evals teaching set (evals/fl101/TEACHING_SET.md): one simple question, 3 wordings, one 5-line answer key. The checkers below are written ONCE and used by both the step 4 self-test (evals/teaching_selftest.py) and the real runs (evals/graph_value_test.py --file this). equipment 'find' = no machine is given: the app's own machine finder works it out from the words, as on the Investigate page.",
+  "equipment": "find",
+  "default_tag": "teaching",
+  "out_dir": "evals/fl101/results",
+  "checks": [
+    {"id": "L1", "kind": "judge",
+     "q": "Does the answer tell the operator to check the fill valves for dripping, because a dripping valve means a worn seal? Answer YES or NO.",
+     "label": "L1 check the valves for drips (a drip means a worn seal)",
+     "source": "SOP 12.1 Step 3; SOP 4 (Definitions)"},
+    {"id": "L2", "kind": "code", "all": ["\\b495\\b", "\\b505\\b"],
+     "label": "L2 a good bottle is 495 to 505 ml",
+     "source": "SOP 10"},
+    {"id": "L3", "kind": "judge",
+     "q": "Does the answer tell the operator to stop the machine and make it safe (for example: press stop, lock out, isolate) before touching or cleaning any part? Answer YES or NO. Judge only this point.",
+     "label": "L3 stop the machine and make it safe before touching it",
+     "source": "SOP 12.1 Steps 1 and 4"},
+    {"id": "L4", "kind": "code", "all": ["\\b20\\b[^.\\n]{0,40}bottle|bottle[^.\\n]{0,40}\\b20\\b"],
+     "label": "L4 weigh the first 20 bottles after the fix",
+     "source": "WI-FL101-001 Step 10"},
+    {"id": "L5", "kind": "judge",
+     "q": "Does the answer avoid telling the operator to increase or change the fill time? A warning NOT to change the fill time counts as YES. Answer YES or NO.",
+     "label": "L5 does NOT tell the operator to turn up the fill time",
+     "source": "SOP 12.1; SOP 10"}
+  ],
+  "cases": [
+    {"id": "T-1", "name": "Plain", "tests": "The main question, plain words",
+     "incident": "Bottles aren't full enough. What should I check?"},
+    {"id": "T-2", "name": "In a rush", "tests": "Short, rushed",
+     "incident": "filler's short again, what do i do"},
+    {"id": "T-3", "name": "Messy", "tests": "Typos, no machine name",
+     "incident": "botles not filing up all the way??"}
+  ]
+}

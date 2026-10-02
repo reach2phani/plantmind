@@ -1,0 +1,12 @@
+{
+ "A1": {"L1": "YES", "L3": "YES", "L5": "YES"},
+ "A2": {"L1": "YES", "L3": "YES", "L5": "YES"},
+ "A3": {"L1": "YES", "L3": "YES", "L5": "YES"},
+ "A4": {"L1": "NO", "L3": "YES", "L5": "YES"},
+ "A5": {"L1": "YES", "L3": "YES", "L5": "YES"},
+ "A6": {"L1": "YES", "L3": "YES", "L5": "YES"},
+ "A7": {"L1": "YES", "L3": "YES", "L5": "YES"},
+ "A8": {"L1": "YES", "L3": "YES", "L5": "YES"},
+ "A9": {"L1": "YES", "L3": "YES", "L5": "YES"},
+ "A10": {"L1": "YES", "L3": "YES", "L5": "YES"}
+}

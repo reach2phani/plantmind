@@ -1,0 +1,173 @@
+[
+ {
+  "id": "T-1",
+  "question": "Bottles aren't full enough. What should I check?",
+  "machine": "FL-101",
+  "fault": [
+   "Underfill"
+  ],
+  "fault_confidence": "sure",
+  "fault_method": "AI tie-break",
+  "search": [
+   {
+    "rank": 7,
+    "score": 0.857,
+    "taken": false,
+    "shown": true,
+    "at_char": 222,
+    "line": "L1",
+    "sentence": "Dripping means a worn seal",
+    "doc_type": "SOP",
+    "agent": "SOP Agent"
+   },
+   {
+    "rank": 4,
+    "score": 0.838,
+    "taken": true,
+    "shown": false,
+    "at_char": 285,
+    "line": "L4",
+    "sentence": "weigh the first 20 bottles",
+    "doc_type": "Work Instruction",
+    "agent": "Maintenance Agent"
+   },
+   {
+    "rank": 2,
+    "score": 0.875,
+    "taken": true,
+    "shown": false,
+    "at_char": 666,
+    "line": "L4",
+    "sentence": "weigh the first 20 bottles",
+    "doc_type": "SOP",
+    "agent": "SOP Agent"
+   }
+  ],
+  "graph": {
+   "L1": true,
+   "L4": true
+  },
+  "required": [
+   "alarm",
+   "expert_fix",
+   "maintenance",
+   "sop",
+   "ncr"
+  ],
+  "router_ok": true
+ },
+ {
+  "id": "T-2",
+  "question": "filler's short again, what do i do",
+  "machine": "FL-101",
+  "fault": [
+   "Underfill"
+  ],
+  "fault_confidence": "sure",
+  "fault_method": "AI tie-break",
+  "search": [
+   {
+    "rank": 3,
+    "score": 0.845,
+    "taken": true,
+    "shown": true,
+    "at_char": 222,
+    "line": "L1",
+    "sentence": "Dripping means a worn seal",
+    "doc_type": "SOP",
+    "agent": "SOP Agent"
+   },
+   {
+    "rank": 8,
+    "score": 0.801,
+    "taken": false,
+    "shown": false,
+    "at_char": 285,
+    "line": "L4",
+    "sentence": "weigh the first 20 bottles",
+    "doc_type": "Work Instruction",
+    "agent": "Maintenance Agent"
+   },
+   {
+    "rank": 4,
+    "score": 0.844,
+    "taken": true,
+    "shown": false,
+    "at_char": 666,
+    "line": "L4",
+    "sentence": "weigh the first 20 bottles",
+    "doc_type": "SOP",
+    "agent": "SOP Agent"
+   }
+  ],
+  "graph": {
+   "L1": true,
+   "L4": true
+  },
+  "required": [
+   "alarm",
+   "expert_fix",
+   "maintenance",
+   "sop",
+   "ncr"
+  ],
+  "router_ok": true
+ },
+ {
+  "id": "T-3",
+  "question": "botles not filing up all the way??",
+  "machine": "FL-101",
+  "fault": [
+   "Underfill"
+  ],
+  "fault_confidence": "sure",
+  "fault_method": "AI tie-break",
+  "search": [
+   {
+    "rank": 10,
+    "score": 0.839,
+    "taken": false,
+    "shown": true,
+    "at_char": 222,
+    "line": "L1",
+    "sentence": "Dripping means a worn seal",
+    "doc_type": "SOP",
+    "agent": "SOP Agent"
+   },
+   {
+    "rank": 6,
+    "score": 0.822,
+    "taken": false,
+    "shown": false,
+    "at_char": 285,
+    "line": "L4",
+    "sentence": "weigh the first 20 bottles",
+    "doc_type": "Work Instruction",
+    "agent": "Maintenance Agent"
+   },
+   {
+    "rank": 3,
+    "score": 0.855,
+    "taken": true,
+    "shown": false,
+    "at_char": 666,
+    "line": "L4",
+    "sentence": "weigh the first 20 bottles",
+    "doc_type": "SOP",
+    "agent": "SOP Agent"
+   }
+  ],
+  "graph": {
+   "L1": true,
+   "L4": true
+  },
+  "required": [
+   "alarm",
+   "expert_fix",
+   "maintenance",
+   "sop",
+   "ncr"
+  ],
+  "router_ok": true
+ }
+]

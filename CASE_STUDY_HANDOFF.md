@@ -1,4 +1,4 @@
-# PlantMind case-study page: handoff (30 Sep 2026)
+# PlantMind case-study page: handoff (updated 2 Oct 2026, Evals page done)
 
 Paste this into a new chat to continue. This chat is **only** for the interview case-study page.
 App/eval work (FL-101, Phase 2a+) happens in the main build chat. Don't mix them.
@@ -25,6 +25,8 @@ App/eval work (FL-101, Phase 2a+) happens in the main build chat. Don't mix them
 | `evals/fl101/LEARNINGS.md`, `ANSWER_KEY.md` | Real FL-101 findings and the answer key (written by the main chat) |
 | `evals/graph_value/fl101_scorecard.md`, `fl101_runs.jsonl` | Real FL-101 graph OFF vs ON results and saved reports |
 | `evals/fault_match/*_scorecard.md` | Real fault-matching results (exam 4/7 → 7/7) |
+| `evals/fl101/TEACHING_SET.md` | The Evals lesson's test plan (one simple question, 5-line answer key, 7 steps) |
+| `evals/fl101/results/teaching_*` | Real Evals results: scorecard, judge-vs-person, checker self-test, component checks, run log |
 
 Patches were applied with small Python scripts (find/replace on `preview.html`). The Architecture scene source is mirrored in the scratchpad as `arch.js`, but **preview.html is the source of truth.**
 
@@ -96,6 +98,38 @@ Journey bar across the top (Question → Scope → Context → Evidence → Vali
 
 ---
 
+## Page 2 "Evals" (DONE, 2 Oct 2026)
+
+**Idea:** teach evals to a newcomer with **one simple question** followed through 7 steps:
+*"Bottles aren't full enough. What should I check?"* (FL-101). New test data was designed for this
+(`TEACHING_SET.md`) and run by the main chat; every number on the page comes from `evals/fl101/results/`.
+
+**Layout (chosen after trying a step bar, a conveyor line and a wheel, all rejected):**
+- LEFT: a ruled notebook page, 7 boxes with the step names only (user's wording): 1 WHAT GOOD LOOKS LIKE ·
+  2 REAL-WORLD QUESTIONS · 3 CHECKING THE ANSWER · 4 CHECKING THE CHECKS · 5 RUNNING IT AGAIN ·
+  6 COMPARING CHANGES · 7 FINDING THE PROBLEM. Current box lit, pointer to the right. Margin arrow 7 → 1 at the end (the loop).
+- RIGHT: "STEP n OF 7", the step's question as heading, then one picture and one closing line.
+
+**What each step shows:**
+1. 5 requirement lines (MUST ×4, MUST NOT) with tags CAUSE / TARGET / SAFETY / PROOF / TRAP. "Every requirement comes from the plant's procedures."
+2. The 3 wordings (plain / in a rush / with typos). No numbers. "Different wording helps us see if the answer holds up."
+3. CODE / AI JUDGE / PERSON icons, each with a tiny example question. "The tricky part is knowing how to check each requirement."
+4. THE RULE, then WE KNOW THE ANSWER → RUN THE CHECKER → COMPARE → THEY DISAGREE → THE CHECKER IS WRONG (real: the word check failed "Do NOT raise the fill time…"). "So we test the test before using it to judge."
+5. One real line from each of the 5 runs (the 20-bottle check, word for word from `teaching_runs.jsonl`). "Every run came back with the same answer."
+6. Two cards: GRAPH OFF (typical answer ✗✗✓✗✓, 48%, 9 runs) → GRAPH ON (all ✓, 100%, 11 runs). "Change one thing. See what happens."
+7. One requirement traced: PLANT PROCEDURE ✓ → SEARCH ✓ → SPECIALIST ✗ summary left it out → WRITER — never received → ANSWER ✗. "The search worked. The handoff failed." Last caption: "Evaluation isn't a final score. It's a feedback loop for improving the system."
+
+**Below the player:** nothing. The evidence card and "What surprised us" note were removed by the user (2 Oct): "no one will care". Sources stay in the repo files listed in this handoff.
+
+**User preferences learned on this page:**
+- Hates crowding and repetition: one picture + one sentence per step; scene line = what happened, caption = why it matters.
+- Numbers only where they add meaning (removed from steps 2, 3 and 5's tags); an example is only worth showing if it adds something new (pass/fail example in step 1 was removed as a repeat).
+- Plain words over jargon. Industry terms appear only as a small outlined badge next to "STEP n OF 7": SUCCESS CRITERIA · ROBUSTNESS TESTING · GRADERS · LLM-AS-JUDGE · GRADER VALIDATION · CONSISTENCY TESTING · A/B TEST · ABLATION · COMPONENT-LEVEL EVAL.
+- Rejected here: stage bar copy of How it works, conveyor line, wheel/loop, upward trace in step 7 (kept top-down for readability).
+- Not backed by a file, so NOT used: machine finder "1/3 → 3/3".
+
+Scene source is mirrored in the scratchpad (`sevals3.js` + `apply_page.py`), but **preview.html is the source of truth.**
+
 ## Design system (keep)
 
 - Palette (CSS vars):
@@ -155,8 +189,8 @@ Journey bar across the top (Question → Scope → Context → Evidence → Vali
 ## Pending / next
 
 1. **Architecture:** the user was still reviewing the latest right-angled version. Get feedback first.
-2. **Lesson pages 2–8** (Evals, Context, Knowledge graph, Trust, Rules, Tracing, People in the loop): plan each one in detail first, using the lesson template.
-   - The four **Scope lessons** need new homes: "test with users' words" (1/6 → 7/7) → **Evals**; "fail closed / no manuals found" (+ the new /investigate gap) → **Rules**; "your own template leaked welding" and "the year defaulted to 2025" → **Context**.
+2. **Evals (page 2) is DONE** (see the section above). **Next: Context (page 3)**, then Knowledge graph, Trust, Rules, Tracing, People in the loop. What worked for Evals: design new, simple test data together first, have the main chat run it, then build the page from the results. Reuse the ruled-page layout only if it suits the lesson; don't force it.
+   - Scope lessons still needing homes: "fail closed / no manuals found" (+ the /investigate gap) → **Rules**; "your own template leaked welding" and "the year defaulted to 2025" → **Context**. ("Test with users' words" was not used on Evals; Evals used its own new data.)
 3. **Tests the main chat should run** (see `CASE_STUDY_TESTS.md`):
    - (a) FL-101 retrieval: add the 13 labels from ANSWER_KEY §5 to `retrieval_labels.json` and run `evals/retrieval_eval.py` (free)
    - (b) machine-from-plain-words + refusal checks (free; needs a tiny script)

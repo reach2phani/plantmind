@@ -137,6 +137,9 @@ def _increment_expert_fix_citations(expert_fix_ids):
 
 # ── Shared Pinecone search ─────────────────────────────────────────────────────
 
+SEARCH_PIECE_MAX_CHARS = 2000   # whole piece; see search_plantmind()
+
+
 @traceable(run_type="retriever", name="search_documents")
 def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4):
     """
@@ -174,12 +177,19 @@ def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4
     output = []
     for match in strong_matches:
         meta = match.metadata
+        # Pass each found piece WHOLE (2026-10-01). It was cut to its first 300
+        # characters, so a sentence could be found and still never reach the
+        # specialist: the teaching set's step 7a found "weigh the first 20
+        # bottles" in the top 4 pieces 4 times, and shown 0 times. Size is
+        # controlled by HOW MANY pieces are passed (top_k), never by cutting
+        # pieces. 2,000 = the most a stored piece can hold (embedder.py), so it
+        # only guards against an unusually large one.
         output.append(
             f"[Source: {meta.get('name', 'unknown')} | "
             f"Type: {meta.get('doc_type', 'unknown')} | "
             f"Revision: {meta.get('revision', '?')} | "
             f"Score: {round(match.score, 2)}]\n"
-            f"{meta.get('text', '')[:300]}"
+            f"{meta.get('text', '')[:SEARCH_PIECE_MAX_CHARS]}"
         )
 
     return "\n\n---\n\n".join(output)
@@ -309,7 +319,9 @@ def search_expert_fixes(query, equipment_filter=None, top_k=3):
             f"[Expert Fix — {name}"
             f"{', ' + role if role else ''}"
             f"{', ' + date if date else ''} | {status} | Score: {round(match.score, 2)}]\n"
-            f"{meta.get('text', '')[:400]}"
+            # Whole capture, like search_plantmind(): it was cut at 400
+            # characters, which could drop a captured fix's later steps.
+            f"{meta.get('text', '')[:SEARCH_PIECE_MAX_CHARS]}"
         )
         fid = meta.get("expert_fix_id")
         if fid:

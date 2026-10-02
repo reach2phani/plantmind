@@ -1,0 +1,618 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marking Sheet</title>
+<style>
+:root{--bg:#f4f5f1;--card:#fff;--ink:#1d2623;--muted:#5a6560;--line:#d6dbd2;--yes:#2d6a58;--no:#a4473a}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:1.4rem;margin:0 0 6px}.lead{color:var(--muted)}
+ol{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 14px 14px 34px}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:18px 0;padding:14px 16px}
+h2{margin:0 0 8px;font-size:1.1rem}
+pre{white-space:pre-wrap;font:13px/1.5 ui-monospace,monospace;background:#fafaf7;border:1px solid var(--line);
+border-radius:8px;padding:10px;max-height:420px;overflow:auto}
+.marks{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px}.row{display:flex;gap:6px;align-items:center}
+.lid{font-weight:600;width:24px}
+button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 12px;cursor:pointer;font:inherit}
+button.on[data-v=YES]{background:var(--yes);color:#fff;border-color:var(--yes)}
+button.on[data-v=NO]{background:var(--no);color:#fff;border-color:var(--no)}
+.bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px;
+display:flex;gap:12px;align-items:center;justify-content:center}
+#copy{background:var(--ink);color:#fff;border:none}#status{color:var(--muted);font-size:13px}
+</style></head><body><div class="wrap">
+<h1>Step 3 marking sheet</h1>
+<p class="lead">For each answer, mark the three lines YES or NO. Judge only what the answer says.
+Don't open the key file until you're done.</p>
+<ol><li><b>L1</b> Does the answer tell the operator to check the fill valves for dripping, because a dripping valve means a worn seal? Answer YES or NO.</li><li><b>L3</b> Does the answer tell the operator to stop the machine and make it safe (for example: press stop, lock out, isolate) before touching or cleaning any part? Answer YES or NO. Judge only this point.</li><li><b>L5</b> Does the answer avoid telling the operator to increase or change the fill time? A warning NOT to change the fill time counts as YES. Answer YES or NO.</li></ol>
+<section><h2>A1</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- DemoBottling‑Shift‑Log‑2026‑09‑10‑Night.csv (2026‑09‑10) – underfill alarms for valves 9, 15, 3
+- FL‑101‑SOP.txt Rev 1.0 (no timestamp) – alarm definition, response procedure, safety steps, specifications
+- FL‑101‑Work‑Instruction.txt (no timestamp) – seal‑kit part number, replacement steps, interval
+- FL‑101‑NCR.txt (2026‑01‑16) – prior seal‑replacement NCR‑2026‑012 and corrective actions
+- [source] for FL‑101 (verified) – consolidated facts on causes, systemic fault rule, mandatory steps
+- WI‑FL101‑001 (work instruction referenced in [source]) – detailed seal‑replacement procedure
+
+WHAT IS THE ISSUE:
+- Root cause: Worn fill‑valve seal kits on valves 9, 15 and 3 are dripping between fills, triggering underfill alarms.
+- Difference vs. history: This shift recorded three underfill alarms (≥3 in one shift) and added a new valve 3, indicating a systemic fault rather than an isolated single‑valve event.
+
+WHAT IS THE IMPACT:
+- Production impact: Line must be stopped for seal replacement; estimated downtime ≈ 1 hour including sanitation rinse and first‑bottle check.
+- Safety risk: HIGH (requires LOTO, PPE, and mandatory safety steps before any work).
+- Financial impact: Lost production for ~1 hour plus labor for seal change; exact cost not quantified in provided data.
+
+HOW CRITICAL IS IT:
+- HIGH
+- Justification: Three or more underfill alarms in a single shift meet the systemic fault rule ([source]) and require immediate production stop and maintenance work order.
+
+HOW TO ADDRESS IT:
+Immediate action (follow knowledge‑[source] steps, safety first):
+Step 1: Safety — Press STOP, apply LOTO per SAF‑003, wear safety shoes, cut‑resistant gloves, safety glasses, and hearing protection.
+Step 2: Diagnosis — Review the checkweigher report; confirm dripping on valves 9, 15, 3; tag each valve with a green tag.
+Step 3: Fix — Replace the seal kit (SEAL‑FV‑24) on each affected valve using WI‑FL101‑001:
+  1. Drain bowl below valve level.
+  2. Remove valve with valve key (quarter turn left).
+  3. Remove old seal and O‑ring with seal pick.
+  4. Clean seat; inspect for scratches (report if scratched).
+  5. Install new seal and O‑ring, apply thin layer of food‑grade lubricant FGL‑1.
+  6. Re‑install valve (quarter turn right until click).
+  7. Count tools/parts, remove lock, refill bowl.
+  8. Perform mandatory sanitation rinse (10 min clean water).
+Step 4: Verify — Run first‑bottle check: weigh first 20 bottles; all must be 495–505 ml. If any out of range, stop and re‑inspect.
+Step 5: Quality — Record seal‑change details (valve numbers, old seal condition, kit used, technician name) in maintenance log; quarantine first‑bottle batch until verified.
+
+Root cause fix (permanent solution):
+- Replace all worn seals on the identified valves and any other valves approaching the 3‑month/1 500‑hour interval; ensure fill‑time remains at the factory‑set 3.2 s (do NOT adjust).
+
+Preventive action:
+- Add hourly checkweigher reject monitoring; if rejects &gt; 1/100, notify shift lead immediately.
+- Schedule seal‑kit replacement every 3 months or 1 500 hours, whichever comes first, and track wear signs (flattened, cracked, discoloured).
+- Update maintenance work order system to generate alerts when three or more underfill alarms occur in a shift.
+- Conduct a brief refresher on “Do NOT increase fill time to mask underfill” for all operators.
+
+Who to notify:
+- Shift lead (immediate alarm response)
+- Maintenance supervisor (authorise seal‑change work order)
+- Quality lead (record NCR follow‑up and first‑bottle verification)
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: Three underfill alarms occurred on Filling Line 1, caused by dripping fill‑valve seals on valves 9, 15 and 3.  
+ROOT CAUSE: Worn seal kits on the affected fill valves allowed product to drip between fills.  
+STATUS: Line stopped for seal replacement; expected to restart after ~1 hour of work and verification.  
+ACTION REQUIRED: Apply LOTO, replace the seals on valves 9, 15, 3 per WI‑FL101‑001, perform sanitation rinse and first‑bottle check before restarting.  
+RISK IF NOT ACTIONED: Continued underfill will trigger additional alarms, force an unscheduled production stop, and may lead to quality‑related rejects or safety incidents.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A1" data-l="L1" data-v="YES">YES</button><button data-a="A1" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A1" data-l="L3" data-v="YES">YES</button><button data-a="A1" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A1" data-l="L5" data-v="YES">YES</button><button data-a="A1" data-l="L5" data-v="NO">NO</button></div></div></section>
+<section><h2>A2</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- DemoBottling-Shift-Log-2026-09-10-Night.csv (TIER 2 EVENTS) – underfill alarm timestamps and valve numbers
+- DemoBottling-Shift-Log-2026-09-14-Night.csv (TIER 2 EVENTS) – no underfill alarms
+- DemoBottling-Shift-Log-2026-09-17-Day.csv (TIER 2 EVENTS) – no underfill alarms
+- DemoBottling-Shift-Log-2026-09-21-Night.csv (TIER 2 EVENTS) – no underfill alarms
+- FL-101-Work-Instruction.txt (TIER 2 DOCUMENT) – seal‑replacement criteria and troubleshooting steps for the FL‑101 Bottle Filler
+
+WHAT IS THE ISSUE:
+- Root cause: Worn or damaged seals on fill valves (9, 15, 3) causing drip‑through and repeated under‑fill alarms, as indicated by the work instruction that mandates seal replacement when dripping or when under‑fill alarms recur.
+- Difference vs. history: This is the first recorded occurrence of any under‑fill alarm in the available logs; the alarms appeared three times in a single night shift with progressive involvement of additional valves, whereas previous shifts showed no under‑fill events.
+
+WHAT IS THE IMPACT:
+- Production impact: Line operating at reduced fill quality; risk of product out‑of‑spec and potential line shutdown if alarms persist.
+- Safety risk: LOW (no electrical, fire, injury, or foreign‑material hazard identified).
+- Financial impact: Potential scrap/rework cost and loss of yield; exact dollar amount not determinable from provided data.
+
+HOW CRITICAL IS IT:
+- HIGH
+- Justification: Three under‑fill alarms occurred in one shift (recurring fault indicator) and the fault requires line stop for seal replacement (production stop).
+
+HOW TO ADDRESS IT:
+- Immediate action:
+  Step 1: Safety — Initiate LOTO, stop the bottling line, and isolate the FL‑101 filler.
+  Step 2: Diagnosis — Inspect fill valves 9, 15, and 3 for seal wear or drip evidence.
+  Step 3: Fix — Replace the seals on the inspected valves per the FL‑101 work instruction (replace if dripping, after repeated alarms, or after 3 months/1 500 hrs).
+  Step 4: Verify — Run a test fill cycle, confirm that fill volume meets specification, and ensure no further under‑fill alarms.
+  Step 5: Quality — Quarantine any bottles filled during the alarm period for inspection or rework.
+- Root cause fix (permanent solution): Implement a scheduled seal‑inspection and replacement program for the FL‑101 filler based on time‑in‑service and alarm history.
+- Preventive action: Add seal‑wear checks to the daily shift checklist; log seal‑replacement dates in the maintenance record; set an alarm threshold trigger to schedule proactive maintenance after two under‑fill alarms.
+- Who to notify: Maintenance Supervisor, Shift Supervisor, Quality Assurance Lead, and Production Planner.
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: Under‑fill alarms triggered three times on one night shift, indicating bottles are not being filled to target volume.  
+ROOT CAUSE: Worn seals on fill valves caused drip‑through, leading to repeated under‑fill alarms.  
+STATUS: Line stopped for seal replacement; production at risk until fix is verified.  
+ACTION REQUIRED: Stop the line, replace the seals on valves 9, 15, and 3, and verify proper fill before restarting.  
+RISK IF NOT ACTIONED: Continued under‑filled bottles, product out‑of‑spec, increased scrap, and possible line shutdown.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A2" data-l="L1" data-v="YES">YES</button><button data-a="A2" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A2" data-l="L3" data-v="YES">YES</button><button data-a="A2" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A2" data-l="L5" data-v="YES">YES</button><button data-a="A2" data-l="L5" data-v="NO">NO</button></div></div></section>
+<section><h2>A3</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- DemoBottling-Shift-Log-2026-09-10-Night.csv – underfill alarm entries (3 occurrences on 2026‑09‑10 Night shift) – TIER 2 – HIGH confidence
+- FL-101-Work-Instruction.txt (WI‑FL101‑001, Revision 1.0) – seal‑kit replacement criteria and procedure for FL‑101 Bottle Filler – TIER 2 – NO DATA confidence
+
+WHAT IS THE ISSUE:
+- Root cause: degraded seal kits on filler valves (9, 15, and newly implicated 3) causing repeated under‑fill alarms – supported by alarm pattern (multiple alarms) and seal‑kit replacement criteria in WI‑FL101‑001
+- Difference vs history: first documented instance of three under‑fill alarms in a single shift; prior logs show no under‑fill events and no maintenance records for seal replacement
+
+WHAT IS THE IMPACT:
+- Production impact: line operating at reduced output; bottles not filled to target volume, risking product quality and possible line slowdown
+- Safety risk: LOW (no injury, fire, or hazardous material involved)
+- Financial impact: potential re‑work or scrap of under‑filled bottles; exact cost not quantifiable from available data
+
+HOW CRITICAL IS IT:
+- HIGH – three alarms of the same type occurred in one shift, meeting the HIGH minimum recurrence rule
+- Justification: recurring fault indicator triggers HIGH classification despite low safety risk
+
+HOW TO ADDRESS IT:
+- Immediate action (follow WI‑FL101‑001 procedure):
+  Step 1: Safety – initiate LOTO, stop the bottle‑filling line, and isolate power/hydraulic sources
+  Step 2: Diagnosis – open the filler head and inspect seal kits on valves 9, 15, and 3 for wear or damage
+  Step 3: Fix – replace seal kits on any valve with worn or leaking seals according to WI‑FL101‑001 (use specified parts and tools, complete required sign‑off)
+  Step 4: Verify – run a test fill cycle, confirm fill level meets specification, and ensure under‑fill alarm does not re‑trigger
+  Step 5: Quality – quarantine any bottles filled during the alarm period for inspection or re‑work
+- Root cause fix (permanent solution): implement a scheduled seal‑kit inspection and replacement program based on WI‑FL101‑001 criteria (dripping, 3+ under‑fills in a shift, or 3 months/1,500 hrs)
+- Preventive action: log all seal‑kit inspections and replacements in a maintenance record; add a shift‑log entry whenever an under‑fill alarm occurs to capture early trends
+- Who to notify: Maintenance Supervisor, Shift Supervisor, Quality Assurance Manager, and Production Control
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: The bottle filler generated three under‑fill alarms in one night shift, indicating bottles were not filling to target volume.  
+ROOT CAUSE: Worn seal kits on filler valves 9, 15, and 3 caused leakage and low fill levels.  
+STATUS: The line is stopped for immediate repair; production is at risk until seals are replaced.  
+ACTION REQUIRED: Perform the seal‑kit replacement procedure (WI‑FL101‑001) after LOTO and verify proper fill levels.  
+RISK IF NOT ACTIONED: Continued under‑filling will lead to product non‑conformance, increased scrap, and potential line shutdown.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A3" data-l="L1" data-v="YES">YES</button><button data-a="A3" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A3" data-l="L3" data-v="YES">YES</button><button data-a="A3" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A3" data-l="L5" data-v="YES">YES</button><button data-a="A3" data-l="L5" data-v="NO">NO</button></div></div></section>
+<section><h2>A4</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- DemoBottling-Shift-Log-2026-09-10-Night.csv (alarm events, HIGH confidence)
+- DemoBottling-Shift-Log-2026-09-21-Night.csv (no underfill alarms)
+- DemoBottling-Shift-Log-2026-09-17-Day.csv (no underfill alarms)
+- DemoBottling-Shift-Log-2026-09-14-Night.csv (no underfill alarms)
+- FL-101-Work-Instruction.txt (cause of underfill: worn seals, replacement interval 3 months/1,500 h)
+
+WHAT IS THE ISSUE:
+- Root cause: probable wear of the FL‑101 Bottle Filler seals leading to under‑fill on valves 9, 15, 3, as indicated by the work instruction that links worn seals to under‑fill symptoms.
+- Difference vs history: this is the first recorded under‑fill alarm in the provided logs and it occurred three times in a single night shift, a pattern not seen in prior shifts.
+
+WHAT IS THE IMPACT:
+- Production impact: line operating with under‑filled bottles; likely product reject and potential line slowdown or stop for corrective action.
+- Safety risk: LOW (no electrical, fire, injury, or contaminant risk identified).
+- Financial impact: potential scrap/rework cost and loss of yield; exact amount not quantifiable from available data.
+
+HOW CRITICAL IS IT:
+- HIGH
+- Justification: three under‑fill alarms of the same type occurred in one shift, meeting the HIGH minimum criticality rule.
+
+HOW TO ADDRESS IT:
+- Immediate action:
+  Step 1: Safety — Initiate LOTO on the FL‑101 Bottle Filler, stop production, and isolate the equipment.
+  Step 2: Diagnosis — Visually inspect the seals on the FL‑101 filler, especially around valves 9, 15, 3; check for wear, cracking, or debris.
+  Step 3: Fix — Replace the seals if any wear is observed; if seals appear within service interval, clean nozzle passages and verify valve seating.
+  Step 4: Verify — Run a test batch, monitor fill levels, and confirm that the under‑fill alarm does not re‑trigger.
+  Step 5: Quality — Quarantine any bottles filled during the alarm period for inspection or rework according to quality procedures.
+- Root cause fix: Replace FL‑101 filler seals per the work instruction and adjust valve settings if needed to restore proper fill volume.
+- Preventive action: Implement a scheduled seal inspection and replacement program at the 3‑month/1,500 h interval; record all maintenance actions in the equipment log; add a daily pre‑start check for fill level consistency.
+- Who to notify: Shift Supervisor, Maintenance Lead, Quality Assurance Manager.
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: Under‑fill alarms triggered three times on one night shift, indicating bottles are not being filled to target volume.  
+ROOT CAUSE: Worn seals on the FL‑101 Bottle Filler are likely causing the under‑fill condition.  
+STATUS: Production is at risk and may be stopped until the filler is inspected and repaired.  
+ACTION REQUIRED: Stop the line, lock out the FL‑101 filler, inspect and replace its seals, then verify proper fill before restarting.  
+RISK IF NOT ACTIONED: Continued production of under‑filled bottles leading to product non‑conformance, increased scrap, and potential loss of customer trust.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A4" data-l="L1" data-v="YES">YES</button><button data-a="A4" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A4" data-l="L3" data-v="YES">YES</button><button data-a="A4" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A4" data-l="L5" data-v="YES">YES</button><button data-a="A4" data-l="L5" data-v="NO">NO</button></div></div></section>
+<section><h2>A5</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- FL‑101‑SOP.txt (Revision 1.0) – sections 11, 12.1, 12.4, 6.2, 6.1, 6.3, 6.4
+- FL‑101‑Work‑Instruction.txt – wear‑seal replacement criteria
+- FL‑101‑NCR.txt – NCR‑2026‑012 corrective actions
+- DemoBottling‑Shift‑Log‑2026‑09‑10‑Night.csv – three underfill alarms, valves 9, 15, 3
+- DemoBottling‑Shift‑Log‑2026‑09‑01‑Day.csv – no underfill alarms
+- DemoBottling‑Shift‑Log‑2026‑09‑17‑Day.csv – no underfill alarms
+- DemoBottling‑Shift‑Log‑2026‑09‑21‑Night.csv – no underfill alarms
+
+WHAT IS THE ISSUE:
+- Root cause: worn fill‑valve seal kits on valves 9, 15 (and possibly 3) causing dripping between fills, triggering underfill alarms. (Evidence: SOP “worn seal → call maintenance”, work instruction wear criteria, alarm log showing three alarms in one shift, NCR‑2026‑012 indicating seal wear as historic failure mode)
+- Difference vs historical pattern: this is the first documented occurrence in the available logs, but the three‑alarm count in a single shift meets the systemic fault trigger defined in the SOP and [source], indicating a new recurrence of the known wear‑seal failure mode.
+
+WHAT IS THE IMPACT:
+- Production impact: line stopped per SOP after three alarms; estimated downtime ≈ 1 hour including seal change, sanitation rinse and first‑bottle check.
+- Safety risk: LOW (no injury or hazardous material, but LOTO required for maintenance).
+- Financial impact: loss of production for ~1 hour plus labor for seal replacement; exact cost not quantified in data.
+
+HOW CRITICAL IS IT:
+- HIGH – three underfill alarms in one shift constitute a systemic fault per SOP and trigger a production stop; recurring wear‑seal issue is documented as a high‑impact fault.
+
+HOW TO ADDRESS IT:
+Immediate action (follow SOP and knowledge‑[source] steps – safety first):
+Step 1: Safety — Press STOP (normal stop), isolate power, apply LOTO per SAF‑003 before any work.
+Step 2: Diagnosis — Read the checkweigher report; identify dripping valves (valves 9, 15, 3). Confirm dripping visually.
+Step 3: Fix — Replace the seal kit on each identified valve using WI‑FL101‑001:
+   1. Drain bowl below valve level.
+   2. Remove valve with valve key.
+   3. Remove old seal and O‑ring, clean seat.
+   4. Install new SEAL‑FV‑24 kit with food‑grade lubricant FGL‑1.
+   5. Refit valve, remove lock, refill bowl.
+Step 4: Verify —
+   - Perform mandatory sanitation rinse (10 min water rinse of bowl, valves, nozzles).
+   - Conduct first‑bottle check: run first 20 bottles, all must weigh 495‑505 ml; record results and have shift supervisor sign off.
+Step 5: Quality —
+   - Quarantine any bottles produced during the alarm period; re‑weigh and disposition per quality policy.
+
+Root cause fix (permanent solution):
+- Replace all worn seals on the identified valves and any other valves approaching the 1,500‑hour/3‑month interval; update maintenance log with part numbers and timestamps; ensure stock of ≥10 SEAL‑FV‑24 kits is maintained.
+
+Preventive action (stops recurrence):
+- Enforce the 3‑month or 1,500‑hour seal replacement schedule; add a daily check of checkweigher reject rate to shift lead log; train operators to never adjust fill time (SOP prohibition); install an alarm monitor that alerts maintenance supervisor after the first underfill alarm.
+
+Who to notify:
+- Maintenance supervisor (for work order and seal stock)
+- Shift lead / production manager (line status)
+- Quality lead (for quarantine handling)
+- Engineering (to review seal interval if wear appears accelerated)
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: Three underfill alarms occurred on the night shift, indicating dripping fill‑valve seals.
+ROOT CAUSE: Worn seal kits on valves 9, 15 (and possibly 3) caused the underfill condition.
+STATUS: Production line stopped; maintenance is replacing the seals.
+ACTION REQUIRED: Stop the line, apply LOTO, replace the identified seal kits, perform sanitation rinse and mandatory first‑bottle check before restart.
+RISK IF NOT ACTIONED: Continued underfill will trigger a systemic fault, force an extended shutdown, and may lead to product non‑conformance and higher downtime.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A5" data-l="L1" data-v="YES">YES</button><button data-a="A5" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A5" data-l="L3" data-v="YES">YES</button><button data-a="A5" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A5" data-l="L5" data-v="YES">YES</button><button data-a="A5" data-l="L5" data-v="NO">NO</button></div></div></section>
+<section><h2>A6</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- DemoBottling‑Shift‑Log‑2026‑09‑10‑Night.csv – underfill alarm details (HIGH confidence)
+- FL‑101‑SOP.txt (Revision 1.0) – response procedure, specifications, safety steps (HIGH confidence)
+- FL‑101‑NCR.txt – NCR‑2026‑012 corrective actions (HIGH confidence)
+- FL‑101‑Work‑Instruction.txt (WI‑FL101‑001) – seal‑kit replacement steps (NO DATA on actual service, but procedure is documented)
+- Knowledge‑[source] entries for FL‑101 (verified facts) – fault definition, cause hierarchy, systemic rule, mandatory steps (TIER 1 VERIFIED)
+
+WHAT IS THE ISSUE:
+- Root cause: Worn fill‑valve seals on valves 9, 15 and 3 causing drip‑between‑fills, leading to three underfill alarms in one shift. (Evidence: alarm pattern, SOP “worn seal” cause, knowledge‑[source] seal‑wear criteria, NCR history of seal wear)
+- Difference vs historical pattern: First documented underfill event on this line; previous NCR involved different valves (7, 12, 13, 19). The progressive addition of valves indicates a new wear episode rather than an isolated past fault.
+
+WHAT IS THE IMPACT:
+- Production impact: Line stopped for estimated 1 hour (downtime includes seal replacement, sanitation rinse and first‑bottle check). 
+- Safety risk: HIGH (fault requires LOTO and production stop per SOP and knowledge‑[source] safety rules). 
+- Financial impact: Approximate loss of one hour of output plus potential scrap of underfilled bottles; exact cost not quantified in data.
+
+HOW CRITICAL IS IT:
+- HIGH – three underfill alarms in one shift trigger the systemic fault rule; SOP mandates stop production and maintenance work order; safety steps (LOTO) further raise criticality.
+
+HOW TO ADDRESS IT:
+- Immediate action:
+  Step 1: Safety — Press normal STOP, then apply LOTO per SAF‑003 (switch off main isolator, lock, tag, verify lockout).
+  Step 2: Diagnosis — Read the checkweigher report; confirm that valves 9, 15 and 3 are under‑filling; inspect each for dripping.
+  Step 3: Fix — For each dripping valve:
+    • Call maintenance technician.
+    • Replace the seal kit (SEAL‑FV‑24) following WI‑FL101‑001 steps 1‑10 (LOTO, drain bowl, remove valve, replace seal with food‑grade lubricant FGL‑1, re‑fit valve, remove lock, refill, sanitation rinse, first‑bottle check).
+    If a valve does not drip, lock out and clean its nozzle per SOP Section 12.1.
+    After seal work, check product supply pressure; if below 1.3 bar, follow SOP Section 12.4 to clean filter, bleed air and restore pressure to 1.5‑2.0 bar.
+  Step 4: Verify — Perform mandatory first‑bottle check: run first 20 bottles, weigh; all must be 495‑505 ml. If any out of range, repeat inspection/fix.
+  Step 5: Quality — Quarantine any bottles outside spec; record seal‑kit part numbers, valve numbers, operator name, and first‑bottle results in the maintenance log; have shift supervisor sign off.
+
+- Root cause fix (permanent solution):
+  • Replace worn seals on valves 9, 15 and 3 now.
+  • Update maintenance schedule to ensure seal change every 1,500 h or 3 months, whichever comes first.
+  • Verify seal‑kit stock (minimum 10 kits) in spares cabinet.
+
+- Preventive action:
+  • Reinforce SOP rule “Do NOT increase fill time to compensate for underfill.”
+  • Add daily checkweigher reject trend review; if reject rate &gt;1 % in an hour, alert shift lead per early‑warning rule.
+  • Conduct a brief refresher for all filler operators on underfill response and LOTO requirements.
+  • Log seal‑wear trends in maintenance system to trigger proactive replacement before three‑alarm threshold.
+
+- Who to notify:
+  • Maintenance Supervisor
+  • Shift Lead / Production Supervisor
+  • Quality Lead (for NCR follow‑up)
+  • Engineering (to review seal‑interval adequacy)
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: Three underfill alarms occurred on night shift 2026‑09‑10, indicating dripping seals on valves 9, 15 and 3.  
+ROOT CAUSE: Worn fill‑valve seals on those valves caused product to drip between fills.  
+STATUS: Line stopped; LOTO applied; seal replacement in progress.  
+ACTION REQUIRED: Replace the seals on valves 9, 15 and 3 following WI‑FL101‑001, then perform the mandatory first‑bottle check before restarting.  
+RISK IF NOT ACTIONED: Continued underfill will force a production stop, generate scrap, and may lead to safety‑related LOTO violations, escalating to a critical fault.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A6" data-l="L1" data-v="YES">YES</button><button data-a="A6" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A6" data-l="L3" data-v="YES">YES</button><button data-a="A6" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A6" data-l="L5" data-v="YES">YES</button><button data-a="A6" data-l="L5" data-v="NO">NO</button></div></div></section>
+<section><h2>A7</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- FL-101-Work-Instruction.txt (Work Instruction WI‑FL101‑001, Revision 1.0) – specifies seal‑kit replacement triggers
+- DemoBottling-Shift-Log-2026-09-10-Night.csv (underfill alarm log, 2026‑09‑10 Night shift) – records three underfill alarms, valve drip notes, and first involvement of valve 3
+
+WHAT IS THE ISSUE:
+- Root cause: Valve leakage from degraded seal kits on valves 9, 15, and newly valve 3, causing bottle under‑fill alarms
+- Difference vs. history: First shift where valve 3 is implicated; previous under‑fill events involved only valves 9 and 15
+
+WHAT IS THE IMPACT:
+- Production impact: Line operating at reduced output; repeated under‑fill alarms may require line stop for repair
+- Safety risk: LOW (no injury or hazardous material involved)
+- Financial impact: Potential loss of product volume and overtime for unscheduled maintenance (exact amount not quantified)
+
+HOW CRITICAL IS IT:
+- HIGH – three under‑fill alarms in a single shift meet the HIGH minimum; work instruction mandates seal‑kit replacement after 3+ alarms in a shift
+
+HOW TO ADDRESS IT:
+- Immediate action:
+  Step 1: Safety — Initiate LOTO, stop the FL‑101 filler, and isolate power and product flow
+  Step 2: Diagnosis — Inspect valves 9, 15, and 3 for dripping; confirm seal‑kit condition
+  Step 3: Fix — Replace seal kits on the affected valves in accordance with WI‑FL101‑001 (use listed parts, follow sign‑off requirements)
+  Step 4: Verify — Perform a test run; confirm no under‑fill alarms for at least one full shift; record alarm status
+  Step 5: Quality — Quarantine any bottles filled during the alarm period and inspect for under‑fill; re‑process or discard as appropriate
+- Root cause fix (permanent solution): Install new seal kits on valves 9, 15, and 3 and adjust valve seating if needed
+- Preventive action: Add seal‑kit inspection to the routine 3‑month/1 500‑hour maintenance schedule; log any valve drip observations immediately; train operators to report new dripping valves
+- Who to notify: Maintenance Supervisor, Shift Lead, Quality Assurance Manager
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: Three under‑fill alarms occurred on the night shift, with valve 3 leaking for the first time.  
+ROOT CAUSE: Worn seal kits on valves 9, 15, and 3 caused leakage and under‑filling.  
+STATUS: Line stopped for LOTO and seal‑kit replacement; production at risk until repair is verified.  
+ACTION REQUIRED: Stop the filler, replace the seal kits on the three valves per WI‑FL101‑001, and verify alarm clearance.  
+RISK IF NOT ACTIONED: Continued under‑fill will lead to product loss, possible line shutdown, and increased downtime costs.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A7" data-l="L1" data-v="YES">YES</button><button data-a="A7" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A7" data-l="L3" data-v="YES">YES</button><button data-a="A7" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A7" data-l="L5" data-v="YES">YES</button><button data-a="A7" data-l="L5" data-v="NO">NO</button></div></div></section>
+<section><h2>A8</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- DemoBottling-Shift-Log-2026-09-10-Night.csv – three underfill alarms, valves 9, 15, 3 dripping (HIGH confidence)
+- DemoBottling-Shift-Log-2026-09-21-Night.csv – no underfill alarms (reference)
+- DemoBottling-Shift-Log-2026-09-17-Day.csv – no underfill alarms (reference)
+- DemoBottling-Shift-Log-2026-09-14-Night.csv – no underfill alarms (reference)
+- FL-101‑SOP.txt (Revision 1.0) – sections 11, 12.1, 12.4, 6.1‑6.4, 8‑10 (HIGH confidence)
+- FL-101‑Work‑Instruction.txt – seal‑replacement procedure WI‑FL101‑001 (NO DATA on actual service dates)
+- FL-101‑NCR.txt – NCR‑2026‑012 corrective actions (HIGH confidence)
+- Knowledge‑[source] entries for FL‑101 – fault definition, causes, systemic rule, specifications, safety requirements (TIER 1 VERIFIED)
+
+WHAT IS THE ISSUE:
+- Root cause: worn fill‑valve seals on valves 9, 15 and 3 causing drip between fills, triggering underfill alarms (evidence from alarm logs, SOP cause list, and seal‑replacement work instruction)
+- Difference vs history: first documented occurrence of underfill alarms; three alarms in one shift indicate a systemic fault not previously seen in the provided logs
+
+WHAT IS THE IMPACT:
+- Production impact: line stopped or at risk of stop due to three underfill alarms in the shift (systemic fault rule)
+- Safety risk: LOW (no injury or hazardous material, but LOTO required for maintenance)
+- Financial impact: not quantified in data; implied loss from line downtime (~1 hour) and potential product reject rate increase
+
+HOW CRITICAL IS IT:
+- HIGH
+- Three underfill alarms in one shift meet the systemic fault rule, requiring production stop and maintenance work order
+
+HOW TO ADDRESS IT:
+- Immediate action:
+  Step 1: Safety — Press STOP, apply LOTO per SAF‑003, wear PPE (safety shoes, gloves, eye protection)
+  Step 2: Diagnosis — Review the checkweigher report to confirm which valves are underfilling; visually inspect valves 9, 15 and 3 for dripping
+  Step 3: Fix — Replace the seals on valves 9, 15 and 3 using WI‑FL101‑001 steps:
+    1. Drain the bowl below valve level
+    2. Remove each valve with the valve key
+    3. Remove old seal and O‑ring, clean seat
+    4. Install new SEAL‑FV‑24 kit with food‑grade lubricant FGL‑1
+    5. Refit valve, remove lock, refill bowl
+  Step 4: Verify — Perform the mandatory sanitation rinse (10 min) then run first‑bottle check: weigh first 20 bottles, all must be 495‑505 ml; if any out of range, repeat seal inspection
+  Step 5: Quality — Quarantine any bottles outside spec, record results in maintenance log and checkweigher reject log
+- Root cause fix: Replace worn seals and confirm seal condition; if multiple seals wear early, review seal‑replacement interval
+- Preventive action: 
+  - Enforce seal‑replacement interval (every 3 months or 1 500 hrs) per SOP
+  - Monitor checkweigher reject count hourly; raise work order at first sign of rising rejects
+  - Reinforce SOP that fill time must not be changed; train operators on correct response
+  - Add valve‑drip inspection to shift start checklist
+- Who to notify: Shift lead, Maintenance Supervisor, Quality Lead, Engineering (for interval review)
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: Underfill alarms triggered three times on the night shift, with valves 9, 15 and 3 dripping.
+ROOT CAUSE: Worn fill‑valve seals caused product to leak between fills, leading to under‑filled bottles.
+STATUS: Line stopped pending seal replacement and first‑bottle verification.
+ACTION REQUIRED: Stop the line, apply LOTO, replace the seals on the leaking valves, complete the sanitation rinse and first‑bottle check before restarting.
+RISK IF NOT ACTIONED: Continued underfill will cause product out‑of‑spec, increase reject rates, and may lead to a larger production stoppage or quality breach.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A8" data-l="L1" data-v="YES">YES</button><button data-a="A8" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A8" data-l="L3" data-v="YES">YES</button><button data-a="A8" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A8" data-l="L5" data-v="YES">YES</button><button data-a="A8" data-l="L5" data-v="NO">NO</button></div></div></section>
+<section><h2>A9</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- DemoBottling-Shift-Log-2026-09-10-Night.csv (underfill alarm details) – TIER 2 EVENT – HIGH confidence
+- FL‑101‑SOP.txt (Revision 1.0) – TIER 2 DOCUMENT – HIGH confidence
+- FL‑101‑NCR.txt (NCR‑2026‑012) – TIER 2 DOCUMENT – HIGH confidence
+- WI‑FL101‑001 (Work Instruction) – TIER 2 DOCUMENT – HIGH confidence
+- Knowledge‑[source] entry for FL‑101 (underfill fault, systemic rule, seal‑kit part data) – TIER 1 VERIFIED – HIGH confidence
+
+WHAT IS THE ISSUE:
+- Root cause: worn fill‑valve seals on valves 9, 15 and 3 causing drip between fills, triggering three underfill alarms in one shift (systemic fault) – evidence from alarm log (dripping valves) and SOP/knowledge‑[source] seal‑wear criteria.
+- Difference vs historical pattern: first recorded underfill alarms on Filling Line 1; previous NCR‑2026‑012 involved different valves (7, 12, 13, 19) but the same failure mode (worn seals). No prior underfill events in earlier shift logs.
+
+WHAT IS THE IMPACT:
+- Production impact: line stopped for seal‑replacement; estimated downtime ≈ 1 hour including sanitation rinse and first‑bottle check.
+- Safety risk: LOW (no injury reported) – but LOTO required per SOP.
+- Financial impact: downtime cost plus potential reject loss; exact monetary value not provided.
+
+HOW CRITICAL IS IT:
+- HIGH – three underfill alarms in one shift meet the “systemic fault” rule; production stop and LOTO are required.
+
+HOW TO ADDRESS IT:
+- Immediate action:
+  Step 1: Safety – Press STOP, apply LOTO (SAF‑003) and isolate power before any work.
+  Step 2: Diagnosis – Inspect valves 9, 15, 3 for dripping; confirm underfill source via checkweigher report.
+  Step 3: Fix – Replace the fill‑valve seals on the identified valves using WI‑FL101‑001:
+    1. Drain bowl below valve level.
+    2. Remove each valve with valve key (quarter turn left).
+    3. Remove old seal and O‑ring, clean seat.
+    4. Install new SEAL‑FV‑24 kit seal and O‑ring, apply food‑grade lubricant FGL‑1.
+    5. Re‑fit valve (quarter turn right) and secure.
+    6. Remove LOTO, refill bowl.
+    7. Perform mandatory sanitation rinse (10 min clean water).
+  Step 4: Verify – Run first‑bottle check: weigh first 20 bottles; all must be 495‑505 ml. If any out of range, stop and re‑inspect valve.
+  Step 5: Quality – Quarantine any bottles produced during the alarm period; record results in maintenance log and sign‑off by shift supervisor.
+
+- Root cause fix (permanent solution): Replace worn seals on valves 9, 15, 3 and adjust maintenance interval to ensure seal replacement every 3 months or 1 500 running hours, whichever comes first.
+
+- Preventive action:
+  - Add valve‑drip inspection to the hourly checkweigher review.
+  - Update maintenance schedule to include all fill‑valve seals on FL‑101.
+  - Reinforce SOP prohibition on changing fill time as a fix.
+  - Train operators to raise a work order after the first underfill alarm (systemic rule).
+
+- Who to notify: Shift supervisor, Maintenance supervisor, Quality lead, Engineering change control.
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: Three underfill alarms occurred on night shift 2026‑09‑10, each linked to dripping from valves 9, 15 and 3.  
+ROOT CAUSE: Worn fill‑valve seals on those valves caused product drip and under‑filling.  
+STATUS: Production line stopped; seal replacement in progress.  
+ACTION REQUIRED: Apply LOTO, replace the three valve seals per WI‑FL101‑001, perform sanitation rinse and first‑bottle check before restart.  
+RISK IF NOT ACTIONED: Continued under‑filling, product reject increase, potential overflow if fill time is incorrectly adjusted, leading to extended downtime and quality loss.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A9" data-l="L1" data-v="YES">YES</button><button data-a="A9" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A9" data-l="L3" data-v="YES">YES</button><button data-a="A9" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A9" data-l="L5" data-v="YES">YES</button><button data-a="A9" data-l="L5" data-v="NO">NO</button></div></div></section>
+<section><h2>A10</h2><pre>INVESTIGATION REPORT
+══════════════════════════════════════════════════
+
+═══════════════════════════════════════
+INVESTIGATION REPORT — TECHNICAL
+═══════════════════════════════════════
+
+
+
+
+SOURCE DATA:
+- DemoBottling-Shift-Log-2026-09-10-Night.csv (2026‑09‑10 Night shift, underfill alarms, valves 9, 15, 3) – TIER 2 EVENT, MEDIUM confidence
+- FL-101-Work-Instruction.txt (WI‑FL101‑001, seal‑kit replacement criteria) – TIER 2 DOCUMENT, NO DATA confidence
+
+WHAT IS THE ISSUE:
+- Root cause: Wear of the filler seal kit leading to dripping valves and underfill alarms, indicated by repeat underfill events and the work instruction criteria for seal replacement after 3+ underfills in a shift.
+- Difference from historical pattern: The 2026‑09‑10 night shift showed a series of three underfill alarms linked to specific valves; the current “filler’s short again” is a single underfill alarm with no valve detail, suggesting the issue persists but has not yet escalated to the multi‑alarm pattern.
+
+WHAT IS THE IMPACT:
+- Production impact: Line operating at risk of stoppage; underfilled bottles require rework or discard, reducing output.
+- Safety risk: LOW (underfill does not present immediate personnel hazard).
+- Financial impact: Potential loss from rejected product and downtime; exact amount not quantifiable from available data.
+
+HOW CRITICAL IS IT:
+- HIGH
+- Justification: Three underfill alarms occurred in one shift previously (recurring fault indicator) and seal wear requires line stop for replacement, meeting the HIGH minimum criteria.
+
+HOW TO ADDRESS IT:
+- Immediate action:
+  Step 1: Safety — Apply LOTO to the FL‑101 filler, stop production, and isolate power and product flow.
+  Step 2: Diagnosis — Inspect filler seal kit and check valves 9, 15, and 3 for dripping; record any leakage.
+  Step 3: Fix — Replace the seal kit according to WI‑FL101‑001; tighten and test affected valves.
+  Step 4: Verify — Run a test fill cycle, monitor for underfill alarms, and confirm fill volume meets specification.
+  Step 5: Quality — Quarantine any bottles filled during the alarm period and inspect for underfill; rework or discard as required.
+- Root cause fix (permanent solution): Install a new seal kit and perform a calibrated valve adjustment to eliminate dripping.
+- Preventive action (stops recurrence): Implement a scheduled seal‑kit replacement every 3 months or 1,500 running hours, and add a daily valve‑leak check to the shift start checklist.
+- Who to notify: Shift Supervisor, Maintenance Lead, Quality Assurance Manager.
+
+═══════════════════════════════════════
+PLANT MANAGER SUMMARY
+═══════════════════════════════════════
+
+SITUATION: The FL‑101 filler is triggering an underfill alarm (“filler’s short again”) likely due to a worn seal kit.
+ROOT CAUSE: The filler seal kit has degraded, allowing valve leakage and causing underfill.
+STATUS: The line is stopped for safety LOTO and repair.
+ACTION REQUIRED: Replace the filler seal kit immediately per the work instruction.
+RISK IF NOT ACTIONED: Continued underfill will lead to product loss, extended downtime, and possible quality compliance breach.</pre><div class="marks"><div class="row"><span class="lid">L1</span><button data-a="A10" data-l="L1" data-v="YES">YES</button><button data-a="A10" data-l="L1" data-v="NO">NO</button></div><div class="row"><span class="lid">L3</span><button data-a="A10" data-l="L3" data-v="YES">YES</button><button data-a="A10" data-l="L3" data-v="NO">NO</button></div><div class="row"><span class="lid">L5</span><button data-a="A10" data-l="L5" data-v="YES">YES</button><button data-a="A10" data-l="L5" data-v="NO">NO</button></div></div></section>
+</div>
+<div class="bar"><span id="status"></span><button id="copy">Copy my marks</button></div>
+<script>
+var ids = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"], marks = {};
+try { marks = JSON.parse(localStorage.getItem('pm-step3') || '{}'); } catch (e) {}
+function paint(){
+  document.querySelectorAll('button[data-a]').forEach(function(b){
+    b.classList.toggle('on', (marks[b.dataset.a]||{})[b.dataset.l] === b.dataset.v); });
+  var done = ids.reduce(function(n,i){ return n + Object.keys(marks[i]||{}).length; }, 0);
+  document.getElementById('status').textContent = done + ' / ' + (ids.length*3) + ' marks';
+}
+document.querySelectorAll('button[data-a]').forEach(function(b){
+  b.onclick = function(){ (marks[b.dataset.a] = marks[b.dataset.a] || {})[b.dataset.l] = b.dataset.v;
+    try { localStorage.setItem('pm-step3', JSON.stringify(marks)); } catch (e) {} paint(); };
+});
+document.getElementById('copy').onclick = function(){
+  var t = JSON.stringify(marks, null, 1);
+  navigator.clipboard.writeText(t).then(function(){ document.getElementById('status').textContent = 'Copied. Paste into teaching_step3_human_marks.json'; },
+    function(){ prompt('Copy these marks:', t); });
+};
+paint();
+</script></body></html>

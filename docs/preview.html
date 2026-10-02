@@ -160,6 +160,12 @@ header .sub + p{margin-top:4px}
 .ed{fill:none;stroke:var(--faint);stroke-width:1.5;transition:stroke-dashoffset .8s ease,opacity .5s}
 .ed.bad{stroke:var(--rust)} .ed.good{stroke:var(--pine);stroke-width:2}
 .tok{fill:var(--brass)}
+.arc{fill:none;stroke:var(--line);stroke-width:2;transition:stroke .5s}
+.arc.on{stroke:var(--pine)}
+.scene .belt{animation:belt 1.2s linear infinite}
+@keyframes belt{to{stroke-dashoffset:-12}}
+.scene .ride{animation:ride 9s linear infinite}
+@keyframes ride{0%{transform:translateX(0);opacity:0}4%{opacity:1}94%{opacity:1}100%{transform:translateX(740px);opacity:0}}
 @media (max-width:860px){.scene svg{min-width:720px}}
 
 
@@ -554,6 +560,119 @@ function sArch(){
   return svg(s,'PlantMind architecture: a question flows from inputs through identification, investigation and checks to a report');
 }
 
+/* ════════ 2 · Evals: one simple question, followed through the 7 steps of an evaluation ════════ */
+function sEvals(){
+  let s = '';
+  const names = ['What good looks like','Real-world questions','Checking the answer','Checking the checks','Running it again','Comparing changes','Finding the problem'];
+  const asks = ['What should a good answer say?','Will it work when operators ask in different ways?','How do we check whether the answer is right?','How do we know our checks are right?',
+                'Does it give us the same result each time?','Did our change actually make it better?','If something goes wrong, where did it go wrong?'];
+
+  // the page: the operator's question on top, then 7 ruled lines, one question per box
+  s += T(20,28,'THE QUESTION','m') + T(112,29,'“Bottles aren’t full enough. What should I check?”','i','start','font-size:14px');
+  s += R(20,44,500,420,'fill:var(--surface);stroke:var(--line)',8);
+  s += `<line x1="62" y1="44" x2="62" y2="464" style="stroke:var(--rust);stroke-width:1;opacity:.45"/>`;
+  const rowY = i => 58+i*57;
+  for (let i = 0; i <= 7; i++) s += `<line x1="20" y1="${rowY(i)-6}" x2="520" y2="${rowY(i)-6}" style="stroke:var(--line)"/>`;
+  asks.forEach((q,i) => { const y = rowY(i);
+    s += T(41,y+27,String(i+1),'t','middle','font-size:15px;fill:var(--faint);font-family:Fraunces,serif');
+    s += G({c: i < 6 ? {[i]:'cur',[i+1]:'done'} : {[i]:'cur'}},'sn stage tone-pine', R(74,y,434,44,'',8)
+       + T(88,y+27,names[i].toUpperCase(),'t','start','font-size:13.5px;letter-spacing:.04em'));
+    // a pointer from the lit box to its explanation
+    s += `<path d="M508,${y+22} H548" style="stroke:var(--pine);stroke-width:1.5"${A({f:i,h:i+1})}/>`
+       + `<circle cx="550" cy="${y+22}" r="3" style="fill:var(--pine)"${A({f:i,h:i+1})}/>`; });
+  // the loop: what step 7 finds becomes a new line on the page
+  s += `<path d="M62,${rowY(6)+40} C 30,${rowY(6)+40} 30,${rowY(0)+4} 62,${rowY(0)+4}" style="fill:none;stroke:var(--pine);stroke-width:2.2"${A({f:6,d:7})}/>`
+     + `<path d="M55,${rowY(0)} L63,${rowY(0)+4} L55,${rowY(0)+9}" style="fill:none;stroke:var(--pine);stroke-width:2"${A({f:6,d:7})}/>`;
+
+  // the right-hand side: one picture and one sentence per step
+  const X = 560, W = 425;
+  const on = (k,d) => ({f:k,h:k+1,d});
+  const terms = ['SUCCESS CRITERIA','ROBUSTNESS TESTING','GRADERS · LLM-AS-JUDGE','GRADER VALIDATION','CONSISTENCY TESTING','A/B TEST · ABLATION','COMPONENT-LEVEL EVAL'];
+  const badge = k => { const w = terms[k].length*6.3+18; return G(on(k,0),'', R(X+92,45,w,18,'fill:none;stroke:var(--faint)',9) + T(X+92+w/2,58,terms[k],'m','middle','font-size:9px;letter-spacing:.06em')); };
+  const head = k => badge(k) + txt(X,58,`STEP ${k+1} OF 7`,on(k,0),'m','start','fill:var(--pine);font-weight:600')
+    + txt(X,86,asks[k],on(k,0.1),'t','start','font-size:17px;font-family:Fraunces,serif;font-weight:600');
+  const say = (k,d,l,y=420) => txt(X,y,l,on(k,d),'t','start','font-size:15px;fill:var(--pine)');
+  const tag = (k,d,l,real) => G(on(k,d),'', R(X,390,l.length*6.7+22,22,real ? 'fill:var(--pine-soft);stroke:var(--pine)' : 'fill:none;stroke:var(--faint);stroke-dasharray:3 3',11)
+    + T(X+11,405,l,'m','start',real ? 'fill:var(--pine);font-weight:600' : ''));
+  const pill = (x,y,w,t,c) => R(x,y,w,18,`fill:var(--${c}-soft);stroke:var(--${c})`,9) + T(x+w/2,y+13,t,'m','middle',`fill:var(--${c});font-weight:600;font-size:9.5px`);
+
+  // 1 · the five lines
+  s += head(0);
+  [['MUST','check the valves for drips','CAUSE'],['MUST','say a good bottle is 495–505 ml','TARGET'],['MUST','stop the machine safely first','SAFETY'],['MUST','weigh the first 20 bottles','PROOF'],['MUST NOT','say “turn up the fill time”','TRAP']].forEach(([t,l,why],i) => { const y = 128+i*52, bad = t !== 'MUST', ww = why.length*7+16;
+    s += G(on(0,0.6+i*0.8),'', pill(X,y,bad?72:46,t,bad?'rust':'steel') + T(X+(bad?86:60),y+14,l,'t','start',`font-size:14.5px${bad?';fill:var(--rust)':''}`)
+       + R(X+W-ww,y,ww,18,bad ? 'fill:none;stroke:var(--rust)' : 'fill:none;stroke:var(--faint)',9) + T(X+W-ww/2,y+13,why,'m','middle',`font-size:9.5px;font-weight:600${bad?';fill:var(--rust)':''}`)); });
+  s += say(0,5,'Every requirement comes from the plant’s procedures.');
+
+  // 2 · three ways to ask
+  s += head(1);
+  [['PLAIN','Bottles aren’t full enough. What should I check?'],['IN A RUSH','filler’s short again, what do i do'],['WITH TYPOS','botles not filing up all the way??']].forEach(([l,q],i) => { const y = 128+i*80;
+    s += G(on(1,0.6+i*0.8),'', R(X,y,W,48,'fill:var(--bg);stroke:var(--line)',10) + T(X+14,y+19,l,'m') + T(X+14,y+37,'“'+q+'”','i')); });
+  s += say(1,3.2,'Different wording helps us see if the answer holds up.',398);
+
+  // 3 · three kinds of checker, each with a tiny example
+  s += head(2);
+  const sparkle = (x,y,sc,c) => `<path transform="translate(${x},${y}) scale(${sc})" d="M0,-7 C0.9,-1.8 1.8,-0.9 7,0 C1.8,0.9 0.9,1.8 0,7 C-0.9,1.8 -1.8,0.9 -7,0 C-1.8,-0.9 -0.9,-1.8 0,-7 Z" style="fill:var(--${c})"/>`;
+  const person = (x,y,c) => `<g transform="translate(${x},${y}) scale(1.7)" style="fill:var(--${c})"><circle cx="0" cy="-5" r="4"/><path d="M-7,8 C-7,1 7,1 7,8 Z"/></g>`;
+  [['CODE','exact facts','steel',(x,y) => T(x,y+9,'▣','t','middle','font-size:26px;fill:var(--steel)'),['Is “495–505 ml”','in the answer?']],
+   ['AI JUDGE','meaning','brass',(x,y) => sparkle(x,y,2.4,'brass'),['Does it tell the','operator to check','for drips?']],
+   ['PERSON','checks the AI','pine',(x,y) => person(x,y,'pine'),['Did the AI judge','get it right?']]].forEach(([l,d,c,icon,ex],i) => { const x = X+70+i*142, y = 192;
+    s += G(on(2,0.6+i*0.9),'', `<circle cx="${x}" cy="${y}" r="38" style="fill:var(--${c}-soft);stroke:var(--${c});stroke-width:1.4"/>` + icon(x,y,c)
+       + T(x,y+64,l,'m','middle',`fill:var(--${c});font-weight:600;font-size:11.5px`)
+       + ex.map((e,j) => T(x,y+90+j*18,e,'i','middle','font-size:13px;fill:var(--ink)')).join('')); });
+  s += say(2,3.4,'The tricky part is knowing how to check each requirement.',396);
+
+  // 4 · a test that gets it wrong: the method, stage by stage (real answer and result from the checker test file)
+  s += head(3);
+  s += G(on(3,0.3),'', T(X,120,'THE RULE','m') + T(X+74,121,'Never tell the operator to increase the fill time.','s','start','font-size:13px'));
+  [['WE KNOW THE ANSWER','“Do NOT raise the fill time…” is right, so it should PASS.','ink'],
+   ['RUN THE CHECKER','Fail any answer that mentions “fill time”  →  FAIL','ink'],
+   ['COMPARE','Should be PASS  ·  Checker says FAIL','ink'],
+   ['THEY DISAGREE','✗  The two don’t match.','rust'],
+   ['THE CHECKER IS WRONG','It found the words, but missed their meaning.','rust']].forEach(([l,t,c],i) => { const y = 156+i*54, d = 0.9+i*1.1;
+    s += G(on(3,d),'', (c === 'rust' ? R(X-8,y-14,W+16,40,'fill:var(--rust-soft);stroke:none',8) : '')
+       + T(X,y,l,'m','start',`fill:var(--${c === 'rust' ? 'rust' : 'pine'});font-weight:600`) + T(X,y+18,t,'t','start',`font-size:13.5px;fill:var(--${c})`));
+    if (i < 4) s += txt(X+W-10,y+30,'↓',on(3,d+0.5),'t','middle','fill:var(--faint)'); });
+  s += say(3,6.6,'So we test the test before using it to judge.',430);
+
+  // 5 · run it again: one real line from each of the 5 graph-ON answers to the plain question (teaching_runs.jsonl)
+  s += head(4);
+  s += txt(X,114,'SAME QUESTION, 5 RUNS · ONE LINE FROM EACH ANSWER',on(4,0.3),'m','start','font-size:9.5px');
+  ['weigh first 20 bottles, all must be 495‑505 ml','run first 20 bottles, weigh each; all must be 495‑505 ml','weigh first 20 bottles; all must be 495‑505 ml',
+   'weigh first 20 bottles; all must be 495–505 ml','run first 20 bottles, ensure each is 495‑505 ml'].forEach((q,i) => { const y = 130+i*52;
+    s += G(on(4,0.7+i*0.5),'', R(X,y,W,34,'fill:var(--bg);stroke:var(--line)',8) + T(X+12,y+21,'RUN '+(i+1),'m','start','font-weight:600')
+       + T(X+60,y+21,'“…'+q+'…”','i','start','font-size:12px') + T(X+W-14,y+22,'✓','t','end','font-size:14px;fill:var(--pine)')); });
+  s += say(4,3.4,'Every run came back with the same answer.',412);
+  s += txt(X,434,'All 5 requirements were in every answer.',on(4,3.9),'s','start','font-size:13px');
+
+  // 6 · a fair comparison: the same test, graph off vs on.
+  // Left card = the most common graph-off result; scores = all scored runs (teaching_scorecard.md)
+  s += head(5);
+  s += txt(X+W/2,126,'A TYPICAL ANSWER, MARKED AGAINST THE SAME 5 REQUIREMENTS',on(5,0.3),'m','middle','font-size:9.5px');
+  const reqs = ['Checks the valves','Says 495–505 ml','Stops the machine','Weighs 20 bottles','Leaves fill time alone'];
+  const card6 = (x,d,title,c,marks,big,sub) => G(on(5,d),'', R(x,142,200,142,`fill:var(--bg);stroke:var(--${c === 'pine' ? 'pine' : 'line'})`,10)
+    + T(x+14,166,title,'m','start',`font-weight:600;fill:var(--${c})`)
+    + reqs.map((l,j) => T(x+14,192+j*21,marks[j] ? '✓' : '✗','t','start',`font-size:13px;fill:var(--${marks[j] ? 'pine' : 'rust'})`) + T(x+32,192+j*21,l,'t','start',`font-size:13px${marks[j] ? '' : ';fill:var(--muted)'}`)).join('')
+    + T(x+100,326,big,'t','middle',`font-size:28px;font-family:Fraunces,serif;fill:var(--${c})`) + T(x+100,348,sub,'m','middle'));
+  s += card6(X,0.8,'GRAPH OFF','muted',[false,false,true,false,true],'48%','REQUIREMENTS MET · 9 RUNS');
+  s += txt(X+212,218,'→',on(5,1.8),'t','middle','font-size:20px;fill:var(--faint)');
+  s += card6(X+225,2.2,'GRAPH ON','pine',[true,true,true,true,true],'100%','REQUIREMENTS MET · 11 RUNS');
+  s += txt(X+W/2,388,'Same questions, answer key and checkers. Only the graph changed.',on(5,3.2),'s','middle','font-size:12.5px');
+  s += txt(X,428,'Change one thing. See what happens.',on(5,4),'t','start','font-size:15px;fill:var(--pine)');
+
+  // 7 · follow one missing requirement through the parts (real trace: T-1, graph OFF)
+  s += head(6);
+  s += G(on(6,0.3),'', pill(X,108,46,'MUST','steel') + T(X+58,122,'Weigh the first 20 bottles after the fix.','t','start','font-size:14.5px'));
+  [['PLANT PROCEDURE','✓ Requirement is in the document','pine'],['SEARCH','✓ Found the requirement','pine'],['SPECIALIST','✗ Summary left it out','rust'],
+   ['WRITER','— Never received it','muted'],['ANSWER','✗ “Weigh the first 20 bottles” is missing','rust']].forEach(([l,t,c],i) => { const y = 160+i*50, d = 0.9+i*1;
+    s += G(on(6,d),'', (c === 'rust' ? R(X-8,y-15,W+16,40,'fill:var(--rust-soft);stroke:none',8) : '')
+       + T(X,y,l,'m','start',`fill:var(--${c === 'muted' ? 'faint' : c});font-weight:600`) + T(X,y+18,t,'t','start',`font-size:13.5px;fill:var(--${c === 'pine' ? 'ink' : c})`));
+    if (i < 4) s += txt(X+W-10,y+32,'↓',on(6,d+0.5),'t','middle','fill:var(--faint)'); });
+  s += txt(X,402,'The search worked. The handoff failed.',on(6,6),'t','start','font-size:15px;fill:var(--ink)');
+  s += txt(X,430,'Finding the missing line tells us which part to fix.',on(6,6.8),'t','start','font-size:15px;fill:var(--pine)');
+
+  return svg(s,'Evals as seven questions on a ruled page, each explained on the right');
+}
+
 /* ════════ Lessons ════════ */
 const GL = {
   rag:'Retrieval-augmented generation: look things up first, then write the answer from what was found.',
@@ -583,8 +702,21 @@ const L = [
   acts:[['F','The flow','var(--pine)']],
   scene:sArch, caps:[['F','',4200],['F','',2600],['F','',3400],['F','',2800],['F','',4600],['F','',3000],['F','',3000],['F','',3400],['F','',5600]],
   below:''},
+
+ {name:'Evals', lesson:'', plain:'', kick:'',
+  acts:[['E','Evals','var(--pine)']],
+  scene:sEvals, caps:[
+  ['E','Start by writing down what a good answer must say, and what it must never say.',9000],
+  ['E','Operators don’t always ask the same way. The same problem, asked three ways, should get the same answer.',9000],
+  ['E','Some things can be checked with code. Others need judgment. People then check whether the AI judge got it right.',9000],
+  ['E','Before trusting an automated measurement, challenge the measurement itself.',11000],
+  ['E','A single good result doesn’t tell us how reliable it is, so it’s always best to re-run.',9000],
+  ['E','To know whether a change helped, change one thing and compare the results.',10000],
+  ['E','Evaluation isn’t a final score. It’s a feedback loop for improving the system.',12000],
+ ],
+  below:''},
 ];
-const SOON = ['Evals','Context','Knowledge graph','Trust','Rules','Tracing','People in the loop'];
+const SOON = ['Context','Knowledge graph','Trust','Rules','Tracing','People in the loop'];
 
 /* ── Player ── */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -598,7 +730,7 @@ L.forEach((l,i) => {
   $('steps').appendChild(li);
 });
 SOON.forEach((n,i) => { const li = document.createElement('li'); li.className = 'soon';
-  li.innerHTML = `<button disabled><span>${i+2}</span>${n}<em>soon</em></button>`; $('steps').appendChild(li); });
+  li.innerHTML = `<button disabled><span>${L.length+i}</span>${n}<em>soon</em></button>`; $('steps').appendChild(li); });
 
 function open(i){
   cur = i; stop();

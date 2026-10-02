@@ -1,0 +1,11 @@
+{
+ "selftest|L1|5b2855bbfac8": true,
+ "selftest|L3|5b2855bbfac8": true,
+ "selftest|L5|5b2855bbfac8": true,
+ "selftest|L1|245cc7f4df8c": false,
+ "selftest|L3|245cc7f4df8c": false,
+ "selftest|L5|245cc7f4df8c": false,
+ "selftest|L1|740db16af8cd": true,
+ "selftest|L3|740db16af8cd": true,
+ "selftest|L5|740db16af8cd": true
+}

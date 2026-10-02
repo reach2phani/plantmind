@@ -106,6 +106,36 @@ Source: evals/graph_value/fl101_scorecard.md. Five cases × 3 runs per arm, ever
 3. **One invented number:** "set an alarm if pressure drops below 1.4 bar" (SOP: 1.3) in the preventive ideas, not the repair steps. **Noted.**
 4. Position B 2/3 and restart speed 1/3 in the jam case: the report sometimes skips details it was handed. Orchestrator habit, **Phase 2b**.
 
+### 10. The evals teaching set: one simple question, all 7 steps (1–2 Oct 2026)
+Plan: evals/fl101/TEACHING_SET.md. Results: evals/fl101/results/teaching_*. Question: "Bottles aren't full enough. What should I check?", asked three ways (plain, rushed, typos), with a 5-line answer key.
+
+| Step | Result | File |
+|---|---|---|
+| 1 Define good | Key checked word for word against the documents: 5/5 lines right, 1 wrong section number fixed | TEACHING_SET.md |
+| 2 Real questions (graph ON) | T-1 25/25, T-2 15/15, T-3 15/15 lines | teaching_scorecard.md |
+| 3 Judge vs person | **29/30 marks agree**; 1 borderline disagreement (A3, L1) | teaching_step3_agreement.md |
+| 4 Test the tests | 15/15 whole-answer marks and 7/7 variants as expected; 1 weak spot written down; a lazy word-check failed 2 of 3 correct answers | teaching_step4_selftest.md |
+| 5 Repeatability (T-1 × 5, graph ON) | 5/5 lines in 5/5 runs; rating HIGH 5/5; confidence HIGH 5/5 | teaching_runs.jsonl, teaching_scorecard.md |
+| 6 Graph OFF vs ON | **22/45 (48%) → 55/55 (100%)**; identical across runs 12/15 → 15/15; made-up specifics 0.0 both | teaching_scorecard.md |
+| 7a Each part alone | Machine finder 1/3 → 3/3 after the fix; fault Underfill 3/3; "20 bottles" shown to the specialist 0/4 → 4/4 after the fix | teaching_step7a_components(_before).md |
+| 7b Trace a missing line | Found by search → handed over whole → **dropped by the specialist's summary** | below |
+
+**Per line, graph OFF (9 runs):** L1 drips 4/9 · L2 495–505 ml 0/9 · L3 stop and make safe 9/9 · L4 weigh 20 bottles 0/9 · L5 don't touch the fill time 9/9.
+
+**Step 7b, the trace (T-1, graph OFF):** 1) in the documents? Yes (WI Step 10: "weigh the first 20 bottles. All 20 must be between 495 and 505 ml"). 2) Found by search? **Yes**: the maintenance search returned that passage, whole. 3) Passed on by the specialist? **No.** The maintenance specialist is asked for maintenance *history*; the passage is a *procedure*, so it wrote "no maintenance records found, Data confidence: NO DATA" and dropped it. 4) Used by the writer? Never received. **Broken part: the specialist summary.** The same summary hid L2. Without the graph, the SOP (where L1 and L2 also live) was never searched in any of the 9 runs: the AI router picked Alarm, Expert Fix and Maintenance every time.
+
+**Why the graph fixed it:** the graph hands the facts straight to the writer, skipping the summary step, and its routing rule makes the SOP search required.
+
+**App issues found, noted (not fixed inside the test task):**
+- Specialists summarise, and a summary can drop the exact fact needed. That's evidence for Phase 2b "specialists fetch, they don't summarise".
+- The maintenance specialist's question (history) misses procedures in the work instruction.
+- "Dripping means a worn seal" ranks 7th and 10th for T-1 and T-3; only the top 4 are used. Ranking → Phase 3 (search wide, then rerank).
+- The fault matcher needed the AI tie-breaker for all 3 short wordings (Underfill vs Overfill): correct, at one extra small call each.
+
+**Fixed because of this test:** the machine finder (plurals/typos; never search every machine) and whole search pieces instead of the first 300 characters.
+
+**Honest limits:** 3 wordings × 3–5 runs, 5 lines: a direction, not proof. The graph was built from the same documents as the key; the graph-OFF version could search those documents too, so the comparison is fair, but it measures delivery of known facts, not new knowledge. One person marked the judge. The L1 judge question has a grey zone ("inspect the seals" vs "check for drips"): next time, sharpen it rather than re-score.
+
 ### Side note: one empty answer
 One Docs answer came back blank the first time and correct on retry. No AI call was logged, so it failed before the model was reached. Watching it; investigate if it repeats.
 

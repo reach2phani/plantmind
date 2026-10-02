@@ -1,0 +1,112 @@
+[
+ {
+  "id": "A1",
+  "case": "T-1",
+  "arm": "on",
+  "run": 4,
+  "judge": {
+   "L1": true,
+   "L3": true,
+   "L5": true
+  }
+ },
+ {
+  "id": "A2",
+  "case": "T-1",
+  "arm": "off",
+  "run": 2,
+  "judge": {
+   "L1": true,
+   "L3": true,
+   "L5": true
+  }
+ },
+ {
+  "id": "A3",
+  "case": "T-3",
+  "arm": "off",
+  "run": 2,
+  "judge": {
+   "L1": false,
+   "L3": true,
+   "L5": true
+  }
+ },
+ {
+  "id": "A4",
+  "case": "T-1",
+  "arm": "off",
+  "run": 1,
+  "judge": {
+   "L1": false,
+   "L3": true,
+   "L5": true
+  }
+ },
+ {
+  "id": "A5",
+  "case": "T-2",
+  "arm": "on",
+  "run": 2,
+  "judge": {
+   "L1": true,
+   "L3": true,
+   "L5": true
+  }
+ },
+ {
+  "id": "A6",
+  "case": "T-2",
+  "arm": "on",
+  "run": 1,
+  "judge": {
+   "L1": true,
+   "L3": true,
+   "L5": true
+  }
+ },
+ {
+  "id": "A7",
+  "case": "T-3",
+  "arm": "off",
+  "run": 1,
+  "judge": {
+   "L1": true,
+   "L3": true,
+   "L5": true
+  }
+ },
+ {
+  "id": "A8",
+  "case": "T-1",
+  "arm": "on",
+  "run": 1,
+  "judge": {
+   "L1": true,
+   "L3": true,
+   "L5": true
+  }
+ },
+ {
+  "id": "A9",
+  "case": "T-3",
+  "arm": "on",
+  "run": 1,
+  "judge": {
+   "L1": true,
+   "L3": true,
+   "L5": true
+  }
+ },
+ {
+  "id": "A10",
+  "case": "T-2",
+  "arm": "off",
+  "run": 1,
+  "judge": {
+   "L1": true,
+   "L3": true,
+   "L5": true
+  }
+ }
+]
