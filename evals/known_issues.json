@@ -1,52 +1,59 @@
 {
-  "_meta": {
-    "what": "Every test that is EXPECTED to fail right now, why, and which phase fixes it.",
-    "why": "A baseline with 8 red tests is useless if you have to remember which 8 are fine. run_baseline.py marks a failure listed here as KNOWN and anything else as NEW - so only new failures demand attention. If a KNOWN test starts PASSING, it is reported too: either the fix landed, or the test got lucky (check with run_consistency.py).",
-    "how_to_update": "When a phase fixes an issue, delete its entry here. When triage finds a new real bug, add it with the phase that will fix it. 'match' is a substring of the promptfoo test description.",
-    "updated": "2026-09-23 (after the Phase 1B baseline)"
+ "_meta": {
+  "what": "Every test that is EXPECTED to fail right now, why, and which phase fixes it.",
+  "why": "A baseline with 8 red tests is useless if you have to remember which 8 are fine. run_baseline.py marks a failure listed here as KNOWN and anything else as NEW - so only new failures demand attention. If a KNOWN test starts PASSING, it is reported too: either the fix landed, or the test got lucky (check with run_consistency.py).",
+  "how_to_update": "When a phase fixes an issue, delete its entry here. When triage finds a new real bug, add it with the phase that will fix it. 'match' is a substring of the promptfoo test description.",
+  "updated": "2026-09-23 (after the Phase 1B baseline)"
+ },
+ "issues": [
+  {
+   "match": "GF-SI-001",
+   "suite": "ask",
+   "issue": "FLAKY (step 1.7: loop in 1 of 3 runs). When it goes wrong, the Shift trend answer falls into a repetition loop (same alarm listed 46x), hits the 800-token cap and stops mid-sentence with no notice. The other 2 runs were good: they found the three alarm clusters (Jan, May, Jun).",
+   "phase": "Phase 2",
+   "fix": "Tighter shift prompt / repetition control; surface truncation on /ask."
   },
-  "issues": [
-    {
-      "match": "GF-SI-001",
-      "suite": "ask",
-      "issue": "FLAKY (step 1.7: loop in 1 of 3 runs). When it goes wrong, the Shift trend answer falls into a repetition loop (same alarm listed 46x), hits the 800-token cap and stops mid-sentence with no notice. The other 2 runs were good: they found the three alarm clusters (Jan, May, Jun).",
-      "phase": "Phase 2",
-      "fix": "Tighter shift prompt / repetition control; surface truncation on /ask."
-    },
-    {
-      "match": "KNOWN ISSUE — burn-in instability",
-      "suite": "ask",
-      "issue": "Docs answer to 'what must be done after replacing the liner' omits 'instability in the first 5 minutes is expected, not a fault'. The warning only surfaces when the operator already names the symptom (G2-010 passes; retrieval rank 8).",
-      "phase": "Phase 3",
-      "fix": "Structure-aware chunking; experiment: store 'questions this chunk answers' for search."
-    },
-    {
-      "match": "GF-INV-001",
-      "suite": "investigation",
-      "issue": "CAUSE MOVED after the Phase 1B graph rebuild. The graph now offers the defective-spool cause correctly and a hand-run report named it. But an unreviewed operator capture ('wire tension 18 -> 22 units', numbers that appear in NO document) outranks it about half the time. In the failing run the report even quoted the SOP's 'Do NOT keep adjusting tension' as a contradiction and still made tension the root cause. FLAKY.",
-      "phase": "Phase 2",
-      "fix": "Precedence rule: an operator capture that contradicts a documented warning or whose numbers appear in no document may be surfaced, but must not be adopted as the root cause. Same family as the disputed-value rule added in Phase 1B, extended from numbers to actions."
-    },
-    {
-      "match": "GF-INV-002",
-      "suite": "investigation",
-      "issue": "Expected burn-in stutter rated HIGH and treated as a liner fault ('remove and reinstall liner').",
-      "phase": "Phase 2",
-      "fix": "Prompt rule 'LOTO needed = HIGH' must not override 'burn-in is expected'."
-    },
-    {
-      "match": "G1-007",
-      "suite": "generated",
-      "issue": "3+ overload alarms per shift: answer gives SOP generic steps incl. 'adjust drive-roll tension' - the trap NCR-2024-047 warns against. Retrieval ranked the NCR lesson FIRST (step 1.5), so the AI ignored what it was given.",
-      "phase": "Phase 2",
-      "fix": "Prompt: when an NCR lesson applies, it overrides generic SOP steps."
-    },
-    {
-      "match": "GF-INV-003",
-      "suite": "investigation",
-      "issue": "FLAKY SAFETY RATING (step 1.7): parts welded with low shielding gas rated HIGH, HIGH, CRITICAL over 3 runs - correct only 1 in 3. The earlier single-run PASS was luck. A pass in any one run proves nothing; judge over several runs.",
-      "phase": "Phase 2",
-      "fix": "Take this rating away from the model: a code rule 'shielding gas low alarm => CRITICAL' as a floor, the same way work-order cost is computed in Python so the model cannot get it wrong."
-    }
-  ]
+  {
+   "match": "KNOWN ISSUE — burn-in instability",
+   "suite": "ask",
+   "issue": "Docs answer to 'what must be done after replacing the liner' omits 'instability in the first 5 minutes is expected, not a fault'. The warning only surfaces when the operator already names the symptom (G2-010 passes; retrieval rank 8).",
+   "phase": "Phase 3",
+   "fix": "Structure-aware chunking; experiment: store 'questions this chunk answers' for search."
+  },
+  {
+   "match": "GF-INV-001",
+   "suite": "investigation",
+   "issue": "CAUSE MOVED after the Phase 1B graph rebuild. The graph now offers the defective-spool cause correctly and a hand-run report named it. But an unreviewed operator capture ('wire tension 18 -> 22 units', numbers that appear in NO document) outranks it about half the time. In the failing run the report even quoted the SOP's 'Do NOT keep adjusting tension' as a contradiction and still made tension the root cause. FLAKY.",
+   "phase": "Phase 2",
+   "fix": "Precedence rule: an operator capture that contradicts a documented warning or whose numbers appear in no document may be surfaced, but must not be adopted as the root cause. Same family as the disputed-value rule added in Phase 1B, extended from numbers to actions."
+  },
+  {
+   "match": "GF-INV-002",
+   "suite": "investigation",
+   "issue": "Expected burn-in stutter rated HIGH and treated as a liner fault ('remove and reinstall liner').",
+   "phase": "Phase 2",
+   "fix": "Prompt rule 'LOTO needed = HIGH' must not override 'burn-in is expected'."
+  },
+  {
+   "match": "G1-007",
+   "suite": "generated",
+   "issue": "3+ overload alarms per shift: answer gives SOP generic steps incl. 'adjust drive-roll tension' - the trap NCR-2024-047 warns against. Retrieval ranked the NCR lesson FIRST (step 1.5), so the AI ignored what it was given.",
+   "phase": "Phase 2",
+   "fix": "Prompt: when an NCR lesson applies, it overrides generic SOP steps."
+  },
+  {
+   "match": "GF-INV-003",
+   "suite": "investigation",
+   "issue": "FLAKY SAFETY RATING (step 1.7): parts welded with low shielding gas rated HIGH, HIGH, CRITICAL over 3 runs - correct only 1 in 3. The earlier single-run PASS was luck. A pass in any one run proves nothing; judge over several runs.",
+   "phase": "Phase 2",
+   "fix": "Take this rating away from the model: a code rule 'shielding gas low alarm => CRITICAL' as a floor, the same way work-order cost is computed in Python so the model cannot get it wrong."
+  },
+  {
+   "match": "G3-002",
+   "suite": "generated",
+   "issue": "Failed 'escalate/maintenance' in two baselines in a row (2026-09-23, 2026-10-01): the Docs answer covers burn-in, test bead and checking for overload alarms, but never says to escalate. Worse, and NOT caught by this check: on 2026-10-01 it said 'If an alarm occurs, adjust drive-roll tension' -- the tension trap NCR-2024-047 warns against. Docs mode gets no graph warnings, so it can repeat a known wrong response.",
+   "phase": "Context chapter / Phase 3",
+   "fix": "Add a check that the answer does NOT recommend adjusting drive-roll tension. Then give Docs mode the matched fault's graph warnings (as Investigate gets) or rank the NCR lesson higher."
+  }
+ ]
 }

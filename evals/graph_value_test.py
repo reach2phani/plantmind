@@ -39,6 +39,8 @@ RUN (from C:\\plantmind — the Flask app does NOT need to be running)
     venv\\Scripts\\python.exe evals\\graph_value_test.py                 <- preview
     venv\\Scripts\\python.exe evals\\graph_value_test.py --arm on --run  <- day 1
     venv\\Scripts\\python.exe evals\\graph_value_test.py --arm off --run <- day 2
+    venv\\Scripts\\python.exe evals\\graph_value_test.py --arm facts --run <- separation run:
+        graph facts to the report, searches picked as with no graph (3rd scorecard column)
     venv\\Scripts\\python.exe evals\\graph_value_test.py --score         <- scorecard
     Options: --runs N (default 3), --cases GV-01,GV-03, --tag NAME (results
     file name; default: the cases file's default_tag, else "baseline"),
@@ -69,7 +71,18 @@ load_dotenv(ROOT / ".env")
 CASES_FILE = ROOT / "evals" / "graph_value_cases.json"
 OUT_DIR = ROOT / "evals" / "graph_value"
 JUDGE_MODEL = "qwen/qwen3.8-27b"      # same judge as the promptfoo suites
-ARMS = {"off": "true", "on": ""}      # value for PM_EVAL_DISABLE_GRAPH
+# Each arm = the eval switches it sets (read per call by multi_agent.py).
+#   off   documents only: no graph at all
+#   on    documents + graph: the graph hands its facts to the writer AND forces searches
+#   facts separation run: the graph hands its facts to the writer, but the searches
+#         are picked exactly as with no graph (graph chapter, 2026-10-05)
+ARMS = {
+    "off":   {"PM_EVAL_DISABLE_GRAPH": "true", "PM_EVAL_GRAPH_NO_ROUTING": ""},
+    "on":    {"PM_EVAL_DISABLE_GRAPH": "",     "PM_EVAL_GRAPH_NO_ROUTING": ""},
+    "facts": {"PM_EVAL_DISABLE_GRAPH": "",     "PM_EVAL_GRAPH_NO_ROUTING": "true"},
+}
+ARM_ORDER = ["off", "facts", "on"]
+ARM_LABEL = {"off": "Graph OFF (B)", "facts": "Graph facts only (F)", "on": "Graph ON (C)"}
 TOKENS_PER_RUN = {"gpt-oss-20b": 5_500, "gpt-oss-120b": 5_000}
 
 
@@ -111,8 +124,15 @@ def _capture_orchestrator_inputs(ma, sink):
         sink["matched_faults"] = gc.get("matched_faults", [])
         sink["match_confidence"] = gc.get("match_confidence", "")
         sink["match_method"] = gc.get("match_method", "")
-        return real(incident, specialist_results, graph_context=graph_context,
-                    equipment_id=equipment_id)
+        ma.LAST_WRITER_EVIDENCE = ""
+        report = real(incident, specialist_results, graph_context=graph_context,
+                      equipment_id=equipment_id)
+        # C2 switch: the pieces the writer was ACTUALLY given (it fills only the
+        # spare room under the per-minute limit) are writer input too.
+        sink["evidence"] = getattr(ma, "LAST_WRITER_EVIDENCE", "")
+        if sink["evidence"]:
+            sink["sources"] += "\n" + sink["evidence"]
+        return report
 
     ma.run_orchestrator = wrapper
     return real
@@ -139,7 +159,7 @@ def find_machine(text):
 
 
 def run_one(ma, case, equipment, arm):
-    os.environ["PM_EVAL_DISABLE_GRAPH"] = ARMS[arm]
+    os.environ.update(ARMS[arm])
     # equipment "find": no machine is given, it is found from the words.
     machine = find_machine(case["incident"]) if equipment == "find" else equipment
     sink = {}
@@ -166,7 +186,8 @@ def run_one(ma, case, equipment, arm):
         ma.run_orchestrator = real
         ma.check_report = real_check
         ma.assess_confidence = real_conf
-        os.environ.pop("PM_EVAL_DISABLE_GRAPH", None)
+        for name in ARMS[arm]:
+            os.environ.pop(name, None)
     at = streamed.find("INVESTIGATION REPORT")
     report = streamed[at:] if at != -1 else ""
     return {
@@ -186,6 +207,9 @@ def run_one(ma, case, equipment, arm):
         "confidence": sink.get("confidence", {}),
         "specialists": sink.get("specialists", []),
         "graph_text": sink.get("graph_text", ""),
+        # C2: was the writer also given the pieces the specialists read?
+        "writer_evidence": bool(getattr(ma, "WRITER_GETS_EVIDENCE", False)),
+        "evidence": sink.get("evidence", ""),
         "seconds": round(time.time() - started),
         "at": dt.datetime.now().isoformat(timespec="seconds"),
     }
@@ -237,7 +261,7 @@ def guard_events_for(r, case, ctx_cache, tip_cache, equipment):
                                          equipment_filter=equipment)
         tip_cache[case["id"]] = [b for b in text.split("\n\n---\n\n") if ma.REVIEW_UNREVIEWED in b]
         ctx_cache[case["id"]] = kg.get_fault_chain(equipment, incident_text=case["incident"])
-    ctx = ctx_cache[case["id"]] if r["arm"] == "on" else None
+    ctx = ctx_cache[case["id"]] if r["arm"] in ("on", "facts") else None
     _, events = ma.check_report(r["report"], ctx, [{"unreviewed": tip_cache[case["id"]]}])
     return events
 
@@ -366,6 +390,16 @@ def cmd_run(args, cases, equipment):
         return
 
     import multi_agent as ma
+    # The C2 switch is set by --evidence only, never by .env, so a results file
+    # always holds one setting. Refuse to mix settings in one file.
+    ma.WRITER_GETS_EVIDENCE = args.evidence
+    saved = {r.get("writer_evidence", False) for r in load_runs(runs_path)}
+    if saved and saved != {args.evidence}:
+        print(f"\n{runs_path.name} already holds runs with writer evidence = {saved}. "
+              f"Use another --tag for evidence = {args.evidence}.")
+        return
+    print(f"Writer also gets the pieces the specialists read (C2 switch): "
+          f"{'ON' if args.evidence else 'OFF'}")
     for i, (case, arm) in enumerate(todo, 1):
         print(f"\n[{i}/{n}] {case['id']} {case['name']} — graph {arm.upper()} ...", flush=True)
         rec = run_one(ma, case, equipment, arm)
@@ -425,13 +459,20 @@ def write_scorecard(tag, cases, results, guards=()):
         vals = [v for _, _, _, m, _ in rows for v in m.values() if v is not None]
         return sum(vals), len(vals)
 
+    # The separation arm gets a column only when it was run (older scorecards unchanged).
+    arms = [a for a in ARM_ORDER if a != "facts" or arm_rows("facts")]
+    head = "| " + " | ".join(ARM_LABEL[a] for a in arms) + " |"
     lines = [f"# Graph value test — {tag}", "",
              f"Scored {dt.datetime.now():%Y-%m-%d %H:%M}. B = graph OFF (documents only), "
              "C = graph ON (documents + graph). Same questions, same pipeline.", ""]
+    if "facts" in arms:
+        lines += ["F = separation run: the graph's facts go to the report, but the searches are picked "
+                  "as with no graph. B → F = value of the facts; F → C = extra value of the searches "
+                  "the graph forces.", ""]
 
-    lines += ["## Headline", "", "| | Graph OFF (B) | Graph ON (C) |", "|---|---|---|"]
+    lines += ["## Headline", "", "| " + head, "|---" * (len(arms) + 1) + "|"]
     cells = {}
-    for arm in ("off", "on"):
+    for arm in arms:
         rows = arm_rows(arm)
         ok, n = totals(rows)
         inv = [len(u) for *_, u in rows]
@@ -462,23 +503,23 @@ def write_scorecard(tag, cases, results, guards=()):
                        ("Unreviewed tip used as an instruction (lower is better)", "tips"),
                        ("Rating raised by the safety floor", "raised"),
                        ("Reports scored", "runs")):
-        lines.append(f"| {label} | {cells['off'][key]} | {cells['on'][key]} |")
+        lines.append(f"| {label} | " + " | ".join(cells[a][key] for a in arms) + " |")
 
     lines += ["", "## By case", "",
               "Each cell: runs that passed / runs scored.", ""]
     for c in cases:
         lines += [f"### {c['id']} {c['name']} — {c['tests']}", "",
                   f"> {c['incident']}", "",
-                  "| Check | How | Graph OFF | Graph ON |", "|---|---|---|---|"]
+                  "| Check | How " + head, "|---|---" + "|---" * len(arms) + "|"]
         for ch in c["checks"]:
             row = []
-            for arm in ("off", "on"):
+            for arm in arms:
                 vals = [m.get(ch["id"]) for cid, a, _, m, _ in results if cid == c["id"] and a == arm]
                 scored = [v for v in vals if v is not None]
                 row.append(f"{sum(scored)}/{len(scored)}" + (" ?" if len(scored) < len(vals) else "") if vals else "—")
             label = ch.get("label") or ch.get("q")
-            lines.append(f"| {label} | {ch['kind']} | {row[0]} | {row[1]} |")
-        for arm in ("off", "on"):
+            lines.append(f"| {label} | {ch['kind']} | " + " | ".join(row) + " |")
+        for arm in arms:
             items = sorted({i for cid, a, _, _, u in results if cid == c["id"] and a == arm for i in u})
             if items:
                 lines.append(f"\nNot in any source, graph {arm.upper()}: {', '.join(items[:12])}")
@@ -498,12 +539,15 @@ def write_scorecard(tag, cases, results, guards=()):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--arm", choices=["on", "off", "both"], default="both")
+    ap.add_argument("--arm", choices=["on", "off", "both", "facts"], default="both",
+                    help="facts = separation run: graph facts to the writer, searches picked as with no graph")
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--cases", default="")
     ap.add_argument("--tag", default=None)
     ap.add_argument("--file", default=str(CASES_FILE),
                     help="cases file; each file names its machine")
+    ap.add_argument("--evidence", action="store_true",
+                    help="C2 switch: the writer also gets the pieces the specialists read")
     ap.add_argument("--run", action="store_true")
     ap.add_argument("--score", action="store_true")
     args = ap.parse_args()

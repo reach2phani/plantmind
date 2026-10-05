@@ -14,7 +14,7 @@
       "NCR-2026-012"
     ],
     "total_nodes": 45,
-    "total_relationships": 81,
+    "total_relationships": 82,
     "note": "Built only from the three FL-101 documents (demo data). Every fact carries its section. No operator tips: those come later through the Review queue."
   },
   "nodes": [
@@ -1070,6 +1070,15 @@
       "to": "fl101_seal_replacement",
       "type": "REQUIRES",
       "properties": {}
+    },
+    {
+      "from": "fl101_first_bottle_check",
+      "to": "fl101_sanitation_rinse",
+      "type": "REQUIRES",
+      "properties": {
+        "note": "after a seal change the 10-minute rinse comes first (WI-FL101-001 Steps 9 then 10)",
+        "added_by": "2026-10-02: overfill report never mentioned the rinse (FL-101 graph value test, 0/3)"
+      }
     }
   ]
 }

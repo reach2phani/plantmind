@@ -2997,8 +2997,11 @@ def graph_fault_chain():
         return jsonify(chain)
     except Exception as e:
         print(f"  [graph] fault-chain error: {e}")
+        # Say it failed: an empty answer here once hid a real bug for FL-101
+        # (5 Oct 2026, a date the JSON step couldn't convert) as "no graph".
         return jsonify({"has_data": False, "chain_nodes": [], "chain_edges": [],
-                        "chain_text": "", "warnings": [], "downtime": ""})
+                        "chain_text": "", "warnings": [], "downtime": "",
+                        "error": f"Could not load the knowledge graph: {str(e)[:200]}"})
 
 
 @app.route("/api/graph/nodes", methods=["GET"])
@@ -3026,7 +3029,10 @@ def graph_nodes():
         return jsonify(graph)
     except Exception as e:
         print(f"  [graph] nodes error: {e}")
-        return jsonify({"nodes": [], "edges": [], "count": {"nodes": 0, "edges": 0}})
+        # Say it failed, so the page doesn't show a broken graph as "0 nodes"
+        # (that is how the FL-101 date bug hid on 5 Oct 2026).
+        return jsonify({"nodes": [], "edges": [], "count": {"nodes": 0, "edges": 0},
+                        "error": f"Could not load the knowledge graph: {str(e)[:200]}"})
 
 
 @app.route("/api/graph/debug", methods=["GET"])

@@ -439,6 +439,17 @@ function onEquipChange() {
   fetch('/api/graph/nodes?equip=' + encodeURIComponent(equip))
     .then(function(r) { return r.json(); })
     .then(function(d) {
+      // The server says when loading failed: show that, not an empty graph.
+      if (d.error) {
+        var box = document.getElementById('graphEmpty');
+        box.innerHTML = '<div style="font-size:24px">⚠️</div>';
+        var msg = document.createElement('div');
+        msg.textContent = d.error;
+        box.appendChild(msg);
+        box.style.display = 'flex';
+        document.getElementById('graphSub').textContent = equip + ' — could not load the graph';
+        return;
+      }
       allNodes = d.nodes || [];
       allEdges = d.edges || [];
       layoutNodes();

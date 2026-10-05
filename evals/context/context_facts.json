@@ -1,0 +1,167 @@
+{
+  "_about": "Context chapter C1 (missed-fact attribution). For every required fact a report missed, evals/context_attribution.py looks for the fact at each hand-off: documents -> search -> specialist -> writer. 'look_for' = groups of patterns; the fact is present in a text when ALL patterns of ANY one group match (case-insensitive, '.' crosses lines). Each pattern was checked word for word against the stored document pieces on 2026-10-02. kind 'fact' = something the report must say (attributed); 'avoid' = something the report must NOT say, and 'rating' = the criticality; both are counted separately, not attributed (a wrong statement is not a lost fact).",
+
+  "suites": {
+    "teaching": {
+      "label": "Evals teaching set (FL-101)",
+      "runs": "evals/fl101/results/teaching_runs.jsonl",
+      "cases": "evals/fl101/teaching_cases.json",
+      "judge_cache": "evals/fl101/results/teaching_judge_cache.json",
+      "saved_components": true
+    },
+    "fl101": {
+      "label": "FL-101 graph value test",
+      "runs": "evals/graph_value/fl101_runs.jsonl",
+      "cases": "evals/fl101/graph_value_cases.json",
+      "judge_cache": "evals/graph_value/fl101_judge_cache.json",
+      "saved_components": false
+    },
+    "trust": {
+      "label": "WM-101 graph value test (trust order)",
+      "runs": "evals/graph_value/trust_runs.jsonl",
+      "cases": "evals/graph_value_cases.json",
+      "judge_cache": "evals/graph_value/trust_judge_cache.json",
+      "saved_components": false
+    },
+    "fl101_now": {
+      "label": "FL-101 cases on today's code (graph chapter; arms off / facts / on)",
+      "runs": "evals/graph_value/fl101_now_runs.jsonl",
+      "cases": "evals/fl101/graph_value_cases.json",
+      "judge_cache": "evals/graph_value/fl101_now_judge_cache.json",
+      "saved_components": true
+    },
+    "fresh": {
+      "label": "Fresh FL-101 questions (graph chapter)",
+      "runs": "evals/fl101/results/fresh_runs.jsonl",
+      "cases": "evals/fl101/fresh_cases.json",
+      "judge_cache": "evals/fl101/results/fresh_judge_cache.json",
+      "saved_components": true
+    },
+    "teaching_c2_before": {
+      "label": "C2 before (teaching, writer gets summaries only)",
+      "runs": "evals/fl101/results/teaching_c2_before_runs.jsonl",
+      "cases": "evals/fl101/teaching_cases.json",
+      "judge_cache": "evals/fl101/results/teaching_c2_before_judge_cache.json",
+      "saved_components": true
+    },
+    "teaching_c2_after": {
+      "label": "C2 after (teaching, writer also gets the pieces)",
+      "runs": "evals/fl101/results/teaching_c2_after_runs.jsonl",
+      "cases": "evals/fl101/teaching_cases.json",
+      "judge_cache": "evals/fl101/results/teaching_c2_after_judge_cache.json",
+      "saved_components": true
+    }
+  },
+
+  "facts": {
+    "L1":  {"kind": "fact", "look_for": [["dripp?(ing|s)?\\b.{0,120}seal"], ["seal.{0,120}\\bdripp?"]]},
+    "L2":  {"kind": "fact", "look_for": [["\\b495\\b", "\\b505\\b"]]},
+    "L3":  {"kind": "fact", "look_for": [["lock ?out|locked out|LOTO|isolat"], ["press(ed)? STOP|stop the (machine|line|filler)"]]},
+    "L4":  {"kind": "fact", "look_for": [["(weigh|check)\\w*\\s+(the\\s+)?(first\\s+)?20\\s+bottles"]]},
+    "L5":  {"kind": "avoid"},
+
+    "FL-01/seal_check":   {"kind": "fact", "look_for": [["dripp?(ing|s)?\\b.{0,120}seal"], ["seal.{0,120}\\bdripp?"], ["worn (fill valve )?seal"]]},
+    "FL-01/fill_range":   {"kind": "fact", "look_for": [["\\b495\\b", "\\b505\\b"]]},
+    "FL-01/systemic":     {"kind": "fact", "look_for": [["(three|3) or more.{0,60}alarms"], ["systemic"]]},
+    "FL-01/loto":         {"kind": "fact", "look_for": [["LOTO|lock ?out|locked out|lockout"]]},
+    "FL-01/rinse":        {"kind": "fact", "look_for": [["rins", "10[ -]?min"]]},
+    "FL-01/first_20":     {"kind": "fact", "look_for": [["(weigh|check)\\w*\\s+(the\\s+)?(first\\s+)?20\\s+bottles"]]},
+    "FL-01/no_fill_time": {"kind": "avoid"},
+    "FL-01/isolation":    {"kind": "avoid"},
+
+    "FL-02/expected":    {"kind": "fact", "look_for": [["expected (behaviou?r|while|during)|seals settle|while the new seals"]]},
+    "FL-02/no_settings": {"kind": "fact", "look_for": [["(do not|don.t|not to|never) change (any )?(of the )?settings"], ["no setting changes"]]},
+    "FL-02/rinse":       {"kind": "fact", "look_for": [["rins", "10[ -]?min"]]},
+    "FL-02/first_20":    {"kind": "fact", "look_for": [["(weigh|check)\\w*\\s+(the\\s+)?(first\\s+)?20\\s+bottles", "\\b495\\b", "\\b505\\b"]]},
+    "FL-02/no_reseal":   {"kind": "avoid"},
+    "FL-02/not_high":    {"kind": "rating"},
+    "FL-02/isolation":   {"kind": "avoid"},
+
+    "FL-03/rails":      {"kind": "fact", "look_for": [["rails?.{0,80}(position|330|500 ?ml|changeover)"]]},
+    "FL-03/position_b": {"kind": "fact", "look_for": [["position\\s*B\\b"]]},
+    "FL-03/loto":       {"kind": "fact", "look_for": [["LOTO|lock ?out|locked out|lockout"]]},
+    "FL-03/restart":    {"kind": "fact", "look_for": [["60 (bottles per minute|bpm)", "2 min"]]},
+    "FL-03/isolation":  {"kind": "avoid"},
+
+    "FL-04/critical":         {"kind": "rating"},
+    "FL-04/estop":            {"kind": "fact", "look_for": [["emergency stop|e-stop"]]},
+    "FL-04/hold_30":          {"kind": "fact", "look_for": [["30 min", "hold"]]},
+    "FL-04/vacuum":           {"kind": "fact", "look_for": [["vacuum"], ["compressed air"]]},
+    "FL-04/signoff":          {"kind": "fact", "look_for": [["quality lead.{0,100}sign"], ["sign.{0,20}off.{0,100}quality"]]},
+    "FL-04/no_early_restart": {"kind": "avoid"},
+    "FL-04/isolation":        {"kind": "avoid"},
+
+    "FL-05/range":     {"kind": "fact", "look_for": [["1\\.5\\s*(to|-)\\s*2(\\.0)?\\s*bar"]]},
+    "FL-05/filter":    {"kind": "fact", "look_for": [["(clean|replace|block)\\w*.{0,40}filter"], ["filter.{0,40}(clean|replac|block)"]]},
+    "FL-05/bleed":     {"kind": "fact", "look_for": [["\\bbleed|\\bbled\\b"]]},
+    "FL-05/first_20":  {"kind": "fact", "look_for": [["(weigh|check)\\w*\\s+(the\\s+)?(first\\s+)?20\\s+bottles"]]},
+    "FL-05/isolation": {"kind": "avoid"},
+
+    "FR-01/test_bottles": {"kind": "fact", "look_for": [["\\b490\\b", "\\b510\\b"]]},
+    "FR-01/rinse":        {"kind": "fact", "look_for": [["rins.{0,120}(4|four)\\s*hours"], ["(4|four)\\s*hours.{0,120}rins"]]},
+    "FR-01/slow_start":   {"kind": "fact", "look_for": [["\\b60\\s*(bottles|bpm|b/min)"]]},
+    "FR-01/first_20":     {"kind": "fact", "look_for": [["(weigh|check)\\w*\\s+(the\\s+)?(first\\s+)?20\\s+bottles"]]},
+    "FR-01/full_speed":   {"kind": "fact", "look_for": [["\\b120\\s*(bottles|bpm|b/min)"]]},
+    "FR-01/isolation":    {"kind": "avoid"},
+
+    "FR-02/nozzle":       {"kind": "fact", "look_for": [["(block|clog|debris)\\w*.{0,60}nozzle"], ["nozzle.{0,60}(block|clog|debris|clean)"]]},
+    "FR-02/lockout":      {"kind": "fact", "look_for": [["LOTO|lock ?out|locked out|lockout"]]},
+    "FR-02/pressure":     {"kind": "fact", "look_for": [["supply pressure|product pressure"]]},
+    "FR-02/no_fill_time": {"kind": "avoid"},
+    "FR-02/isolation":    {"kind": "avoid"},
+
+    "FR-03/one_in_100":   {"kind": "fact", "look_for": [["\\b(1|one)\\b.{0,20}\\b(in|per|out of)\\s*(every\\s*)?100\\b"], ["\\b1\\s*%"]]},
+    "FR-03/worn_seals":   {"kind": "fact", "look_for": [["(first|early) sign of worn seals"], ["reject.{0,80}(first|early) sign.{0,40}seal"]]},
+    "FR-03/drips":        {"kind": "fact", "look_for": [["valves?.{0,40}dripp?"], ["dripp?.{0,40}valve"]]},
+    "FR-03/range":        {"kind": "fact", "look_for": [["\\b495\\b", "\\b505\\b"]]},
+    "FR-03/no_fill_time": {"kind": "avoid"},
+    "FR-03/isolation":    {"kind": "avoid"},
+
+    "FR-04/lockout":      {"kind": "fact", "look_for": [["LOTO|lock ?out|locked out|lockout"]]},
+    "FR-04/position_b":   {"kind": "fact", "look_for": [["position\\s*B\\b"]]},
+    "FR-04/star_wheel":   {"kind": "fact", "look_for": [["(fit|change|swap|matching)\\w*.{0,30}star ?wheel"]]},
+    "FR-04/test_run":     {"kind": "fact", "look_for": [["\\b20 bottles\\b.{0,30}\\b60\\b"], ["\\b60\\b.{0,30}\\b20 bottles\\b"]]},
+    "FR-04/record":       {"kind": "fact", "look_for": [["record.{0,60}changeover"], ["changeover.{0,60}record"]]},
+    "FR-04/isolation":    {"kind": "avoid"},
+
+    "FR-05/o_ring":       {"kind": "fact", "look_for": [["o-?ring"]]},
+    "FR-05/lockout":      {"kind": "fact", "look_for": [["LOTO|lock ?out|locked out|lockout"]]},
+    "FR-05/technicians":  {"kind": "fact", "look_for": [["trained\\s+maintenance\\s+technicians?"], ["technicians?\\s+only"]]},
+    "FR-05/seal_kit":     {"kind": "fact", "look_for": [["SEAL-FV-24"]]},
+    "FR-05/lubricant":    {"kind": "fact", "look_for": [["FGL-1|food[- ]grade"]]},
+    "FR-05/isolation":    {"kind": "avoid"},
+
+    "GV-01/spool_cause":           {"kind": "fact", "look_for": [["(defective|new|bad|faulty|suspect)\\w*.{0,40}spool"], ["spool.{0,80}(defective|quarantin|inconsistent)"]]},
+    "GV-01/spool_replace":         {"kind": "fact", "look_for": [["(replace|swap|change)\\w*.{0,40}spool"], ["spool.{0,60}replac"], ["verified spool|known.good"]]},
+    "GV-01/tension_quarter_turn":  {"kind": "fact", "look_for": [["(quarter|1/4)[ -]?turn"]]},
+    "GV-01/no_more_tension":       {"kind": "avoid"},
+    "GV-01/no_unreviewed_setting": {"kind": "avoid"},
+
+    "GV-02/warn_tension":   {"kind": "fact", "look_for": [["(do not|don.t|never|avoid|rather than|stop).{0,60}tension"], ["further tension adjustments"]]},
+    "GV-02/stop_inspect":   {"kind": "fact", "look_for": [["(stop|halt)\\w* (production|welding)", "inspect"]]},
+    "GV-02/systemic":       {"kind": "fact", "look_for": [["(three|3) or more"], ["systemic"]]},
+    "GV-02/loto":           {"kind": "fact", "look_for": [["LOTO|lock ?out|locked out|lockout"]]},
+    "GV-02/burn_in_values": {"kind": "fact", "look_for": [["5(\\.0)?\\s*m/min", "30\\s*(s\\b|sec|seconds)"]]},
+
+    "GV-03/expected_behaviour":    {"kind": "fact", "look_for": [["(instab|unstable).{0,80}(expected|normal|not a fault)"], ["(expected|normal).{0,80}(instab|unstable)"]]},
+    "GV-03/burn_in_values":        {"kind": "fact", "look_for": [["5(\\.0)?\\s*m/min", "30\\s*(s\\b|sec|seconds)"]]},
+    "GV-03/no_second_replacement": {"kind": "avoid"},
+
+    "GV-04/spec_18_22":         {"kind": "fact", "look_for": [["18\\s*(-|to)\\s*22\\s*V"]]},
+    "GV-04/no_disputed_value":  {"kind": "avoid"},
+    "GV-04/earth_clamp":        {"kind": "fact", "look_for": [["earth clamp"]]},
+    "GV-04/qc_flag":            {"kind": "fact", "look_for": [["quarantin"], ["(flag|hold)\\w*.{0,40}(QC|quality)"]]},
+
+    "GV-05/stop_welding":    {"kind": "fact", "look_for": [["stop welding"]]},
+    "GV-05/cylinder_20_bar": {"kind": "fact", "look_for": [["20\\s*bar"]]},
+    "GV-05/regulator_hoses": {"kind": "fact", "look_for": [["regulator", "hose"]]},
+    "GV-05/affected_parts":  {"kind": "fact", "look_for": [["scrap"], ["(hold|quarantin)\\w*.{0,40}(part|inspect)"]]},
+    "GV-05/rated_critical":  {"kind": "rating"},
+
+    "GV-06/cool_10_min": {"kind": "fact", "look_for": [["10\\s*min\\w*\\s*(of )?cool"], ["cool\\w*.{0,30}10\\s*min"]]},
+    "GV-06/cool_first":  {"kind": "fact", "look_for": [["\\bcool"]]},
+    "GV-06/replace_tip": {"kind": "fact", "look_for": [["replac\\w*.{0,30}contact tip"], ["contact tip.{0,30}replac"]]},
+    "GV-06/stickout":    {"kind": "fact", "look_for": [["10\\s*(-|to)\\s*15\\s*mm"]]},
+    "GV-06/torque":      {"kind": "fact", "look_for": [["hand[- ]?tight", "(quarter|1/4)"]]}
+  }
+}

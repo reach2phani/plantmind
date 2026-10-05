@@ -23,6 +23,7 @@ from pinecone import Pinecone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from models import MODEL_FAST, MODEL_DEEP, extract_json, completion_kwargs
 from token_budget import acquire, settle, estimate_tokens, usage_from_response
+from token_budget import _budget as _tpm_budget   # tokens one model may use per minute
 import os
 import re
 import json
@@ -1016,6 +1017,61 @@ _TIER_BY_AGENT = {
 }
 
 
+# ── Context chapter C2: specialists fetch, they don't only summarise ──────────
+# Missed-fact attribution (evals/context/attribution.md) found that, without the
+# graph, 27 of 74 lost facts were FOUND by search, handed to a specialist, and
+# dropped by its summary (e.g. "weigh the first 20 bottles"). With this switch
+# on, the writer also gets the document pieces the specialists read, so a
+# summary can no longer hide a fact. Off by default: the app behaves exactly as
+# before until the before/after numbers say otherwise (evals --evidence).
+WRITER_GETS_EVIDENCE = os.getenv("PM_WRITER_GETS_EVIDENCE", "false").strip().lower() == "true"
+# Total size of the pieces passed on. Graph OFF needs ~6,200 characters for all of
+# them; with the graph ON the writer's input is already ~17,000 characters, and
+# the free tier allows ~8,000 tokens per minute for the writer's model.
+WRITER_EVIDENCE_MAX_CHARS = int(os.getenv("PM_WRITER_EVIDENCE_MAX_CHARS", "6000"))
+LAST_WRITER_EVIDENCE = ""   # evals only: the pieces the last report's writer was given
+# The evidence heading + the widened rule 1 + the prompt's own wording, rounded up.
+_EVIDENCE_OVERHEAD_CHARS = 1000
+# The part of the writer's rule 1 that the switch widens (must match the prompt).
+_RULE1_FINDINGS_ONLY = ("the knowledge graph context and the specialist\n"
+                        "   findings, together. Never add information that neither of them contains.")
+
+
+def _build_evidence_block(specialist_results, max_chars=None):
+    """
+    The document pieces the specialists read, strongest match first, each piece
+    WHOLE (a piece that doesn't fit is skipped, never cut: cutting is how facts
+    were lost before 1 Oct). Operator tips are left out on purpose: their trust
+    labels (TIER 3 / TIER 4) are handled by the Expert Fix specialist, and a raw
+    unreviewed tip must not reach the writer as if it were a document.
+    Returns "" when there is nothing to pass on.
+    """
+    max_chars = WRITER_EVIDENCE_MAX_CHARS if max_chars is None else max_chars
+    pieces, seen = [], set()
+    for result in specialist_results or []:
+        agent = result.get("agent", "")
+        raw = str(result.get("raw_data", "") or "")
+        if agent == "Expert Fix Agent" or not raw or raw.startswith(("NO_DATA", "LOW_CONFIDENCE")):
+            continue
+        for piece in raw.split("\n\n---\n\n"):
+            body = piece.partition("\n")[2].strip()
+            if not body or body in seen:
+                continue
+            seen.add(body)
+            m = re.search(r"Score:\s*([\d.]+)", piece)
+            pieces.append((float(m.group(1)) if m else 0.0, agent, piece.strip()))
+    pieces.sort(key=lambda p: -p[0])
+
+    chosen, used = [], 0
+    for _, agent, piece in pieces:
+        entry = f"[read by {agent} · {_TIER_BY_AGENT.get(agent, 'TIER 2 · DOCUMENTS')}]\n{piece}"
+        if used + len(entry) > max_chars:
+            continue
+        chosen.append(entry)
+        used += len(entry)
+    return "\n\n---\n\n".join(chosen)
+
+
 @traceable(name="orchestrator")
 def run_orchestrator(incident, specialist_results, graph_context=None, equipment_id=None):
     """
@@ -1181,10 +1237,51 @@ claim was reviewed and rejected — never use it.
         degraded_note = ("\n\nSYSTEM NOTE - DEGRADED MODE (you MUST reproduce this line verbatim "
                          "as the last bullet of SOURCE DATA):\n- DEGRADED: " + detail + ".")
 
+    # C2 (switch, off by default): the pieces the specialists read, not only
+    # their summaries. See _build_evidence_block().
+    evidence_block = ""
+    evidence = ""
+    if WRITER_GETS_EVIDENCE:
+        # Fill only the SPARE room. Groq rejects a request bigger than one
+        # minute's allowance, and waiting never helps (seen live 2026-10-05:
+        # graph ON + 6,000 characters of pieces ≈ 9,500 tokens > ~7,600).
+        # Room = per-minute budget - (instructions + everything else the
+        # writer gets + the full space kept for its answer). Graph OFF: plenty
+        # of room. Graph ON today: none, so no pieces, and the request stays
+        # exactly as it was. ~4 characters per token, as in estimate_tokens().
+        used = ((len(SYSTEM_PROMPT) + len(incident) + len(findings_block) + len(graph_block)
+                 + len(degraded_note) + _EVIDENCE_OVERHEAD_CHARS) // 4
+                + _completion_cap(MODEL_DEEP, "orchestrator", 1400))
+        room_chars = (_tpm_budget() - used) * 4
+        evidence = _build_evidence_block(
+            specialist_results, max_chars=min(WRITER_EVIDENCE_MAX_CHARS, room_chars))
+    global LAST_WRITER_EVIDENCE
+    LAST_WRITER_EVIDENCE = evidence     # what the writer actually got (read by the evals)
+    if evidence:
+        # Rule 1 must allow the pieces too, or the two instructions contradict.
+        # Only when the switch is on: the off-path prompt stays word for word.
+        SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+            _RULE1_FINDINGS_ONLY,
+            "the knowledge graph context, the specialist\n"
+            "   findings and the evidence pieces they read, together. Never add information that none\n"
+            "   of them contains.")
+        evidence_block = f"""
+
+─────────────────────────────────────────────────────
+EVIDENCE THE SPECIALISTS READ — the document pieces behind the findings above,
+strongest match first. A specialist summary can leave out a step, a number or a
+past event that is in these pieces. If a piece holds a step, setting, limit or
+past event that is relevant to this incident and the findings left it out, use
+it and cite the piece's source. Each piece keeps its TRUST TIER (shift logs say
+what happened, not what to do).
+─────────────────────────────────────────────────────
+{evidence}
+─────────────────────────────────────────────────────"""
+
     user_prompt = f"""Incident: {incident}
 
 Specialist agent findings:
-{findings_block}{graph_block}{degraded_note}
+{findings_block}{evidence_block}{graph_block}{degraded_note}
 
 Synthesize the final investigation report from these findings."""
 
@@ -1534,8 +1631,17 @@ def investigate_incident(incident, equipment_id=None):
     # The supervisor reads the incident and returns only the agents needed.
     # Phase 2a step 4: the graph ran first, so the supervisor gets what it
     # matched and which documents hold its facts (see required_agents).
-    routed_agents, routing_reason = supervisor_route(incident, equipment_id,
-                                                     graph_context=graph_context)
+    # EVAL ONLY — PM_EVAL_GRAPH_NO_ROUTING=true: the graph still reaches the
+    # writer, but the searches are picked exactly as with no graph (no forced
+    # searches, no hint to the supervisor). Splits the graph's value into "the
+    # facts it hands over" vs "the searches it forces" (graph chapter,
+    # separation run: evals/graph_value_test.py --arm facts). Never set in .env.
+    graph_routing_off = os.getenv("PM_EVAL_GRAPH_NO_ROUTING", "").strip().lower() == "true"
+    if graph_routing_off:
+        yield "🧪 Graph does NOT pick the searches (eval switch) — graph facts still go to the report.\n\n"
+    routed_agents, routing_reason = supervisor_route(
+        incident, equipment_id,
+        graph_context=None if graph_routing_off else graph_context)
 
     agent_map = {
         "alarm":       ("🚨 Alarm Agent",       run_alarm_agent),

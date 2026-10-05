@@ -1,0 +1,2909 @@
+{
+ "rows": [
+  {
+   "suite": "teaching",
+   "case": "T-1",
+   "arm": "off",
+   "run": 1,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-1",
+   "arm": "off",
+   "run": 1,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-1",
+   "arm": "off",
+   "run": 1,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-1",
+   "arm": "off",
+   "run": 2,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-1",
+   "arm": "off",
+   "run": 2,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-1",
+   "arm": "off",
+   "run": 3,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "writer",
+   "evidence": {
+    "by_hand": {
+     "script_said": "in_report",
+     "note": "Drips appear only in the preventive action ('add a daily pre-start check for valve drip signs'), not as the check to make now. Judge right; the writer had the fact and placed it as prevention."
+    }
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-1",
+   "arm": "off",
+   "run": 3,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-1",
+   "arm": "off",
+   "run": 3,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-2",
+   "arm": "off",
+   "run": 1,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-2",
+   "arm": "off",
+   "run": 1,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-2",
+   "arm": "off",
+   "run": 2,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-2",
+   "arm": "off",
+   "run": 2,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-2",
+   "arm": "off",
+   "run": 2,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-2",
+   "arm": "off",
+   "run": 3,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-2",
+   "arm": "off",
+   "run": 3,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-2",
+   "arm": "off",
+   "run": 3,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-3",
+   "arm": "off",
+   "run": 1,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-3",
+   "arm": "off",
+   "run": 1,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-3",
+   "arm": "off",
+   "run": 2,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "writer",
+   "evidence": {
+    "by_hand": {
+     "script_said": "in_report",
+     "note": "Drips appear only in the permanent-fix criteria ('dripping, 3+ under-fills'), not as the check to make now. Judge right; the writer had the fact and placed it as prevention."
+    }
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-3",
+   "arm": "off",
+   "run": 2,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-3",
+   "arm": "off",
+   "run": 2,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-3",
+   "arm": "off",
+   "run": 3,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching",
+   "case": "T-3",
+   "arm": "off",
+   "run": 3,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-01/fill_range",
+   "label": "allowed fill range 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-01/rinse",
+   "label": "10-minute sanitation rinse after the seal change",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent"
+    ],
+    "found_by": [
+     "NCR Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-01/first_20",
+   "label": "weigh the first 20 bottles",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-01/fill_range",
+   "label": "allowed fill range 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-01/rinse",
+   "label": "10-minute sanitation rinse after the seal change",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": [
+     "NCR Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-01/first_20",
+   "label": "weigh the first 20 bottles",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-01/fill_range",
+   "label": "allowed fill range 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-01/rinse",
+   "label": "10-minute sanitation rinse after the seal change",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent"
+    ],
+    "found_by": [
+     "NCR Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-01/first_20",
+   "label": "weigh the first 20 bottles",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-02/expected",
+   "label": "Does the report say that slight overfill in the first 2 to 3 minutes after a seal change is expected or normal, not a fault?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-02/no_settings",
+   "label": "Does the report tell the operator not to change any settings (such as the fill time) because of this overfill?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-02/first_20",
+   "label": "first 20 bottles within 495 to 505 ml",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-02/expected",
+   "label": "Does the report say that slight overfill in the first 2 to 3 minutes after a seal change is expected or normal, not a fault?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-02/no_settings",
+   "label": "Does the report tell the operator not to change any settings (such as the fill time) because of this overfill?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-02/first_20",
+   "label": "first 20 bottles within 495 to 505 ml",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-02/expected",
+   "label": "Does the report say that slight overfill in the first 2 to 3 minutes after a seal change is expected or normal, not a fault?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-02/no_settings",
+   "label": "Does the report tell the operator not to change any settings (such as the fill time) because of this overfill?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-02/rinse",
+   "label": "10-minute sanitation rinse",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-02/first_20",
+   "label": "first 20 bottles within 495 to 505 ml",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-03/rails",
+   "label": "Does the report identify guide rails not reset after the bottle size changeover as the likely cause?",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-03/position_b",
+   "label": "rails to position B for 330 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-03/restart",
+   "label": "restart at 60 bottles per minute for 2 minutes",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-03/rails",
+   "label": "Does the report identify guide rails not reset after the bottle size changeover as the likely cause?",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-03/position_b",
+   "label": "rails to position B for 330 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-03/restart",
+   "label": "restart at 60 bottles per minute for 2 minutes",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-03/rails",
+   "label": "Does the report identify guide rails not reset after the bottle size changeover as the likely cause?",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Maintenance Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-03/position_b",
+   "label": "rails to position B for 330 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Maintenance Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-03/loto",
+   "label": "Does the report say to stop and lock out the machine before clearing the jam, never reaching in while it runs?",
+   "bucket": "checker_wrong",
+   "evidence": {
+    "by_hand": {
+     "script_said": "in_report",
+     "note": "Report Step 1: 'Safety - Apply LOTO, stop the line, isolate power' before clearing the jam. The judge said NO; it should be YES."
+    }
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-03/restart",
+   "label": "restart at 60 bottles per minute for 2 minutes",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Maintenance Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-04/estop",
+   "label": "Does the report say to stop the line at once with the emergency stop?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "SOP Agent"
+    ],
+    "found_by": [
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-04/hold_30",
+   "label": "hold bottles from the last 30 minutes",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "SOP Agent"
+    ],
+    "found_by": [
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-04/vacuum",
+   "label": "Does the report say to clean up with a vacuum or the glass kit and never with compressed air?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "SOP Agent"
+    ],
+    "found_by": [
+     "Alarm Agent",
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-04/signoff",
+   "label": "Does the report say the quality lead must sign off before the line restarts?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "SOP Agent"
+    ],
+    "found_by": [
+     "Alarm Agent",
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-04/estop",
+   "label": "Does the report say to stop the line at once with the emergency stop?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "SOP Agent"
+    ],
+    "found_by": [
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-04/hold_30",
+   "label": "hold bottles from the last 30 minutes",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "SOP Agent"
+    ],
+    "found_by": [
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-04/vacuum",
+   "label": "Does the report say to clean up with a vacuum or the glass kit and never with compressed air?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "SOP Agent"
+    ],
+    "found_by": [
+     "Alarm Agent",
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-04/signoff",
+   "label": "Does the report say the quality lead must sign off before the line restarts?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "SOP Agent"
+    ],
+    "found_by": [
+     "Alarm Agent",
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-04/estop",
+   "label": "Does the report say to stop the line at once with the emergency stop?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "SOP Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-04/hold_30",
+   "label": "hold bottles from the last 30 minutes",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "SOP Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "SOP Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-04/vacuum",
+   "label": "Does the report say to clean up with a vacuum or the glass kit and never with compressed air?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "SOP Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "SOP Agent",
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-04",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-04/signoff",
+   "label": "Does the report say the quality lead must sign off before the line restarts?",
+   "bucket": "cut",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "SOP Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "SOP Agent",
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-05/range",
+   "label": "normal range 1.5 to 2.0 bar",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-05/filter",
+   "label": "Does the report say to clean or replace the supply filter?",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-05/bleed",
+   "label": "Does the report say to bleed air from the supply line?",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-05/first_20",
+   "label": "weigh the first 20 bottles after restart",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-05/range",
+   "label": "normal range 1.5 to 2.0 bar",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-05/filter",
+   "label": "Does the report say to clean or replace the supply filter?",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "re-created today, with the old 300-character cut",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-05/bleed",
+   "label": "Does the report say to bleed air from the supply line?",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 2,
+   "fact": "FL-05/first_20",
+   "label": "weigh the first 20 bottles after restart",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-05/range",
+   "label": "normal range 1.5 to 2.0 bar",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-05/bleed",
+   "label": "Does the report say to bleed air from the supply line?",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-05",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-05/first_20",
+   "label": "weigh the first 20 bottles after restart",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "on",
+   "run": 3,
+   "fact": "FL-01/rinse",
+   "label": "10-minute sanitation rinse after the seal change",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "on",
+   "run": 1,
+   "fact": "FL-02/rinse",
+   "label": "10-minute sanitation rinse",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "on",
+   "run": 2,
+   "fact": "FL-02/rinse",
+   "label": "10-minute sanitation rinse",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "on",
+   "run": 3,
+   "fact": "FL-02/rinse",
+   "label": "10-minute sanitation rinse",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "on",
+   "run": 1,
+   "fact": "FL-03/position_b",
+   "label": "rails to position B for 330 ml",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "on",
+   "run": 1,
+   "fact": "FL-03/restart",
+   "label": "restart at 60 bottles per minute for 2 minutes",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "on",
+   "run": 2,
+   "fact": "FL-03/restart",
+   "label": "restart at 60 bottles per minute for 2 minutes",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "trust",
+   "case": "GV-05",
+   "arm": "on",
+   "run": 2,
+   "fact": "GV-05/stop_welding",
+   "label": "Does the report say to stop welding immediately?",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "trust",
+   "case": "GV-06",
+   "arm": "on",
+   "run": 2,
+   "fact": "GV-06/stickout",
+   "label": "stickout 10-15 mm",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "trust",
+   "case": "GV-06",
+   "arm": "on",
+   "run": 2,
+   "fact": "GV-06/torque",
+   "label": "hand-tight + quarter turn",
+   "bucket": "checker_wrong",
+   "evidence": {
+    "by_hand": {
+     "script_said": "writer",
+     "note": "Report: 'Tighten by hand then add a quarter-turn; do not over-tighten'. Correct; the word check only accepts 'hand-tight'."
+    }
+   }
+  },
+  {
+   "suite": "trust",
+   "case": "GV-06",
+   "arm": "on",
+   "run": 3,
+   "fact": "GV-06/stickout",
+   "label": "stickout 10-15 mm",
+   "bucket": "writer",
+   "evidence": {}
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-1",
+   "arm": "off",
+   "run": 1,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "writer",
+   "evidence": {
+    "by_hand": {
+     "script_said": "in_report",
+     "note": "Grey zone already noted in step 3: Step 2 says 'inspect seal kits... check for drip signs', but not that a drip means a worn seal. Judge's NO kept; the writer had the fact."
+    }
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-1",
+   "arm": "off",
+   "run": 1,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-1",
+   "arm": "off",
+   "run": 1,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-1",
+   "arm": "off",
+   "run": 3,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "writer",
+   "evidence": {
+    "by_hand": {
+     "script_said": "in_report",
+     "note": "'dripping' appears only in the SOURCE DATA list, not as a check to make. Judge right; the writer had the fact and did not use it."
+    }
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-1",
+   "arm": "off",
+   "run": 3,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-1",
+   "arm": "off",
+   "run": 3,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-2",
+   "arm": "off",
+   "run": 1,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-2",
+   "arm": "off",
+   "run": 1,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-2",
+   "arm": "off",
+   "run": 1,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-2",
+   "arm": "off",
+   "run": 2,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-2",
+   "arm": "off",
+   "run": 2,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-2",
+   "arm": "off",
+   "run": 3,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-2",
+   "arm": "off",
+   "run": 3,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-3",
+   "arm": "off",
+   "run": 1,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-3",
+   "arm": "off",
+   "run": 1,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-3",
+   "arm": "off",
+   "run": 1,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-3",
+   "arm": "off",
+   "run": 2,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "Alarm Agent",
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-3",
+   "arm": "off",
+   "run": 2,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-3",
+   "arm": "off",
+   "run": 2,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-3",
+   "arm": "off",
+   "run": 3,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-3",
+   "arm": "off",
+   "run": 3,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_before",
+   "case": "T-3",
+   "arm": "off",
+   "run": 3,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-1",
+   "arm": "off",
+   "run": 1,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "evidence_cap",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-1",
+   "arm": "off",
+   "run": 1,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "evidence_cap",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-1",
+   "arm": "off",
+   "run": 2,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "evidence_cap",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-1",
+   "arm": "off",
+   "run": 3,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "evidence_cap",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-1",
+   "arm": "off",
+   "run": 3,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "evidence_cap",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-2",
+   "arm": "off",
+   "run": 1,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "evidence pieces"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-2",
+   "arm": "off",
+   "run": 1,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-2",
+   "arm": "off",
+   "run": 1,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-2",
+   "arm": "off",
+   "run": 2,
+   "fact": "L1",
+   "label": "L1 check the valves for drips (a drip means a worn seal)",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "evidence pieces"
+    ]
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-2",
+   "arm": "off",
+   "run": 2,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-2",
+   "arm": "off",
+   "run": 2,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-2",
+   "arm": "off",
+   "run": 3,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Maintenance Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-2",
+   "arm": "off",
+   "run": 3,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Maintenance Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-3",
+   "arm": "off",
+   "run": 1,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-3",
+   "arm": "off",
+   "run": 1,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-3",
+   "arm": "off",
+   "run": 2,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-3",
+   "arm": "off",
+   "run": 2,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-3",
+   "arm": "off",
+   "run": 3,
+   "fact": "L2",
+   "label": "L2 a good bottle is 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "teaching_c2_after",
+   "case": "T-3",
+   "arm": "off",
+   "run": 3,
+   "fact": "L4",
+   "label": "L4 weigh the first 20 bottles after the fix",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  }
+ ],
+ "other_misses": [
+  {
+   "suite": "fl101",
+   "case": "FL-01",
+   "arm": "off",
+   "run": 3,
+   "fact": "FL-01/no_fill_time",
+   "label": "Does the report avoid telling the operator to increase or change the fill time? (A warning NOT to change it counts as YES.)",
+   "kind": "avoid"
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-02/no_reseal",
+   "label": "Does the report avoid recommending replacing the seals again as the fix?",
+   "kind": "avoid"
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-02",
+   "arm": "off",
+   "run": 1,
+   "fact": "FL-02/not_high",
+   "label": "rated LOW or MEDIUM, not HIGH",
+   "kind": "rating"
+  },
+  {
+   "suite": "fl101",
+   "case": "FL-03",
+   "arm": "on",
+   "run": 3,
+   "fact": "FL-03/isolation",
+   "label": "no welding facts from WM-101",
+   "kind": "avoid"
+  }
+ ],
+ "unscored": [],
+ "recreation_check": {
+  "teaching": [
+   82,
+   82
+  ],
+  "teaching_c2_before": [
+   28,
+   28
+  ],
+  "teaching_c2_after": [
+   32,
+   32
+  ]
+ }
+}

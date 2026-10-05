@@ -1,0 +1,118 @@
+{
+  "_about": "FRESH FL-101 cases for the Knowledge graph chapter (written 5 Oct 2026, AFTER the FL-101 graph was built, and never used for tuning). Purpose: does the graph still help on situations nobody tuned for? Written by the AI assistant, reworded by the user into operator-to-operator speech; the situations were chosen BEFORE checking whether the graph covers them. 4 of 5 are situations not in any earlier test (FR-02 is the other branch of underfill: no drip = blocked nozzle). Expected answers come only from the SOP and work instruction, checked word for word. Honest limit: not written by an outsider (that is the People in the loop chapter). Machine given (FL-101), so this tests the graph, not the machine finder.",
+  "equipment": "FL-101",
+  "default_tag": "fresh",
+  "out_dir": "evals/fl101/results",
+  "cases": [
+    {
+      "id": "FR-01",
+      "name": "Line stopped since Friday",
+      "tests": "Start-up after a long stop: rinse because stopped > 4 hours, slow start, first 20 bottles, then full speed",
+      "incident": "Line's been sitting since Friday night. Anything special before we start filling again?",
+      "checks": [
+        {"id": "test_bottles", "kind": "code", "all": ["\\b490\\b", "\\b510\\b"],
+         "label": "checkweigher test bottles 490 and 510 ml before starting", "source": "SOP 8.4"},
+        {"id": "rinse", "kind": "code", "all": ["rins", "10[ -]?min"],
+         "label": "10-minute sanitation rinse (stopped more than 4 hours)", "source": "SOP 9 step 3"},
+        {"id": "slow_start", "kind": "code", "all": ["\\b60\\s*(bottles|bpm|b/min)"],
+         "label": "start at 60 bottles per minute", "source": "SOP 9 step 4"},
+        {"id": "first_20", "kind": "code", "all": ["\\b20\\b[^.\\n]{0,40}bottle|bottle[^.\\n]{0,40}\\b20\\b", "\\b495\\b", "\\b505\\b"],
+         "label": "first 20 bottles all 495 to 505 ml", "source": "SOP 9 step 5"},
+        {"id": "full_speed", "kind": "code", "all": ["\\b120\\s*(bottles|bpm|b/min)"],
+         "label": "then raise to 120 bottles per minute", "source": "SOP 9 step 6"},
+        {"id": "isolation", "kind": "code", "none": ["wire feed", "drive roll", "\\bliner\\b", "burn-in", "arc voltage", "contact tip", "shielding gas", "weld"],
+         "label": "no welding facts from WM-101", "source": "isolation"}
+      ]
+    },
+    {
+      "id": "FR-02",
+      "name": "One valve light, but no drip",
+      "tests": "Underfill on one valve with no dripping: blocked nozzle, not a worn seal; lock out, clean the nozzle, check pressure",
+      "incident": "Checkweigher keeps kicking out bottles from valve 12, but I don't see any drips. What now?",
+      "checks": [
+        {"id": "nozzle", "kind": "judge",
+         "q": "Does the report say that, because there is no dripping, the likely cause is a blocked fill nozzle (rather than a worn seal), and that the nozzle should be cleaned? Answer YES or NO.",
+         "label": "no drip means a blocked nozzle: clean it", "source": "SOP 12.1 causes #2, step 4"},
+        {"id": "lockout", "kind": "judge",
+         "q": "Does the report tell the operator to stop the machine and lock it out before touching or cleaning the valve or nozzle? Answer YES or NO.",
+         "label": "stop and lock out before touching the valve", "source": "SOP 12.1 steps 1 and 4, 6.2"},
+        {"id": "pressure", "kind": "judge",
+         "q": "Does the report say to check the product supply pressure? Answer YES or NO.",
+         "label": "check the product supply pressure", "source": "SOP 12.1 step 5"},
+        {"id": "no_fill_time", "kind": "judge",
+         "q": "Does the report avoid telling the operator to increase or change the fill time? A warning NOT to change the fill time counts as YES. Answer YES or NO.",
+         "label": "does NOT tell the operator to turn up the fill time", "source": "SOP 10, 12.1"},
+        {"id": "isolation", "kind": "code", "none": ["wire feed", "drive roll", "\\bliner\\b", "burn-in", "arc voltage", "contact tip", "shielding gas", "weld"],
+         "label": "no welding facts from WM-101", "source": "isolation"}
+      ]
+    },
+    {
+      "id": "FR-03",
+      "name": "Rejects creeping up, no alarm yet",
+      "tests": "A rising reject count before any alarm: tell the shift lead above 1 in 100, early sign of worn seals, check for drips",
+      "incident": "Reject count's been creeping up all morning. No alarms yet, though. Is that something to worry about?",
+      "checks": [
+        {"id": "one_in_100", "kind": "code", "all": ["\\b(1|one)\\b[^.\\n]{0,20}\\b(in|per|out of)\\s*(every\\s*)?100\\b|\\b1\\s*/\\s*100\\b|\\b1\\s*%"],
+         "label": "more than 1 in 100 rejected over an hour: tell the shift lead", "source": "SOP 11"},
+        {"id": "worn_seals", "kind": "judge",
+         "q": "Does the report say that a rising reject count can be an early sign of worn fill valve seals? Answer YES or NO.",
+         "label": "a rising reject count is often the first sign of worn seals", "source": "SOP 11"},
+        {"id": "drips", "kind": "judge",
+         "q": "Does the report tell the operator to look at the fill valves for dripping (a dripping valve has a worn seal)? Answer YES or NO.",
+         "label": "check the fill valves for dripping", "source": "SOP 11, 8.1"},
+        {"id": "range", "kind": "code", "all": ["\\b495\\b", "\\b505\\b"],
+         "label": "bottles must be 495 to 505 ml", "source": "SOP 11 (hourly check), SOP 10"},
+        {"id": "no_fill_time", "kind": "judge",
+         "q": "Does the report avoid telling the operator to increase or change the fill time? A warning NOT to change the fill time counts as YES. Answer YES or NO.",
+         "label": "does NOT tell the operator to turn up the fill time", "source": "SOP 10"},
+        {"id": "isolation", "kind": "code", "none": ["wire feed", "drive roll", "\\bliner\\b", "burn-in", "arc voltage", "contact tip", "shielding gas", "weld"],
+         "label": "no welding facts from WM-101", "source": "isolation"}
+      ]
+    },
+    {
+      "id": "FR-04",
+      "name": "Changeover to 330 ml",
+      "tests": "Planned changeover: lock out, rails to position B and lock, star wheel, 20 bottles at 60 per minute, record",
+      "incident": "Swapping to the 330s after lunch. What's the drill?",
+      "checks": [
+        {"id": "lockout", "kind": "judge",
+         "q": "Does the report say to lock out the machine before changing the rails and star wheel? Answer YES or NO.",
+         "label": "lock out the machine first", "source": "SOP 14 step 1"},
+        {"id": "position_b", "kind": "code", "all": ["position\\s*B\\b"],
+         "label": "guide rails to position B for 330 ml", "source": "SOP 14 step 2, 8.2"},
+        {"id": "star_wheel", "kind": "judge",
+         "q": "Does the report say to fit the matching star wheel for the 330 ml bottles? Answer YES or NO.",
+         "label": "fit the matching star wheel", "source": "SOP 14 step 3"},
+        {"id": "test_run", "kind": "code", "all": ["\\b20\\b[^.\\n]{0,40}bottle|bottle[^.\\n]{0,40}\\b20\\b", "\\b60\\s*(bottles|bpm|b/min)"],
+         "label": "run 20 bottles at 60 bottles per minute", "source": "SOP 14 step 4"},
+        {"id": "record", "kind": "judge",
+         "q": "Does the report say to record the changeover (in the shift log or changeover record) with the shift lead signing it? Answer YES or NO.",
+         "label": "record the changeover; the shift lead signs", "source": "SOP 14 step 6"},
+        {"id": "isolation", "kind": "code", "none": ["wire feed", "drive roll", "\\bliner\\b", "burn-in", "arc voltage", "contact tip", "shielding gas", "weld"],
+         "label": "no welding facts from WM-101", "source": "isolation"}
+      ]
+    },
+    {
+      "id": "FR-05",
+      "name": "Leak from the side of a valve",
+      "tests": "Leak at the valve body after a seal job: missing O-ring. The documents' answer is short: stays honest, no invented steps",
+      "incident": "One of the valves is leaking from the side, not the nozzle. Maintenance only did the seals on it yesterday.",
+      "checks": [
+        {"id": "o_ring", "kind": "code", "all": ["o-?ring"],
+         "label": "check for a missing O-ring; fit a new one", "source": "WI 10 (troubleshooting table)"},
+        {"id": "lockout", "kind": "judge",
+         "q": "Does the report say to stop and lock out the machine before working on the valve? Answer YES or NO.",
+         "label": "stop and lock out before working on the valve", "source": "WI 6, WI 8 step 1"},
+        {"id": "technicians", "kind": "judge",
+         "q": "Does the report say the valve work must be done by a trained maintenance technician? Answer YES or NO.",
+         "label": "valve work is for trained maintenance technicians only", "source": "WI 2"},
+        {"id": "seal_kit", "kind": "code", "all": ["SEAL-FV-24"],
+         "label": "seal kit SEAL-FV-24 (holds the O-ring)", "source": "WI 5"},
+        {"id": "lubricant", "kind": "code", "all": ["FGL-1|food[- ]grade"],
+         "label": "food-grade lubricant FGL-1 only", "source": "WI 5, 6"},
+        {"id": "isolation", "kind": "code", "none": ["wire feed", "drive roll", "\\bliner\\b", "burn-in", "arc voltage", "contact tip", "shielding gas", "weld"],
+         "label": "no welding facts from WM-101", "source": "isolation"}
+      ]
+    }
+  ]
+}

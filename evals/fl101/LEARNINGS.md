@@ -136,6 +136,90 @@ Plan: evals/fl101/TEACHING_SET.md. Results: evals/fl101/results/teaching_*. Ques
 
 **Honest limits:** 3 wordings × 3–5 runs, 5 lines: a direction, not proof. The graph was built from the same documents as the key; the graph-OFF version could search those documents too, so the comparison is fair, but it measures delivery of known facts, not new knowledge. One person marked the judge. The L1 judge question has a grey zone ("inspect the seals" vs "check for drips"): next time, sharpen it rather than re-score.
 
+### 11. Context chapter C1: where did each missed fact get lost? (2 Oct 2026)
+Source: evals/context/attribution.md (made by evals/context_attribution.py; no AI calls). Hand decisions: evals/context/hand_review.json.
+
+Every required fact a saved report missed was followed along the relay race (documents → search → specialist → writer → report) and counted at the **first** hand-off where it went missing. Runs: the teaching set (20), the FL-101 graph value test (30) and the WM-101 trust run (18).
+
+| Where it got lost | Graph OFF | Graph ON | All |
+|---|---|---|---|
+| Not in the documents | 0 | 0 | 0 |
+| Not searched (the router skipped the right search) | 3 | 0 | 3 |
+| Searched, not found (not in the top 4 pieces) | 24 | 0 | 24 |
+| Found but cut (piece cut at 300 characters; fixed 1 Oct) | 24 | 0 | 24 |
+| Found, summarised away by the specialist | 21 | 0 | 21 |
+| Reached the writer, left out | 2 | 10 | 12 |
+| **Really lost** | **74** | **10** | **84** |
+| Not lost: the check was wrong (read by hand) | 1 | 1 | 2 |
+
+84 facts were really lost, out of 278 required-fact checks.
+
+> **Corrected 5 Oct.** The first version of this table said 77% were found and then lost (30 cut, 27 summarised, 12 not found). Reading the C2 runs by hand showed that the pattern for "weigh the first 20 bottles" also matched past shift-log lines ("First 20 bottles 499-502 ml"). Those are a reading, not the instruction. With the pattern limited to the instruction, 12 more facts turn out to have been **never found by search**. The table above is the corrected one. Lesson: a word check can be fooled by the same words used for a different purpose. Read the matches, not just the counts.
+
+- **Without the graph, most lost facts were found and then lost on the way.** 45 of the 74 lost facts (61%) were found by search and lost before the writer: 24 cut off, 21 dropped by a specialist's summary. 27 were never found or never searched. None was missing from the documents.
+- **After the 1 Oct fix (whole pieces), two leaks remain about equal.** In the teaching set, which ran after the fix: 12 of 23 losses were never found (search ranking), 9 were summarised away, 2 were left out by the writer, and 0 were cut.
+- **With the graph, everything reached the writer.** All 10 remaining losses are the writer leaving out a detail it was given: the 10-minute rinse (4), position B and restart speed (3), the 10–15 mm stickout (2), "stop welding" (1).
+- Two examples: FL-04 glass breakage (graph OFF) — the SOP search found section 12.3, but the specialist saw only its first 300 characters, so "Step 1: emergency stop" was cut off and it wrote "stop the line immediately". FL-03 jams (graph OFF) — the 7 Sept shift log said "rails still in position A… should be position B for 330 ml"; the alarm specialist was handed that line and left it out. That is likely also why the report said "first recorded instance" (finding 7).
+- **The checks were wrong twice out of 86** (read by hand): the judge marked "Apply LOTO, stop the line" as a NO, and the word check didn't accept "tighten by hand then a quarter-turn".
+
+**Lesson:** finding a fact is not the same as delivering it. With no graph, 6 in 10 lost facts were found and then dropped by the app's own hand-offs. **Next, C2:** let specialists pass on what they found, not only their summary, and measure on the graph-OFF arm.
+
+**Honest limits:** runs before 1 Oct saved only what the writer received. What each specialist received was re-created by repeating the same search today with the old 300-character cut. That's not a recording from the day, but repeating the teaching set's searches gave the same pieces as on the day in 82/82 searches. Facts are found by short word patterns: every "reached the writer" and "marked missed" row was read by hand (rows changed are listed in hand_review.json), and one pattern was corrected (see above). Older WM-101 graph-OFF runs were not included, because they're from before the hand-over fix.
+
+**Picture idea:** a leaky pipe from "documents" to "report", with the count of facts dripping out at each joint. Graph OFF leaks mostly at the specialist joint. Graph ON leaks only at the last joint.
+
+### 12. Context chapter C2: give the writer the pieces, not only the summaries (3–5 Oct 2026)
+Sources: evals/fl101/results/teaching_c2_before_scorecard.md, teaching_c2_after_scorecard.md, evals/context/attribution.md, tokens from llm_logs (the app's own call log).
+
+**The change:** a switch (`PM_WRITER_GETS_EVIDENCE`, off by default). When it's on, the report writer gets the specialists' summaries **plus the document pieces they read**: strongest match first, each piece whole, operator tips left out, at most 6,000 characters. Tested on the teaching set, graph OFF, 3 wordings × 3 runs. Before ran on 2 Oct and after on 3 Oct, with the same code except the switch.
+
+| Graph OFF, 9 reports each | Before (summaries only) | After (+ pieces) |
+|---|---|---|
+| Required facts in the report | 23/45 (51%) | **26/45 (57%)** |
+| L1 check the valves for drips | 3/9 | **7/9** |
+| L2 a good bottle is 495–505 ml | 1/9 | 0/9 |
+| L4 weigh the first 20 bottles | 1/9 | 1/9 |
+| L3 make safe / L5 don't touch the fill time | 9/9 · 9/9 | 9/9 · 9/9 |
+| Made-up specifics per report | 0.1 | **0.0** |
+| Checks identical across runs | 11/15 | 13/15 |
+| Lost to "summarised away" | 7 | **0** |
+| Tokens per investigation (all calls) | 8,164 | 9,869 (**+21%**) |
+
+**What the after runs show (C1 run again on them):**
+- **The summary leak is closed.** 0 facts were summarised away (7 before). Most of the gain is L1: the shift log's "valves 9 and 15 dripping" and the work instruction's "drip between fills" now reach the writer.
+- **But the cap dropped the piece we needed most (5 losses).** For T-1, the search did find the work-instruction piece with "weigh the first 20 bottles; all must be 495–505 ml". The evidence is sorted by match score, and shift logs score higher than procedures. So that piece was the one of 8 that didn't fit under 6,000 characters. That's why L2 and L4 didn't improve.
+- **Search ranking is now the biggest leak:** 12 of 19 losses. For the rushed and messy wordings (T-2, T-3), the search never finds the procedure step at all. No hand-over change can fix that. Phase 3: search wide, then rerank.
+- **With the graph ON there is no room.** A graph-ON writer request is already ~7,400 of the ~7,600 tokens allowed per minute. The first try with the pieces added was rejected by Groq ("413 request too large"; waiting never helps), and the same error had already happened once on 2 Oct without the change. Fix: the pieces only fill the **spare** room under the per-minute limit. Graph ON now gets none, and its request is unchanged (1 check run: 5/5 facts).
+
+**Lesson:** delivering more context helps only if the **right** context makes the cut. Fixing one leak (the summary) moved the loss to the next one (a cap that sorted by similarity, not by usefulness). Every hand-off needs to be measured, including the ones we add ourselves.
+
+**Next (C2b, proposed):** order the pieces so procedures (SOP, work instruction, NCR) come before shift logs, then re-run T-1 × 3. Expected: L2 and L4 reach the writer for T-1.
+
+**Honest limits:** 9 reports per arm, one question family, one machine. Before and after ran a day apart. +3 facts is a direction, not proof. The token numbers come from the app's own log, matched by time.
+
+### 13. Knowledge graph chapter: first free checks (5 Oct 2026)
+Sources: evals/graph_health/graph_health_FL-101_2026-10-05_0839.json, evals/graph_chapter/graph_facts_teaching.md (made by evals/graph_facts_table.py; no AI calls).
+
+- **Graph health, FL-101: 8/8 rules pass.** But the database is one link behind the file: "first-bottle check REQUIRES sanitation rinse" (added to fl101_graph.json on 2 Oct) is not loaded yet. Reload before any new FL-101 graph-ON run.
+- **Which facts appear only with the graph?** (teaching set: 18 reports graph OFF, 11 graph ON)
+
+| Fact | Graph OFF | Graph ON | Where the graph-ON writer got it |
+|---|---|---|---|
+| L1 check the valves for drips | 7/18 | 11/11 | graph and specialists 10, graph only 1 |
+| L2 a good bottle is 495–505 ml | 1/18 | 11/11 | graph and specialists 11 |
+| L4 weigh the first 20 bottles | 1/18 | 11/11 | graph and specialists 11 |
+| L3 make it safe first | 18/18 | 11/11 | (no difference) |
+
+- **No fact is "graph only" here, and that's the finding.** With the graph ON, two things change at once: the graph hands its facts to the writer, **and** it forces the SOP and NCR searches (graph OFF: never run). The SOP specialist then also carries 495–505 ml and the 20 bottles (11/11). From this data we can't tell which of the two did the work.
+- This refines finding 10 ("the graph hands the facts straight to the writer"). It does that, but the same facts also arrive by the search the graph forced.
+- **Next:** the separation run (graph facts on, forced searches off) splits the two effects. It's now the key run of this chapter.
+
+**Bug found by looking at the page, not by an eval (5 Oct):** the Graph Explorer showed FL-101 as empty (0 notes), and the fault-chain diagram under FL-101 reports was missing too. Cause: Plant Setup stamps a new machine's note with a Neo4j date (`created_at`). Python can't turn that date into JSON for the page, so both endpoints failed, and their fallback returned an **empty graph instead of an error**. WM-101 was older and had no date, so it never showed up there.
+- Fixed generically: dates become plain text when graph data leaves Neo4j (`_plain()` in knowledge_graph.py). The endpoints now return the error, and the page shows it instead of "0 nodes".
+- Also fixed: the "has graph ✓" list counted every machine's own note, so 10 machines got a ✓ and only 2 have knowledge. Same mistake as finding 3.
+- **Reports were not affected:** the writer gets the graph as plain text. Checked against the old code: identical text for FL-101 (20,747 characters) and WM-101 (13,999). No eval needs re-running.
+- **Lessons:** an error dressed up as "empty" is the hardest failure to notice. And evals only test what they look at: every eval read the report, none opened the page. Looking at the product yourself still matters.
+
 ### Side note: one empty answer
 One Docs answer came back blank the first time and correct on retry. No AI call was logged, so it failed before the model was reached. Watching it; investigate if it repeats.
 

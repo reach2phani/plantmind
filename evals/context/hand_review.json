@@ -1,0 +1,9 @@
+{
+  "_about": "Hand decisions for evals/context_attribution.py. Key = suite|case|arm|run|fact. The script applies 'bucket' and shows the row as decided by hand, with the note. Only rows a person has read go here.",
+  "teaching|T-1|off|3|L1": {"bucket": "writer", "note": "Drips appear only in the preventive action ('add a daily pre-start check for valve drip signs'), not as the check to make now. Judge right; the writer had the fact and placed it as prevention."},
+  "teaching|T-3|off|2|L1": {"bucket": "writer", "note": "Drips appear only in the permanent-fix criteria ('dripping, 3+ under-fills'), not as the check to make now. Judge right; the writer had the fact and placed it as prevention."},
+  "fl101|FL-03|off|3|FL-03/loto": {"bucket": "checker_wrong", "note": "Report Step 1: 'Safety - Apply LOTO, stop the line, isolate power' before clearing the jam. The judge said NO; it should be YES."},
+  "teaching_c2_before|T-1|off|1|L1": {"bucket": "writer", "note": "Grey zone already noted in step 3: Step 2 says 'inspect seal kits... check for drip signs', but not that a drip means a worn seal. Judge's NO kept; the writer had the fact."},
+  "teaching_c2_before|T-1|off|3|L1": {"bucket": "writer", "note": "'dripping' appears only in the SOURCE DATA list, not as a check to make. Judge right; the writer had the fact and did not use it."},
+  "trust|GV-06|on|2|GV-06/torque": {"bucket": "checker_wrong", "note": "Report: 'Tighten by hand then add a quarter-turn; do not over-tighten'. Correct; the word check only accepts 'hand-tight'."}
+}

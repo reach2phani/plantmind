@@ -38,7 +38,12 @@ Patches were applied with small Python scripts (find/replace on `preview.html`).
 - **Side menu:** `· How it works` → `1 Architecture` → `2 Evals, 3 Context, 4 Knowledge graph, 5 Trust, 6 Rules, 7 Tracing, 8 People in the loop` (all "soon").
 - **Player:** one SVG scene per page (viewBox 1000×480), caption box, ← ▶ →, step bar. It auto-plays when opened and stops at the end. The caption box hides when a step has no text.
 
-### Page "How it works": 6 stages, one caption each (DONE)
+### Note (2 Oct): two single-view rewrites of "How it works" were tried and REJECTED
+1. a bottling line (conveyor, moving bottle, pop-up stations); 2. an "investigation sheet" (facts paired with
+document quotes, checked box, answer). The user prefers the original 6-stage version below: "it conveys our
+thought clearly", the sheet felt overcrowded. Don't propose a single-view rewrite again without a new reason.
+
+### Page "How it works": 6 stages, one caption each (DONE, kept)
 Journey bar across the top (Question → Scope → Context → Evidence → Validate → Answer), with a "TRACE" line and a "question" marker sliding along it. Each stage has its own highlight colour. Inside a stage, the elements appear in sequence with delays.
 
 1. **Question** (4 s): the operator bubble: "We're getting underfill alarms again on Filling Line 1, and the checkweigher is rejecting bottles. Third time tonight. What should I check?" (a tidied version of test FL-01). Caption: "Before answering, PlantMind needs to work out what equipment and operating context matter, find the relevant evidence, and determine which information can be trusted."
@@ -189,8 +194,7 @@ Scene source is mirrored in the scratchpad (`sevals3.js` + `apply_page.py`), but
 ## Pending / next
 
 1. **Architecture:** the user was still reviewing the latest right-angled version. Get feedback first.
-2. **Evals (page 2) is DONE** (see the section above). **Next: Context (page 3)**, then Knowledge graph, Trust, Rules, Tracing, People in the loop. What worked for Evals: design new, simple test data together first, have the main chat run it, then build the page from the results. Reuse the ruled-page layout only if it suits the lesson; don't force it.
-   - Scope lessons still needing homes: "fail closed / no manuals found" (+ the /investigate gap) → **Rules**; "your own template leaked welding" and "the year defaulted to 2025" → **Context**. ("Test with users' words" was not used on Evals; Evals used its own new data.)
+2. **Evals (page 2) is DONE.** **Context and Rules lessons were DROPPED (2 Oct, user's call):** "How it works" already covers them. A Context page (handover-folder look) was built and removed. The side menu is now: How it works · 1 Architecture · 2 Evals · 3 Knowledge graph · 4 Trust · 5 Tracing · 6 People in the loop. **Next: Knowledge graph.** What worked for Evals: design new, simple test data together first, have the main chat run it, then build the page from the results. Give each page its own look; don't reuse the Evals left-list/right-panel structure (the user noticed it straight away on Context).
 3. **Tests the main chat should run** (see `CASE_STUDY_TESTS.md`):
    - (a) FL-101 retrieval: add the 13 labels from ANSWER_KEY §5 to `retrieval_labels.json` and run `evals/retrieval_eval.py` (free)
    - (b) machine-from-plain-words + refusal checks (free; needs a tiny script)

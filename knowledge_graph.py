@@ -41,13 +41,31 @@ def _get_driver():
     return driver
 
 
+def _plain(value):
+    """
+    Neo4j date/time values -> ISO text, recursively; everything else unchanged.
+    Found 5 Oct 2026: Plant Setup stamps a machine's note with created_at =
+    datetime() (equipment_definition.py). Flask can't turn a Neo4j DateTime
+    into JSON, so /api/graph/nodes and /api/graph/fault-chain failed for FL-101
+    and their fallback showed an EMPTY graph. Every machine added through Plant
+    Setup had the same problem; WM-101's note is older and has no date.
+    """
+    if isinstance(value, dict):
+        return {k: _plain(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_plain(v) for v in value]
+    if hasattr(value, "iso_format"):          # neo4j.time Date / Time / DateTime / Duration
+        return value.iso_format()
+    return value
+
+
 def _run(cypher, params=None):
-    """Run a Cypher query and return list of dicts."""
+    """Run a Cypher query and return list of dicts (dates as ISO text, see _plain)."""
     driver = _get_driver()
     try:
         with driver.session(database=None) as session:
             result = session.run(cypher, params or {})
-            return [dict(r) for r in result]
+            return [_plain(dict(r)) for r in result]
     finally:
         driver.close()
 
@@ -279,7 +297,7 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
                        n._type AS type, properties(n) AS props
             """, {"id": equip_tag}).data()
 
-            all_nodes = equip_node + node_results
+            all_nodes = _plain(equip_node + node_results)   # dates as text (see _plain)
 
             # Get edges between these nodes
             node_ids = list(set([r["id"] for r in all_nodes if r.get("id")]))
@@ -296,6 +314,7 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
                 WHERE n._type = 'Pattern'
                 RETURN properties(n) AS props
             """, {"equip": equip_tag}).data()
+            edge_results, pattern_results = _plain(edge_results), _plain(pattern_results)
 
     except Exception as e:
         print(f"[KG] fault chain query failed ({str(e)[:80]}) -- falling back to local graph file")
@@ -1049,7 +1068,7 @@ def get_full_graph(equip_tag=None, plant_site=None, node_type=None):
                     "id":         nid,
                     "label":      n.get("_label", nid),
                     "type":       n.get("_type", ""),
-                    "properties": {k: v for k, v in dict(n).items() if not k.startswith("_")}
+                    "properties": _plain({k: v for k, v in dict(n).items() if not k.startswith("_")})
                 })
 
             edges = []
@@ -1072,7 +1091,7 @@ def get_full_graph(equip_tag=None, plant_site=None, node_type=None):
                         "to":         r["to_id"],
                         "type":       r["rel_type"],
                         "label":      r["rel_type"].replace("_", " ").lower(),
-                        "properties": r.get("props", {}) or {},
+                        "properties": _plain(r.get("props", {}) or {}),
                         "warning":    r["rel_type"] in ["REQUIRES", "REQUIRES_SAFETY"]
                     })
 
@@ -1113,10 +1132,19 @@ def get_graph_stats(equip_tag=None):
 
 
 def get_graphed_equipment():
-    """Returns list of equipment that have graph data."""
+    """
+    Returns the machines that have graph KNOWLEDGE (a fault, fix, procedure...),
+    not just their own Equipment note. Every machine added in Plant Setup gets
+    that one note, so listing all Equipment notes put a "has graph" tick next to
+    machines with nothing to show (5 Oct 2026; same mistake as finding 3 in
+    evals/fl101/LEARNINGS.md). Same rule as graph_has_knowledge().
+    """
     try:
         results = _run("""
             MATCH (n:Equipment)
+            OPTIONAL MATCH (m) WHERE m.equip_tag = n._id AND NOT m:Equipment
+            WITH n, count(m) AS facts
+            WHERE facts > 0
             RETURN n._id AS id, n._label AS label,
                    n.plant_site AS plant_site,
                    n.line AS line, n.line_name AS line_name
