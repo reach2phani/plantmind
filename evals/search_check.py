@@ -129,6 +129,8 @@ def main():
     raw = flat(raw_text(equipment))
     pieces_cache, search_cache, wide_cache = {}, {}, {}
     rows = []
+    if hasattr(ma(), "search_stats"):
+        ma().search_stats(reset=True)
 
     for q in spec["questions"]:
         if sets and q["set"] not in sets:
@@ -200,6 +202,11 @@ def main():
                 else "cut apart" if not r["in_one_piece"] else "")
         L.append(f"| {r['id']} | {r['fact']} | {r['search']} | {'yes' if r['delivered'] else '**no**'} | "
                  f"{r['rank_app'] or 'not in top ' + str(WIDE)} | {r['rank_own'] or 'not in top ' + str(WIDE)} | {note} |")
+    st = ma().search_stats() if hasattr(ma(), "search_stats") else {}
+    if st:
+        L += ["", f"Ranking used by the app's searches in this check: reranked {st['reranked']}, "
+                  f"fell back to meaning order {st['fallback']}"
+                  + (f" (last error: {st['last_error']})" if st.get("last_error") else "") + "."]
     L += ["", "How to read it: 'delivered' is what the specialist actually saw. A fact that is in one "
           "piece but ranks below 4 is a RANKING problem; a fact no single piece holds is a CUTTING "
           "problem (section chunking fixes that)."]

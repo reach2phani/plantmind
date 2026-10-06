@@ -154,7 +154,9 @@ def search_now(agent, equipment, incident, wording=1):
         if doc_type == "Expert Fix":
             text, _ = ma().search_expert_fixes(query, equipment_filter=equipment)
         else:
-            text = ma().search_plantmind(query, doc_type_filter=doc_type, equipment_filter=equipment)
+            # Runs before version 3 were not reranked: re-create them that way.
+            text = ma().search_plantmind(query, doc_type_filter=doc_type, equipment_filter=equipment,
+                                         rerank=None if wording >= 3 else False)
         _search_cache[key] = text
     return _search_cache[key]
 

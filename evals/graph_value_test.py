@@ -179,6 +179,8 @@ def run_one(ma, case, equipment, arm):
 
     ma.check_report = check_wrapper
     ma.assess_confidence = conf_wrapper
+    if hasattr(ma, "search_stats"):
+        ma.search_stats(reset=True)   # count this run's reranked / fallback searches
     started = time.time()
     try:
         streamed = "".join(ma.investigate_incident(case["incident"], equipment_id=machine))
@@ -211,6 +213,9 @@ def run_one(ma, case, equipment, arm):
         "writer_evidence": bool(getattr(ma, "WRITER_GETS_EVIDENCE", False)),
         # Which search wording the specialists used (1 = before 6 Oct 2026).
         "search_wording": getattr(ma, "SPECIALIST_QUERY_VERSION", 1),
+        # R2: how this run's searches were ranked. fallback > 0 means some
+        # searches did NOT get the reranker (e.g. the free monthly limit).
+        "search_ranking": ma.search_stats() if hasattr(ma, "search_stats") else {},
         "evidence": sink.get("evidence", ""),
         "seconds": round(time.time() - started),
         "at": dt.datetime.now().isoformat(timespec="seconds"),

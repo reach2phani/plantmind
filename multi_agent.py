@@ -148,13 +148,67 @@ def _increment_expert_fix_citations(expert_fix_ids):
 
 SEARCH_PIECE_MAX_CHARS = 2000   # whole piece; see search_plantmind()
 
+# ── Search wide, then rerank (R2, 6 Oct 2026) ────────────────────────────────
+# Meaning search compares the general meaning of the whole question with each
+# piece. It ranked FL-101's start-up section 15th for "line's been sitting since
+# Friday, anything special before we start filling again?", and only the top 4
+# reach the specialist. A reranker reads the question and each candidate
+# TOGETHER. Offline test on 52 labelled facts (evals/search_labels.json):
+# delivered 40/52 -> 47/52. Only for the procedure documents (SOP, work
+# instruction, NCR); shift logs and operator tips are not measured yet.
+# Pinecone free tier: 500 rerank requests a month, 60 a minute. If the
+# reranker fails, the search falls back to meaning order and SAYS so in
+# search_stats() (recorded with every eval run).
+SEARCH_RERANK      = os.getenv("PM_SEARCH_RERANK", "true").strip().lower() == "true"
+RERANK_MODEL       = "pinecone-rerank-v0"
+RERANK_POOL        = 15      # candidates by meaning; the reranker picks the best top_k
+RERANK_DOC_TYPES   = {"SOP", "Work Instruction", "NCR"}
+
+import threading as _threading
+_search_stats_lock = _threading.Lock()
+_search_stats = {"reranked": 0, "fallback": 0, "last_error": ""}
+
+
+def search_stats(reset=False):
+    """How this process's searches were ranked: {'reranked', 'fallback', 'last_error'}."""
+    with _search_stats_lock:
+        snap = dict(_search_stats)
+        if reset:
+            _search_stats.update({"reranked": 0, "fallback": 0, "last_error": ""})
+    return snap
+
+
+def _rerank(query, matches, top_k):
+    """Re-order meaning matches with the reranker; None if it is unavailable."""
+    try:
+        res = pc.inference.rerank(
+            model=RERANK_MODEL, query=query[:1000],
+            documents=[(m.metadata or {}).get("text", "")[:SEARCH_PIECE_MAX_CHARS] for m in matches],
+            top_n=min(top_k, len(matches)), return_documents=False,
+            parameters={"truncate": "END"})
+        picked = [matches[r.index] for r in res.data]
+        with _search_stats_lock:
+            _search_stats["reranked"] += 1
+        return picked
+    except Exception as e:
+        with _search_stats_lock:
+            _search_stats["fallback"] += 1
+            _search_stats["last_error"] = str(e)[:200]
+        print(f"  [search] rerank unavailable ({str(e)[:100]}): using meaning order")
+        return None
+
 
 @traceable(run_type="retriever", name="search_documents")
-def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4):
+def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4, rerank=None):
     """
     Search Pinecone for relevant document chunks.
     Returns formatted string of strong matches, or a clear no-data message.
+    rerank: None = the default (on for SOP / work instruction / NCR when
+    PM_SEARCH_RERANK is on); False = meaning order only (e.g. to re-create a
+    search the way it ran before 6 Oct 2026).
     """
+    if rerank is None:
+        rerank = SEARCH_RERANK and doc_type_filter in RERANK_DOC_TYPES
     embedding = pc.inference.embed(
         model="multilingual-e5-large",
         inputs=[query],
@@ -170,7 +224,7 @@ def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4
 
     results = pine_index.query(
         vector=query_vec,
-        top_k=top_k,
+        top_k=RERANK_POOL if rerank else top_k,
         include_metadata=True,
         filter=filter_dict if filter_dict else None
     )
@@ -182,6 +236,10 @@ def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4
 
     if not strong_matches:
         return "LOW_CONFIDENCE: Documents found but similarity score below threshold. Do not cite — state insufficient data."
+
+    if rerank:
+        picked = _rerank(query, strong_matches, top_k) if len(strong_matches) > 1 else None
+        strong_matches = picked if picked else strong_matches[:top_k]
 
     output = []
     for match in strong_matches:
@@ -373,7 +431,10 @@ def _flag_if_truncated(response, what):
 # facts delivered to the specialists 30/52 -> 40/52 (evals/search_results/,
 # search_before vs search_wording). The shift-log and operator-tip searches
 # keep their wording: no labels measure them yet.
-SPECIALIST_QUERY_VERSION = 2
+# Version 3 (6 Oct 2026): same words, and the SOP / work-instruction / NCR
+# searches are reranked (search_plantmind, R2). Version 1 and 2 runs are
+# re-created without reranking.
+SPECIALIST_QUERY_VERSION = 3
 
 
 def specialist_query(agent, incident, equipment_id=None):

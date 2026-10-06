@@ -53,6 +53,82 @@ def download_to_tempfile(storage_path):
         print(f"  Download error for {storage_path}: {e}")
         return None
 
+# ── Section chunking for text documents (Phase 3, pulled forward 6 Oct 2026) ──
+# Cutting every 1,000 characters made pieces that were only divider lines
+# (━━━━) and pieces with no idea what section they belonged to: the SOP's
+# start-up sequence ranked 15th for "anything special before we start filling
+# again?" (evals/search_results/). Each SECTION is now one piece, starting
+# with its document and section title, e.g.
+#   "FL-101-SOP.txt › 9. START-UP SEQUENCE"
+# A long section is split only where a new item starts (a blank line, "Step 4",
+# "2.", "- "), never inside a wrapped sentence, with the title repeated.
+# Headings = unindented "9. TITLE" / "12.1 Title" lines (both machines' style).
+
+SECTION_MAX_CHARS = 1500    # body per piece; the title is added on top (stored text <= 2000)
+# OFF by default (measured worse for investigation searches, see the txt branch
+# of _embed_local). Kept so it can be re-tested: PM_TXT_CHUNKING=sections.
+TXT_CHUNKING = os.getenv("PM_TXT_CHUNKING", "fixed").strip().lower()
+
+_DIVIDER = _re.compile(r"^\s*[━═─—=_\-]{5,}\s*$")
+_HEADING = _re.compile(r"^(\d+(?:\.\d+)*)\.?\s+([A-Za-z].*)$")          # unindented only
+_ITEM    = _re.compile(r"^\s*(?:Step\s+\d+|STEP\s+\d+|\d+\.\s|-\s|•\s|[A-Z][A-Z ]{3,}:)")
+
+
+def split_by_sections(content, doc_name, max_chars=SECTION_MAX_CHARS):
+    """
+    Cut a text document into section pieces. Returns a list of strings, each
+    starting with "<doc_name> › <section path>" on its first line.
+    """
+    sections, path, body = [], [], []
+
+    def close():
+        text = "\n".join(body).strip("\n")
+        if text.strip():
+            sections.append((list(path), text))
+
+    for line in content.splitlines():
+        if _DIVIDER.match(line):
+            continue
+        m = _HEADING.match(line) if line[:1].strip() else None
+        if m:
+            close()
+            body = []
+            level = m.group(1).count(".") + 1
+            path = path[:level - 1] + [line.strip()]
+            continue
+        body.append(line.rstrip())
+    close()
+
+    pieces = []
+    for sec_path, text in sections:
+        title = f"{doc_name} › " + (" › ".join(sec_path) if sec_path else "document header")
+        # Units: a new unit starts at a blank line or at a new item; wrapped
+        # continuation lines stay with the line they continue.
+        units, cur = [], []
+        for line in text.splitlines():
+            if not line.strip() or _ITEM.match(line):
+                if cur:
+                    units.append("\n".join(cur))
+                cur = [line] if line.strip() else []
+            else:
+                cur.append(line)
+        if cur:
+            units.append("\n".join(cur))
+        parts, cur = [], ""
+        for u in units:
+            if cur and len(cur) + len(u) + 1 > max_chars:
+                parts.append(cur)
+                cur = u
+            else:
+                cur = f"{cur}\n{u}" if cur else u
+        if cur.strip():
+            parts.append(cur)
+        for i, p in enumerate(parts, 1):
+            label = f"{title} (part {i} of {len(parts)})" if len(parts) > 1 else title
+            pieces.append(f"{label}\n{p.strip(chr(10))}")
+    return pieces
+
+
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=200,
@@ -282,7 +358,14 @@ def _embed_local(doc_id, file_path, ext, metadata):
         try:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
-            texts = splitter.split_text(content)
+            # Cut every 1,000 characters (default). Section pieces were tried on
+            # 6 Oct 2026 and made the investigation searches WORSE (facts
+            # delivered 40/52 -> 32/52; a whole section "means" too many things
+            # to match a specific question), so they are off unless asked for.
+            if TXT_CHUNKING == "sections":
+                texts = split_by_sections(content, metadata.get("name", "") or "document")
+            else:
+                texts = [t for t in splitter.split_text(content) if not _DIVIDER.match(t)]
         except Exception as e:
             print(f"  File read error: {e}")
             return 0
@@ -299,7 +382,7 @@ def _embed_local(doc_id, file_path, ext, metadata):
                     "doc_id":     str(doc_id),
                     "text":       text[:2000],
                     "chunk":      i,
-                    "chunk_type": "txt",
+                    "chunk_type": "section" if TXT_CHUNKING == "sections" else "txt",
                     "name":       metadata.get("name",       ""),
                     "doc_type":   metadata.get("doc_type",   ""),
                     "plant_site": metadata.get("plant_site", ""),

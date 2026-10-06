@@ -284,6 +284,46 @@ Source: evals/search_results/ (made by evals/search_check.py; free, Pinecone onl
 - **Still not delivered (12):** most rank 5th–8th. The deep ones are FR-01's start-up steps (15th–20th) and "never clear a jam while running" (20th). **Nothing is cut apart**: the problem is ranking, not split pieces.
 - **Lesson:** the words you search with matter as much as the search engine. A fixed prefix written for alarms made every search look like an alarm search.
 
+**R1, cutting documents by section: tried, measured, reverted.**
+- Each section of a text document became one piece, titled (e.g. "FL-101-SOP.txt › 9. START-UP SEQUENCE"), with no divider-only pieces. All 52 labelled facts stayed inside one piece.
+- Re-indexed FL-101 and WM-101 (92 pieces), then measured:
+
+| | Fixed cutting (every 1,000 chars) | Section cutting |
+|---|---|---|
+| FL-101 investigation searches, facts delivered | **40/52** | 32/52 |
+| WM-101 Docs-mode search, found in top 3 / MRR | 14/18 / 0.68 | 15/18 / 0.75 |
+
+- Even the start-up section, now one clean titled piece, still ranked 13th for FR-01.
+- **Reverted** the same day: pieces and counts back to the original, re-measured 40/52 and 14/18, MRR 0.68. The section cutter stays in embedder.py behind `PM_TXT_CHUNKING=sections`, off by default.
+- **Lesson:** cleaner pieces aren't automatically better for search. A whole section "means" many things at once, so it matches a specific question less well than a smaller piece. Measure, don't assume.
+- **Shared index:** the local app and the live app search the same Pinecone index, so for about an hour the live app also searched section pieces. Re-indexing is a live change.
+
+**Ranking experiment (offline, nothing written to the index; 36 of the month's 500 free rerank requests).** The FL-101 SOP, work instruction and NCR, cut both ways, ranked three ways, measured on the 52 facts. The lab reproduces the real numbers exactly (40 and 32).
+
+| Cutting | Meaning only | + keyword score (free, no limit) | + reranker (top 15 → best 4) |
+|---|---|---|---|
+| Fixed (every 1,000 chars) | 40 | 43 | **47** (fresh 12 → 17 of 19) |
+| Sections | 32 | 31 | 42 |
+
+**R2, search wide then rerank: built and measured (6 Oct).** The SOP, work-instruction and NCR searches fetch the 15 closest pieces by meaning; Pinecone's `pinecone-rerank-v0` reads the question and each piece together and picks the best 4.
+
+| Step | Teaching | FL-101 cases | Fresh | All | File |
+|---|---|---|---|---|---|
+| Before | 4/12 | 17/21 | 9/19 | 30/52 (58%) | search_before.md |
+| R3: operator's own words | 8/12 | 20/21 | 12/19 | 40/52 (77%) | search_wording.md |
+| **R2: + reranker** | **10/12** | **20/21** | **17/19** | **47/52 (90%)** | search_rerank.md |
+
+- Exactly as the offline test predicted. All 18 searches in the check were reranked, none fell back.
+- FR-01 (restart): the start-up section (SOP §9) now reaches the specialist. It ranked 15th before.
+- **Unchanged:** WM-101 Docs-mode search (14/18 in the top 3, MRR 0.68; it doesn't use this search), the shift-log and operator-tip searches (not measured yet), and C1's re-creation of older runs (re-created without reranking, as they ran).
+- **Safety net:** if the reranker is unavailable (free limit of 500 requests a month and 60 a minute, or an error), the search falls back to meaning order. Every eval run now records `search_ranking` (reranked / fallback / last error), so results never silently mix. The fallback was tested by forcing a failure.
+- **Still not delivered (5):**
+  - T-2's two work-instruction facts: 8th by meaning, so inside the 15 the reranker reads, but it still placed them below 4th
+  - "never clear a jam while running" and FR-01's test bottles: 20th by meaning, so outside the 15
+  - FR-05's lubricant: 6th by meaning, and the reranker kept it below 4th
+- Rerank requests used on 6 Oct: about 55 of 500.
+- **Lesson:** a two-step search, a cheap wide net and then a careful reader, beats one clever step. The reranker fixed what neither better wording nor better cutting could.
+
 ### Side note: one empty answer
 One Docs answer came back blank the first time and correct on retry. No AI call was logged, so it failed before the model was reached. Watching it; investigate if it repeats.
 
