@@ -1,0 +1,738 @@
+{
+ "tag": "wording",
+ "at": "2026-10-06 12:57",
+ "rows": [
+  {
+   "id": "T-1",
+   "set": "teaching",
+   "fact": "L1 a drip means a worn seal",
+   "search": "sop",
+   "evidence": [
+    "drips between fills has a worn seal"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-1",
+   "set": "teaching",
+   "fact": "L2 good bottle 495 to 505 ml",
+   "search": "maintenance",
+   "evidence": [
+    "between 495 and 505 ml"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-1",
+   "set": "teaching",
+   "fact": "L4 weigh the first 20 bottles after the fix",
+   "search": "maintenance",
+   "evidence": [
+    "weigh the first 20 bottles"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-1",
+   "set": "teaching",
+   "fact": "L5 do not increase the fill time",
+   "search": "sop",
+   "evidence": [
+    "Do NOT increase the fill time"
+   ],
+   "delivered": true,
+   "rank_app": 4,
+   "rank_own": 4,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-2",
+   "set": "teaching",
+   "fact": "L1 a drip means a worn seal",
+   "search": "sop",
+   "evidence": [
+    "Dripping means a worn seal"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-2",
+   "set": "teaching",
+   "fact": "L2 good bottle 495 to 505 ml",
+   "search": "maintenance",
+   "evidence": [
+    "between 495 and 505 ml"
+   ],
+   "delivered": false,
+   "rank_app": 8,
+   "rank_own": 8,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-2",
+   "set": "teaching",
+   "fact": "L4 weigh the first 20 bottles after the fix",
+   "search": "maintenance",
+   "evidence": [
+    "weigh the first 20 bottles"
+   ],
+   "delivered": false,
+   "rank_app": 8,
+   "rank_own": 8,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-2",
+   "set": "teaching",
+   "fact": "L5 do not increase the fill time",
+   "search": "sop",
+   "evidence": [
+    "Do NOT increase the fill time"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-3",
+   "set": "teaching",
+   "fact": "L1 a drip means a worn seal",
+   "search": "sop",
+   "evidence": [
+    "drips between fills has a worn seal"
+   ],
+   "delivered": false,
+   "rank_app": 5,
+   "rank_own": 5,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-3",
+   "set": "teaching",
+   "fact": "L2 good bottle 495 to 505 ml",
+   "search": "maintenance",
+   "evidence": [
+    "between 495 and 505 ml"
+   ],
+   "delivered": true,
+   "rank_app": 3,
+   "rank_own": 3,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-3",
+   "set": "teaching",
+   "fact": "L4 weigh the first 20 bottles after the fix",
+   "search": "maintenance",
+   "evidence": [
+    "weigh the first 20 bottles"
+   ],
+   "delivered": true,
+   "rank_app": 3,
+   "rank_own": 3,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "T-3",
+   "set": "teaching",
+   "fact": "L5 do not increase the fill time",
+   "search": "sop",
+   "evidence": [
+    "Do NOT increase the fill time"
+   ],
+   "delivered": false,
+   "rank_app": 8,
+   "rank_own": 8,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-01",
+   "set": "fl101",
+   "fact": "a drip means a worn seal",
+   "search": "sop",
+   "evidence": [
+    "Dripping means a worn seal"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-01",
+   "set": "fl101",
+   "fact": "fill range 495 to 505 ml",
+   "search": "maintenance",
+   "evidence": [
+    "between 495 and 505 ml"
+   ],
+   "delivered": true,
+   "rank_app": 3,
+   "rank_own": 3,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-01",
+   "set": "fl101",
+   "fact": "3+ alarms in a shift = systemic fault",
+   "search": "ncr",
+   "evidence": [
+    "Three or more underfill alarms in one shift means a systemic fault"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-01",
+   "set": "fl101",
+   "fact": "10-minute sanitation rinse after the seal change",
+   "search": "maintenance",
+   "evidence": [
+    "Run the sanitation rinse for 10 minutes"
+   ],
+   "delivered": true,
+   "rank_app": 3,
+   "rank_own": 3,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-01",
+   "set": "fl101",
+   "fact": "weigh the first 20 bottles after the fix",
+   "search": "maintenance",
+   "evidence": [
+    "weigh the first 20 bottles"
+   ],
+   "delivered": true,
+   "rank_app": 3,
+   "rank_own": 3,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-02",
+   "set": "fl101",
+   "fact": "slight overfill after a seal change is expected",
+   "search": "maintenance",
+   "evidence": [
+    "EXPECTED BEHAVIOUR"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-02",
+   "set": "fl101",
+   "fact": "do not change any settings",
+   "search": "maintenance",
+   "evidence": [
+    "Do not change any settings"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-02",
+   "set": "fl101",
+   "fact": "10-minute sanitation rinse",
+   "search": "maintenance",
+   "evidence": [
+    "Run the sanitation rinse for 10 minutes"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-02",
+   "set": "fl101",
+   "fact": "first 20 bottles within 495 to 505 ml",
+   "search": "maintenance",
+   "evidence": [
+    "weigh the first 20 bottles",
+    "between 495 and 505 ml"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-03",
+   "set": "fl101",
+   "fact": "check the guide rail position matches the bottle size",
+   "search": "sop",
+   "evidence": [
+    "Check the guide rail position matches the bottle size"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-03",
+   "set": "fl101",
+   "fact": "rails to position B for 330 ml",
+   "search": "sop",
+   "evidence": [
+    "B for 330 ml"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-03",
+   "set": "fl101",
+   "fact": "restart at 60 per minute for 2 minutes",
+   "search": "sop",
+   "evidence": [
+    "restart at 60 bottles per minute for 2 minutes"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-03",
+   "set": "fl101",
+   "fact": "never clear a jam while running",
+   "search": "sop",
+   "evidence": [
+    "Never clear a jam while the machine is running"
+   ],
+   "delivered": false,
+   "rank_app": 20,
+   "rank_own": 20,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-04",
+   "set": "fl101",
+   "fact": "emergency stop at once",
+   "search": "sop",
+   "evidence": [
+    "Stop the line at once with the emergency stop"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-04",
+   "set": "fl101",
+   "fact": "hold bottles from the last 30 minutes",
+   "search": "sop",
+   "evidence": [
+    "filled in the last 30 minutes on hold"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-04",
+   "set": "fl101",
+   "fact": "vacuum, never compressed air",
+   "search": "sop",
+   "evidence": [
+    "Use a vacuum, never"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-04",
+   "set": "fl101",
+   "fact": "quality lead signs off before restart",
+   "search": "sop",
+   "evidence": [
+    "The quality lead must sign off before the line restarts"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-05",
+   "set": "fl101",
+   "fact": "clean the supply filter",
+   "search": "sop",
+   "evidence": [
+    "Clean the supply filter"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-05",
+   "set": "fl101",
+   "fact": "bleed air from the supply line",
+   "search": "sop",
+   "evidence": [
+    "Bleed air from the supply line"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-05",
+   "set": "fl101",
+   "fact": "pressure back to 1.5 to 2.0 bar",
+   "search": "sop",
+   "evidence": [
+    "Confirm the pressure is back to 1.5 to 2.0 bar"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FL-05",
+   "set": "fl101",
+   "fact": "weigh the first 20 bottles after restart",
+   "search": "sop",
+   "evidence": [
+    "Restart, then weigh the first 20 bottles"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-01",
+   "set": "fresh",
+   "fact": "checkweigher test bottles 490 / 500 / 510 ml",
+   "search": "sop",
+   "evidence": [
+    "490 ml, 500 ml and 510 ml"
+   ],
+   "delivered": false,
+   "rank_app": 20,
+   "rank_own": 20,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-01",
+   "set": "fresh",
+   "fact": "sanitation rinse if stopped more than 4 hours",
+   "search": "sop",
+   "evidence": [
+    "stopped for more than 4 hours"
+   ],
+   "delivered": false,
+   "rank_app": 15,
+   "rank_own": 15,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-01",
+   "set": "fresh",
+   "fact": "start at 60 bottles per minute",
+   "search": "sop",
+   "evidence": [
+    "Start at 60 bottles per minute"
+   ],
+   "delivered": false,
+   "rank_app": 15,
+   "rank_own": 15,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-01",
+   "set": "fresh",
+   "fact": "weigh the first 20 bottles, 495 to 505 ml",
+   "search": "sop",
+   "evidence": [
+    "Weigh the first 20 bottles. All must be 495 to 505 ml"
+   ],
+   "delivered": false,
+   "rank_app": 8,
+   "rank_own": 8,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-01",
+   "set": "fresh",
+   "fact": "then 120 bottles per minute",
+   "search": "sop",
+   "evidence": [
+    "Raise the speed to 120 bottles per minute"
+   ],
+   "delivered": false,
+   "rank_app": 15,
+   "rank_own": 15,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-02",
+   "set": "fresh",
+   "fact": "no drip = blocked nozzle",
+   "search": "sop",
+   "evidence": [
+    "Blocked fill nozzle"
+   ],
+   "delivered": false,
+   "rank_app": 6,
+   "rank_own": 6,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-02",
+   "set": "fresh",
+   "fact": "lock out and clean the nozzle",
+   "search": "sop",
+   "evidence": [
+    "clean the",
+    "nozzle of that valve"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-02",
+   "set": "fresh",
+   "fact": "check the product supply pressure",
+   "search": "sop",
+   "evidence": [
+    "Check the product supply pressure (Section 12.4)"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-03",
+   "set": "fresh",
+   "fact": "more than 1 in 100 over an hour: tell the shift lead",
+   "search": "sop",
+   "evidence": [
+    "more than 1 bottle in 100 over an hour"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-03",
+   "set": "fresh",
+   "fact": "rising reject count = first sign of worn seals",
+   "search": "sop",
+   "evidence": [
+    "first sign of worn seals"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-03",
+   "set": "fresh",
+   "fact": "look at the fill valves for dripping",
+   "search": "sop",
+   "evidence": [
+    "Look at the fill valves for dripping"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-04",
+   "set": "fresh",
+   "fact": "rails to position B (330 ml) and lock them",
+   "search": "sop",
+   "evidence": [
+    "B for 330 ml",
+    "lock them"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-04",
+   "set": "fresh",
+   "fact": "fit the matching star wheel",
+   "search": "sop",
+   "evidence": [
+    "Fit the matching star wheel"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-04",
+   "set": "fresh",
+   "fact": "run 20 bottles at 60 per minute",
+   "search": "sop",
+   "evidence": [
+    "run 20 bottles at 60 bottles per minute"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-04",
+   "set": "fresh",
+   "fact": "record the changeover; shift lead signs",
+   "search": "sop",
+   "evidence": [
+    "Record the changeover in the shift log"
+   ],
+   "delivered": true,
+   "rank_app": 2,
+   "rank_own": 2,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-05",
+   "set": "fresh",
+   "fact": "leak at the valve body: fit a new O-ring",
+   "search": "maintenance",
+   "evidence": [
+    "Leak at the valve body",
+    "Fit a new O-ring"
+   ],
+   "delivered": true,
+   "rank_app": 1,
+   "rank_own": 1,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-05",
+   "set": "fresh",
+   "fact": "trained maintenance technicians only",
+   "search": "maintenance",
+   "evidence": [
+    "Only trained maintenance technicians"
+   ],
+   "delivered": true,
+   "rank_app": 4,
+   "rank_own": 4,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-05",
+   "set": "fresh",
+   "fact": "seal kit SEAL-FV-24 (seal and O-ring)",
+   "search": "maintenance",
+   "evidence": [
+    "SEAL-FV-24 (main seal and O-ring)"
+   ],
+   "delivered": true,
+   "rank_app": 4,
+   "rank_own": 4,
+   "in_documents": true,
+   "in_one_piece": true
+  },
+  {
+   "id": "FR-05",
+   "set": "fresh",
+   "fact": "food-grade lubricant only",
+   "search": "maintenance",
+   "evidence": [
+    "Only use food-grade lubricant"
+   ],
+   "delivered": false,
+   "rank_app": 6,
+   "rank_own": 6,
+   "in_documents": true,
+   "in_one_piece": true
+  }
+ ]
+}

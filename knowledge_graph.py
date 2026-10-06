@@ -436,6 +436,7 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
         # only applied from a "sure" match, never from a close call.
         "match_confidence":  match["confidence"],
         "match_method":      match["method"],
+        "no_fault_reported": bool(match.get("not_a_fault")),
         "match_scores":      match["scores"][:3],
         # Real knowledge only: a lone Equipment node (e.g. a machine just added
         # in Plant Setup, before its fault graph exists) is NOT graph data —
@@ -635,10 +636,20 @@ def _ai_pick_fault(incident_text, options):
     except Exception:
         return None
     listing = "\n".join(f"{i}. {card}" for i, (_, card) in enumerate(options, 1))
+    # The question used to assume a fault ("which ONE of these faults are they
+    # describing?") with "none" last. Fresh questions (6 Oct 2026) showed the
+    # cost: "line's been sitting since Friday, anything special before we
+    # start?" became Infeed Jam, and a leak at the valve body became Underfill,
+    # both labelled "sure". A plain score cut-off can't separate these from
+    # real faults (T-2 "filler's short again" scores 0.798; FR-05 0.792), so
+    # the AI is asked the judgement question first.
     prompt = ("An operator on the plant floor wrote:\n"
               f'"{incident_text[:600]}"\n\n'
-              "Which ONE of these machine faults are they describing?\n"
-              f"{listing}\n0. None of these, or it is not clear\n\n"
+              "First decide: are they reporting one of the machine faults below, happening now?\n"
+              "Answer 0 if they are asking a routine question (for example a start-up, a "
+              "changeover, cleaning, or how to do a task) or describing a problem that is "
+              "not one of these faults, or if it is not clear.\n\n"
+              f"0. Not one of these faults, a routine question, or not clear\n{listing}\n\n"
               "Reply with the number only.")
     kwargs = completion_kwargs(MODEL_FAST, "supervisor", 10)
     reservation = acquire(MODEL_FAST, estimate_tokens([prompt], 600))
@@ -723,7 +734,15 @@ def match_faults(nodes, edges, incident_text, use_ai=True):
     if use_ai:
         pick = _ai_pick_fault(incident_text, [(f, cards[f["id"]]) for f in top])
         if pick == "none":
-            return all_faults("none", "AI: none of these faults", scores)
+            # The AI judged that no fault of this machine is being reported (a
+            # routine question, or a different problem). Write out NO fault: the
+            # fault chains don't apply, and handing over every fault, as the
+            # "can't decide" path does, made the writer's request too big for
+            # the free tier (fresh questions, 6 Oct 2026: 413 "request too large"
+            # at 8,100-8,800 tokens). Fault names are still listed.
+            return {"relevant": [], "others": faults, "hit": True, "not_a_fault": True,
+                    "confidence": "none", "method": "AI: not one of these faults",
+                    "scores": scores}
         if pick:
             return chosen([pick], "sure", "AI tie-break")
     # 4. No confident answer: hand over the close candidates, marked unsure.
@@ -819,6 +838,11 @@ def _build_chain_text(nodes, edges, warnings, downtime, equip_tag, incident_text
     else:
         relevant, others, _ = _match_faults(nodes, edges, incident_text)
     lines = [f"KNOWLEDGE GRAPH FOR {equip_tag} — human-reviewed facts, each with its source.", ""]
+    if match and match.get("not_a_fault"):
+        lines += ["NO MACHINE FAULT REPORTED: the operator's words do not describe one of this "
+                  "machine's known faults (a routine question, or a different problem). Answer "
+                  "their question from the documents. Do not take a fault, its causes or its "
+                  "criticality from the list below.", ""]
     if match and match.get("confidence") == "unsure":
         names = " or ".join(f["label"] for f in relevant)
         lines += [f"FAULT NOT CONFIRMED: the description could be {names}. Say so in the "

@@ -69,13 +69,21 @@ def pick(nodes, edges, q, mode):
 
 
 def mark(expect, got, critical_labels):
-    if got["confidence"] == "sure" and got["faults"] == [expect]:
+    """
+    expect: a fault label, "none" (the operator reports no fault / not one of
+    these: added 6 Oct 2026 after the fresh questions), or a list of answers
+    that are all acceptable (e.g. ["Infeed Jam", "none"]).
+    """
+    accepted = expect if isinstance(expect, list) else [expect]
+    no_fault = got["confidence"] == "none" and not got["faults"]
+    if (got["confidence"] == "sure" and len(got["faults"]) == 1 and got["faults"][0] in accepted) \
+            or ("none" in accepted and no_fault):
         verdict = "right"
-    elif got["confidence"] == "unsure" and expect in got["faults"]:
+    elif got["confidence"] == "unsure" and any(e in got["faults"] for e in accepted):
         verdict = "unsure"
     else:
         verdict = "wrong"
-    false_critical = (got["confidence"] == "sure" and expect not in critical_labels
+    false_critical = (got["confidence"] == "sure" and not any(e in critical_labels for e in accepted)
                       and any(f in critical_labels for f in got["faults"]))
     return verdict, false_critical
 
@@ -112,7 +120,8 @@ def main():
         verdict, false_crit = mark(q["expect"], got, crit)
         rows.append({**q, **got, "verdict": verdict, "false_critical": false_crit})
         sign = {"right": "OK    ", "unsure": "UNSURE", "wrong": "WRONG "}[verdict]
-        print(f"  {sign} {q['id']:7s} want {q['expect']:30s} got {', '.join(got['faults']) or '(none)':40s}"
+        want = " or ".join(q["expect"]) if isinstance(q["expect"], list) else q["expect"]
+        print(f"  {sign} {q['id']:7s} want {want:30s} got {', '.join(got['faults']) or '(none)':40s}"
               f" [{got['confidence']}; {got['method']}]" + ("  <-- FALSE CRITICAL" if false_crit else ""))
 
     # Summary per machine and set
@@ -137,7 +146,7 @@ def main():
               "|---|---|---|---|---|---|"]
     for r in rows:
         sc = "; ".join(f"{l} {s}" for l, s in r["scores"])
-        lines.append(f"| {r['id']} | {r['expect']} | {', '.join(r['faults']) or '—'} | "
+        lines.append(f"| {r['id']} | {' or '.join(r['expect']) if isinstance(r['expect'], list) else r['expect']} |{', '.join(r['faults']) or '—'} | "
                      f"{r['confidence']} | {r['method']} | {sc} |")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)

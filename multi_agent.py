@@ -84,6 +84,14 @@ def _groq_call_with_retry(fn, max_retries=3, call_type="specialist",
             return response
         except Exception as e:
             settle(reservation, None)   # keep the estimate: a rejected call may still count
+            # 413 "Request too large": this ONE request is bigger than the
+            # model's whole per-minute allowance, so waiting can never help.
+            # Its message also says "rate_limit", so it used to be retried 3
+            # times, a minute apart (fresh questions, 6 Oct 2026). Stop at once.
+            if "413" in str(e) or "request too large" in str(e).lower():
+                raise Exception("Request too large for the free tier: this step needs more "
+                                "tokens than the model allows per minute (Groq 413). "
+                                "Waiting will not help; the input must be smaller.") from e
             if "rate_limit" in str(e).lower() or "429" in str(e):
                 # TPM windows reset within ~60s, and Groq tells us exactly how
                 # long to wait ("try again in 1.07s"). Honour that hint instead
@@ -357,6 +365,25 @@ def _flag_if_truncated(response, what):
     return text
 
 
+# What each specialist searches for. ONE place, so the evals (search_check.py,
+# context_attribution.py) measure exactly what the app does.
+# Version 2 (6 Oct 2026): the SOP, work-instruction and NCR searches use the
+# operator's own words. The old fixed wording ("procedure response steps
+# specification for FL-101 alarm ...") pulled alarm-response pieces to the top:
+# facts delivered to the specialists 30/52 -> 40/52 (evals/search_results/,
+# search_before vs search_wording). The shift-log and operator-tip searches
+# keep their wording: no labels measure them yet.
+SPECIALIST_QUERY_VERSION = 2
+
+
+def specialist_query(agent, incident, equipment_id=None):
+    if agent == "alarm":
+        return f"alarm history incidents for {equipment_id or 'equipment'} {incident[:100]}"
+    if agent == "expert_fix":
+        return f"fix for {equipment_id or 'equipment'} {incident[:100]}"
+    return incident[:500]   # sop, maintenance, ncr: the operator's words
+
+
 @traceable(name="alarm_agent")
 def run_alarm_agent(incident, equipment_id=None):
     """
@@ -373,6 +400,15 @@ Rules:
 - Crucially — note what is DIFFERENT about this occurrence vs previous ones.
 - If the data shows NO previous occurrences, state that explicitly — it is significant.
 - Never invent data. If the search returned no results, say so clearly.
+- NOW vs BEFORE: the operator's message is the ONLY account of what is happening now.
+  Every shift log entry is a PAST event, with its own date, even when it looks the same.
+  Never describe a log entry as happening now, and never merge the operator's words
+  with a log entry (e.g. "stopped since Friday" is the operator; "worn seals on
+  10 September" is a log). If a log records the same problem, it is a prior event:
+  never call the current one the first.
+- If the operator reports no problem (a routine question, e.g. a restart or a
+  changeover), write "No current fault reported" and list only past events that
+  matter to their question.
 
 Return your findings in this exact structure:
 
@@ -380,18 +416,21 @@ ALARM PATTERN FINDINGS:
 - Frequency: [how many occurrences in the data]
 - Most recent prior event: [date/time if available]
 - Pattern: [what the data shows about this alarm's history]
-- What is different this time: [compare current incident to historical pattern]
+- What is different this time: [compare the operator's message (now) with the dated past log entries]
 - Data confidence: HIGH / MEDIUM / LOW / NO DATA
 
 SOURCES USED:
 - [list each source document name and timestamp cited]"""
 
-    query = f"alarm history incidents for {equipment_id or 'equipment'} {incident[:100]}"
+    query = specialist_query("alarm", incident, equipment_id)
     search_result = search_plantmind(query, doc_type_filter="Shift Log", equipment_filter=equipment_id)
 
-    user_prompt = f"""Incident reported: {incident}
+    # Today's date, so a log from weeks ago can't pass for "since Friday"
+    # (fresh question FR-01, 6 Oct 2026: the specialist merged the operator's
+    # "stopped since Friday" with a 10 September stop).
+    user_prompt = f"""Incident reported TODAY ({_today_label()}): {incident}
 
-Shift log search results:
+Shift log search results (past events, each with its own date):
 {search_result}
 
 Analyse the alarm pattern from this data."""
@@ -466,7 +505,7 @@ EXPERT FIX FINDINGS:
 SOURCES USED:
 - [operator name and date cited]"""
 
-    query = f"fix for {equipment_id or 'equipment'} {incident[:100]}"
+    query = specialist_query("expert_fix", incident, equipment_id)
     search_result, fix_ids = search_expert_fixes(query, equipment_filter=equipment_id)
 
     # Citation tracking happens here, at retrieval time — not after the
@@ -536,7 +575,7 @@ MAINTENANCE HISTORY FINDINGS:
 SOURCES USED:
 - [list each source document name cited]"""
 
-    query = f"maintenance service repair history for {equipment_id or 'equipment'} {incident[:100]}"
+    query = specialist_query("maintenance", incident, equipment_id)
     search_result = search_plantmind(query, doc_type_filter="Work Instruction", equipment_filter=equipment_id)
 
     user_prompt = f"""Incident reported: {incident}
@@ -598,7 +637,7 @@ SOP / PROCEDURE FINDINGS:
 SOURCES USED:
 - [list each source document name and revision cited]"""
 
-    query = f"procedure response steps specification for {equipment_id or 'equipment'} alarm {incident[:100]}"
+    query = specialist_query("sop", incident, equipment_id)
     search_result = search_plantmind(query, doc_type_filter="SOP", equipment_filter=equipment_id)
 
     user_prompt = f"""Incident reported: {incident}
@@ -660,7 +699,7 @@ NCR / QUALITY FINDINGS:
 SOURCES USED:
 - [list each source document name cited]"""
 
-    query = f"non-conformance quality incident corrective action for {equipment_id or 'equipment'} {incident[:100]}"
+    query = specialist_query("ncr", incident, equipment_id)
     search_result = search_plantmind(query, doc_type_filter="NCR", equipment_filter=equipment_id)
 
     user_prompt = f"""Incident reported: {incident}
@@ -1029,6 +1068,13 @@ WRITER_GETS_EVIDENCE = os.getenv("PM_WRITER_GETS_EVIDENCE", "false").strip().low
 # them; with the graph ON the writer's input is already ~17,000 characters, and
 # the free tier allows ~8,000 tokens per minute for the writer's model.
 WRITER_EVIDENCE_MAX_CHARS = int(os.getenv("PM_WRITER_EVIDENCE_MAX_CHARS", "6000"))
+def _today_label():
+    """e.g. 'Tuesday 6 October 2026': lets the AI tell today's incident from dated past logs."""
+    import datetime as _dt
+    d = _dt.date.today()
+    return f"{d:%A} {d.day} {d:%B %Y}"
+
+
 LAST_WRITER_EVIDENCE = ""   # evals only: the pieces the last report's writer was given
 # The evidence heading + the widened rule 1 + the prompt's own wording, rounded up.
 _EVIDENCE_OVERHEAD_CHARS = 1000
@@ -1103,7 +1149,15 @@ TRUST ORDER — by kind of fact:
      TIER 1 VERIFIED (knowledge graph) > TIER 2 DOCUMENTS (SOP, work instruction, NCR)
      > TIER 3 APPROVED operator knowledge. A TIER 4 UNREVIEWED operator tip NEVER sets a
      value, a setting or a step in HOW TO ADDRESS IT.
-   - What is happening now (alarm counts, timing, recent changes): TIER 2 EVENTS (shift logs).
+   - What is happening NOW comes only from the operator's message (the Incident line).
+     What happened BEFORE (past alarms, timing, earlier repairs): TIER 2 EVENTS (shift
+     logs). A shift log entry is a past event with its own date: never present it as the
+     current incident, and never call this incident the first when a log records the same
+     problem. Cite it as a prior event, with its date.
+   - If the operator reports no problem (a routine question or planned work, such as a
+     restart or a changeover): write "No fault reported" under WHAT IS THE ISSUE, answer
+     their question from the procedures under HOW TO ADDRESS IT, and do not build an
+     incident out of past log entries.
    - Safety steps: include every safety step from any tier. The most cautious one wins.
    Why: controlled documents are reviewed and approved; an unreviewed tip is one person's
    account that nobody has checked yet.
@@ -1131,6 +1185,9 @@ TRUST ORDER — by kind of fact:
    - If a TIER 1 or TIER 2 document states a criticality for this kind of event, rate it
      at least that. Never rate below what the document says.
    Never downgrade below HIGH when evidence shows recurring fault or production stop required.
+   - No fault reported (routine question or planned work): LOW. The HIGH minimums above are
+     for faults happening now; planned work that uses LOTO is not a fault, and a past log
+     entry is not a current alarm.
 
 FORMATTING RULES (follow these EXACTLY — do not deviate):
 - Output PLAIN TEXT only. Do NOT use Markdown: no ** for bold, no * for italics,
@@ -1278,7 +1335,7 @@ what happened, not what to do).
 {evidence}
 ─────────────────────────────────────────────────────"""
 
-    user_prompt = f"""Incident: {incident}
+    user_prompt = f"""Incident (reported today, {_today_label()}): {incident}
 
 Specialist agent findings:
 {findings_block}{evidence_block}{graph_block}{degraded_note}
@@ -1461,6 +1518,15 @@ def required_agents(graph_context, equipment_id=None):
     if equipment_id:
         need.update({"alarm", "expert_fix"})
     ctx = graph_context or {}
+    if ctx.get("no_fault_reported"):
+        # A routine question (restart, changeover, fitting a part) is answered
+        # by the procedures. Fresh questions, 6 Oct 2026: once the matcher
+        # correctly said "no fault", nothing asked for the SOP any more (0/9;
+        # it had only been searched because a WRONG fault forced it), and the
+        # restart answer was generic ("test mode, watch 5 minutes") instead of
+        # SOP 9 (rinse, 60/min, weigh 20 bottles, 120/min).
+        need.update({"sop", "maintenance"})
+        docs += ["SOP", "Work Instruction"]
     if ctx.get("has_data") and ctx.get("matched_faults"):
         by_id = {n["id"]: n for n in ctx.get("chain_nodes", []) or []}
         for nid in ctx.get("relevant_node_ids", []) or []:
@@ -1612,6 +1678,8 @@ def investigate_incident(incident, equipment_id=None):
                     yield f"🎯 Fault: {faults} ({graph_context.get('match_method')})\n\n"
                 elif conf == "unsure":
                     yield f"❓ Fault not confirmed — close call: {faults}\n\n"
+                elif graph_context.get("no_fault_reported"):
+                    yield "ℹ️ No machine fault reported — answering from the procedures\n\n"
                 elif conf:
                     yield f"❓ No fault matched ({graph_context.get('match_method')}) — all faults considered\n\n"
             elif graph_context and graph_context.get("degraded"):

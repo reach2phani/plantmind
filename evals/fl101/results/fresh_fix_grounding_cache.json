@@ -1,0 +1,248 @@
+{
+ "4f48a1a6245d": {
+  "steps": [
+   "Step 1: Safety - Press normal STOP, then perform LOTO per SAF-003 (switch off main isolator, apply personal lock, tag with name/date, verify lockout).",
+   "Step 2: Diagnosis - Read the checkweigher report to confirm valve 12 underfilling; visually inspect valve 12 for dripping (none observed).",
+   "Step 3: Fix - Lock out the machine and clean the nozzle of valve 12 (SOP Section 12.1, WI-FL101-001). Then check product supply pressure (Section 12.4); if pressure is below 1.5 bar, follow low-pressure procedure: clean supply filter, bleed air, restore pressure to 1.5-2.0 bar.",
+   "Step 4: Verify - Restart machine, weigh first 20 bottles; all must be 495-505 ml. If any bottle is out of range, repeat nozzle cleaning or raise a maintenance work order.",
+   "Step 5: Quality - Quarantine any bottles produced during the alarm; record results in the shift log and maintenance log; sign off first-bottle check."
+  ],
+  "answer": {
+   "steps": [
+    {
+     "n": 1,
+     "grounded": "yes",
+     "why": "The SOP explicitly lists the LOTO steps (switch off, lock, tag, verify) under Section 6.2 and references SAF-003. The instruction to press normal STOP is found in the 'Immediate action' section of the SOP."
+    },
+    {
+     "n": 2,
+     "grounded": "yes",
+     "why": "The SOP 'Immediate action' steps instruct to read the checkweigher report to identify underfilling valves and look at those valves for dripping. The operator's observation of 'no drips' aligns with the diagnostic path described."
+    },
+    {
+     "n": 3,
+     "grounded": "partly",
+     "why": "The SOP instructs to lock out and clean the nozzle if there is no dripping, and Section 12.4 details the low-pressure procedure (clean filter, bleed air, restore to 1.5-2.0 bar). However, the step cites 'WI-FL101-001' for nozzle cleaning, but the provided Work Instruction (WI) text describes a full seal replacement procedure, not a simple nozzle clean. Additionally, the SOP triggers the low-pressure check generally, while the step adds a specific threshold 'if pressure is below 1.5 bar' which is not explicitly stated as the trigger for the *cleaning* action in the provided text (the alarm is below 1.3 bar, and the target is 1.5-2.0)."
+    },
+    {
+     "n": 4,
+     "grounded": "partly",
+     "why": "The Work Instruction mandates weighing the first 20 bottles (495-505 ml) and stopping to check the valve if out of range. However, the step adds 'or raise a maintenance work order' as an alternative action for out-of-range bottles, which is not stated in the provided passages for this specific verification step (the WI says 'stop and check the valve again')."
+    },
+    {
+     "n": 5,
+     "grounded": "partly",
+     "why": "The Work Instruction requires the shift supervisor to sign off the first-bottle check and record details in the maintenance log. However, the step adds 'Quarantine any bottles produced during the alarm' and 'record results in the shift log', which are not explicitly stated in the provided passages (the SOP mentions QA HOLD for bottles, but not specifically for alarm production in this context, and the WI only mentions the maintenance log)."
+    }
+   ],
+   "gaps": "no"
+  }
+ },
+ "5ff840056b10": {
+  "steps": [
+   "Step 1: Safety - Press STOP (normal stop), apply LOTO per SAF-003 (lock out main isolator, tag with name/date, verify machine cannot start).",
+   "Step 2: Diagnosis - Lock out, then clean the nozzle of valve 12 (SOP Section 12.1, work instruction \"blocked nozzle\").",
+   "Step 3: Fix - After cleaning, check product-supply pressure (SOP Section 12.4). If pressure < 1.3 bar, follow low-pressure procedure: clean supply filter, bleed air, confirm pressure 1.5-2.0 bar, then restart.",
+   "Step 4: Verify - Perform first-bottle check: run first 20 bottles, all must weigh 495-505 ml. If any out of range, repeat nozzle cleaning or raise maintenance work order.",
+   "Step 5: Quality - Quarantine the first 20 bottles until verification is complete; record results in the maintenance log and sign-off by shift supervisor."
+  ],
+  "answer": {
+   "steps": [
+    {
+     "n": 1,
+     "grounded": "partly",
+     "why": "The LOTO steps (lock main isolator, tag name/date, verify stop) are in the passages, but 'Press STOP (normal stop)' is not explicitly stated as a prerequisite in the provided LOTO section (which starts with switching off power)."
+    },
+    {
+     "n": 2,
+     "grounded": "yes",
+     "why": "The troubleshooting table explicitly states: 'Valve still underfills, no drip' -> Check 'Nozzle blocked?' -> Action 'Clean the nozzle'. The lockout requirement is also in the passages."
+    },
+    {
+     "n": 3,
+     "grounded": "yes",
+     "why": "SOP Section 12.4 explicitly lists the threshold (< 1.3 bar), the actions (clean filter, bleed air), and the target pressure (1.5-2.0 bar)."
+    },
+    {
+     "n": 4,
+     "grounded": "partly",
+     "why": "The check (20 bottles, 495-505 ml) is in the passages. However, the instruction to 'raise maintenance work order' if out of range is not stated; the document says to 'stop and check the valve again'."
+    },
+    {
+     "n": 5,
+     "grounded": "partly",
+     "why": "Recording results and supervisor sign-off are in the passages. However, 'Quarantine the first 20 bottles' is not stated; the document says to weigh them and implies rejection by the checkweigher, but does not explicitly mandate quarantine of the physical bottles by the operator in this context."
+    }
+   ],
+   "gaps": "no"
+  }
+ },
+ "57c3607a81b2": {
+  "steps": [
+   "Step 1: Safety - Press normal STOP, apply LOTO per SAF-003, wear required PPE (safety shoes, cut-resistant gloves, safety glasses) [knowledge graph, SOP]",
+   "Step 2: Diagnosis - Verify checkweigher report shows valve 12 underfilling; inspect valve 12 for drip (none observed) and for nozzle blockage",
+   "Step 3: Fix - Lock out machine, clean the nozzle of valve 12 as per SOP Section 12.1; then check product supply pressure (target 1.5-2.0 bar, low alarm <1.3 bar) [FL-101-SOP]",
+   "Step 4: Verify - If pressure is normal and nozzle cleaning does not resolve underfill, call maintenance to replace seal kit using WI-FL101-001; do NOT increase fill time [mandatory warning]",
+   "Step 5: Quality - Perform sanitation rinse (10 min) and mandatory first-bottle check of 20 bottles (495-505 ml); shift supervisor signs off before restart [knowledge graph]"
+  ],
+  "answer": {
+   "steps": [
+    {
+     "n": 1,
+     "grounded": "yes",
+     "why": "SOP 6.1 lists safety shoes, cut-resistant gloves, and safety glasses. SOP 6.2 mandates LOTO per SAF-003. The instruction to press normal STOP is in the Immediate Action section (Step 1)."
+    },
+    {
+     "n": 2,
+     "grounded": "yes",
+     "why": "Immediate Action Step 2 says to read the checkweigher report for underfilling valves. Step 3 says to look at valves for dripping. Step 4 addresses the 'No dripping' case by cleaning the nozzle (implying inspection for blockage/cleaning)."
+    },
+    {
+     "n": 3,
+     "grounded": "yes",
+     "why": "Immediate Action Step 4 says to lock out and clean the nozzle. Step 5 says to check product supply pressure (Section 12.4). Section 12.4 specifies the target pressure (1.5-2.0 bar) and low alarm threshold (<1.3 bar)."
+    },
+    {
+     "n": 4,
+     "grounded": "yes",
+     "why": "Immediate Action Step 3 states that if dripping is found (or implied as the remaining cause after other checks), call maintenance to replace the seal kit using WI-FL101-001. The text explicitly states 'Do NOT increase the fill time'."
+    },
+    {
+     "n": 5,
+     "grounded": "yes",
+     "why": "Work Instruction Step 9 mandates a 10-minute sanitation rinse. Step 10 mandates weighing the first 20 bottles (495-505 ml). Section 11 states the shift supervisor must sign off the first-bottle check before restart."
+    }
+   ],
+   "gaps": "none"
+  }
+ },
+ "ce43a84b6dac": {
+  "steps": [
+   "Step 1: Safety - Verify that any LOTO devices placed during the Friday shutdown have been removed and that the main isolator is switched ON. Follow LOTO (SAF-003) procedure: ensure only the person who placed a lock removes it, then tag removal with name and date.",
+   "Step 2: Safety - Don required PPE as per FL-101 SOP Section 6.1: safety shoes, cut-resistant gloves (if handling glass), safety glasses, and hearing protection.",
+   "Step 3: Safety - Confirm all guard doors are closed and safety switches are engaged; do not bypass or tape over any guard switch (Machine Safety Rules, Sections 6.3-6.4).",
+   "Step 4: Diagnosis - Perform a visual inspection of the filling heads, valves, and seals for any obvious damage or wear; ensure no foreign material is present on the floor or in the machine.",
+   "Step 5: Fix - If any wear or damage is observed, replace the affected part per the standard maintenance work instruction (not provided here); otherwise proceed.",
+   "Step 6: Verify - Start the machine in test mode, observe for any alarms for at least 5 minutes, and run a short trial fill to confirm proper fill level and no underfill/overfill warnings.",
+   "Step 7: Quality - Inspect the first product batch for fill accuracy; quarantine any bottles that do not meet specification."
+  ],
+  "answer": {
+   "steps": [
+    {
+     "n": 1,
+     "grounded": "partly",
+     "why": "The LOTO procedure (SAF-003), lock removal rule, and tagging details are in the passages. However, the specific instruction to verify the main isolator is switched ON is not stated; the documents only describe switching it OFF for lockout."
+    },
+    {
+     "n": 2,
+     "grounded": "yes",
+     "why": "The list of PPE items (safety shoes, cut-resistant gloves, safety glasses, hearing protection) and the condition for gloves (handling glass) match Section 6.1 exactly."
+    },
+    {
+     "n": 3,
+     "grounded": "yes",
+     "why": "Section 6.3 states guard doors have safety switches and explicitly says 'Never bypass or tape over a guard switch'. Section 6.4 reinforces safety rules. The action to confirm they are closed/engaged is a direct application of these rules."
+    },
+    {
+     "n": 4,
+     "grounded": "partly",
+     "why": "Inspecting valves/seals for damage/dripping is in Section 8.1. However, the instruction to ensure 'no foreign material is present on the floor' is not in the passages; Section 6.4 only says to 'Keep the floor dry' and report spills, not to inspect for foreign material."
+    },
+    {
+     "n": 5,
+     "grounded": "no",
+     "why": "The step refers to a 'standard maintenance work instruction (not provided here)'. The passages do not contain a generic 'replace affected part' instruction; they specify calling a technician for seal kits (WI-FL101-001) or cleaning nozzles. The step invents a generic action not found in the text."
+    },
+    {
+     "n": 6,
+     "grounded": "no",
+     "why": "The passages do not mention 'test mode', observing for 'at least 5 minutes', or running a 'short trial fill'. The Work Instruction specifies a 'sanitation rinse' for 10 minutes and a 'first-bottle check' of 20 bottles at normal speed, which is different from the step's description."
+    },
+    {
+     "n": 7,
+     "grounded": "partly",
+     "why": "Inspecting fill accuracy is supported by the 'First-Bottle Check' (weighing 20 bottles) and Checkweigher test. However, the specific instruction to 'quarantine' bottles is not in the passages; the text says the checkweigher 'rejects' them automatically or to 'stop and check' if out of range, but does not use the term quarantine or describe a manual quarantine process for the first batch."
+    }
+   ],
+   "gaps": "no"
+  }
+ },
+ "3c13afb9f4d1": {
+  "steps": [
+   "Step 1: Safety - Remove LOTO if applied, following SAF-003: switch off power, remove personal lock only by the lock-fitter, tag removal with name/date, then attempt to start machine to confirm lock removal.",
+   "Step 2: PPE - Don safety shoes, cut-resistant gloves, safety glasses, and hearing protection as required by SOP Section 6.1.",
+   "Step 3: Inspection - Visually confirm all guard doors are closed and safety switches engaged; ensure no debris or spilled product on floor; verify that no jam or foreign material is present.",
+   "Step 4: Verify machine readiness - Perform a brief \"dry run\" at low speed to confirm seals are intact and no under-fill alarms appear; watch for any abnormal noises or leaks.",
+   "Step 5: Quality - If product was previously in the line, purge the first 30 seconds of product into a waste container and inspect for proper fill level before routing to the line."
+  ],
+  "answer": {
+   "steps": [
+    {
+     "n": 1,
+     "grounded": "yes",
+     "why": "The steps to switch off power, remove the lock (by the lock-fitter), remove the tag (name/date), and attempt to start the machine are all explicitly stated in SOP Section 6.2."
+    },
+    {
+     "n": 2,
+     "grounded": "yes",
+     "why": "SOP Section 6.1 lists safety glasses, cut-resistant gloves, hearing protection, and safety shoes as required PPE."
+    },
+    {
+     "n": 3,
+     "grounded": "partly",
+     "why": "Checking guard doors is in SOP 8.5. Checking for debris/spills is supported by SOP 6.4 ('Keep the floor dry'). However, 'verify that no jam or foreign material is present' is not explicitly stated as a pre-start visual inspection step in the provided passages (jams are discussed as alarms in 12.2, not as a pre-start check)."
+    },
+    {
+     "n": 4,
+     "grounded": "no",
+     "why": "The passages do not mention performing a 'dry run' at low speed, watching for abnormal noises, or checking for leaks as a pre-start verification step. They list static checks (valves, rails, pressure) and a checkweigher test with specific bottles, but not a general dry run."
+    },
+    {
+     "n": 5,
+     "grounded": "no",
+     "why": "There is no instruction in the provided passages to purge the first 30 seconds of product into a waste container. The checkweigher section (8.4) mentions passing test bottles, but not purging product flow."
+    }
+   ],
+   "gaps": "no"
+  }
+ },
+ "a66f82dc57db": {
+  "steps": [
+   "Step 1: Safety - Verify that no maintenance or jam clearing is required; if none, LOTO is NOT required. Ensure all personnel wear required PPE (safety shoes, cut-resistant gloves, hearing protection, safety glasses) as per FL-101-SOP 6.1.",
+   "Step 2: Inspection - Visually inspect the line for any foreign objects, leaks, or jammed bottles; confirm all guard doors are closed and safety switches engaged per FL-101-SOP 6.3-6.4.",
+   "Step 3: Power-up - Switch on power at the main isolator, ensuring the machine is not locked out. Verify that the machine starts and runs without unexpected alarms.",
+   "Step 4: Verify - Run a short trial fill (e.g., 5 bottles) and check fill level, bottle integrity, and that no underfill or overfill alarms trigger.",
+   "Step 5: Quality - Inspect the trial bottles for proper fill and glass condition; quarantine any defective units per standard quality procedures."
+  ],
+  "answer": {
+   "steps": [
+    {
+     "n": 1,
+     "grounded": "partly",
+     "why": "PPE list matches SOP 6.1. However, the condition 'if none [maintenance/jam], LOTO is NOT required' is an inference; the SOP states LOTO is required *before* those actions, but does not explicitly state it is *not* required if they are absent. Additionally, the Work Instruction 6 says 'Lock out the machine before starting', which contradicts the step's conditional logic."
+    },
+    {
+     "n": 2,
+     "grounded": "partly",
+     "why": "Checking guard doors and safety switches is supported by SOP 6.3 and 8.5. Checking for leaks is supported by SOP 6.4 ('Report leaks'). However, 'visually inspect... for foreign objects' and 'jammed bottles' are not explicitly listed as pre-start inspection steps in the provided passages (SOP 8.5 checks for broken glass, not general foreign objects or jams; Work Instruction 7 checks checkweigher report, not physical jams)."
+    },
+    {
+     "n": 3,
+     "grounded": "no",
+     "why": "The passages describe how to switch OFF power for LOTO (SOP 6.2) and define LOTO, but do not provide a procedure for switching ON power or verifying the machine starts without alarms. The 'Start-up Sequence' section header is present but the content is missing/empty in the provided text."
+    },
+    {
+     "n": 4,
+     "grounded": "no",
+     "why": "The passages specify passing three specific test bottles (490, 500, 510 ml) through the checkweigher (SOP 8.4) or weighing the first 20 bottles (Work Instruction Step 10). They do not instruct to run a 'short trial fill (e.g., 5 bottles)' or check 'bottle integrity' in this specific manner."
+    },
+    {
+     "n": 5,
+     "grounded": "no",
+     "why": "The passages mention QA HOLD labels and that bottles on QA HOLD must be inspected by the quality lead, but do not provide a procedure for the operator to 'quarantine any defective units' during a trial fill. The specific action of inspecting trial bottles for 'glass condition' is not stated (SOP 8.5 is about checking the machine for broken glass, not inspecting product bottles)."
+    }
+   ],
+   "gaps": "no"
+  }
+ }
+}

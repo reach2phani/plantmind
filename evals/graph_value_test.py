@@ -209,6 +209,8 @@ def run_one(ma, case, equipment, arm):
         "graph_text": sink.get("graph_text", ""),
         # C2: was the writer also given the pieces the specialists read?
         "writer_evidence": bool(getattr(ma, "WRITER_GETS_EVIDENCE", False)),
+        # Which search wording the specialists used (1 = before 6 Oct 2026).
+        "search_wording": getattr(ma, "SPECIALIST_QUERY_VERSION", 1),
         "evidence": sink.get("evidence", ""),
         "seconds": round(time.time() - started),
         "at": dt.datetime.now().isoformat(timespec="seconds"),

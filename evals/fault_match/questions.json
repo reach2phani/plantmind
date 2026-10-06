@@ -1,5 +1,5 @@
 {
-  "_about": "Fault-matching check (Phase 2a step A): does the graph pick the right fault from the operator's words? Sets: 'alarm' = alarm-style wording (the original WM-101 graph value cases), 'everyday' = how people actually talk, 'user' = written by the project owner, 'fresh' = the exam, written AFTER the matcher was tuned (add them later, never tune on them). 'expect' is the fault label in the graph. Fresh set FL-f1..f7 written by the user 2026-09-30, after tuning; never tune on them.",
+  "_about": "Fault-matching check (Phase 2a step A): does the graph pick the right fault from the operator's words? Sets: 'alarm' = alarm-style wording (the original WM-101 graph value cases), 'everyday' = how people actually talk, 'user' = written by the project owner, 'fresh' = the exam, written AFTER the matcher was tuned (add them later, never tune on them). 'expect' is the fault label in the graph. Fresh set FL-f1..f7 written by the user 2026-09-30, after tuning; never tune on them. Added 2026-10-06: 'teaching' = the 3 evals-teaching-set wordings (T-2 scores 0.798 by meaning, below the 0.80 bar: the AI tie-break must keep getting it right), and 'fresh_oct' = the 5 graph-chapter fresh questions. They exposed the matcher picking a fault 'sure' when the operator reports none, and the AI tie-break question was changed BECAUSE of them, so they are now TUNING questions, not held out. 'expect' may be 'none' (no fault / not one of these) or a list of acceptable answers.",
   "questions": [
     {
       "equip": "FL-101",
@@ -231,6 +231,38 @@
       "id": "FL-f7",
       "expect": "Infeed Jam",
       "q": "The worm screw's catching bottles right at the entry. We just finished the changeover—could the guide setting be too wide?"
+    },
+    {
+      "equip": "FL-101", "set": "teaching", "id": "T-1", "expect": "Underfill",
+      "q": "Bottles aren't full enough. What should I check?"
+    },
+    {
+      "equip": "FL-101", "set": "teaching", "id": "T-2", "expect": "Underfill",
+      "q": "filler's short again, what do i do"
+    },
+    {
+      "equip": "FL-101", "set": "teaching", "id": "T-3", "expect": "Underfill",
+      "q": "botles not filing up all the way??"
+    },
+    {
+      "equip": "FL-101", "set": "fresh_oct", "id": "FR-01", "expect": "none",
+      "q": "Line's been sitting since Friday night. Anything special before we start filling again?"
+    },
+    {
+      "equip": "FL-101", "set": "fresh_oct", "id": "FR-02", "expect": "Underfill",
+      "q": "Checkweigher keeps kicking out bottles from valve 12, but I don't see any drips. What now?"
+    },
+    {
+      "equip": "FL-101", "set": "fresh_oct", "id": "FR-03", "expect": "Underfill",
+      "q": "Reject count's been creeping up all morning. No alarms yet, though. Is that something to worry about?"
+    },
+    {
+      "equip": "FL-101", "set": "fresh_oct", "id": "FR-04", "expect": ["Infeed Jam", "none"],
+      "q": "Swapping to the 330s after lunch. What's the drill?"
+    },
+    {
+      "equip": "FL-101", "set": "fresh_oct", "id": "FR-05", "expect": "none",
+      "q": "One of the valves is leaking from the side, not the nozzle. Maintenance only did the seals on it yesterday."
     }
   ]
 }

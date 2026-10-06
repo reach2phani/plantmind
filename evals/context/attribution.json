@@ -1929,6 +1929,1590 @@
    "evidence": {}
   },
   {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 1,
+   "fact": "FR-01/test_bottles",
+   "label": "checkweigher test bottles 490 and 510 ml before starting",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "SOP Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 1,
+   "fact": "FR-01/rinse",
+   "label": "10-minute sanitation rinse (stopped more than 4 hours)",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "SOP Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 1,
+   "fact": "FR-01/first_20",
+   "label": "first 20 bottles all 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "SOP Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 1,
+   "fact": "FR-01/full_speed",
+   "label": "then raise to 120 bottles per minute",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 2,
+   "fact": "FR-01/test_bottles",
+   "label": "checkweigher test bottles 490 and 510 ml before starting",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "SOP Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 2,
+   "fact": "FR-01/rinse",
+   "label": "10-minute sanitation rinse (stopped more than 4 hours)",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "SOP Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 2,
+   "fact": "FR-01/first_20",
+   "label": "first 20 bottles all 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "SOP Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 2,
+   "fact": "FR-01/full_speed",
+   "label": "then raise to 120 bottles per minute",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 3,
+   "fact": "FR-01/test_bottles",
+   "label": "checkweigher test bottles 490 and 510 ml before starting",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "SOP Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 3,
+   "fact": "FR-01/rinse",
+   "label": "10-minute sanitation rinse (stopped more than 4 hours)",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "SOP Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 3,
+   "fact": "FR-01/slow_start",
+   "label": "start at 60 bottles per minute",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 3,
+   "fact": "FR-01/first_20",
+   "label": "first 20 bottles all 495 to 505 ml",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "SOP Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "on",
+   "run": 3,
+   "fact": "FR-01/full_speed",
+   "label": "then raise to 120 bottles per minute",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-02",
+   "arm": "on",
+   "run": 2,
+   "fact": "FR-02/pressure",
+   "label": "check the product supply pressure",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "SOP Agent",
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "on",
+   "run": 1,
+   "fact": "FR-04/record",
+   "label": "record the changeover; the shift lead signs",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "Alarm Agent",
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "on",
+   "run": 2,
+   "fact": "FR-04/test_run",
+   "label": "run 20 bottles at 60 bottles per minute",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "on",
+   "run": 1,
+   "fact": "FR-05/o_ring",
+   "label": "check for a missing O-ring; fit a new one",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "on",
+   "run": 1,
+   "fact": "FR-05/technicians",
+   "label": "valve work is for trained maintenance technicians only",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "on",
+   "run": 1,
+   "fact": "FR-05/seal_kit",
+   "label": "seal kit SEAL-FV-24 (holds the O-ring)",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "on",
+   "run": 1,
+   "fact": "FR-05/lubricant",
+   "label": "food-grade lubricant FGL-1 only",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "on",
+   "run": 2,
+   "fact": "FR-05/technicians",
+   "label": "valve work is for trained maintenance technicians only",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "on",
+   "run": 3,
+   "fact": "FR-05/o_ring",
+   "label": "check for a missing O-ring; fit a new one",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "on",
+   "run": 3,
+   "fact": "FR-05/technicians",
+   "label": "valve work is for trained maintenance technicians only",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "graph"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-01/test_bottles",
+   "label": "checkweigher test bottles 490 and 510 ml before starting",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-01/rinse",
+   "label": "10-minute sanitation rinse (stopped more than 4 hours)",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-01/slow_start",
+   "label": "start at 60 bottles per minute",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-01/first_20",
+   "label": "first 20 bottles all 495 to 505 ml",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-01/full_speed",
+   "label": "then raise to 120 bottles per minute",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-01/test_bottles",
+   "label": "checkweigher test bottles 490 and 510 ml before starting",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-01/rinse",
+   "label": "10-minute sanitation rinse (stopped more than 4 hours)",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-01/slow_start",
+   "label": "start at 60 bottles per minute",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-01/first_20",
+   "label": "first 20 bottles all 495 to 505 ml",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-01/full_speed",
+   "label": "then raise to 120 bottles per minute",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-01/test_bottles",
+   "label": "checkweigher test bottles 490 and 510 ml before starting",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-01/rinse",
+   "label": "10-minute sanitation rinse (stopped more than 4 hours)",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-01/slow_start",
+   "label": "start at 60 bottles per minute",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-01/first_20",
+   "label": "first 20 bottles all 495 to 505 ml",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-01",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-01/full_speed",
+   "label": "then raise to 120 bottles per minute",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-02",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-02/pressure",
+   "label": "check the product supply pressure",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-02",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-02/nozzle",
+   "label": "no drip means a blocked nozzle: clean it",
+   "bucket": "in_report",
+   "evidence": {}
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-02",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-02/pressure",
+   "label": "check the product supply pressure",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-02",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-02/nozzle",
+   "label": "no drip means a blocked nozzle: clean it",
+   "bucket": "in_report",
+   "evidence": {}
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-02",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-02/pressure",
+   "label": "check the product supply pressure",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-03",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-03/one_in_100",
+   "label": "more than 1 in 100 rejected over an hour: tell the shift lead",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "NCR Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-03",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-03/range",
+   "label": "bottles must be 495 to 505 ml",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "NCR Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-03",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-03/one_in_100",
+   "label": "more than 1 in 100 rejected over an hour: tell the shift lead",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-03",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-03/range",
+   "label": "bottles must be 495 to 505 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent",
+     "NCR Agent"
+    ],
+    "found_by": [
+     "NCR Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "NCR Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-03",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-03/one_in_100",
+   "label": "more than 1 in 100 rejected over an hour: tell the shift lead",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent",
+     "NCR Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-03",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-03/drips",
+   "label": "check the fill valves for dripping",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent",
+     "NCR Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent",
+     "Alarm Agent",
+     "NCR Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent",
+     "Alarm Agent",
+     "NCR Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-03",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-03/range",
+   "label": "bottles must be 495 to 505 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent",
+     "NCR Agent"
+    ],
+    "found_by": [
+     "NCR Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "NCR Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-04/lockout",
+   "label": "lock out the machine first",
+   "bucket": "in_report",
+   "evidence": {}
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-04/position_b",
+   "label": "guide rails to position B for 330 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-04/star_wheel",
+   "label": "fit the matching star wheel",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-04/test_run",
+   "label": "run 20 bottles at 60 bottles per minute",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-04/record",
+   "label": "record the changeover; the shift lead signs",
+   "bucket": "in_report",
+   "evidence": {}
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-04/lockout",
+   "label": "lock out the machine first",
+   "bucket": "in_report",
+   "evidence": {}
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-04/position_b",
+   "label": "guide rails to position B for 330 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-04/star_wheel",
+   "label": "fit the matching star wheel",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-04/test_run",
+   "label": "run 20 bottles at 60 bottles per minute",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Alarm Agent",
+     "Expert Fix Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-04/record",
+   "label": "record the changeover; the shift lead signs",
+   "bucket": "writer",
+   "evidence": {
+    "via": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-04/lockout",
+   "label": "lock out the machine first",
+   "bucket": "in_report",
+   "evidence": {}
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-04/position_b",
+   "label": "guide rails to position B for 330 ml",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Alarm Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-04/star_wheel",
+   "label": "fit the matching star wheel",
+   "bucket": "not_searched",
+   "evidence": {
+    "in_docs": [
+     "SOP"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-04/test_run",
+   "label": "run 20 bottles at 60 bottles per minute",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-04",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-04/record",
+   "label": "record the changeover; the shift lead signs",
+   "bucket": "not_found",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Shift Log"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": []
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-05/o_ring",
+   "label": "check for a missing O-ring; fit a new one",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-05/technicians",
+   "label": "valve work is for trained maintenance technicians only",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-05/seal_kit",
+   "label": "seal kit SEAL-FV-24 (holds the O-ring)",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Alarm Agent",
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-05/lubricant",
+   "label": "food-grade lubricant FGL-1 only",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-05/o_ring",
+   "label": "check for a missing O-ring; fit a new one",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-05/technicians",
+   "label": "valve work is for trained maintenance technicians only",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-05/seal_kit",
+   "label": "seal kit SEAL-FV-24 (holds the O-ring)",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Alarm Agent",
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 2,
+   "fact": "FR-05/lubricant",
+   "label": "food-grade lubricant FGL-1 only",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Alarm Agent",
+     "Maintenance Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-05/o_ring",
+   "label": "check for a missing O-ring; fit a new one",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-05/technicians",
+   "label": "valve work is for trained maintenance technicians only",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-05/seal_kit",
+   "label": "seal kit SEAL-FV-24 (holds the O-ring)",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "NCR",
+     "SOP",
+     "Shift Log",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent",
+     "Alarm Agent"
+    ]
+   }
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-05",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-05/lubricant",
+   "label": "food-grade lubricant FGL-1 only",
+   "bucket": "summarised",
+   "evidence": {
+    "in_docs": [
+     "SOP",
+     "Work Instruction"
+    ],
+    "searched": [
+     "Expert Fix Agent",
+     "Maintenance Agent",
+     "Alarm Agent"
+    ],
+    "found_by": [
+     "Maintenance Agent"
+    ],
+    "specialist_input": "saved on the day",
+    "given_to": [
+     "Maintenance Agent"
+    ]
+   }
+  },
+  {
    "suite": "teaching_c2_before",
    "case": "T-1",
    "arm": "off",
@@ -2889,6 +4473,33 @@
    "fact": "FL-03/isolation",
    "label": "no welding facts from WM-101",
    "kind": "avoid"
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-02",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-02/no_fill_time",
+   "label": "does NOT tell the operator to turn up the fill time",
+   "kind": "avoid"
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-03",
+   "arm": "off",
+   "run": 1,
+   "fact": "FR-03/no_fill_time",
+   "label": "does NOT tell the operator to turn up the fill time",
+   "kind": "avoid"
+  },
+  {
+   "suite": "fresh",
+   "case": "FR-03",
+   "arm": "off",
+   "run": 3,
+   "fact": "FR-03/no_fill_time",
+   "label": "does NOT tell the operator to turn up the fill time",
+   "kind": "avoid"
   }
  ],
  "unscored": [],
@@ -2896,6 +4507,10 @@
   "teaching": [
    82,
    82
+  ],
+  "fresh": [
+   112,
+   113
   ],
   "teaching_c2_before": [
    28,

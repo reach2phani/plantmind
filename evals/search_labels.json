@@ -1,0 +1,89 @@
+{
+  "_about": "Search ranking (Phase 3, pulled forward 6 Oct 2026): did each investigation search deliver the piece that holds the needed fact? For every question, each fact names its 'homes': which specialist search (sop = SOP, maintenance = Work Instruction, ncr = NCR, alarm = Shift Log) can deliver it, and evidence phrases taken word for word from that document. A piece is a hit when it contains ALL phrases of a home (case and spacing ignored). A fact is DELIVERED when any home's search puts such a piece in what the app actually hands the specialist (today: top 4, score >= 0.4). Phrases, not piece ids, so the labels survive re-cutting the documents (section chunking). Sets: teaching (3 wordings), fl101 (graph value cases FL-01..05), fresh (graph-chapter fresh questions; tuned on since 6 Oct). The user's 3 set-aside questions get labels only AFTER the search fix: they are the held-out check.",
+  "equipment": "FL-101",
+  "questions": [
+    {"id": "T-1", "set": "teaching", "q": "Bottles aren't full enough. What should I check?", "facts": "teaching"},
+    {"id": "T-2", "set": "teaching", "q": "filler's short again, what do i do", "facts": "teaching"},
+    {"id": "T-3", "set": "teaching", "q": "botles not filing up all the way??", "facts": "teaching"},
+
+    {"id": "FL-01", "set": "fl101", "q": "getting underfill alarms again for the third time tonight and checkweigher is rejecting them. what should i check?",
+     "facts": [
+       {"fact": "a drip means a worn seal", "homes": [{"search": "sop", "evidence": ["Dripping means a worn seal"]}, {"search": "sop", "evidence": ["drips between fills has a worn seal"]}]},
+       {"fact": "fill range 495 to 505 ml", "homes": [{"search": "sop", "evidence": ["Allowed fill range", "495 to 505 ml"]}, {"search": "maintenance", "evidence": ["between 495 and 505 ml"]}]},
+       {"fact": "3+ alarms in a shift = systemic fault", "homes": [{"search": "sop", "evidence": ["Three or more underfill alarms in one shift means a systemic fault"]}, {"search": "ncr", "evidence": ["Three or more underfill alarms in one shift means a systemic fault"]}]},
+       {"fact": "10-minute sanitation rinse after the seal change", "homes": [{"search": "maintenance", "evidence": ["Run the sanitation rinse for 10 minutes"]}]},
+       {"fact": "weigh the first 20 bottles after the fix", "homes": [{"search": "maintenance", "evidence": ["weigh the first 20 bottles"]}]}
+     ]},
+    {"id": "FL-02", "set": "fl101", "q": "replaced the filler seals and now bottles are running heavy around 508. is that normal or did we mess something up?",
+     "facts": [
+       {"fact": "slight overfill after a seal change is expected", "homes": [{"search": "maintenance", "evidence": ["EXPECTED BEHAVIOUR"]}]},
+       {"fact": "do not change any settings", "homes": [{"search": "maintenance", "evidence": ["Do not change any settings"]}]},
+       {"fact": "10-minute sanitation rinse", "homes": [{"search": "maintenance", "evidence": ["Run the sanitation rinse for 10 minutes"]}]},
+       {"fact": "first 20 bottles within 495 to 505 ml", "homes": [{"search": "maintenance", "evidence": ["weigh the first 20 bottles", "between 495 and 505 ml"]}]}
+     ]},
+    {"id": "FL-03", "set": "fl101", "q": "330s are jamming up right at the infeed starwheel. bottles keep tipping over since the changeover.",
+     "facts": [
+       {"fact": "check the guide rail position matches the bottle size", "homes": [{"search": "sop", "evidence": ["Check the guide rail position matches the bottle size"]}]},
+       {"fact": "rails to position B for 330 ml", "homes": [{"search": "sop", "evidence": ["330 ml bottles: rail position B"]}, {"search": "sop", "evidence": ["B for 330 ml"]}]},
+       {"fact": "restart at 60 per minute for 2 minutes", "homes": [{"search": "sop", "evidence": ["restart at 60 bottles per minute for 2 minutes"]}]},
+       {"fact": "never clear a jam while running", "homes": [{"search": "sop", "evidence": ["Never clear a jam while the machine is running"]}]}
+     ]},
+    {"id": "FL-04", "set": "fl101", "q": "glass smash!! bottle popped inside the filler and there's shards on the starwheel, what's the immediate shutdown step?",
+     "facts": [
+       {"fact": "emergency stop at once", "homes": [{"search": "sop", "evidence": ["Stop the line at once with the emergency stop"]}]},
+       {"fact": "hold bottles from the last 30 minutes", "homes": [{"search": "sop", "evidence": ["filled in the last 30 minutes on hold"]}]},
+       {"fact": "vacuum, never compressed air", "homes": [{"search": "sop", "evidence": ["Use a vacuum, never"]}]},
+       {"fact": "quality lead signs off before restart", "homes": [{"search": "sop", "evidence": ["The quality lead must sign off before the line restarts"]}]}
+     ]},
+    {"id": "FL-05", "set": "fl101", "q": "supply pressure dropped down to 1.2 bar and now we're getting short fills, how do we fix this?",
+     "facts": [
+       {"fact": "clean the supply filter", "homes": [{"search": "sop", "evidence": ["Clean the supply filter"]}]},
+       {"fact": "bleed air from the supply line", "homes": [{"search": "sop", "evidence": ["Bleed air from the supply line"]}]},
+       {"fact": "pressure back to 1.5 to 2.0 bar", "homes": [{"search": "sop", "evidence": ["Confirm the pressure is back to 1.5 to 2.0 bar"]}]},
+       {"fact": "weigh the first 20 bottles after restart", "homes": [{"search": "sop", "evidence": ["Restart, then weigh the first 20 bottles"]}]}
+     ]},
+
+    {"id": "FR-01", "set": "fresh", "q": "Line's been sitting since Friday night. Anything special before we start filling again?",
+     "facts": [
+       {"fact": "checkweigher test bottles 490 / 500 / 510 ml", "homes": [{"search": "sop", "evidence": ["490 ml, 500 ml and 510 ml"]}]},
+       {"fact": "sanitation rinse if stopped more than 4 hours", "homes": [{"search": "sop", "evidence": ["stopped for more than 4 hours"]}]},
+       {"fact": "start at 60 bottles per minute", "homes": [{"search": "sop", "evidence": ["Start at 60 bottles per minute"]}]},
+       {"fact": "weigh the first 20 bottles, 495 to 505 ml", "homes": [{"search": "sop", "evidence": ["Weigh the first 20 bottles. All must be 495 to 505 ml"]}]},
+       {"fact": "then 120 bottles per minute", "homes": [{"search": "sop", "evidence": ["Raise the speed to 120 bottles per minute"]}]}
+     ]},
+    {"id": "FR-02", "set": "fresh", "q": "Checkweigher keeps kicking out bottles from valve 12, but I don't see any drips. What now?",
+     "facts": [
+       {"fact": "no drip = blocked nozzle", "homes": [{"search": "sop", "evidence": ["Blocked fill nozzle"]}]},
+       {"fact": "lock out and clean the nozzle", "homes": [{"search": "sop", "evidence": ["clean the", "nozzle of that valve"]}]},
+       {"fact": "check the product supply pressure", "homes": [{"search": "sop", "evidence": ["Check the product supply pressure (Section 12.4)"]}]}
+     ]},
+    {"id": "FR-03", "set": "fresh", "q": "Reject count's been creeping up all morning. No alarms yet, though. Is that something to worry about?",
+     "facts": [
+       {"fact": "more than 1 in 100 over an hour: tell the shift lead", "homes": [{"search": "sop", "evidence": ["more than 1 bottle in 100 over an hour"]}]},
+       {"fact": "rising reject count = first sign of worn seals", "homes": [{"search": "sop", "evidence": ["first sign of worn seals"]}]},
+       {"fact": "look at the fill valves for dripping", "homes": [{"search": "sop", "evidence": ["Look at the fill valves for dripping"]}]}
+     ]},
+    {"id": "FR-04", "set": "fresh", "q": "Swapping to the 330s after lunch. What's the drill?",
+     "facts": [
+       {"fact": "rails to position B (330 ml) and lock them", "homes": [{"search": "sop", "evidence": ["B for 330 ml", "lock them"]}]},
+       {"fact": "fit the matching star wheel", "homes": [{"search": "sop", "evidence": ["Fit the matching star wheel"]}]},
+       {"fact": "run 20 bottles at 60 per minute", "homes": [{"search": "sop", "evidence": ["run 20 bottles at 60 bottles per minute"]}]},
+       {"fact": "record the changeover; shift lead signs", "homes": [{"search": "sop", "evidence": ["Record the changeover in the shift log"]}]}
+     ]},
+    {"id": "FR-05", "set": "fresh", "q": "One of the valves is leaking from the side, not the nozzle. Maintenance only did the seals on it yesterday.",
+     "facts": [
+       {"fact": "leak at the valve body: fit a new O-ring", "homes": [{"search": "maintenance", "evidence": ["Leak at the valve body", "Fit a new O-ring"]}]},
+       {"fact": "trained maintenance technicians only", "homes": [{"search": "maintenance", "evidence": ["Only trained maintenance technicians"]}]},
+       {"fact": "seal kit SEAL-FV-24 (seal and O-ring)", "homes": [{"search": "maintenance", "evidence": ["SEAL-FV-24 (main seal and O-ring)"]}]},
+       {"fact": "food-grade lubricant only", "homes": [{"search": "maintenance", "evidence": ["Only use food-grade lubricant"]}]}
+     ]}
+  ],
+  "fact_sets": {
+    "teaching": [
+      {"fact": "L1 a drip means a worn seal", "homes": [{"search": "sop", "evidence": ["Dripping means a worn seal"]}, {"search": "sop", "evidence": ["drips between fills has a worn seal"]}]},
+      {"fact": "L2 good bottle 495 to 505 ml", "homes": [{"search": "sop", "evidence": ["Allowed fill range", "495 to 505 ml"]}, {"search": "maintenance", "evidence": ["between 495 and 505 ml"]}]},
+      {"fact": "L4 weigh the first 20 bottles after the fix", "homes": [{"search": "maintenance", "evidence": ["weigh the first 20 bottles"]}]},
+      {"fact": "L5 do not increase the fill time", "homes": [{"search": "sop", "evidence": ["Do NOT increase the fill time"]}]}
+    ]
+  }
+}

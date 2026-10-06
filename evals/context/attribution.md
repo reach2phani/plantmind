@@ -5,26 +5,26 @@ Each missed required fact is followed along documents → search → specialist 
 
 ## Headline
 
-| Where it got lost | Evals teaching set (FL-101) | FL-101 graph value test | WM-101 graph value test (trust order) | C2 before (teaching, writer gets summaries only) | C2 after (teaching, writer also gets the pieces) | All |
-|---|---|---|---|---|---|---|
-| in report, marked missed (read by hand) | 0 | 0 | 0 | 0 | 0 | **0** |
-| reached the writer, left out | 2 | 7 | 3 | 3 | 2 | **17** |
-| not in the documents | 0 | 0 | 0 | 0 | 0 | **0** |
-| not searched (router) | 0 | 3 | 0 | 0 | 0 | **3** |
-| searched, not found (ranking) | 12 | 12 | 0 | 12 | 12 | **48** |
-| found but cut | 0 | 24 | 0 | 0 | 0 | **24** |
-| found, summarised away | 9 | 12 | 0 | 7 | 0 | **28** |
-| found, summarised away, and the evidence cap left the piece out (C2) | 0 | 0 | 0 | 0 | 5 | **5** |
-| not lost: the check marked a correct answer wrong (by hand) | 0 | 1 | 1 | 0 | 0 | **2** |
-| **Marked missed / required facts scored** | 23/80 | 59/132 | 4/66 | 22/36 | 19/40 | **127/354** |
-| **Really lost (after hand reading)** | 23 | 58 | 3 | 22 | 19 | **125** |
+| Where it got lost | Evals teaching set (FL-101) | FL-101 graph value test | WM-101 graph value test (trust order) | Fresh FL-101 questions (graph chapter) | C2 before (teaching, writer gets summaries only) | C2 after (teaching, writer also gets the pieces) | All |
+|---|---|---|---|---|---|---|---|
+| in report, marked missed (read by hand) | 0 | 0 | 0 | 6 | 0 | 0 | **6** |
+| reached the writer, left out | 2 | 7 | 3 | 16 | 3 | 2 | **33** |
+| not in the documents | 0 | 0 | 0 | 0 | 0 | 0 | **0** |
+| not searched (router) | 0 | 3 | 0 | 9 | 0 | 0 | **12** |
+| searched, not found (ranking) | 12 | 12 | 0 | 22 | 12 | 12 | **70** |
+| found but cut | 0 | 24 | 0 | 0 | 0 | 0 | **24** |
+| found, summarised away | 9 | 12 | 0 | 24 | 7 | 0 | **52** |
+| found, summarised away, and the evidence cap left the piece out (C2) | 0 | 0 | 0 | 0 | 0 | 5 | **5** |
+| not lost: the check marked a correct answer wrong (by hand) | 0 | 1 | 1 | 0 | 0 | 0 | **2** |
+| **Marked missed / required facts scored** | 23/80 | 59/132 | 4/66 | 77/132 | 22/36 | 19/40 | **204/486** |
+| **Really lost (after hand reading)** | 23 | 58 | 3 | 71 | 22 | 19 | **196** |
 
 ## By graph arm
 
 | Arm | in report, marked missed (read by hand) | reached the writer, left out | not in the documents | not searched (router) | searched, not found (ranking) | found but cut | found, summarised away | found, summarised away, and the evidence cap left the piece out (C2) | not lost: the check marked a correct answer wrong (by hand) |
 |---|---|---|---|---|---|---|---|---|---|
-| graph OFF | 0 | 7 | 0 | 3 | 48 | 24 | 28 | 5 | 1 |
-| graph ON | 0 | 10 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
+| graph OFF | 6 | 9 | 0 | 12 | 61 | 24 | 52 | 5 | 1 |
+| graph ON | 0 | 24 | 0 | 0 | 9 | 0 | 0 | 0 | 1 |
 
 ## Every missed fact
 
@@ -116,6 +116,83 @@ Each missed required fact is followed along documents → search → specialist 
 | trust | GV-06 | on | 2 | stickout 10-15 mm | reached the writer, left out |  |
 | trust | GV-06 | on | 2 | hand-tight + quarter turn | not lost: the check marked a correct answer wrong (by hand) | **by hand** (script said: reached the writer, left out): Report: 'Tighten by hand then add a quarter-turn; do not over-tighten'. Correct; the word check only accepts 'hand-tight'. |
 | trust | GV-06 | on | 3 | stickout 10-15 mm | reached the writer, left out |  |
+| fresh | FR-01 | on | 1 | checkweigher test bottles 490 and 510 ml before starting | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm, Maintenance, SOP; found by: - |
+| fresh | FR-01 | on | 1 | 10-minute sanitation rinse (stopped more than 4 hours) | searched, not found (ranking) | in: SOP; searched: Expert Fix, Alarm, Maintenance, SOP; found by: - |
+| fresh | FR-01 | on | 1 | first 20 bottles all 495 to 505 ml | searched, not found (ranking) | in: SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance, SOP; found by: - |
+| fresh | FR-01 | on | 1 | then raise to 120 bottles per minute | reached the writer, left out | writer got it from: graph |
+| fresh | FR-01 | on | 2 | checkweigher test bottles 490 and 510 ml before starting | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm, Maintenance, SOP; found by: - |
+| fresh | FR-01 | on | 2 | 10-minute sanitation rinse (stopped more than 4 hours) | searched, not found (ranking) | in: SOP; searched: Expert Fix, Alarm, Maintenance, SOP; found by: - |
+| fresh | FR-01 | on | 2 | first 20 bottles all 495 to 505 ml | searched, not found (ranking) | in: SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance, SOP; found by: - |
+| fresh | FR-01 | on | 2 | then raise to 120 bottles per minute | reached the writer, left out | writer got it from: graph |
+| fresh | FR-01 | on | 3 | checkweigher test bottles 490 and 510 ml before starting | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm, Maintenance, SOP; found by: - |
+| fresh | FR-01 | on | 3 | 10-minute sanitation rinse (stopped more than 4 hours) | searched, not found (ranking) | in: SOP; searched: Expert Fix, Alarm, Maintenance, SOP; found by: - |
+| fresh | FR-01 | on | 3 | start at 60 bottles per minute | reached the writer, left out | writer got it from: graph |
+| fresh | FR-01 | on | 3 | first 20 bottles all 495 to 505 ml | searched, not found (ranking) | in: SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance, SOP; found by: - |
+| fresh | FR-01 | on | 3 | then raise to 120 bottles per minute | reached the writer, left out | writer got it from: graph |
+| fresh | FR-02 | on | 2 | check the product supply pressure | reached the writer, left out | writer got it from: SOP, graph |
+| fresh | FR-04 | on | 1 | record the changeover; the shift lead signs | reached the writer, left out | writer got it from: Alarm, graph |
+| fresh | FR-04 | on | 2 | run 20 bottles at 60 bottles per minute | reached the writer, left out | writer got it from: graph |
+| fresh | FR-05 | on | 1 | check for a missing O-ring; fit a new one | reached the writer, left out | writer got it from: graph |
+| fresh | FR-05 | on | 1 | valve work is for trained maintenance technicians only | reached the writer, left out | writer got it from: graph |
+| fresh | FR-05 | on | 1 | seal kit SEAL-FV-24 (holds the O-ring) | reached the writer, left out | writer got it from: graph |
+| fresh | FR-05 | on | 1 | food-grade lubricant FGL-1 only | reached the writer, left out | writer got it from: graph |
+| fresh | FR-05 | on | 2 | valve work is for trained maintenance technicians only | reached the writer, left out | writer got it from: graph |
+| fresh | FR-05 | on | 3 | check for a missing O-ring; fit a new one | reached the writer, left out | writer got it from: graph |
+| fresh | FR-05 | on | 3 | valve work is for trained maintenance technicians only | reached the writer, left out | writer got it from: graph |
+| fresh | FR-01 | off | 1 | checkweigher test bottles 490 and 510 ml before starting | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm; found by: - |
+| fresh | FR-01 | off | 1 | 10-minute sanitation rinse (stopped more than 4 hours) | not searched (router) | in: SOP; searched: Expert Fix, Alarm |
+| fresh | FR-01 | off | 1 | start at 60 bottles per minute | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm; found by: - |
+| fresh | FR-01 | off | 1 | first 20 bottles all 495 to 505 ml | not searched (router) | in: SOP, Work Instruction; searched: Expert Fix, Alarm |
+| fresh | FR-01 | off | 1 | then raise to 120 bottles per minute | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm; found by: - |
+| fresh | FR-01 | off | 2 | checkweigher test bottles 490 and 510 ml before starting | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm; found by: - |
+| fresh | FR-01 | off | 2 | 10-minute sanitation rinse (stopped more than 4 hours) | not searched (router) | in: SOP; searched: Expert Fix, Alarm |
+| fresh | FR-01 | off | 2 | start at 60 bottles per minute | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm; found by: - |
+| fresh | FR-01 | off | 2 | first 20 bottles all 495 to 505 ml | not searched (router) | in: SOP, Work Instruction; searched: Expert Fix, Alarm |
+| fresh | FR-01 | off | 2 | then raise to 120 bottles per minute | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm; found by: - |
+| fresh | FR-01 | off | 3 | checkweigher test bottles 490 and 510 ml before starting | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm; found by: - |
+| fresh | FR-01 | off | 3 | 10-minute sanitation rinse (stopped more than 4 hours) | not searched (router) | in: SOP; searched: Expert Fix, Alarm |
+| fresh | FR-01 | off | 3 | start at 60 bottles per minute | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm; found by: - |
+| fresh | FR-01 | off | 3 | first 20 bottles all 495 to 505 ml | not searched (router) | in: SOP, Work Instruction; searched: Expert Fix, Alarm |
+| fresh | FR-01 | off | 3 | then raise to 120 bottles per minute | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm; found by: - |
+| fresh | FR-02 | off | 1 | check the product supply pressure | found, summarised away | in: SOP, Shift Log, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
+| fresh | FR-02 | off | 2 | no drip means a blocked nozzle: clean it | in report, marked missed (read by hand) |  |
+| fresh | FR-02 | off | 2 | check the product supply pressure | found, summarised away | in: SOP, Shift Log, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
+| fresh | FR-02 | off | 3 | no drip means a blocked nozzle: clean it | in report, marked missed (read by hand) |  |
+| fresh | FR-02 | off | 3 | check the product supply pressure | found, summarised away | in: SOP, Shift Log, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
+| fresh | FR-03 | off | 1 | more than 1 in 100 rejected over an hour: tell the shift lead | found, summarised away | in: SOP, Shift Log; searched: Expert Fix, Alarm, NCR, Maintenance; found by: Alarm; given to: Alarm |
+| fresh | FR-03 | off | 1 | bottles must be 495 to 505 ml | reached the writer, left out | writer got it from: NCR |
+| fresh | FR-03 | off | 2 | more than 1 in 100 rejected over an hour: tell the shift lead | found, summarised away | in: SOP, Shift Log; searched: Expert Fix, Alarm, Maintenance, NCR; found by: Alarm; given to: Alarm |
+| fresh | FR-03 | off | 2 | bottles must be 495 to 505 ml | found, summarised away | in: NCR, SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance, NCR; found by: NCR; given to: NCR |
+| fresh | FR-03 | off | 3 | more than 1 in 100 rejected over an hour: tell the shift lead | found, summarised away | in: SOP, Shift Log; searched: Expert Fix, Maintenance, Alarm, NCR; found by: Alarm; given to: Alarm |
+| fresh | FR-03 | off | 3 | check the fill valves for dripping | found, summarised away | in: NCR, SOP, Shift Log, Work Instruction; searched: Expert Fix, Maintenance, Alarm, NCR; found by: Maintenance, Alarm, NCR; given to: Maintenance, Alarm, NCR |
+| fresh | FR-03 | off | 3 | bottles must be 495 to 505 ml | found, summarised away | in: NCR, SOP, Work Instruction; searched: Expert Fix, Maintenance, Alarm, NCR; found by: NCR; given to: NCR |
+| fresh | FR-04 | off | 1 | lock out the machine first | in report, marked missed (read by hand) |  |
+| fresh | FR-04 | off | 1 | guide rails to position B for 330 ml | found, summarised away | in: SOP, Shift Log; searched: Expert Fix, Alarm, Maintenance; found by: Alarm; given to: Alarm |
+| fresh | FR-04 | off | 1 | fit the matching star wheel | not searched (router) | in: SOP; searched: Expert Fix, Alarm, Maintenance |
+| fresh | FR-04 | off | 1 | run 20 bottles at 60 bottles per minute | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Alarm, Maintenance; found by: - |
+| fresh | FR-04 | off | 1 | record the changeover; the shift lead signs | in report, marked missed (read by hand) |  |
+| fresh | FR-04 | off | 2 | lock out the machine first | in report, marked missed (read by hand) |  |
+| fresh | FR-04 | off | 2 | guide rails to position B for 330 ml | found, summarised away | in: SOP, Shift Log; searched: Alarm, Expert Fix; found by: Alarm; given to: Alarm |
+| fresh | FR-04 | off | 2 | fit the matching star wheel | not searched (router) | in: SOP; searched: Alarm, Expert Fix |
+| fresh | FR-04 | off | 2 | run 20 bottles at 60 bottles per minute | searched, not found (ranking) | in: SOP, Shift Log; searched: Alarm, Expert Fix; found by: - |
+| fresh | FR-04 | off | 2 | record the changeover; the shift lead signs | reached the writer, left out | writer got it from: Alarm |
+| fresh | FR-04 | off | 3 | lock out the machine first | in report, marked missed (read by hand) |  |
+| fresh | FR-04 | off | 3 | guide rails to position B for 330 ml | found, summarised away | in: SOP, Shift Log; searched: Expert Fix, Maintenance, Alarm; found by: Alarm; given to: Alarm |
+| fresh | FR-04 | off | 3 | fit the matching star wheel | not searched (router) | in: SOP; searched: Expert Fix, Maintenance, Alarm |
+| fresh | FR-04 | off | 3 | run 20 bottles at 60 bottles per minute | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Maintenance, Alarm; found by: - |
+| fresh | FR-04 | off | 3 | record the changeover; the shift lead signs | searched, not found (ranking) | in: SOP, Shift Log; searched: Expert Fix, Maintenance, Alarm; found by: - |
+| fresh | FR-05 | off | 1 | check for a missing O-ring; fit a new one | found, summarised away | in: SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
+| fresh | FR-05 | off | 1 | valve work is for trained maintenance technicians only | found, summarised away | in: Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
+| fresh | FR-05 | off | 1 | seal kit SEAL-FV-24 (holds the O-ring) | found, summarised away | in: NCR, SOP, Shift Log, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Alarm, Maintenance; given to: Alarm, Maintenance |
+| fresh | FR-05 | off | 1 | food-grade lubricant FGL-1 only | found, summarised away | in: SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
+| fresh | FR-05 | off | 2 | check for a missing O-ring; fit a new one | found, summarised away | in: SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
+| fresh | FR-05 | off | 2 | valve work is for trained maintenance technicians only | found, summarised away | in: Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
+| fresh | FR-05 | off | 2 | seal kit SEAL-FV-24 (holds the O-ring) | found, summarised away | in: NCR, SOP, Shift Log, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Alarm, Maintenance; given to: Alarm, Maintenance |
+| fresh | FR-05 | off | 2 | food-grade lubricant FGL-1 only | found, summarised away | in: SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
+| fresh | FR-05 | off | 3 | check for a missing O-ring; fit a new one | found, summarised away | in: SOP, Work Instruction; searched: Expert Fix, Maintenance, Alarm; found by: Maintenance; given to: Maintenance |
+| fresh | FR-05 | off | 3 | valve work is for trained maintenance technicians only | found, summarised away | in: Work Instruction; searched: Expert Fix, Maintenance, Alarm; found by: Maintenance; given to: Maintenance |
+| fresh | FR-05 | off | 3 | seal kit SEAL-FV-24 (holds the O-ring) | found, summarised away | in: NCR, SOP, Shift Log, Work Instruction; searched: Expert Fix, Maintenance, Alarm; found by: Maintenance, Alarm; given to: Maintenance, Alarm |
+| fresh | FR-05 | off | 3 | food-grade lubricant FGL-1 only | found, summarised away | in: SOP, Work Instruction; searched: Expert Fix, Maintenance, Alarm; found by: Maintenance; given to: Maintenance |
 | teaching_c2_before | T-1 | off | 1 | L1 check the valves for drips (a drip means a worn seal) | reached the writer, left out | **by hand** (script said: in report, marked missed (read by hand)): Grey zone already noted in step 3: Step 2 says 'inspect seal kits... check for drip signs', but not that a drip means a worn seal. Judge's NO kept; the writer had the fact. |
 | teaching_c2_before | T-1 | off | 1 | L2 a good bottle is 495 to 505 ml | found, summarised away | in: NCR, SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
 | teaching_c2_before | T-1 | off | 1 | L4 weigh the first 20 bottles after the fix | found, summarised away | in: SOP, Work Instruction; searched: Expert Fix, Alarm, Maintenance; found by: Maintenance; given to: Maintenance |
@@ -160,16 +237,20 @@ Each missed required fact is followed along documents → search → specialist 
 
 ## Not attributed (counted only)
 
-- Said something it must not, or wrong rating: 4
+- Said something it must not, or wrong rating: 7
   - fl101 FL-01 graph off run 3: Does the report avoid telling the operator to increase or change the fill time? (A warning NOT to change it counts as YES.) (avoid)
   - fl101 FL-02 graph off run 1: Does the report avoid recommending replacing the seals again as the fix? (avoid)
   - fl101 FL-02 graph off run 1: rated LOW or MEDIUM, not HIGH (rating)
   - fl101 FL-03 graph on run 3: no welding facts from WM-101 (avoid)
+  - fresh FR-02 graph off run 1: does NOT tell the operator to turn up the fill time (avoid)
+  - fresh FR-03 graph off run 1: does NOT tell the operator to turn up the fill time (avoid)
+  - fresh FR-03 graph off run 3: does NOT tell the operator to turn up the fill time (avoid)
 - Judge answer missing from the cache (not scored, not re-asked): 0
 
 ## Checks on this method
 
 - Evals teaching set (FL-101): repeating the searches today returned the same pieces as saved on the day in **82/82** specialist searches.
+- Fresh FL-101 questions (graph chapter): repeating the searches today returned the same pieces as saved on the day in **112/113** specialist searches.
 - C2 before (teaching, writer gets summaries only): repeating the searches today returned the same pieces as saved on the day in **28/28** specialist searches.
 - C2 after (teaching, writer also gets the pieces): repeating the searches today returned the same pieces as saved on the day in **32/32** specialist searches.
 - Runs before 1 Oct: what each specialist received is re-created today (same search wording, old 300-character cut), not recorded on the day.

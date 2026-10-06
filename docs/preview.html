@@ -160,6 +160,11 @@ header .sub + p{margin-top:4px}
 .ed{fill:none;stroke:var(--faint);stroke-width:1.5;transition:stroke-dashoffset .8s ease,opacity .5s}
 .ed.bad{stroke:var(--rust)} .ed.good{stroke:var(--pine);stroke-width:2}
 .tok{fill:var(--brass)}
+.scene .vis.dimdoc{opacity:.38}
+.row.holed > rect:first-child{stroke:var(--rust)!important;stroke-dasharray:5 4;fill:var(--rust-soft)!important}
+.hand{fill:var(--ink);font:italic 500 17px Fraunces,serif}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.scene .vis .blink{animation:blink 1s ease-in-out infinite}
 .arc{fill:none;stroke:var(--line);stroke-width:2;transition:stroke .5s}
 .arc.on{stroke:var(--pine)}
 .scene .belt{animation:belt 1.2s linear infinite}
@@ -560,6 +565,139 @@ function sArch(){
   return svg(s,'PlantMind architecture: a question flows from inputs through identification, investigation and checks to a report');
 }
 
+/* ════════ 3 · Knowledge graph: "The answer wasn't missing. The connections were." ════════ */
+/* Real data: 10 Sept night shift log; FL-101 SOP / WI / NCR; fl101_graph.json (notes, links, sources);
+   teaching runs (graph off: shift log + WI searched, SOP + NCR not; 22/45 → 55/55); fl101_scorecard.md (jam case). */
+function sGraph(){
+  let s = '';
+  const st = (f,h,d) => ({f,h,d});
+  const hd = (x,y,l,o,c='ink',a='start') => txt(x,y,l,o,'m',a,`font-weight:600;fill:var(--${c})`);
+
+  // ── small line icons, one per kind of evidence ──
+  const ico = {
+    log:(x,y,c) => `<g transform="translate(${x},${y})" style="fill:none;stroke:var(--${c});stroke-width:1.6;stroke-linejoin:round"><rect x="-8" y="-9" width="16" height="19" rx="2"/><path d="M-4,-11 h8 v4 h-8 z" style="fill:var(--${c})"/><circle cx="3" cy="4" r="4" style="fill:var(--surface)"/><path d="M3,2 v2 h2"/></g>`,
+    wi:(x,y,c) => `<g transform="translate(${x},${y})" style="fill:none;stroke:var(--${c});stroke-width:1.6;stroke-linejoin:round"><path d="M-8,-10 h11 l5,5 v15 h-16 z"/><path d="M-4,6 l7,-7 m-1,-2 a3,3 0 1 0 4,4"/></g>`,
+    sop:(x,y,c) => `<g transform="translate(${x},${y})" style="fill:none;stroke:var(--${c});stroke-width:1.6;stroke-linejoin:round"><path d="M-8,-10 h11 l5,5 v15 h-16 z"/><path d="M-4,1 l3,3 l5,-6"/></g>`,
+    ncr:(x,y,c) => `<g transform="translate(${x},${y})" style="fill:none;stroke:var(--${c});stroke-width:1.6;stroke-linejoin:round"><path d="M-8,-10 h11 l5,5 v15 h-16 z"/><path d="M0,-3 l5,9 h-10 z"/></g>`,
+    tower:(x,y,c,flash) => { const lit = c === 'rust' ? 0 : 1, cols = ['rust','brass','pine'];
+      return `<g transform="translate(${x},${y})">`
+        + `<circle cx="0" cy="${-22+lit*13}" r="13" style="fill:var(--${c});opacity:.18"/>`
+        + cols.map((k,j) => `<rect x="-7" y="${-28+j*13}" width="14" height="12" rx="2" class="${j === lit && flash ? 'blink' : ''}" style="fill:var(--${j === lit ? k : 'line'});stroke:var(--${j === lit ? k : 'faint'});stroke-width:.8"/>`).join('')
+        + `<rect x="-8" y="11" width="16" height="4" rx="1" style="fill:var(--ink)"/><rect x="-2" y="15" width="4" height="7" style="fill:var(--ink)"/><rect x="-10" y="22" width="20" height="3" rx="1" style="fill:var(--ink)"/></g>`; },
+    beacon:(x,y,c,flash) => `<g transform="translate(${x},${y}) scale(.55)"><g class="rays${flash ? ' flash' : ''}" style="stroke:var(--${c});stroke-width:3;stroke-linecap:round"><path d="M-20,-8 L-27,-11 M20,-8 L27,-11 M0,-27 L0,-34"/></g><path d="M-11,9 V-5 A11,11 0 0 1 11,-5 V9 Z" style="fill:var(--${c})"/><rect x="-15" y="9" width="30" height="7" rx="2" style="fill:var(--ink)"/></g>`};
+
+  // ── LEFT: the operator's question (steps 0–5) ──
+  s += G(st(0,6,0.2),'', `<g transform="translate(46,60)" style="fill:var(--ink)"><circle cx="0" cy="-12" r="9"/><path d="M-16,20 C-16,4 16,4 16,20 Z"/></g>`
+     + T(24,104,'OPERATOR','m','start','font-weight:600;fill:var(--ink)')
+     + `<path d="M86,36 h262 a8,8 0 0 1 8,8 v40 a8,8 0 0 1 -8,8 h-262 a8,8 0 0 1 -8,-8 v-14 l-10,-6 l10,-6 v-14 a8,8 0 0 1 8,-8 z" fill="var(--surface)" stroke="var(--line)"/>`
+     + T(98,58,'“Bottles aren’t full enough.','i','start','font-size:14px') + T(98,78,'What should I check?”','i','start','font-size:14px'));
+  s += txt(24,150,'The operator needs to identify what’s causing',st(0,1,3.4),'s','start','font-size:13.5px') + txt(24,170,'the alarm and know what to check next.',st(0,1,3.4),'s','start','font-size:13.5px');
+
+  // ── RIGHT · 0 · the third alarm (10 Sept night shift log, word for word); 1st and 2nd amber, 3rd red ──
+  const R0 = 420;
+  s += hd(R0,36,'FILLING LINE 1 · FL-101 · NIGHT OF 10 SEPT',st(0,1,0.1));
+  [['01:30','UNDERFILL',['“…Fill level low… valves 9 and 15 underfilling (491-494 ml).”'],'brass'],
+   ['03:20','UNDERFILL',['“Second underfill alarm tonight. Same valves 9 and 15.”'],'brass'],
+   ['04:45','UNDERFILL · THIRD ALARM',['“Third underfill alarm this shift. Valves 9, 15 and now 3 underfilling.”'],'rust']].forEach(([t,l,q,c],i) => { const y = 84+i*96, last = i === 2;
+    s += G(st(0,1,0.6+i*0.9),'', R(R0-6,y-30,570,82,`fill:var(--${c}-soft);stroke:none`,10)
+       + R(R0+8,y-14,54,22,`fill:var(--${last ? c : 'surface'});stroke:var(--${c})`,11) + T(R0+35,y+1,t,'m','middle',`font-weight:600;fill:var(--${last ? 'surface' : c})`)
+       + ico.tower(R0+84,y+12,c,last) + T(R0+106,y+2,l,'m','start',`font-weight:600;fill:var(--${c})`) + ico.log(R0+548,y-4,'steel')
+       + q.map((x,j) => T(R0+106,y+26+j*16,x,'i','start','font-size:12.5px')).join(''));
+    s += `<circle class="ping" cx="${R0+84}" cy="${y-10+(last ? 0 : 13)}" r="15" style="fill:none;stroke:var(--${c});stroke-width:2"${A(st(0,1,0.7+i*0.9))}/>`; });
+
+  // ── LEFT: the answer, forming (steps 1–5) ──
+  const AX = 24, gy = i => 216+i*46;
+  s += G(st(1,6,2.6),'', R(AX,118,332,322,'fill:var(--surface);stroke:var(--ink)',12) + T(AX+16,142,'PLANTMIND’S ANSWER','m','start','font-weight:600;fill:var(--ink)')
+     + T(AX+16,172,'✓ Stop the machine safely','t','start','font-size:13.5px;fill:var(--pine)') + T(AX+16,198,'✓ Don’t change the fill time','t','start','font-size:13.5px;fill:var(--pine)'));
+  ['What should I inspect?','What is a good bottle?','How do I verify the repair?'].forEach((g,i) =>
+    s += G(st(1,5,3+i*0.3),'', R(AX+14,gy(i),302,34,'fill:none;stroke:var(--rust);stroke-dasharray:4 4',6) + T(AX+26,gy(i)+22,'?  '+g,'t','start','font-size:13.5px;fill:var(--rust)')));
+  s += txt(AX+16,376,'3 IMPORTANT PIECES ARE MISSING',st(1,5,4),'m','start','font-weight:600;fill:var(--rust)');
+
+  // roles, shared by the operator's notepad and the graph (one colour per role)
+  const ROLE = {symptom:'steel', cause:'brass', action:'pine', spec:'pine', never:'rust'};
+  const LEG = [['SYMPTOM','steel'],['LIKELY CAUSE','brass'],['ACTION / VERIFY','pine'],['DON’T DO','rust']];
+  { const wOf = l => 12+l.length*6.1+22; let x = 980-LEG.reduce((t,[l]) => t+wOf(l),0)+22, g = '';
+    LEG.forEach(([l,c]) => { g += `<circle cx="${x+5}" cy="27" r="5" style="fill:var(--${c})"/>` + T(x+14,31,l,'m','start',`font-size:9.5px;font-weight:600;fill:var(--${c})`); x += wOf(l); });
+    s += G(st(4,6,0.2),'', g); }
+  const sparkle = (x,y,sc,c) => `<path transform="translate(${x},${y}) scale(${sc})" d="M0,-7 C0.9,-1.8 1.8,-0.9 7,0 C1.8,0.9 0.9,1.8 0,7 C-0.9,1.8 -1.8,0.9 -7,0 C-1.8,-0.9 -0.9,-1.8 0,-7 Z" style="fill:var(--${c})"/>`;
+
+  // ── RIGHT · 1 · what search found (graph off: real search results; SOP + NCR not retrieved) ──
+  s += hd(R0,36,'WHAT SEARCH FOUND',st(1,2,0.1),'steel');
+  s += txt(R0,54,'Search looks for the passages most relevant to the question.',st(1,2,0.2),'s','start','font-size:12px');
+  const cards = [
+    ['log','SHIFT LOG',['“…Second underfill alarm tonight.','Same valves 9 and 15.”'],true],
+    ['wi','WORK INSTRUCTION',['“Replace the seal kit when: … Three or','more underfill alarms happen in one shift”'],true],
+    ['sop','SOP',['“Dripping means a worn seal”','“Allowed fill range: 495 to 505 ml”'],false],
+    ['ncr','NCR-2026-012',['“Never increase the fill time','to fix underfill.”'],false]];
+  cards.forEach(([k,t,q,hit],i) => { const x = R0+(i%2)*290, y = 72+Math.floor(i/2)*112, d = 0.3+i*0.45;
+    s += G({f:1,h:2,d,c: hit ? {} : {1:'dimdoc'}},'', R(x,y,270,96,'fill:var(--surface);stroke:var(--steel)',8) + ico[k](x+22,y+24,'steel')
+       + T(x+42,y+28,t,'m','start','font-weight:600;fill:var(--steel)')
+       + T(x+258,y+28,hit ? '0.87 · FOUND' : 'NOT RETRIEVED','m','end',`font-weight:600;fill:var(--${hit ? 'pine' : 'rust'})`));
+    // the found passages stay; the unretrieved ones fade away before they can reach the answer
+    q.forEach((l,j) => s += `<text class="i${hit ? '' : ' sink'}" x="${x+16}" y="${y+56+j*18}" style="font-size:12.5px"${A(st(1,2,d+0.2))}>${l}</text>`); });
+  s += `<rect x="${R0-10}" y="66" width="8" height="220" rx="3" style="fill:var(--steel);opacity:.3"${A({f:1,h:2,d:1.2,tf:{1:'translateX(575px)'}})}/>`;
+  s += txt(R0,302,'The SOP and NCR passages weren’t available to the answer writer.',st(1,2,2.4),'s','start','font-size:12px;fill:var(--rust)');
+  s += G(st(1,2,3.2),'', T(R0,346,'THE PROBLEM','m','start','font-weight:600;fill:var(--rust)')
+     + T(R0,370,'The information exists. Search just didn’t bring all of it into the answer.','t','start','font-size:14px'));
+
+  // ── RIGHT · 2 · the facts were there, the links weren't ──
+  const facts = [['SOP 12.1','“Dripping means a worn seal”'],['SOP 10','“Allowed fill range: 495 to 505 ml”'],['WI · STEP 10','“…weigh the first 20 bottles.”']];
+  s += hd(470,196,'THE MISSING FACTS, IN THE PLANT’S OWN DOCUMENTS',st(2,3,0.1),'steel');
+  facts.forEach(([src,q],i) => { const y = gy(i), w = src.length*6.6+16;
+    s += G(st(2,3,0.4+i*0.5),'', R(470,y,510,34,'fill:var(--steel-soft);stroke:none',6) + R(480,y+8,w,18,'fill:var(--surface);stroke:var(--steel)',9)
+       + T(480+w/2,y+21,src,'m','middle','fill:var(--steel);font-weight:600;font-size:9.5px') + T(492+w,y+22,q,'i','start','font-size:13px'));
+    s += `<path d="M466,${y+17} H342" style="stroke:var(--rust);stroke-width:1.6;stroke-dasharray:3 5"${A(st(2,3,1.6+i*0.5))}/>`
+       + G(st(2,3,1.9+i*0.5),'', R(380,y+6,64,22,'fill:var(--surface);stroke:none',4) + T(390,y+22,'✕','t','start','font-size:14px;fill:var(--rust)') + T(406,y+21,'no link','m','start','fill:var(--rust)')); });
+
+  // ── RIGHT · 3 · how an experienced operator reasons: the chain builds itself, question by question ──
+  s += G(st(3,4,0),'', `<g transform="translate(496,48)" style="fill:var(--pine)"><circle cx="0" cy="-12" r="9"/><path d="M-16,20 C-16,4 16,4 16,20 Z"/></g>`
+     + T(522,52,'HOW AN EXPERIENCED OPERATOR REASONS','m','start','font-weight:600;fill:var(--pine)') + R(478,78,488,366,'fill:#FFFDF6;stroke:var(--line)',6));
+  [['','SYMPTOM','steel','Underfill'],
+   ['What could explain it?','LIKELY CAUSE','brass','Worn seal: dripping between fills'],
+   ['What should I do?','CHECK / ACTION','pine','Check the valves, replace the seal'],
+   ['How do I know it’s fixed?','VERIFY','pine','Weigh the first 20 bottles: 495–505 ml each'],
+   ['What should I avoid?','DON’T DO','rust','Don’t increase the fill time']].forEach(([q,role,c,l],i) => { const y = 92+i*70, d = 0.3+i*1.1;
+    if (q) s += txt(500,y+8,q,st(3,4,d),'i','start','font-size:12.5px;fill:var(--muted)') + txt(488,y-6,'↓',st(3,4,d),'t','middle','font-size:11px;fill:var(--faint)');
+    s += G(st(3,4,d+0.5),'', `<circle cx="506" cy="${y+26}" r="5" style="fill:var(--${c})"/>` + T(518,y+30,role,'m','start',`font-size:9px;font-weight:600;fill:var(--${c})`))
+       + txt(518,y+52,l,st(3,4,d+0.6),'hand','start',`font-size:16.5px${c === 'rust' ? ';fill:var(--rust)' : ''}`); });
+
+  // ── RIGHT · 4 · the knowledge graph: the same chain, explicit, each note with its source ──
+  const GX = 400;
+  const N = [ // x, y, label, sources, link label, parent, role
+    [GX,92,'Underfill','SOP','',-1,'symptom'],
+    [GX+40,152,'Worn fill valve seal','SOP · WI · NCR','most common cause',0,'cause'],
+    [GX+80,212,'Seal replacement','WI','is fixed by',1,'action'],
+    [GX+120,272,'First-bottle check','WI','requires',2,'action'],
+    [GX+40,334,'Fill volume spec','SOP','spec',0,'spec'],
+    [GX+40,386,'Fill time trap','NCR','triggers',0,'never']];
+  s += hd(GX,62,'MAKE THOSE CONNECTIONS EXPLICIT · the knowledge graph',st(4,6,0.1),'pine');
+  const nodeW = n => n[2].length*7.2+24;
+  N.forEach((n,i) => { const [x,y,l,src,rel,p,c] = n, w = nodeW(n), d = 0.3+i*0.45;
+    if (p >= 0) { const q = N[p]; s += `<path d="M${q[0]+14},${q[1]+13} V${y} H${x}" style="fill:none;stroke:var(--pine);stroke-width:1.6"${A(st(4,6,d))}/>`
+      + txt(x+4,y-17,rel,st(4,6,d),'m','start','font-size:9px;fill:var(--pine);font-weight:600'); }
+    const col = ROLE[c];
+    s += G(st(4,6,d),'', R(x,y-13,w,26,`fill:var(--${col}-soft);stroke:var(--${col})`,13)
+       + T(x+w/2,y+5,l,'t','middle',`font-size:13px;fill:var(--${col})`)
+       + R(x+w+8,y-8,src.length*6.4+14,16,'fill:var(--steel-soft);stroke:none',8) + T(x+w+15,y+4,src,'m','start','fill:var(--steel);font-size:9px;font-weight:600')); });
+  const qx = k => N[k][0]+nodeW(N[k])+8+N[k][3].length*6.4+14+10;
+  const quotes = {1:'“drips between fills”',3:'“weigh the first 20 bottles”',4:'“495 to 505 ml”'};
+  Object.entries(quotes).forEach(([k,q],i) => s += txt(qx(+k),N[k][1]+4,q,st(4,6,2.4+i*0.2),'i','start','font-size:12px'));
+
+  // ── 5 · the links fill the gaps (graph on the right → answer on the left); every new line keeps its source ──
+  const fills = [['Check the valves for drips','SOP 12.1',1],['A good bottle is 495–505 ml','SOP 10',4],['Weigh the first 20 bottles','WI · STEP 10',3]];
+  fills.forEach(([l,src,k],i) => { const y = gy(i), n = N[k], sx = n[0]-4, d = 0.4+i*1.1;
+    s += edge(`M${sx},${n[1]} C ${sx-40},${n[1]} 380,${y+17} 342,${y+17}`,{f:5,h:6,d,flow:1},'good');
+    s += G(st(5,6,d+0.8),'', R(AX+14,y,302,34,'fill:var(--pine-soft);stroke:var(--pine)',6) + T(AX+26,y+22,'✓ '+l,'t','start','font-size:13px;fill:var(--pine)')
+       + T(AX+310,y+21,src,'m','end','fill:var(--steel);font-size:8.5px;font-weight:600')); });
+  s += G(st(5,6,4),'', R(AX+14,360,302,70,'fill:var(--surface);stroke:none',0) + T(AX+16,378,'ALL 5 LINES, EACH WITH A SOURCE','m','start','font-weight:600;fill:var(--pine)')
+);
+
+  // closing line, on the last step
+  s += txt(500,464,'The graph didn’t give PlantMind more documents. It gave it the connections between them.',st(5,6,5),'t','middle','font-size:16px;font-family:Fraunces,serif;fill:var(--pine)');
+
+  return svg(s,'Knowledge graph: the answer was not missing, the connections were');
+}
+
 /* ════════ 2 · Evals: one simple question, followed through the 7 steps of an evaluation ════════ */
 function sEvals(){
   let s = '';
@@ -716,8 +854,20 @@ const L = [
  ],
   below:''},
 
+
+ {name:'Knowledge graph', lesson:'', plain:'', kick:'',
+  acts:[['G','Investigation','var(--pine)']],
+  scene:sGraph, caps:[
+  ['G','Three underfill alarms. The operator asks PlantMind what is causing the problem and what to check next.',9000],
+  ['G','Search found relevant pieces. But it didn’t find everything the operator needed.',10000],
+  ['G','The missing facts were in the plant’s own documents. Nothing connected them to this question.',8000],
+  ['G','An experienced operator doesn’t see these as separate facts. They know how they fit together: what the symptom points to, what to check, how to verify the fix, and what not to do.',12000],
+  ['G','What if PlantMind could represent those connections explicitly? That’s the knowledge graph: facts about the equipment, faults, procedures, and incidents connected to each other, with each connection tied back to its source.',13000],
+  ['G','Search finds information. The graph connects the facts, giving the operator the complete picture with every recommendation tied back to its source.',12000],
+ ],
+  below:''},
 ];
-const SOON = ['Knowledge graph','Trust','Tracing','People in the loop'];
+const SOON = ['Trust','Tracing','People in the loop'];
 
 /* ── Player ── */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;

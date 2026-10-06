@@ -1,0 +1,139 @@
+[
+ {
+  "equip": "FL-101",
+  "set": "fresh_oct",
+  "id": "FR-01",
+  "expect": "none",
+  "q": "Line's been sitting since Friday night. Anything special before we start filling again?",
+  "faults": [],
+  "confidence": "none",
+  "method": "AI: not one of these faults",
+  "scores": [
+   [
+    "Overfill",
+    0.791
+   ],
+   [
+    "Underfill",
+    0.786
+   ],
+   [
+    "Infeed Jam",
+    0.785
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh_oct",
+  "id": "FR-02",
+  "expect": "Underfill",
+  "q": "Checkweigher keeps kicking out bottles from valve 12, but I don't see any drips. What now?",
+  "faults": [
+   "Underfill"
+  ],
+  "confidence": "sure",
+  "method": "AI tie-break",
+  "scores": [
+   [
+    "Underfill",
+    0.857
+   ],
+   [
+    "Overfill",
+    0.844
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.816
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh_oct",
+  "id": "FR-03",
+  "expect": "Underfill",
+  "q": "Reject count's been creeping up all morning. No alarms yet, though. Is that something to worry about?",
+  "faults": [
+   "Underfill"
+  ],
+  "confidence": "sure",
+  "method": "meaning",
+  "scores": [
+   [
+    "Underfill",
+    0.832
+   ],
+   [
+    "Overfill",
+    0.795
+   ],
+   [
+    "Infeed Jam",
+    0.794
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh_oct",
+  "id": "FR-04",
+  "expect": [
+   "Infeed Jam",
+   "none"
+  ],
+  "q": "Swapping to the 330s after lunch. What's the drill?",
+  "faults": [],
+  "confidence": "none",
+  "method": "AI: not one of these faults",
+  "scores": [
+   [
+    "Underfill",
+    0.797
+   ],
+   [
+    "Infeed Jam",
+    0.79
+   ],
+   [
+    "Product Supply Pressure Low",
+    0.785
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ },
+ {
+  "equip": "FL-101",
+  "set": "fresh_oct",
+  "id": "FR-05",
+  "expect": "none",
+  "q": "One of the valves is leaking from the side, not the nozzle. Maintenance only did the seals on it yesterday.",
+  "faults": [],
+  "confidence": "none",
+  "method": "AI: not one of these faults",
+  "scores": [
+   [
+    "Underfill",
+    0.792
+   ],
+   [
+    "Overfill",
+    0.787
+   ],
+   [
+    "Infeed Jam",
+    0.772
+   ]
+  ],
+  "verdict": "right",
+  "false_critical": false
+ }
+]

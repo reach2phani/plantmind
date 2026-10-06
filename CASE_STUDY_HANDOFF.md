@@ -1,4 +1,4 @@
-# PlantMind case-study page: handoff (updated 2 Oct 2026, Evals page done)
+# PlantMind case-study page: handoff (updated 6 Oct 2026 · Evals + Knowledge graph done · next: Trust)
 
 Paste this into a new chat to continue. This chat is **only** for the interview case-study page.
 App/eval work (FL-101, Phase 2a+) happens in the main build chat. Don't mix them.
@@ -135,6 +135,32 @@ Journey bar across the top (Question → Scope → Context → Evidence → Vali
 
 Scene source is mirrored in the scratchpad (`sevals3.js` + `apply_page.py`), but **preview.html is the source of truth.**
 
+## NEXT: Page 4 "Trust" (start here in the new chat)
+
+**Current menu:** How it works · 1 Architecture · 2 Evals · 3 Knowledge graph · 4 Trust (soon) · 5 Tracing · 6 People in the loop. Context and Rules were dropped (covered by How it works).
+
+**Lessons from building Evals and Knowledge graph (follow these):**
+- Discuss the story first, then sketch still frames on a scratch page (`docs/kg_compare.html` pattern), then build into `preview.html`. The user often pastes feedback from another AI: check every claim in it against the files before using it (it twice proposed things that never happened: valve-9 links, a "cosine 0.32" score, a fill-time validation catch).
+- One concrete question, followed through the whole page. A human situation first (the operator, the third alarm), then the concept. One short, quotable caption per step.
+- Give each page its own look; the user spots reused layouts. Calm and uncrowded: one idea per step. Numbers only where they add meaning (the user removed 48% → 100% from the graph page).
+- Plain words; "likely cause" not "root cause"; "not retrieved" not "never searched" when only retrieval is known; no invented dialogue; operators are illustrations; no personal names (shift logs contain them).
+- Knowledge graph layout that worked: LEFT column = operator + PlantMind's answer (fixed); RIGHT column = the action; stack-light alarm icons; role colours symptom steel / likely cause brass / action-verify pine / don't-do rust.
+
+**Real Trust material (all in files; check before quoting):**
+- **The trust order** (in `multi_agent.py` system prompt, ~line 1128): Tier 1 verified (graph) > Tier 2 documents (SOP, WI, NCR) > Tier 3 approved operator knowledge > Tier 4 unreviewed tip, which may NEVER set a value, setting or step in "how to address it". Same-tier disagreement → recommend engineering review. Code also checks it: `check_report()` (~line 869) adds a visible ⚠ when an unreviewed tip reaches the repair steps, and raises the rating to the graph's safety floor.
+- **Unreviewed tip used as a repair step (welder WM-101, graph on):** 14/18 before the trust order (`handover_scorecard.md`) → **1/18** after (`trust_scorecard.md`, 28 Sep). Real tip wording: "Reset tension from 18 to 22" (contributor name must not be shown). FL-101 has no "before": its graph value test shows 0/15 because no tips were captured yet.
+- **The 15.5 V case (welder, Phase 1B):** the graph cited the correct 18–22 V, yet the report told the operator to "set arc voltage to 15.5 V as per Expert Fix" (an approved-then-disputed operator note). Fix: disputed notes are dropped from retrieval and a disputed value may be named only as a contradiction, never as a step. Strong "finding isn't the same as trusting" story.
+- **The jam case (FL-101, graph on, `fl101_scorecard.md`):** the graph handed over "restart at 60 bottles per minute for 2 minutes"; the answer used it 1 of 3 times (rail position B 2 of 3). Removed from the graph page as a possible Trust opener: "finding the right information isn't the same as using it."
+- **Safety rating flakiness → code floor:** welder gas case rated HIGH, HIGH, CRITICAL over 3 runs (right 1 in 3) → a code rule sets the minimum. FL-101 glass breakage was rated HIGH though its SOP says CRITICAL → new rule "never below the document's own rating" (LEARNINGS #2).
+- **Report confidence (Step B, `assess_confidence`):** HIGH/MEDIUM/LOW computed in code; 15/15 scenario check. Honest limit: it measures *evidence available*, not *correctness* — a wrong report (GF-INV-002) was marked HIGH. Calibration not done yet.
+- **Context chapter results (LEARNINGS #11–12, main chat):** of 84 lost facts, graph ON leaves only "reached the writer, left out" (10). C2 (writer also gets the pieces) results are in `teaching_c2_*_scorecard.md` — read before using.
+
+**Open decisions for Trust:**
+1. FL-101 or the welder? The strongest trust "before/after" (14/18 → 1/18, the 15.5 V case) is the welder ("an earlier test machine"). FL-101 only gets an "after" once operator tips are captured and FL-06 is run (main chat).
+2. Scope: trust in *sources* (the order), trust in the *answer* (confidence, calibration), or both? Suggest choosing one story.
+
+**Files to know:** `evals/graph_value/{handover,trust,fl101}_scorecard.md`, `evals/fl101/LEARNINGS.md`, `evals/known_issues.json`, `multi_agent.py` (trust order, `check_report`, `assess_confidence`), `evals/confidence_check.py`.
+
 ## Design system (keep)
 
 - Palette (CSS vars):
@@ -194,7 +220,7 @@ Scene source is mirrored in the scratchpad (`sevals3.js` + `apply_page.py`), but
 ## Pending / next
 
 1. **Architecture:** the user was still reviewing the latest right-angled version. Get feedback first.
-2. **Evals (page 2) is DONE.** **Context and Rules lessons were DROPPED (2 Oct, user's call):** "How it works" already covers them. A Context page (handover-folder look) was built and removed. The side menu is now: How it works · 1 Architecture · 2 Evals · 3 Knowledge graph · 4 Trust · 5 Tracing · 6 People in the loop. **Next: Knowledge graph.** What worked for Evals: design new, simple test data together first, have the main chat run it, then build the page from the results. Give each page its own look; don't reuse the Evals left-list/right-panel structure (the user noticed it straight away on Context).
+2. **Evals (page 2) is DONE.** **Context and Rules lessons were DROPPED (2 Oct, user's call):** "How it works" already covers them. A Context page (handover-folder look) was built and removed. The side menu is now: How it works · 1 Architecture · 2 Evals · 3 Knowledge graph · 4 Trust · 5 Tracing · 6 People in the loop. **Knowledge graph (page 3): built 6 Oct** (`sGraph`, 6 steps, animated; idea "The answer wasn't missing. The connections were."). Left column = operator + PlantMind's answer (fixed); right column = the action. Steps: 0 third alarm (real 10 Sept shift-log lines; 1st/2nd amber, 3rd red) → 1 WHAT SEMANTIC SEARCH FOUND: real snippets with match 0.87 (shift log, WI) ✓ found; SOP + NCR ✗ never searched, showing the sentences that never reached the answer → 2 the missing facts in the plant's documents, dashed lines to the gaps: ✕ no link → 3 experienced operator's notepad, 1:1 with the graph notes, colour per role (symptom steel, root cause brass, action/check pine, never rust; legend top-right) → 4 the graph in the same colours, real notes/links/source badges → 5 threads fill the answer gaps with sources ("All 5 lines, each with a source"); closing "The graph didn't give PlantMind more documents. It gave it the connections between them." No 48%/2-of-5 numbers on this page (user's call). Rejected along the way: constellation, investigation board, metro map, single-view variants, a 'graph isn't magic' jam step (good opener for Trust), a router-failure + ranking-failure framing (user didn't like it), and a made-up "cosine 0.32" badge. Scratch file docs/kg_compare.html is NOT part of the site — delete before committing. What worked for Evals: design new, simple test data together first, have the main chat run it, then build the page from the results. Give each page its own look; don't reuse the Evals left-list/right-panel structure (the user noticed it straight away on Context).
 3. **Tests the main chat should run** (see `CASE_STUDY_TESTS.md`):
    - (a) FL-101 retrieval: add the 13 labels from ANSWER_KEY §5 to `retrieval_labels.json` and run `evals/retrieval_eval.py` (free)
    - (b) machine-from-plain-words + refusal checks (free; needs a tiny script)

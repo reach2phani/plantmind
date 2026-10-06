@@ -71,8 +71,9 @@ FACTS_FILE = ROOT / "evals" / "context" / "context_facts.json"
 HAND_FILE = ROOT / "evals" / "context" / "hand_review.json"    # rows a person has read and decided
 OUT_DIR = ROOT / "evals" / "context"
 
-# Each specialist: the document type it searches and its search wording
-# (copied from multi_agent.py; unchanged since before the oldest run used here).
+# Each specialist: the document type it searches and its ORIGINAL search wording
+# (version 1, used by every run before 6 Oct 2026). Runs that record
+# search_wording >= 2 are re-created with multi_agent.specialist_query instead.
 AGENTS = {
     "Alarm Agent":       ("Shift Log",        "alarm history incidents for {eq} {inc}"),
     "Expert Fix Agent":  ("Expert Fix",       "fix for {eq} {inc}"),
@@ -138,12 +139,18 @@ def ma():
 _search_cache = {}
 
 
-def search_now(agent, equipment, incident):
-    """Repeat a specialist's search today (whole pieces, as the app does now)."""
-    key = (agent, equipment, incident)
+AGENT_KEY = {"Alarm Agent": "alarm", "Expert Fix Agent": "expert_fix",
+             "Maintenance Agent": "maintenance", "SOP Agent": "sop", "NCR Agent": "ncr"}
+
+
+def search_now(agent, equipment, incident, wording=1):
+    """Repeat a specialist's search today (whole pieces, as the app does now),
+    with the search wording the run itself used."""
+    key = (agent, equipment, incident, wording)
     if key not in _search_cache:
         doc_type, template = AGENTS[agent]
-        query = template.format(eq=equipment or "equipment", inc=incident[:100])
+        query = (ma().specialist_query(AGENT_KEY[agent], incident, equipment) if wording >= 2
+                 else template.format(eq=equipment or "equipment", inc=incident[:100]))
         if doc_type == "Expert Fix":
             text, _ = ma().search_expert_fixes(query, equipment_filter=equipment)
         else:
@@ -209,7 +216,7 @@ def attribute(fact, run, equipment, saved_components):
     if not any(AGENTS[a][0] in homes for a in ran):
         return "not_searched", ev
 
-    whole = {a: search_now(a, equipment, incident) for a in ran}
+    whole = {a: search_now(a, equipment, incident, run.get("search_wording", 1)) for a in ran}
     found_by = [a for a in ran if has_fact(fact, whole[a])]
     ev["found_by"] = found_by
     if not found_by:
@@ -240,7 +247,7 @@ def search_recreation_check(runs, equipment_of):
             if s["agent"] not in AGENTS:
                 continue
             total += 1
-            now = search_now(s["agent"], equipment_of(r), r["_incident"])
+            now = search_now(s["agent"], equipment_of(r), r["_incident"], r.get("search_wording", 1))
             same += piece_names(now) == piece_names(s["search"])
     return same, total
 

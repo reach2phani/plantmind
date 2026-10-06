@@ -220,6 +220,70 @@ Sources: evals/graph_health/graph_health_FL-101_2026-10-05_0839.json, evals/grap
 - **Reports were not affected:** the writer gets the graph as plain text. Checked against the old code: identical text for FL-101 (20,747 characters) and WM-101 (13,999). No eval needs re-running.
 - **Lessons:** an error dressed up as "empty" is the hardest failure to notice. And evals only test what they look at: every eval read the report, none opened the page. Looking at the product yourself still matters.
 
+### 14. Fresh questions: does the graph help on situations nobody tuned for? (5–6 Oct 2026, before any fix)
+Source: evals/fl101/results/fresh_scorecard.md (cases: evals/fl101/fresh_cases.json). 5 everyday FL-101 questions, written after the graph was built (by the AI assistant, reworded by the user) and never used for tuning. 3 runs per question per arm, on the same code. **This is the held-out result; it stays as the "before".**
+
+| Required facts (excluding the welding-word check) | Graph OFF | Graph ON |
+|---|---|---|
+| All 5 questions | **15/72 (21%)** | **49/72 (68%)** |
+| FR-03 rejects creeping up, no alarm | 6/15 | 15/15 |
+| FR-04 changeover to 330 ml | 0/15 | 13/15 |
+| FR-02 one valve light, no drip | 6/12 | 11/12 |
+| FR-05 leak from the side of a valve | 3/12 | 8/12 (O-ring only 1/3) |
+| FR-01 line stopped since Friday (routine restart) | 0/15 | 2/15 |
+
+Made-up specifics: 0.1 → 0.3 per report. Same result across runs: 25/29 → 22/29.
+
+- **The graph generalises, with a lower ceiling.** On the tuned FL-101 cases it went 42% → 91%. On fresh situations it goes 21% → 68%.
+- **Two fresh questions were matched to the wrong fault, labelled "sure"**: FR-01 (routine restart) → Infeed Jam, FR-05 (valve leak) → Underfill. By meaning alone, both scored below the matcher's 0.80 bar ("nothing close"). But the AI tie-break runs before that bar is checked, and its pick was labelled "sure". A plain cut-off can't fix it: the real underfill question T-2 scores 0.798, between FR-04 (0.797) and FR-05 (0.792). Deciding "is this a fault at all?" needs judgement.
+- **FR-01 invents an incident in all 6 reports, with or without the graph.** A routine "anything special before we restart?" became "worn seals on valves 9, 15 and 3, three underfill alarms", rated HIGH, with the advice to replace seals. That incident is the 10 Sept shift log, a past event, presented as now. The alarm specialist mixed the operator's words with that old log. The writer's own rule says shift logs tell "what is happening now", but they tell what happened **before**. Same family as finding 7 ("first time ever" while citing the earlier event).
+- **Lesson:** questions you tuned on can't show you what you never thought of. Five new questions found a matcher that can't say "none" and a writer that confuses past and present. The tuned tests never showed either.
+
+**The fix (built 6 Oct, after the graph-OFF run):**
+- **Part 1, fault matcher** (knowledge_graph.py, `_ai_pick_fault`): the AI question now asks first whether a fault is being reported at all ("a routine question, or not one of these → 0"). No score cut-off. Check: **41/41 right, 0 false CRITICAL** (evals/fault_match/oct6_none_fix_scorecard.md). All 33 earlier questions and the 7-question exam stay right, T-2 (0.798) stays Underfill, and FR-01 and FR-05 now get "none" (FR-04 too, which is acceptable). One run, AI at temperature 0.
+- **Part 2, past vs now** (multi_agent.py):
+  - the writer's rule now says only the operator's message tells what is happening now, and shift logs tell what happened before
+  - "No fault reported" → answer the question, rate LOW
+  - the alarm specialist got the same rule
+  - **both now get today's date**
+  - Spot check on the alarm specialist alone. FR-01 before: "the line remains stopped, awaiting a seal replacement… planned in the 10 Sep log". With the rule but no date: still merged. With the date: "a stand-by situation rather than an active alarm event". T-1: "a new, unlogged event", with 10 Sept as history (it used to say "first time ever").
+- To be measured by re-running the fresh questions, both arms (tag `fresh_fix`), plus 3 new set-aside questions for a held-out check.
+- **The first re-run (graph ON) failed 10 of 15 times, a side effect of the fix.**
+  - All 9 "no fault" runs (FR-01, FR-04, FR-05) failed with Groq **413 "request too large"** (8,100–8,800 tokens; the free limit is ~8,000 per minute). When the AI said "none", the code took the old "can't decide" path and handed the writer **every** fault: 20,747 characters of graph text.
+  - The retry handler then waited and retried 3 times, because the 413 message also says "rate_limit".
+  - **Fixed:** "not a fault" now hands over no fault chain. Only the machine-wide safety rules, the fault names and one line: "no machine fault reported, answer from the documents". Graph text 20,747 → 2,012 characters; writer request ~4,200–4,400 tokens.
+  - A 413 now stops at once with a clear message.
+  - The 5 reports with a matched fault (FR-02, FR-03) were unaffected and stay valid.
+- **Still at the edge:** one FR-03 run (Underfill matched, 5 searches) also hit 413 at 8,114 tokens. Graph-ON requests for a matched fault are ~7,500 tokens by the app's estimate, about 99% of the limit. If more matched-fault runs fail, the writer's request must become size-aware (C3).
+- **Second side effect, then the real limit:**
+  - With "no fault" correctly detected, the SOP was searched in 0/9 FR-01/04/05 reports (graph ON). Before the fix it had been 9/9, only because the WRONG fault forced it.
+  - Fixed by rule: no fault reported → the SOP and work-instruction searches are required.
+  - But even when searched, the needed SOP section ranks **7th** (FR-01, §9 start-up) and **5th** (FR-04, §14 changeover), and only the top 4 pieces are used. Some top pieces are just divider lines (`━━━`), a side effect of cutting documents every 1,000 characters.
+  - **Search ranking (Known issue #16) is the real limit for routine questions.**
+  - Lesson: fixing one thing can quietly switch off something that only worked by accident.
+- **New reliability check: are the repair steps real?** (evals/grounding_check.py)
+  - Each numbered step is compared with the 2 closest passages in the machine's own documents by the judge (yes / partly / no), and the judge says whether the report admits missing information or fills in.
+  - First test on 6 reports: FR-01 **4/17 steps grounded (23%), 7 invented**: "test mode, watch 5 minutes", "dry run at low speed", "purge the first 30 seconds", "trial fill of 5 bottles" (the SOP says 20). FR-01 filled the gap 3/3 instead of saying the procedure was missing. FR-02: 9/15 grounded, 0 invented.
+  - The old made-up-numbers check missed all of these.
+- **Decision (6 Oct): freeze here, then fix search ranking properly (Phase 3 pulled forward), then measure everything on the fixed search** with the new reliability check: fresh questions both arms, the user's 3 set-aside questions, a teaching-set regression, the FL-101 cases and the separation run.
+- **Trade-off to watch:** FR-04 (changeover) is now "no fault", so the graph no longer hands over the Infeed Jam path that held "position B". Those facts must now come from the SOP search.
+
+**Originally planned as:** part 1, the fault matcher's AI question allows "this is not one of these faults / a routine question". Part 2, past events stay in the past (the writer's rule and the alarm specialist's comparison). Part 2 changes graph-OFF reports too, so both arms get re-run after the fix. After the fix these 5 questions count as tuned, so 3 new set-aside questions keep a held-out check.
+
+### 15. Search ranking (Phase 3 pulled forward, 6 Oct 2026)
+Source: evals/search_results/ (made by evals/search_check.py; free, Pinecone only). Labels: evals/search_labels.json, 52 needed facts in 13 FL-101 questions, each with word-for-word evidence phrases (all checked present in the documents, each inside one stored piece).
+
+**R0, the measuring stick:** does each investigation search hand the specialist (top 4) a piece holding the needed fact?
+
+| Step | Teaching | FL-101 cases | Fresh | All | File |
+|---|---|---|---|---|---|
+| Before | 4/12 | 17/21 | 9/19 | **30/52 (58%)** | search_before.md |
+| R3: search with the operator's own words | 8/12 | 20/21 | 12/19 | **40/52 (77%)** | search_wording.md |
+
+- **R3 (search wording):** each specialist's search started with fixed words ("procedure response steps specification for FL-101 **alarm** …"). They pulled alarm-response pieces to the top. Four wordings were compared; the operator's words alone did best (adding the machine tag: 36; adding a document hint: 39). The SOP, work-instruction and NCR searches now use them (`specialist_query()` in multi_agent.py, version 2; runs record `search_wording`). The shift-log and operator-tip searches are unchanged, because no labels measure them yet.
+- **Still not delivered (12):** most rank 5th–8th. The deep ones are FR-01's start-up steps (15th–20th) and "never clear a jam while running" (20th). **Nothing is cut apart**: the problem is ranking, not split pieces.
+- **Lesson:** the words you search with matter as much as the search engine. A fixed prefix written for alarms made every search look like an alarm search.
+
 ### Side note: one empty answer
 One Docs answer came back blank the first time and correct on retry. No AI call was logged, so it failed before the model was reached. Watching it; investigate if it repeats.
 
