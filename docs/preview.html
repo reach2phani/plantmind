@@ -186,6 +186,35 @@ header .sub + p{margin-top:4px}
   header{padding-top:28px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ── Trust page: the shield, built block by block ── */
+.tr-wrap{display:grid;grid-template-columns:320px 1fr;gap:28px;align-items:center;min-height:520px}
+.scene .tr-wrap svg{min-width:0}
+.tr-blk{fill:transparent;stroke:var(--line);stroke-width:1.5;stroke-dasharray:5 4;transition:fill .7s,stroke .7s}
+.tr-blk.tr-on{fill:var(--pine-soft);stroke:var(--ink);stroke-width:2.5;stroke-dasharray:none}
+.tr-blk.tr-done{fill:var(--pine-soft);stroke:var(--pine);stroke-dasharray:none}
+.tr-op .fig{fill:var(--faint);transition:fill .7s}.tr-op .arm{stroke:var(--faint);transition:stroke .7s}
+.tr-op.tr-lit .fig{fill:var(--pine)}.tr-op.tr-lit .arm{stroke:var(--pine)}
+.tr-side{position:relative;min-height:520px}
+.tr-panel{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center}
+.scene .tr-panel:not(.vis){pointer-events:none}
+.tr-k{font:500 .66rem "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.tr-side h3{margin:0 0 10px;font:600 1.45rem/1.2 Fraunces,Georgia,serif}
+.tr-def{font:500 1.4rem/1.35 Fraunces,Georgia,serif;margin:0 0 14px;max-width:30ch}
+.tr-def em{font-style:normal;color:var(--pine)}
+.tr-line{font:500 1.08rem/1.4 Fraunces,Georgia,serif;margin:0 0 10px}
+.tr-part{margin:0 0 11px}.tr-part p{margin:2px 0 0;font-size:.93rem}
+.tr-part.learn p{font:500 1.03rem/1.35 Fraunces,Georgia,serif}
+.tr-big{font:600 1.1rem Fraunces,Georgia,serif}
+.tr-q{font-style:italic}
+.tr-layer{display:block;margin-top:3px}
+.tr-layer b{font:500 .62rem "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
+.tr-shot{margin:6px 0 0;max-width:280px}
+.tr-shot img{width:100%;display:block;border:1px solid var(--line);border-radius:8px}
+.tr-shot .ph{display:none;border:1px dashed var(--faint);border-radius:8px;padding:9px 12px;font-size:.8rem;color:var(--muted)}
+.tr-shot.missing img{display:none}.tr-shot.missing .ph{display:block}
+.tr-shot figcaption{margin-top:4px}
+@media (max-width:760px){.tr-wrap{grid-template-columns:1fr;gap:14px}.tr-wrap>svg{max-width:250px;margin:0 auto}.tr-side{min-height:640px}}
 </style>
 </head>
 <body>
@@ -823,6 +852,76 @@ const GL = {
 };
 const g = (k,w) => `<span class="g" tabindex="0" data-tip="${GL[k]}">${w}</span>`;
 
+
+/* ── Trust: an empty shield; each step builds one block (the principle, what PlantMind does,
+   where it fell short, what I learned). Numbers: fresh_fix_grounding.md; welder handover → trust
+   scorecards; fresh_runs / fresh_fix_runs FR-01 and the 10/11 Sept shift logs; trust_runs.jsonl;
+   LEARNINGS #14. Blocks 4 and 6: scratch analysis of 81 saved test answers, to be saved in evals/
+   before publishing. The shield is a symbol for the checks, not a software part. ── */
+function sTrust(){
+  const OX=50, SH=`M${OX+20},46 Q${OX+160},-6 ${OX+300},46 V210 Q${OX+300},330 ${OX+160},392 Q${OX+20},330 ${OX+20},210 Z`;
+  const ROWY=[0,140,265,400];
+  const LABELS=[['CAN I','TRACE IT?'],['IS THE SOURCE','APPROVED?'],['RIGHT MACHINE,','RIGHT TIME?'],['DOES CONFIDENCE','MEAN RIGHT?'],['WHAT CATCHES','AN ERROR?'],['WHEN DOES A','PERSON DECIDE?']];
+  const LPOS=[[OX+90,92],[OX+230,92],[OX+82,198],[OX+238,198],[OX+104,306],[OX+216,306]];
+  const B=[
+   {q:'Can I trace the answer?',
+    does:'Shows which document each repair step comes from. A test checks whether the document supports it.',
+    fell:'Of the 17 steps in the restart answer, only <span class="tr-big">4</span> were fully backed by the documents. 6 were only partly supported, and 7 had no evidence behind them.',
+    learn:'An answer can link to the right documents and still give advice they don’t support. Check that the evidence backs up each step.',
+    shot:['img/trust-restart-after-fix.png','The restart answer after the fix (“No fault reported…”), with its repair steps.','The restart answer · names removed']},
+   {q:'Is that source approved?',
+    does:'Checks whether information comes from an approved procedure, a shift note, or an operator tip. Operator tips can point you in the right direction, but they shouldn’t be treated as repair instructions until they’ve been checked.',
+    fell:'In testing, the tip <span class="tr-q">“Reset tension from 18 to 22”</span> appeared as a repair step in 14 of 18 reports. Even after adding rules and labels, it still appeared in <span class="tr-big">1 of 18</span> reports.',
+    learn:'An operator’s tip can be useful, but that doesn’t make it an approved instruction. Check that the step is backed by an approved procedure before acting on it.'},
+   {q:'Is it the right machine and the right time?',
+    does:'Checks that the information is about the right machine and looks at the dates to see what may have changed since the record was written.',
+    fell:'PlantMind kept recommending seal replacements based on an older log, even though a newer log said the seals had been replaced and the machine was running well.',
+    learn:'A record may have been right when it was written, but things change. Before acting on it, make sure it still reflects the machine’s current condition.',
+    shot:['img/trust-restart-high.png','The earlier restart answer: replace the seals on valves 9, 15 and 3, confidence HIGH.','The confident answer · names removed']},
+   {q:'Does its confidence mean it’s likely to be right?',
+    does:'Shows a confidence label (HIGH, MEDIUM or LOW) based on how much evidence it found, not on whether the answer is complete or correct.',
+    fell:'In testing, <span class="tr-big">4</span> answers marked HIGH were missing more than half the facts needed to answer the question.',
+    learn:'A confident answer can still miss important details. Check that it includes what you need before relying on it.'},
+   {q:'What catches an error before it reaches me?',
+    does:'Before showing an answer, PlantMind checks for repair steps based on unreviewed operator tips and flags them for review.',
+    fell:'The check caught the one tip-based step that slipped past the rules. But a check for made-up numbers missed all 7 restart steps that had no supporting evidence. Only a separate test, comparing each step with the documents, found them.',
+    learn:'A check only catches the mistake it was built to look for. A missing warning doesn’t mean the step is safe.'},
+   {q:'When does a person need to decide?',
+    does:'PlantMind flags answers for engineer review when confidence is not HIGH or a check raises a concern. The operator remains responsible for deciding what to do.',
+    fell:'An answer can be marked HIGH confidence and still need a closer look. The flag didn’t catch every answer that needed review.',
+    learn:'The person responsible must assess the advice, use their knowledge of the machine, and decide what action to take.'},
+  ];
+  const N = B.length, LAST = N + 1;
+  const vis = (f,h,d) => ` data-f="${f}"${h!=null?` data-h="${h}"`:''}${d!=null?` data-d="${d}"`:''}`;
+  // the shield
+  let g = `<svg viewBox="0 0 380 420" role="img" aria-label="A shield of six blocks, built one at a time"><g class="toks"></g><defs><clipPath id="trcl"><path d="${SH}"/></clipPath></defs>`;
+  g += `<g class="tr-op"${A({c:{[N]:'tr-lit'}})}><g class="fig" transform="translate(26,318)"><circle cx="0" cy="-26" r="13"/><path d="M-22,22 C-22,-2 22,-2 22,22 Z"/></g>
+    <path class="arm" d="M40,312 Q56,300 ${OX+34},300" fill="none" stroke-width="4" stroke-linecap="round"/></g>
+    <g${vis(N,null,3)}><text x="26" y="362" text-anchor="middle" style="font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;fill:var(--pine)">A PERSON</text><text x="26" y="375" text-anchor="middle" style="font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;fill:var(--pine)">DECIDES</text></g>`;
+  g += `<g clip-path="url(#trcl)">`;
+  for (let i=0;i<N;i++){ const row=Math.floor(i/2), col=i%2;
+    g += `<rect class="tr-blk" x="${OX+col*160}" y="${ROWY[row]}" width="160" height="${ROWY[row+1]-ROWY[row]}"${A({c:{[i+1]:'tr-on',[i+2]:'tr-done'}})}/>`; }
+  g += `</g><path d="${SH}" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+  LABELS.forEach((l,i) => g += `<g${vis(i+1,null,0.6)}><text x="${LPOS[i][0]}" y="${LPOS[i][1]}" text-anchor="middle" style="font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.05em;fill:var(--ink)">${l[0]}</text><text x="${LPOS[i][0]}" y="${LPOS[i][1]+14}" text-anchor="middle" style="font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.05em;fill:var(--ink)">${l[1]}</text></g>`);
+  g += `</svg>`;
+  // the side panels, one per step
+  let side = `<div class="tr-panel"${vis(0,1)}>
+    <p class="tr-def"${vis(0,1,0.3)}>Trust means knowing when an answer is <em>safe to rely on</em>, and when <em>a person needs to step in</em>.</p>
+    <p class="tr-line"${vis(0,1,1.8)}>Checks help build trust, and a person controls the decision.</p>
+    <p style="color:var(--muted);margin:0"${vis(0,1,3)}>Six checks. Each block taught me a lesson.</p></div>`;
+  B.forEach((b,i) => { const k=i+1;
+    const shot = b.shot ? `<figure class="tr-shot"${vis(k,k+1,5.6)}><a href="${b.shot[0]}" target="_blank" rel="noopener"><img src="${b.shot[0]}" alt="${b.shot[1]}" onerror="this.closest('figure').classList.add('missing')"></a><div class="ph"><span class="tr-k">Screenshot to add</span><br>${b.shot[1]}</div><figcaption class="tr-k">${b.shot[2]}</figcaption></figure>` : '';
+    side += `<div class="tr-panel"${vis(k,k+1)}>
+      <div${vis(k,k+1,0.3)}><span class="tr-k">Block ${k} of ${N}</span><h3>${b.q}</h3></div>
+      <div class="tr-part"${vis(k,k+1,1.3)}><span class="tr-k">What PlantMind does</span><p>${b.does}</p></div>
+      <div class="tr-part"${vis(k,k+1,2.6)}><span class="tr-k">Where it fell short</span><p>${b.fell}</p></div>
+      <div class="tr-part learn"${vis(k,k+1,4.6)}><span class="tr-k">What I learned</span><p>${b.learn}</p></div>${shot}</div>`; });
+  side += `<div class="tr-panel"${vis(LAST)}>
+    <p class="tr-def"${vis(LAST,null,0.3)}>All six in place. Every one still has a gap to close.</p>
+    <p class="tr-line" style="margin-top:8px"${vis(LAST,null,2)}>Trust isn’t something you switch on.<br>It’s something you keep testing.</p></div>`;
+  return `<div class="tr-wrap">${g}<div class="tr-side">${side}</div></div>`;
+}
+
 const L = [
  {name:'How it works', lesson:'', plain:'',
   acts:[['J','The journey','var(--pine)']],
@@ -866,8 +965,13 @@ const L = [
   ['G','Search finds information. The graph connects the facts, giving the operator the complete picture with every recommendation tied back to its source.',12000],
  ],
   below:''},
+
+ {name:'Trust', lesson:'', plain:'', kick:'',
+  acts:[['T','Trust','var(--pine)']],
+  scene:sTrust, caps:[['T','',8000],['T','',11000],['T','',11000],['T','',12000],['T','',11000],['T','',11000],['T','',11000],['T','',9000]],
+  below:''},
 ];
-const SOON = ['Trust','Tracing','People in the loop'];
+const SOON = ['Tracing','People in the loop'];
 
 /* ── Player ── */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;

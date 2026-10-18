@@ -1,4 +1,4 @@
-# PlantMind case-study page: handoff (updated 6 Oct 2026 · Evals + Knowledge graph done · next: Trust)
+# PlantMind case-study page: handoff (updated 17 Oct 2026 · Evals + Knowledge graph + Trust done · next: Tracing)
 
 Paste this into a new chat to continue. This chat is **only** for the interview case-study page.
 App/eval work (FL-101, Phase 2a+) happens in the main build chat. Don't mix them.
@@ -135,31 +135,85 @@ Journey bar across the top (Question → Scope → Context → Evidence → Vali
 
 Scene source is mirrored in the scratchpad (`sevals3.js` + `apply_page.py`), but **preview.html is the source of truth.**
 
-## NEXT: Page 4 "Trust" (start here in the new chat)
+## Page 4 "Trust" (DONE, 17 Oct 2026)
 
-**Current menu:** How it works · 1 Architecture · 2 Evals · 3 Knowledge graph · 4 Trust (soon) · 5 Tracing · 6 People in the loop. Context and Rules were dropped (covered by How it works).
+**Idea:** *Trust means knowing when an answer is safe to rely on, and when a person needs to step in.
+Checks help build trust, and a person controls the decision.* The picture is an **empty shield that is
+built block by block**. Each block is one trust question; beside it, a side panel with three parts.
+At the end the shield is complete in shape, but every block still has a gap.
 
-**Lessons from building Evals and Knowledge graph (follow these):**
-- Discuss the story first, then sketch still frames on a scratch page (`docs/kg_compare.html` pattern), then build into `preview.html`. The user often pastes feedback from another AI: check every claim in it against the files before using it (it twice proposed things that never happened: valve-9 links, a "cosine 0.32" score, a fill-time validation catch).
-- One concrete question, followed through the whole page. A human situation first (the operator, the third alarm), then the concept. One short, quotable caption per step.
-- Give each page its own look; the user spots reused layouts. Calm and uncrowded: one idea per step. Numbers only where they add meaning (the user removed 48% → 100% from the graph page).
-- Plain words; "likely cause" not "root cause"; "not retrieved" not "never searched" when only retrieval is known; no invented dialogue; operators are illustrations; no personal names (shift logs contain them).
-- Knowledge graph layout that worked: LEFT column = operator + PlantMind's answer (fixed); RIGHT column = the action; stack-light alarm icons; role colours symptom steel / likely cause brass / action-verify pine / don't-do rust.
+**How it is built in `preview.html`:** scene `sTrust()` (CSS prefix `tr-`), lesson entry `name:'Trust'`,
+8 steps (opening + 6 blocks + finished shield). It uses the shared engine (`data-f/h/c/d`); captions are
+empty strings, so **this page has no caption box** (user's choice). A small operator figure holds the shield
+and lights up at block 6. Side panels: `What PlantMind does` → `Where it fell short` → `What I learned`
+(labels shared by all blocks; user chose "What I learned" everywhere). On phones the shield stacks above
+the text. Menu is now: How it works · 1 Architecture · 2 Evals · 3 Knowledge graph · **4 Trust** ·
+5 Tracing (soon) · 6 People in the loop (soon).
 
-**Real Trust material (all in files; check before quoting):**
-- **The trust order** (in `multi_agent.py` system prompt, ~line 1128): Tier 1 verified (graph) > Tier 2 documents (SOP, WI, NCR) > Tier 3 approved operator knowledge > Tier 4 unreviewed tip, which may NEVER set a value, setting or step in "how to address it". Same-tier disagreement → recommend engineering review. Code also checks it: `check_report()` (~line 869) adds a visible ⚠ when an unreviewed tip reaches the repair steps, and raises the rating to the graph's safety floor.
-- **Unreviewed tip used as a repair step (welder WM-101, graph on):** 14/18 before the trust order (`handover_scorecard.md`) → **1/18** after (`trust_scorecard.md`, 28 Sep). Real tip wording: "Reset tension from 18 to 22" (contributor name must not be shown). FL-101 has no "before": its graph value test shows 0/15 because no tips were captured yet.
-- **The 15.5 V case (welder, Phase 1B):** the graph cited the correct 18–22 V, yet the report told the operator to "set arc voltage to 15.5 V as per Expert Fix" (an approved-then-disputed operator note). Fix: disputed notes are dropped from retrieval and a disputed value may be named only as a contradiction, never as a step. Strong "finding isn't the same as trusting" story.
-- **The jam case (FL-101, graph on, `fl101_scorecard.md`):** the graph handed over "restart at 60 bottles per minute for 2 minutes"; the answer used it 1 of 3 times (rail position B 2 of 3). Removed from the graph page as a possible Trust opener: "finding the right information isn't the same as using it."
-- **Safety rating flakiness → code floor:** welder gas case rated HIGH, HIGH, CRITICAL over 3 runs (right 1 in 3) → a code rule sets the minimum. FL-101 glass breakage was rated HIGH though its SOP says CRITICAL → new rule "never below the document's own rating" (LEARNINGS #2).
-- **Report confidence (Step B, `assess_confidence`):** HIGH/MEDIUM/LOW computed in code; 15/15 scenario check. Honest limit: it measures *evidence available*, not *correctness* — a wrong report (GF-INV-002) was marked HIGH. Calibration not done yet.
-- **Context chapter results (LEARNINGS #11–12, main chat):** of 84 lost facts, graph ON leaves only "reached the writer, left out" (10). C2 (writer also gets the pieces) results are in `teaching_c2_*_scorecard.md` — read before using.
+**The six blocks (final wording is in `sTrust()`; summary only):**
+1. **Can I trace the answer?** 4 of 17 restart steps fully backed by documents, 6 partly, 7 none (`fresh_fix_grounding.md`). The step check runs in testing, not in the app ("A test checks whether the document supports it").
+2. **Is that source approved?** Tip "Reset tension from 18 to 22" as a repair step in 14 of 18 reports → 1 of 18 after rules and labels (welder; handover → trust scorecards).
+3. **Is it the right machine and the right time?** Seal replacement recommended from the 10 Sept log; 11 Sept log: "Seals replaced on 4 valves. Running well." (`fresh_runs.jsonl` FR-01). Screenshot slot `docs/img/trust-restart-high.png`.
+4. **Does its confidence mean it's likely to be right?** Label is based on how much evidence was found, not correctness; 4 HIGH answers were missing more than half their facts.
+5. **What catches an error before it reaches me?** The tip-based step that slipped past the rule was flagged; the check for made-up numbers missed all 7 unsupported restart steps (LEARNINGS #14). Lesson: "A check only catches the mistake it was built to look for. A missing warning doesn't mean the step is safe."
+6. **When does a person need to decide?** Engineer review when confidence isn't HIGH or a check fires; the operator decides; the flag didn't catch every answer that needed review.
+Block 1 also has a screenshot slot `docs/img/trust-restart-after-fix.png`. Both slots show a dashed placeholder until the file exists.
 
-**Open decisions for Trust:**
-1. FL-101 or the welder? The strongest trust "before/after" (14/18 → 1/18, the 15.5 V case) is the welder ("an earlier test machine"). FL-101 only gets an "after" once operator tips are captured and FL-06 is run (main chat).
-2. Scope: trust in *sources* (the order), trust in the *answer* (confidence, calibration), or both? Suggest choosing one story.
+**Still open for Trust (before publishing):**
+- **Block 4's "4 answers marked HIGH"** comes from a *scratch* calibration analysis (81 saved FL-101 answers with a confidence label: HIGH 30 → 83% of required facts, 21 complete; MEDIUM 10 → 30%; LOW 41 → 38%; review flag caught 33 of 37 weakest; the 4 missed were all HIGH, all fresh questions FR-01 ×3, FR-05 ×1; only 8 distinct questions; HIGH only possible with the graph). **The main chat must save this check into `evals/` and write a scorecard** so the number has a file. Script used: same code checks + saved judge caches as `graph_value_test.py`, no AI calls.
+- **Two screenshots** (names cropped/blurred): the after-fix restart answer (block 1) and the HIGH "replace the seals" answer (block 3).
 
-**Files to know:** `evals/graph_value/{handover,trust,fl101}_scorecard.md`, `evals/fl101/LEARNINGS.md`, `evals/known_issues.json`, `multi_agent.py` (trust order, `check_report`, `assess_confidence`), `evals/confidence_check.py`.
+**What the user taught us on this page (follow these):**
+- Write for the **operator**, in plain words. Don't keep naming "PlantMind" in captions. No AI-slop patterns: repeated "X isn't Y. It's Z", fragment triplets, balanced closers, lists of abstract virtues, meta badges. Titles say what happened; only the last line may sound like a lesson.
+- Every outside-AI feedback had factual errors: three times it weakened the seal evidence ("replacing", "described work") although the 11 Sept log says "New seals fitted" and "Seals replaced on 4 valves. Running well."; it changed the operator's exact question; it invented a merged single answer across welder + bottle filler tests. **Check every pasted claim.**
+- Never merge examples from different tests into one answer. Keep the welder and bottle-filler examples separate.
+- Don't overclaim: say when a check runs only in testing; "Engineer review needed" flags, it doesn't block.
+- Removed by the user: grade chips ("Tested · not good enough yet"), the caption box, inner/outer layer drawing (confusing).
+- Rejected along the way (don't re-propose without a new reason): stamps/lightbox, Swiss-cheese slices, wheel/petals, seal ring, andon light, filter/funnel, autopsy, 2×2 sure/right grid with dots, timeline "when was that", report card, left/centre/right spine, agents→shield→operator player, Cesium (geospatial, too heavy, breaks the self-contained page).
+
+## NEXT: Page 5 "Tracing" (start here in the new chat)
+
+**Working method that worked (keep it):** agree the one sentence the reader should remember first, then the
+story, then sketch on a scratch page, then merge into `preview.html`. Keep sketches in the scratch folder,
+not in `docs/`. Give the page its own look.
+
+**What Tracing means here (from the code):** `tracing.py` sends each investigation to LangSmith as a timeline
+tree: graph lookup → supervisor (router) → specialists (each with its search) → report writer → report
+guardrails, with each step's exact input and output and the tokens of every Groq call. It shows what each step
+received and produced, not the model's private reasoning (turned off on purpose). Off unless `.env` has
+`LANGSMITH_TRACING=true`. Traced functions in `multi_agent.py`: `groq_call`, `search_documents`,
+`search_expert_fixes`, the five agents, `report_guardrails`, `orchestrator`, `supervisor`, `investigation`.
+Plain idea from `CASE_STUDY_TESTS.md` lesson 7: tracing turns "the answer is wrong" into "step 4 never received
+the rinse fact". Obvious fix that fails: "just log the final answer" (you learn that it's wrong, not where).
+
+**Real material already in files (check before quoting):**
+- **Where each missed fact got lost** (LEARNINGS #11, `evals/context/attribution.md`, made by
+  `evals/context_attribution.py`, no AI calls): 84 facts really lost out of 278 required-fact checks, followed
+  along documents → search → specialist → writer → report. Graph OFF: 3 not searched, 24 searched but not in the
+  top 4, 24 found but cut (300-character cut, fixed 1 Oct), 21 summarised away by a specialist, 2 left out by the
+  writer. Graph ON: all 10 losses were the writer leaving out a fact it was given. Not one fact was missing from
+  the documents. Corrected 5 Oct (a word pattern also matched past shift-log lines). LEARNINGS already suggests a
+  picture: **a leaky pipe with the count dripping out at each joint.** Note: the Context page was dropped, so
+  this material is free for Tracing.
+- **The Evals page step 7 already shows one trace** (found ✓ → passed on ✗, "weigh the first 20 bottles"
+  dropped by the maintenance specialist's summary). Don't repeat it; Tracing should go wider (all 84) or deeper
+  (a real timeline).
+- **The logs were wrong at first:** token counts were estimated from text length and undercounted by about 3×;
+  found and fixed 18 Sept (`CASE_STUDY_TESTS.md`).
+- **Known issue 17** ("first time ever" while citing the earlier event) was planned to be diagnosed with a trace
+  first (LEARNINGS #7) — check whether that was done.
+
+**Not in the repo yet (ask the main chat):**
+- **One real LangSmith trace export** (CASE_STUDY_TESTS lesson 7): e.g. FL-01, graph ON — each step's name,
+  start (ms), duration (ms), tokens. That becomes the timeline picture, bar for bar. No trace exports exist in
+  the repo today.
+- **Cost and speed:** `evals/ops_report.py` over the time window of a run — tokens per investigation, p50/p95 time
+  per step, cut-off answers, errors, share of the daily free quota.
+
+**Open decisions for Tracing:**
+1. The one sentence to remember (candidate: "When an answer is wrong, tracing shows where it went wrong").
+2. Wide (the 84 lost facts, where they leaked) or deep (one real investigation timeline), or one of each.
+3. Whether to wait for the real trace export before building the timeline part.
 
 ## Design system (keep)
 
@@ -218,6 +272,13 @@ Scene source is mirrored in the scratchpad (`sevals3.js` + `apply_page.py`), but
 - FL-101 docs split into 40 pieces with the app's rule (SOP 23, WI 8, NCR 9).
 
 ## Pending / next
+
+**Status 17 Oct:** Trust is DONE and merged (see "Page 4 Trust"). Next is **Tracing** (see "NEXT: Page 5 Tracing").
+Scratch pages were moved out of `docs/` (they live in the chat's scratch folder); `docs/kg_compare.html` was
+already committed, so git shows it as deleted — that's intended. `docs/` now holds only `draft.html`,
+`index.html`, `preview.html`. Before publishing: save the calibration check into `evals/` (block 4 number) and
+add the two Trust screenshots.
+
 
 1. **Architecture:** the user was still reviewing the latest right-angled version. Get feedback first.
 2. **Evals (page 2) is DONE.** **Context and Rules lessons were DROPPED (2 Oct, user's call):** "How it works" already covers them. A Context page (handover-folder look) was built and removed. The side menu is now: How it works · 1 Architecture · 2 Evals · 3 Knowledge graph · 4 Trust · 5 Tracing · 6 People in the loop. **Knowledge graph (page 3): built 6 Oct** (`sGraph`, 6 steps, animated; idea "The answer wasn't missing. The connections were."). Left column = operator + PlantMind's answer (fixed); right column = the action. Steps: 0 third alarm (real 10 Sept shift-log lines; 1st/2nd amber, 3rd red) → 1 WHAT SEMANTIC SEARCH FOUND: real snippets with match 0.87 (shift log, WI) ✓ found; SOP + NCR ✗ never searched, showing the sentences that never reached the answer → 2 the missing facts in the plant's documents, dashed lines to the gaps: ✕ no link → 3 experienced operator's notepad, 1:1 with the graph notes, colour per role (symptom steel, root cause brass, action/check pine, never rust; legend top-right) → 4 the graph in the same colours, real notes/links/source badges → 5 threads fill the answer gaps with sources ("All 5 lines, each with a source"); closing "The graph didn't give PlantMind more documents. It gave it the connections between them." No 48%/2-of-5 numbers on this page (user's call). Rejected along the way: constellation, investigation board, metro map, single-view variants, a 'graph isn't magic' jam step (good opener for Trust), a router-failure + ranking-failure framing (user didn't like it), and a made-up "cosine 0.32" badge. Scratch file docs/kg_compare.html is NOT part of the site — delete before committing. What worked for Evals: design new, simple test data together first, have the main chat run it, then build the page from the results. Give each page its own look; don't reuse the Evals left-list/right-panel structure (the user noticed it straight away on Context).
