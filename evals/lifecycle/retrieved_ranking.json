@@ -1,0 +1,618 @@
+[
+  {
+    "question": "I've just replaced the seals on a valve. What do I need to check before restarting?",
+    "query": "I've just replaced the seals on a valve. What do I need to check before restarting?",
+    "filter": [
+      "FL-101",
+      "Work Instruction"
+    ],
+    "pinecone": [
+      {
+        "rank": 1,
+        "piece": 8,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_7",
+        "score": 0.8643,
+        "kept": true,
+        "first_line": "11. SIGN-OFF",
+        "text": "11. SIGN-OFF\n\n  - The shift supervisor must sign off the first-bottle check before normal\n    production restarts.\n  - Record in the maintenance log: date, valve numbers changed, seal kits\n    used, condition of the old seals, first-bottle check results, and\n    your name.\n\n12. REVISION HISTORY\n\n  Rev 1.0   February 2026   First issue."
+      },
+      {
+        "rank": 2,
+        "piece": 6,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_5",
+        "score": 0.8564,
+        "kept": true,
+        "first_line": "9. INSPECTING THE OLD SEALS",
+        "text": "9. INSPECTING THE OLD SEALS\n\nLook at every seal you remove. Signs of wear:\n  - Flattened or squashed on one side\n  - Small cracks, especially at the edge\n  - Hard instead of soft and springy\n  - A groove cut into the sealing face\n  - Discoloured or swollen\n\nRecord what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB"
+      },
+      {
+        "rank": 3,
+        "piece": 5,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_4",
+        "score": 0.848,
+        "kept": true,
+        "first_line": "Step 9 — SANITATION RINSE — MANDATORY",
+        "text": "Step 9 — SANITATION RINSE — MANDATORY\n           Run the sanitation rinse for 10 minutes. This removes lubricant\n           and any particles from the new seals. Never skip this step: the\n           first bottles would carry lubricant into the product.\n\n  Step 10 — FIRST-BOTTLE CHECK — MANDATORY\n           Run at normal speed and weigh the first 20 bottles.\n           All 20 must be between 495 and 505 ml.\n           If any bottle is outside this range, stop and check the valve again.\n\nIMPORTANT: For the first 2 to 3 minutes after a seal change, bottles may be\nslightly overfilled (up to 510 ml) while the new seals settle. This is\nEXPECTED BEHAVIOUR — not a fault. Do not change any settings. The\ncheckweigher rejects these bottles automatically.\n\n9. INSPECTING THE OLD SEALS"
+      },
+      {
+        "rank": 4,
+        "piece": 7,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+        "score": 0.8464,
+        "kept": true,
+        "first_line": "Record what you found. If more than 4 seals are badly worn at the same",
+        "text": "Record what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB\n\n  What you see                        Check                     Action\n  ─────────────────────────────────────────────────────────────────────────\n  Valve still drips                   Seal seated correctly?    Refit the seal\n  Valve still underfills, no drip     Nozzle blocked?           Clean the nozzle\n  All valves underfill                Supply pressure?          SOP Section 12.4\n  Overfill for 2 to 3 minutes only    Normal settling           No action\n  Overfill after 5 minutes            Valve fully clicked in?   Refit the valve\n  Leak at the valve body              O-ring missing?           Fit a new O-ring\n\n11. SIGN-OFF"
+      },
+      {
+        "rank": 5,
+        "piece": 4,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_3",
+        "score": 0.8393,
+        "kept": true,
+        "first_line": "8. PROCEDURE",
+        "text": "8. PROCEDURE\n\n  Step 1 — Press STOP and lock out the machine (LOTO).\n  Step 2 — Drain the bowl until the product is below the valve level.\n  Step 3 — Remove the valve with the valve key (quarter turn to the left).\n  Step 4 — Remove the old seal and O-ring with the seal pick.\n  Step 5 — Wipe the valve seat clean with a lint-free cloth. Check it for\n           scratches. A scratched seat must be reported to the maintenance\n           supervisor: a new seal will not seal on a scratched seat.\n  Step 6 — Fit the new seal and O-ring from the SEAL-FV-24 kit, with a thin\n           layer of FGL-1 lubricant.\n  Step 7 — Refit the valve (quarter turn to the right until it clicks).\n  Step 8 — Count the tools and parts on the tray. Remove the lock and refill\n           the bowl."
+      },
+      {
+        "rank": 6,
+        "piece": 3,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+        "score": 0.8336,
+        "kept": true,
+        "first_line": "6. SAFETY",
+        "text": "6. SAFETY\n\n  - Lock out the machine before starting (LOTO, SOP Section 6.2).\n  - Wear safety glasses and gloves.\n  - Only use food-grade lubricant. Any other lubricant contaminates the\n    product.\n  - Keep removed parts and tools on the tray. Nothing may be left inside\n    the machine.\n\n7. BEFORE YOU START\n\n  - Check the checkweigher report to see which valves are underfilling.\n  - Mark those valves with a green tag so the right valves are changed.\n  - Tell the shift lead how long the line will be stopped.\n\n8. PROCEDURE"
+      },
+      {
+        "rank": 7,
+        "piece": 2,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+        "score": 0.8297,
+        "kept": true,
+        "first_line": "2. SCOPE",
+        "text": "2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS\n\nReplace the seal kit when:\n  - A valve drips between fills\n  - The checkweigher shows the same valve underfilling again and again\n  - Three or more underfill alarms happen in one shift\n  - The seal has reached its limit: 3 months or 1,500 running hours,\n    whichever comes first\n\n4. TIME NEEDED\n\n  One valve:                     about 15 minutes\n  A typical job (1 to 4 valves): 30 to 45 minutes\n  Including rinse and check:     about 1 hour\n\n5. PARTS AND TOOLS\n\n  Seal kit, one per valve:  SEAL-FV-24 (main seal and O-ring)\n  Food-grade lubricant:     FGL-1\n  Location:                 Filling Line 1 spares cabinet, shelf 2\n  Tools:                    valve key, seal pick, clean lint-free cloths,\n                            20 empty 500 ml bottles for the check\n\n6. SAFETY"
+      },
+      {
+        "rank": 8,
+        "piece": 1,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+        "score": 0.8163,
+        "kept": true,
+        "first_line": "WORK INSTRUCTION",
+        "text": "WORK INSTRUCTION\nEquipment: FL-101 Bottle Filler\nDocument Type: Work Instruction\nReference: WI-FL101-001\nRevision: 1.0\nPlant: Demo Bottling Plant\nLine: Filling Line 1\nOwner: Maintenance Supervisor\nApproved by: Maintenance Supervisor — K. Brandt\nDate: February 2026\nEffective from: 1 March 2026\nUncontrolled when printed. Always check the document system for the latest revision.\n\nDEMO DATA — written for the PlantMind learning project. Not from a real plant.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFILL VALVE SEAL REPLACEMENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. PURPOSE\n\nThis work instruction explains how to replace the seal kit in an FL-101\nfill valve. A worn seal is the most common cause of underfill alarms.\n\n2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS"
+      }
+    ],
+    "rerank": [
+      {
+        "rank": 1,
+        "piece": 5,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_4",
+        "rerank_score": 0.0188,
+        "pinecone_rank": 3,
+        "first_line": "Step 9 — SANITATION RINSE — MANDATORY"
+      },
+      {
+        "rank": 2,
+        "piece": 8,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_7",
+        "rerank_score": 0.0164,
+        "pinecone_rank": 1,
+        "first_line": "11. SIGN-OFF"
+      },
+      {
+        "rank": 3,
+        "piece": 6,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_5",
+        "rerank_score": 0.0034,
+        "pinecone_rank": 2,
+        "first_line": "9. INSPECTING THE OLD SEALS"
+      },
+      {
+        "rank": 4,
+        "piece": 2,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+        "rerank_score": 0.0018,
+        "pinecone_rank": 7,
+        "first_line": "2. SCOPE"
+      },
+      {
+        "rank": 5,
+        "piece": 7,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+        "rerank_score": 0.0011,
+        "pinecone_rank": 4,
+        "first_line": "Record what you found. If more than 4 seals are badly worn at the same"
+      },
+      {
+        "rank": 6,
+        "piece": 4,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_3",
+        "rerank_score": 0.0006,
+        "pinecone_rank": 5,
+        "first_line": "8. PROCEDURE"
+      },
+      {
+        "rank": 7,
+        "piece": 3,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+        "rerank_score": 0.0006,
+        "pinecone_rank": 6,
+        "first_line": "6. SAFETY"
+      },
+      {
+        "rank": 8,
+        "piece": 1,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+        "rerank_score": 0.0003,
+        "pinecone_rank": 8,
+        "first_line": "WORK INSTRUCTION"
+      }
+    ],
+    "top4_pieces": [
+      5,
+      8,
+      6,
+      2
+    ]
+  },
+  {
+    "question": "How do I replace the seal on a fill valve?",
+    "query": "How do I replace the seal on a fill valve?",
+    "filter": [
+      "FL-101",
+      "Work Instruction"
+    ],
+    "pinecone": [
+      {
+        "rank": 1,
+        "piece": 2,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+        "score": 0.8579,
+        "kept": true,
+        "first_line": "2. SCOPE",
+        "text": "2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS\n\nReplace the seal kit when:\n  - A valve drips between fills\n  - The checkweigher shows the same valve underfilling again and again\n  - Three or more underfill alarms happen in one shift\n  - The seal has reached its limit: 3 months or 1,500 running hours,\n    whichever comes first\n\n4. TIME NEEDED\n\n  One valve:                     about 15 minutes\n  A typical job (1 to 4 valves): 30 to 45 minutes\n  Including rinse and check:     about 1 hour\n\n5. PARTS AND TOOLS\n\n  Seal kit, one per valve:  SEAL-FV-24 (main seal and O-ring)\n  Food-grade lubricant:     FGL-1\n  Location:                 Filling Line 1 spares cabinet, shelf 2\n  Tools:                    valve key, seal pick, clean lint-free cloths,\n                            20 empty 500 ml bottles for the check\n\n6. SAFETY"
+      },
+      {
+        "rank": 2,
+        "piece": 4,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_3",
+        "score": 0.8563,
+        "kept": true,
+        "first_line": "8. PROCEDURE",
+        "text": "8. PROCEDURE\n\n  Step 1 — Press STOP and lock out the machine (LOTO).\n  Step 2 — Drain the bowl until the product is below the valve level.\n  Step 3 — Remove the valve with the valve key (quarter turn to the left).\n  Step 4 — Remove the old seal and O-ring with the seal pick.\n  Step 5 — Wipe the valve seat clean with a lint-free cloth. Check it for\n           scratches. A scratched seat must be reported to the maintenance\n           supervisor: a new seal will not seal on a scratched seat.\n  Step 6 — Fit the new seal and O-ring from the SEAL-FV-24 kit, with a thin\n           layer of FGL-1 lubricant.\n  Step 7 — Refit the valve (quarter turn to the right until it clicks).\n  Step 8 — Count the tools and parts on the tray. Remove the lock and refill\n           the bowl."
+      },
+      {
+        "rank": 3,
+        "piece": 1,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+        "score": 0.8416,
+        "kept": true,
+        "first_line": "WORK INSTRUCTION",
+        "text": "WORK INSTRUCTION\nEquipment: FL-101 Bottle Filler\nDocument Type: Work Instruction\nReference: WI-FL101-001\nRevision: 1.0\nPlant: Demo Bottling Plant\nLine: Filling Line 1\nOwner: Maintenance Supervisor\nApproved by: Maintenance Supervisor — K. Brandt\nDate: February 2026\nEffective from: 1 March 2026\nUncontrolled when printed. Always check the document system for the latest revision.\n\nDEMO DATA — written for the PlantMind learning project. Not from a real plant.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFILL VALVE SEAL REPLACEMENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. PURPOSE\n\nThis work instruction explains how to replace the seal kit in an FL-101\nfill valve. A worn seal is the most common cause of underfill alarms.\n\n2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS"
+      },
+      {
+        "rank": 4,
+        "piece": 7,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+        "score": 0.8391,
+        "kept": true,
+        "first_line": "Record what you found. If more than 4 seals are badly worn at the same",
+        "text": "Record what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB\n\n  What you see                        Check                     Action\n  ─────────────────────────────────────────────────────────────────────────\n  Valve still drips                   Seal seated correctly?    Refit the seal\n  Valve still underfills, no drip     Nozzle blocked?           Clean the nozzle\n  All valves underfill                Supply pressure?          SOP Section 12.4\n  Overfill for 2 to 3 minutes only    Normal settling           No action\n  Overfill after 5 minutes            Valve fully clicked in?   Refit the valve\n  Leak at the valve body              O-ring missing?           Fit a new O-ring\n\n11. SIGN-OFF"
+      },
+      {
+        "rank": 5,
+        "piece": 3,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+        "score": 0.8263,
+        "kept": true,
+        "first_line": "6. SAFETY",
+        "text": "6. SAFETY\n\n  - Lock out the machine before starting (LOTO, SOP Section 6.2).\n  - Wear safety glasses and gloves.\n  - Only use food-grade lubricant. Any other lubricant contaminates the\n    product.\n  - Keep removed parts and tools on the tray. Nothing may be left inside\n    the machine.\n\n7. BEFORE YOU START\n\n  - Check the checkweigher report to see which valves are underfilling.\n  - Mark those valves with a green tag so the right valves are changed.\n  - Tell the shift lead how long the line will be stopped.\n\n8. PROCEDURE"
+      },
+      {
+        "rank": 6,
+        "piece": 5,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_4",
+        "score": 0.8236,
+        "kept": true,
+        "first_line": "Step 9 — SANITATION RINSE — MANDATORY",
+        "text": "Step 9 — SANITATION RINSE — MANDATORY\n           Run the sanitation rinse for 10 minutes. This removes lubricant\n           and any particles from the new seals. Never skip this step: the\n           first bottles would carry lubricant into the product.\n\n  Step 10 — FIRST-BOTTLE CHECK — MANDATORY\n           Run at normal speed and weigh the first 20 bottles.\n           All 20 must be between 495 and 505 ml.\n           If any bottle is outside this range, stop and check the valve again.\n\nIMPORTANT: For the first 2 to 3 minutes after a seal change, bottles may be\nslightly overfilled (up to 510 ml) while the new seals settle. This is\nEXPECTED BEHAVIOUR — not a fault. Do not change any settings. The\ncheckweigher rejects these bottles automatically.\n\n9. INSPECTING THE OLD SEALS"
+      },
+      {
+        "rank": 7,
+        "piece": 6,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_5",
+        "score": 0.8202,
+        "kept": true,
+        "first_line": "9. INSPECTING THE OLD SEALS",
+        "text": "9. INSPECTING THE OLD SEALS\n\nLook at every seal you remove. Signs of wear:\n  - Flattened or squashed on one side\n  - Small cracks, especially at the edge\n  - Hard instead of soft and springy\n  - A groove cut into the sealing face\n  - Discoloured or swollen\n\nRecord what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB"
+      },
+      {
+        "rank": 8,
+        "piece": 8,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_7",
+        "score": 0.8064,
+        "kept": true,
+        "first_line": "11. SIGN-OFF",
+        "text": "11. SIGN-OFF\n\n  - The shift supervisor must sign off the first-bottle check before normal\n    production restarts.\n  - Record in the maintenance log: date, valve numbers changed, seal kits\n    used, condition of the old seals, first-bottle check results, and\n    your name.\n\n12. REVISION HISTORY\n\n  Rev 1.0   February 2026   First issue."
+      }
+    ],
+    "rerank": [
+      {
+        "rank": 1,
+        "piece": 2,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+        "rerank_score": 0.2539,
+        "pinecone_rank": 1,
+        "first_line": "2. SCOPE"
+      },
+      {
+        "rank": 2,
+        "piece": 1,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+        "rerank_score": 0.2337,
+        "pinecone_rank": 3,
+        "first_line": "WORK INSTRUCTION"
+      },
+      {
+        "rank": 3,
+        "piece": 4,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_3",
+        "rerank_score": 0.1385,
+        "pinecone_rank": 2,
+        "first_line": "8. PROCEDURE"
+      },
+      {
+        "rank": 4,
+        "piece": 5,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_4",
+        "rerank_score": 0.0169,
+        "pinecone_rank": 6,
+        "first_line": "Step 9 — SANITATION RINSE — MANDATORY"
+      },
+      {
+        "rank": 5,
+        "piece": 7,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+        "rerank_score": 0.0035,
+        "pinecone_rank": 4,
+        "first_line": "Record what you found. If more than 4 seals are badly worn at the same"
+      },
+      {
+        "rank": 6,
+        "piece": 6,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_5",
+        "rerank_score": 0.001,
+        "pinecone_rank": 7,
+        "first_line": "9. INSPECTING THE OLD SEALS"
+      },
+      {
+        "rank": 7,
+        "piece": 3,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+        "rerank_score": 0.0006,
+        "pinecone_rank": 5,
+        "first_line": "6. SAFETY"
+      },
+      {
+        "rank": 8,
+        "piece": 8,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_7",
+        "rerank_score": 0.0002,
+        "pinecone_rank": 8,
+        "first_line": "11. SIGN-OFF"
+      }
+    ],
+    "top4_pieces": [
+      2,
+      1,
+      4,
+      5
+    ]
+  },
+  {
+    "question": "A valve is dripping between fills. What should I do?",
+    "query": "A valve is dripping between fills. What should I do?",
+    "filter": [
+      "FL-101",
+      "Work Instruction"
+    ],
+    "pinecone": [
+      {
+        "rank": 1,
+        "piece": 7,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+        "score": 0.8448,
+        "kept": true,
+        "first_line": "Record what you found. If more than 4 seals are badly worn at the same",
+        "text": "Record what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB\n\n  What you see                        Check                     Action\n  ─────────────────────────────────────────────────────────────────────────\n  Valve still drips                   Seal seated correctly?    Refit the seal\n  Valve still underfills, no drip     Nozzle blocked?           Clean the nozzle\n  All valves underfill                Supply pressure?          SOP Section 12.4\n  Overfill for 2 to 3 minutes only    Normal settling           No action\n  Overfill after 5 minutes            Valve fully clicked in?   Refit the valve\n  Leak at the valve body              O-ring missing?           Fit a new O-ring\n\n11. SIGN-OFF"
+      },
+      {
+        "rank": 2,
+        "piece": 3,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+        "score": 0.8343,
+        "kept": true,
+        "first_line": "6. SAFETY",
+        "text": "6. SAFETY\n\n  - Lock out the machine before starting (LOTO, SOP Section 6.2).\n  - Wear safety glasses and gloves.\n  - Only use food-grade lubricant. Any other lubricant contaminates the\n    product.\n  - Keep removed parts and tools on the tray. Nothing may be left inside\n    the machine.\n\n7. BEFORE YOU START\n\n  - Check the checkweigher report to see which valves are underfilling.\n  - Mark those valves with a green tag so the right valves are changed.\n  - Tell the shift lead how long the line will be stopped.\n\n8. PROCEDURE"
+      },
+      {
+        "rank": 3,
+        "piece": 2,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+        "score": 0.8266,
+        "kept": true,
+        "first_line": "2. SCOPE",
+        "text": "2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS\n\nReplace the seal kit when:\n  - A valve drips between fills\n  - The checkweigher shows the same valve underfilling again and again\n  - Three or more underfill alarms happen in one shift\n  - The seal has reached its limit: 3 months or 1,500 running hours,\n    whichever comes first\n\n4. TIME NEEDED\n\n  One valve:                     about 15 minutes\n  A typical job (1 to 4 valves): 30 to 45 minutes\n  Including rinse and check:     about 1 hour\n\n5. PARTS AND TOOLS\n\n  Seal kit, one per valve:  SEAL-FV-24 (main seal and O-ring)\n  Food-grade lubricant:     FGL-1\n  Location:                 Filling Line 1 spares cabinet, shelf 2\n  Tools:                    valve key, seal pick, clean lint-free cloths,\n                            20 empty 500 ml bottles for the check\n\n6. SAFETY"
+      },
+      {
+        "rank": 4,
+        "piece": 4,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_3",
+        "score": 0.8261,
+        "kept": true,
+        "first_line": "8. PROCEDURE",
+        "text": "8. PROCEDURE\n\n  Step 1 — Press STOP and lock out the machine (LOTO).\n  Step 2 — Drain the bowl until the product is below the valve level.\n  Step 3 — Remove the valve with the valve key (quarter turn to the left).\n  Step 4 — Remove the old seal and O-ring with the seal pick.\n  Step 5 — Wipe the valve seat clean with a lint-free cloth. Check it for\n           scratches. A scratched seat must be reported to the maintenance\n           supervisor: a new seal will not seal on a scratched seat.\n  Step 6 — Fit the new seal and O-ring from the SEAL-FV-24 kit, with a thin\n           layer of FGL-1 lubricant.\n  Step 7 — Refit the valve (quarter turn to the right until it clicks).\n  Step 8 — Count the tools and parts on the tray. Remove the lock and refill\n           the bowl."
+      },
+      {
+        "rank": 5,
+        "piece": 1,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+        "score": 0.814,
+        "kept": true,
+        "first_line": "WORK INSTRUCTION",
+        "text": "WORK INSTRUCTION\nEquipment: FL-101 Bottle Filler\nDocument Type: Work Instruction\nReference: WI-FL101-001\nRevision: 1.0\nPlant: Demo Bottling Plant\nLine: Filling Line 1\nOwner: Maintenance Supervisor\nApproved by: Maintenance Supervisor — K. Brandt\nDate: February 2026\nEffective from: 1 March 2026\nUncontrolled when printed. Always check the document system for the latest revision.\n\nDEMO DATA — written for the PlantMind learning project. Not from a real plant.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFILL VALVE SEAL REPLACEMENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. PURPOSE\n\nThis work instruction explains how to replace the seal kit in an FL-101\nfill valve. A worn seal is the most common cause of underfill alarms.\n\n2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS"
+      },
+      {
+        "rank": 6,
+        "piece": 5,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_4",
+        "score": 0.8088,
+        "kept": true,
+        "first_line": "Step 9 — SANITATION RINSE — MANDATORY",
+        "text": "Step 9 — SANITATION RINSE — MANDATORY\n           Run the sanitation rinse for 10 minutes. This removes lubricant\n           and any particles from the new seals. Never skip this step: the\n           first bottles would carry lubricant into the product.\n\n  Step 10 — FIRST-BOTTLE CHECK — MANDATORY\n           Run at normal speed and weigh the first 20 bottles.\n           All 20 must be between 495 and 505 ml.\n           If any bottle is outside this range, stop and check the valve again.\n\nIMPORTANT: For the first 2 to 3 minutes after a seal change, bottles may be\nslightly overfilled (up to 510 ml) while the new seals settle. This is\nEXPECTED BEHAVIOUR — not a fault. Do not change any settings. The\ncheckweigher rejects these bottles automatically.\n\n9. INSPECTING THE OLD SEALS"
+      },
+      {
+        "rank": 7,
+        "piece": 8,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_7",
+        "score": 0.7991,
+        "kept": true,
+        "first_line": "11. SIGN-OFF",
+        "text": "11. SIGN-OFF\n\n  - The shift supervisor must sign off the first-bottle check before normal\n    production restarts.\n  - Record in the maintenance log: date, valve numbers changed, seal kits\n    used, condition of the old seals, first-bottle check results, and\n    your name.\n\n12. REVISION HISTORY\n\n  Rev 1.0   February 2026   First issue."
+      },
+      {
+        "rank": 8,
+        "piece": 6,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_5",
+        "score": 0.7987,
+        "kept": true,
+        "first_line": "9. INSPECTING THE OLD SEALS",
+        "text": "9. INSPECTING THE OLD SEALS\n\nLook at every seal you remove. Signs of wear:\n  - Flattened or squashed on one side\n  - Small cracks, especially at the edge\n  - Hard instead of soft and springy\n  - A groove cut into the sealing face\n  - Discoloured or swollen\n\nRecord what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB"
+      }
+    ],
+    "rerank": [
+      {
+        "rank": 1,
+        "piece": 2,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+        "rerank_score": 0.309,
+        "pinecone_rank": 3,
+        "first_line": "2. SCOPE"
+      },
+      {
+        "rank": 2,
+        "piece": 7,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+        "rerank_score": 0.0321,
+        "pinecone_rank": 1,
+        "first_line": "Record what you found. If more than 4 seals are badly worn at the same"
+      },
+      {
+        "rank": 3,
+        "piece": 1,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+        "rerank_score": 0.0005,
+        "pinecone_rank": 5,
+        "first_line": "WORK INSTRUCTION"
+      },
+      {
+        "rank": 4,
+        "piece": 3,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+        "rerank_score": 0.0003,
+        "pinecone_rank": 2,
+        "first_line": "6. SAFETY"
+      },
+      {
+        "rank": 5,
+        "piece": 4,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_3",
+        "rerank_score": 0.0001,
+        "pinecone_rank": 4,
+        "first_line": "8. PROCEDURE"
+      },
+      {
+        "rank": 6,
+        "piece": 5,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_4",
+        "rerank_score": 0.0001,
+        "pinecone_rank": 6,
+        "first_line": "Step 9 — SANITATION RINSE — MANDATORY"
+      },
+      {
+        "rank": 7,
+        "piece": 6,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_5",
+        "rerank_score": 0.0,
+        "pinecone_rank": 8,
+        "first_line": "9. INSPECTING THE OLD SEALS"
+      },
+      {
+        "rank": 8,
+        "piece": 8,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_7",
+        "rerank_score": 0.0,
+        "pinecone_rank": 7,
+        "first_line": "11. SIGN-OFF"
+      }
+    ],
+    "top4_pieces": [
+      2,
+      7,
+      1,
+      3
+    ]
+  },
+  {
+    "question": "What checks are needed after changing the fill valve seals?",
+    "query": "What checks are needed after changing the fill valve seals?",
+    "filter": [
+      "FL-101",
+      "Work Instruction"
+    ],
+    "pinecone": [
+      {
+        "rank": 1,
+        "piece": 2,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+        "score": 0.8571,
+        "kept": true,
+        "first_line": "2. SCOPE",
+        "text": "2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS\n\nReplace the seal kit when:\n  - A valve drips between fills\n  - The checkweigher shows the same valve underfilling again and again\n  - Three or more underfill alarms happen in one shift\n  - The seal has reached its limit: 3 months or 1,500 running hours,\n    whichever comes first\n\n4. TIME NEEDED\n\n  One valve:                     about 15 minutes\n  A typical job (1 to 4 valves): 30 to 45 minutes\n  Including rinse and check:     about 1 hour\n\n5. PARTS AND TOOLS\n\n  Seal kit, one per valve:  SEAL-FV-24 (main seal and O-ring)\n  Food-grade lubricant:     FGL-1\n  Location:                 Filling Line 1 spares cabinet, shelf 2\n  Tools:                    valve key, seal pick, clean lint-free cloths,\n                            20 empty 500 ml bottles for the check\n\n6. SAFETY"
+      },
+      {
+        "rank": 2,
+        "piece": 7,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+        "score": 0.8495,
+        "kept": true,
+        "first_line": "Record what you found. If more than 4 seals are badly worn at the same",
+        "text": "Record what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB\n\n  What you see                        Check                     Action\n  ─────────────────────────────────────────────────────────────────────────\n  Valve still drips                   Seal seated correctly?    Refit the seal\n  Valve still underfills, no drip     Nozzle blocked?           Clean the nozzle\n  All valves underfill                Supply pressure?          SOP Section 12.4\n  Overfill for 2 to 3 minutes only    Normal settling           No action\n  Overfill after 5 minutes            Valve fully clicked in?   Refit the valve\n  Leak at the valve body              O-ring missing?           Fit a new O-ring\n\n11. SIGN-OFF"
+      },
+      {
+        "rank": 3,
+        "piece": 5,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_4",
+        "score": 0.8442,
+        "kept": true,
+        "first_line": "Step 9 — SANITATION RINSE — MANDATORY",
+        "text": "Step 9 — SANITATION RINSE — MANDATORY\n           Run the sanitation rinse for 10 minutes. This removes lubricant\n           and any particles from the new seals. Never skip this step: the\n           first bottles would carry lubricant into the product.\n\n  Step 10 — FIRST-BOTTLE CHECK — MANDATORY\n           Run at normal speed and weigh the first 20 bottles.\n           All 20 must be between 495 and 505 ml.\n           If any bottle is outside this range, stop and check the valve again.\n\nIMPORTANT: For the first 2 to 3 minutes after a seal change, bottles may be\nslightly overfilled (up to 510 ml) while the new seals settle. This is\nEXPECTED BEHAVIOUR — not a fault. Do not change any settings. The\ncheckweigher rejects these bottles automatically.\n\n9. INSPECTING THE OLD SEALS"
+      },
+      {
+        "rank": 4,
+        "piece": 8,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_7",
+        "score": 0.8442,
+        "kept": true,
+        "first_line": "11. SIGN-OFF",
+        "text": "11. SIGN-OFF\n\n  - The shift supervisor must sign off the first-bottle check before normal\n    production restarts.\n  - Record in the maintenance log: date, valve numbers changed, seal kits\n    used, condition of the old seals, first-bottle check results, and\n    your name.\n\n12. REVISION HISTORY\n\n  Rev 1.0   February 2026   First issue."
+      },
+      {
+        "rank": 5,
+        "piece": 1,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+        "score": 0.8398,
+        "kept": true,
+        "first_line": "WORK INSTRUCTION",
+        "text": "WORK INSTRUCTION\nEquipment: FL-101 Bottle Filler\nDocument Type: Work Instruction\nReference: WI-FL101-001\nRevision: 1.0\nPlant: Demo Bottling Plant\nLine: Filling Line 1\nOwner: Maintenance Supervisor\nApproved by: Maintenance Supervisor — K. Brandt\nDate: February 2026\nEffective from: 1 March 2026\nUncontrolled when printed. Always check the document system for the latest revision.\n\nDEMO DATA — written for the PlantMind learning project. Not from a real plant.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFILL VALVE SEAL REPLACEMENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. PURPOSE\n\nThis work instruction explains how to replace the seal kit in an FL-101\nfill valve. A worn seal is the most common cause of underfill alarms.\n\n2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS"
+      },
+      {
+        "rank": 6,
+        "piece": 3,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+        "score": 0.8312,
+        "kept": true,
+        "first_line": "6. SAFETY",
+        "text": "6. SAFETY\n\n  - Lock out the machine before starting (LOTO, SOP Section 6.2).\n  - Wear safety glasses and gloves.\n  - Only use food-grade lubricant. Any other lubricant contaminates the\n    product.\n  - Keep removed parts and tools on the tray. Nothing may be left inside\n    the machine.\n\n7. BEFORE YOU START\n\n  - Check the checkweigher report to see which valves are underfilling.\n  - Mark those valves with a green tag so the right valves are changed.\n  - Tell the shift lead how long the line will be stopped.\n\n8. PROCEDURE"
+      },
+      {
+        "rank": 7,
+        "piece": 4,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_3",
+        "score": 0.8309,
+        "kept": true,
+        "first_line": "8. PROCEDURE",
+        "text": "8. PROCEDURE\n\n  Step 1 — Press STOP and lock out the machine (LOTO).\n  Step 2 — Drain the bowl until the product is below the valve level.\n  Step 3 — Remove the valve with the valve key (quarter turn to the left).\n  Step 4 — Remove the old seal and O-ring with the seal pick.\n  Step 5 — Wipe the valve seat clean with a lint-free cloth. Check it for\n           scratches. A scratched seat must be reported to the maintenance\n           supervisor: a new seal will not seal on a scratched seat.\n  Step 6 — Fit the new seal and O-ring from the SEAL-FV-24 kit, with a thin\n           layer of FGL-1 lubricant.\n  Step 7 — Refit the valve (quarter turn to the right until it clicks).\n  Step 8 — Count the tools and parts on the tray. Remove the lock and refill\n           the bowl."
+      },
+      {
+        "rank": 8,
+        "piece": 6,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_5",
+        "score": 0.8298,
+        "kept": true,
+        "first_line": "9. INSPECTING THE OLD SEALS",
+        "text": "9. INSPECTING THE OLD SEALS\n\nLook at every seal you remove. Signs of wear:\n  - Flattened or squashed on one side\n  - Small cracks, especially at the edge\n  - Hard instead of soft and springy\n  - A groove cut into the sealing face\n  - Discoloured or swollen\n\nRecord what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB"
+      }
+    ],
+    "rerank": [
+      {
+        "rank": 1,
+        "piece": 5,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_4",
+        "rerank_score": 0.3639,
+        "pinecone_rank": 3,
+        "first_line": "Step 9 — SANITATION RINSE — MANDATORY"
+      },
+      {
+        "rank": 2,
+        "piece": 2,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+        "rerank_score": 0.0583,
+        "pinecone_rank": 1,
+        "first_line": "2. SCOPE"
+      },
+      {
+        "rank": 3,
+        "piece": 7,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+        "rerank_score": 0.0136,
+        "pinecone_rank": 2,
+        "first_line": "Record what you found. If more than 4 seals are badly worn at the same"
+      },
+      {
+        "rank": 4,
+        "piece": 4,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_3",
+        "rerank_score": 0.0097,
+        "pinecone_rank": 7,
+        "first_line": "8. PROCEDURE"
+      },
+      {
+        "rank": 5,
+        "piece": 1,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+        "rerank_score": 0.0071,
+        "pinecone_rank": 5,
+        "first_line": "WORK INSTRUCTION"
+      },
+      {
+        "rank": 6,
+        "piece": 3,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+        "rerank_score": 0.0036,
+        "pinecone_rank": 6,
+        "first_line": "6. SAFETY"
+      },
+      {
+        "rank": 7,
+        "piece": 6,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_5",
+        "rerank_score": 0.0031,
+        "pinecone_rank": 8,
+        "first_line": "9. INSPECTING THE OLD SEALS"
+      },
+      {
+        "rank": 8,
+        "piece": 8,
+        "id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_7",
+        "rerank_score": 0.0029,
+        "pinecone_rank": 4,
+        "first_line": "11. SIGN-OFF"
+      }
+    ],
+    "top4_pieces": [
+      5,
+      2,
+      7,
+      4
+    ]
+  }
+]

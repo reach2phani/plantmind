@@ -1,4 +1,4 @@
-# PlantMind case-study page: handoff (updated 17 Oct 2026 · Evals + Knowledge graph + Trust done · next: Tracing)
+# PlantMind case-study page: handoff (updated 19 Oct 2026 · Evals + Knowledge graph + Trust done · next: Tracing · parallel: Architecture rework)
 
 Paste this into a new chat to continue. This chat is **only** for the interview case-study page.
 App/eval work (FL-101, Phase 2a+) happens in the main build chat. Don't mix them.
@@ -214,6 +214,65 @@ the rinse fact". Obvious fix that fails: "just log the final answer" (you learn 
 1. The one sentence to remember (candidate: "When an answer is wrong, tracing shows where it went wrong").
 2. Wide (the 84 lost facts, where they leaked) or deep (one real investigation timeline), or one of each.
 3. Whether to wait for the real trace export before building the timeline part.
+
+## Lesson "From Document to Answer" (DONE, 20 Oct 2026 · lesson 1, between How it works and Architecture)
+
+**What it is:** one FL-101 work instruction's journey, as a lesson in `docs/preview.html` (it is the single copy;
+`sketches/` was removed). Six stages, each one step of the lesson player: **Upload · Chunking · Searchable ·
+Question · Retrieved · Answer**. Each stage shows its own label (`Stage n of 6 · name · term`), title and intro
+above the animation. The existing **Architecture** lesson is unchanged and follows it.
+
+**How it is built:** a closure `DJ` just above `const L = [` holds the stage code; each stage has `title`, `lead`
+(may contain `<em>`/`<br><br>`), `term`, `dur`, `build()` and `render(t)` (t = 0…1, every frame a pure function of t).
+Inside a step the stage runs on its own clock: **7 s reading pause** (countdown shown), then the animation at
+`PACE` .7, then a 2 s hold. The player gained three optional hooks used only by this lesson: `onStep`, `onPlay`,
+`onStop` (+ `onLeave`). Styles are scoped under `.dj` (own `--paper`, `--plum`, `.m/.mb/.s/.q`). Element ids inside
+are prefixed or local, so nothing touches the page's ids.
+
+**Real data in it:** the work instruction's own text and the splitter's real cuts (chunk 1 = 918 characters,
+chunk 2 = 939, ~160 shared; 8 chunks in all); the Retrieved stage uses the **real Pinecone and reranker order**
+for the question *"What checks are needed after changing the fill valve seals?"*: Pinecone ranks all 8 WI chunks
+(filter FL-101 + Work Instruction), the reranker moves "Rinse + first-bottle check" from #3 to #1, Procedure
+#7 → #4, Sign-off #4 → #8; the top 4 go on to Answer. Reproduce with `evals/lifecycle/retrieved_ranking.py`
+(free tier, no Groq tokens; result in `evals/lifecycle/retrieved_ranking.json`). Illustrative and labelled so:
+number values, dot positions, topic labels on the map, the answer wording.
+
+**Why that question (not "Bottles aren't full enough"):** for the underfill question the reranker scored every
+WI chunk near zero and ranked Scope and the document header top. The WI is about seal replacement; underfill
+troubleshooting lives in the SOP. A real finding for the Context chapter, not for this lesson.
+
+**Verified against the code (19 Oct):**
+- Text/PDF documents: ~1,000-character pieces, 200 overlap (`embedder.py` chunk_size/chunk_overlap).
+- Shift logs (CSV): grouped by the `equipment` column first, then 5 rows per piece (`embedder.py`, Batch E1).
+- Embedding model multilingual-e5-large (via Pinecone inference), 1,024 numbers per piece. Stored in **Pinecone**
+  with metadata (machine, plant, line, document type, revision). **Neo4j is NOT built from uploads**: it holds
+  each machine's reviewed knowledge graph, loaded from a checked graph file, plus operator tips a person approved.
+- Search is **by meaning only**, inside machine (and document-type) filters. No keyword search (a keyword mix was
+  only an offline experiment).
+- **Docs/Ask mode:** top K = 12 (`app.py` ASK_TOP_K); a match must score at least **0.30** with a machine selected
+  (0.35 without). If nothing is strong enough, it answers "no information" **before** the AI writes anything.
+- **Investigations:** each specialist searches its own document type, 4 pieces per search. Since 6 Oct the SOP,
+  work-instruction and NCR searches fetch 15 and a **reranker** (`pinecone-rerank-v0`) keeps the best 4; if the
+  reranker fails it falls back to meaning order and says so. The writer then gets the specialists' summaries
+  **plus the graph facts from Neo4j**. After writing: safety checks (rating floor, ⚠ on unreviewed tips) and a
+  confidence label; correctness is checked in testing, not by a live verifier.
+- FL-101 documents = 40 pieces (SOP 23, WI 8, NCR 9).
+
+**Decisions (keep):** words are **chunks** and **tags** throughout (Chunking teaches "chunk"); **fixed-size
+chunking** (recursive splitter, ~1,000 characters, up to 200 overlap) — not "structure-aware"; no measurements on
+the slides; the vector database is a **flat 2D meaning map** (a 3D cube distorts "nearest"); dots coloured by
+topic only once their embedding exists; no topic circles (the database does not group, the numbers do); the AI is
+a chip with input lines (tokens flow in along them); the **verifier is shown dashed** and described as "will
+check" — PlantMind has no live verifier yet (task proposed: build one; make the box solid and the text present
+tense when it exists); reranking is animated but the Retrieved intro only talks about top K (user's choice).
+
+**Rejected:** a single crowded map with highlight frames; three long scenes; 3D cube; printed real vectors;
+"structure-aware" label; a Play overlay; a reading pause based on word count (fixed 7 s instead); the old
+"notes dropped Step 10" beat (belongs to the Evals page).
+
+**Open (user chose not to do these yet):** Retrieved intro says "four closest" though reranking changes the
+order; the question names no machine (FL-101 is implied); verifier box text is present tense; Searchable shows
+12 chunks while the real WI has 8; on phones the act labels under the panel are tight.
 
 ## Design system (keep)
 

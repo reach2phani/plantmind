@@ -215,6 +215,32 @@ header .sub + p{margin-top:4px}
 .tr-shot.missing img{display:none}.tr-shot.missing .ph{display:block}
 .tr-shot figcaption{margin-top:4px}
 @media (max-width:760px){.tr-wrap{grid-template-columns:1fr;gap:14px}.tr-wrap>svg{max-width:250px;margin:0 auto}.tr-side{min-height:640px}}
+
+/* ── Lesson: From Document to Answer (scoped to .dj) ── */
+.dj{--paper:#FFFDF8;--plum:#8A6F8E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dj{--paper:#262928;--plum:#B49BB8}}
+:root[data-theme="dark"] .dj{--paper:#262928;--plum:#B49BB8}
+.dj-bar{position:relative;display:grid;grid-template-columns:repeat(6,1fr);margin:0 0 14px}
+.dj-rail{position:absolute;left:8.33%;right:8.33%;top:13px;height:2px;background:var(--line)}
+.dj-fill{position:absolute;left:8.33%;top:13px;height:2px;background:var(--steel);width:0;transition:width .4s}
+.dj-bar button{position:relative;border:0;background:none;padding:0 2px;cursor:pointer;text-align:center;color:var(--faint);font:500 11px "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;min-width:0}
+.dj-bar button i{display:block;width:12px;height:12px;margin:8px auto 6px;border-radius:50%;background:var(--surface);border:2px solid var(--line)}
+.dj-bar button.done{color:var(--muted)}.dj-bar button.done i{border-color:var(--steel);background:var(--steel)}
+.dj-bar button.on{color:var(--ink);font-weight:600}.dj-bar button.on i{border-color:var(--ink);background:var(--ink);box-shadow:0 0 0 4px var(--steel-soft)}
+.dj-bar button:focus-visible{outline:2px solid var(--pine);outline-offset:2px}
+@media (max-width:640px){.dj-bar button{font-size:9px;letter-spacing:0;word-break:break-word}}
+.dj-kick{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.dj-title{font:500 clamp(1.3rem,2.5vw,1.7rem)/1.3 Fraunces,Georgia,serif;margin:4px 0 10px}
+.dj-lead{max-width:74ch;color:var(--muted);margin:0 0 8px;font-size:1rem}
+.dj-count{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);min-height:1.2em;text-align:right}
+.dj-scroll{overflow-x:auto}
+.dj-scroll svg{width:100%;min-width:860px;height:auto;display:block}
+.dj-hide{position:absolute;width:0;height:0;overflow:hidden}
+.dj .m{font:500 10.5px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--faint)}
+.dj .mb{font:600 10.5px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--ink)}
+.dj .s{font:400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+.dj .q{font:italic 400 12.5px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+.dj .say{display:none}
 </style>
 </head>
 <body>
@@ -922,6 +948,448 @@ function sTrust(){
   return `<div class="tr-wrap">${g}<div class="tr-side">${side}</div></div>`;
 }
 
+/* ── Lesson: From Document to Answer ───────────────────────────────────────────
+   One work instruction's journey: upload → chunking → searchable → question → retrieved → answer.
+   Each stage is one step of the lesson player; inside a step the stage runs on its own clock
+   (7 s to read, then the animation, then a short hold). Everything lives in this closure, so its
+   ids and helpers never touch the rest of the page. Real data: WI-FL101-001's own text and chunk
+   cuts, and the real Pinecone + reranker order (evals/lifecycle/retrieved_ranking.py). */
+const DJ = (function(){
+let sc=null;const $=id=>document.getElementById(id);
+const clamp=v=>Math.max(0,Math.min(1,v));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const seg=(t,a,b,lin)=>{const u=clamp((t-a)/(b-a));return lin?u:ease(u);};
+const lerp=(a,b,u)=>a+(b-a)*u;
+const set=(id,at)=>{const e=$(id);if(e)for(const k in at)e.setAttribute(k,at[k]);};
+const op=(id,v)=>set(id,{opacity:v});
+const mv=(id,x,y,s=1,o=1)=>set(id,{transform:`translate(${x},${y}) scale(${s})`,opacity:o});
+let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
+const along=(pid,u)=>{const p=$(pid);return p.getPointAtLength(p.getTotalLength()*clamp(u));};
+const bars=(x,y,w,n,sd,c)=>{let o='';for(let k=0;k<n;k++){const h=5+((k*sd*7+sd*13)%18);o+=`<rect x="${x+k*(w/n)}" y="${y-h}" width="${w/n-2}" height="${h}" rx="1.2" fill="${c}"/>`;}return o;};
+const growY=(id,u,base)=>set(id,{transform:`translate(0,${base*(1-u)}) scale(1,${Math.max(u,.001)})`,opacity:u>0?1:0});
+const chip=(x,y,t,c='pine',fs=10)=>{const w=t.length*fs*.66+14;return `<rect x="${x}" y="${y-12}" width="${w}" height="17" rx="8.5" fill="var(--${c}-soft)" stroke="var(--${c})"/><text class="m" x="${x+7}" y="${y}" style="fill:var(--${c});font-weight:600;font-size:${fs}px">${t}</text>`;};
+const person=(x,y,s=1)=>`<g transform="translate(${x},${y}) scale(${s})" style="fill:var(--ink)"><circle cx="0" cy="-12" r="10"/><path d="M-18,18 C-18,0 18,0 18,18 Z"/></g>`;
+const typeOut=(ids,lines,u)=>{const tot=lines.join('').length,n=Math.floor(tot*u);let used=0;lines.forEach((l,i)=>{$(ids+i).textContent=l.slice(0,Math.max(0,n-used));used+=l.length;});};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const QUOTE=['“Run at normal speed and weigh the','first 20 bottles. All 20 must be','between 495 and 505 ml.”'];
+const DEFS=`<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="context-stroke"/></marker></defs>`;
+// the document, drawn the same way in every stage it appears
+const docCard=(id,w=170,h=220,step=true)=>`<g id="${id}"><rect x="0" y="0" width="${w}" height="${h}" rx="8" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.5"/>
+ <text class="mb" x="14" y="26">WI-FL101-001</text><text class="m" x="14" y="42" style="font-size:9px">WORK INSTRUCTION</text>
+ ${[...Array(Math.floor((h-70)/18))].map((_,k)=>`<rect x="14" y="${60+k*18}" width="${(w-28)-(k%3)*((w-28)*.18)}" height="6" rx="3" fill="${step&&k==5?'var(--steel)':'var(--line)'}"/>`).join('')}</g>`;
+const DRAWERS=[['SOP',23],['WORK INSTRUCTIONS',8],['NCR',9],['SHIFT LOGS',null],['OPERATOR TIPS',null]];
+const cabinet=(x,y,w,dh,withCounts)=>`<rect x="${x}" y="${y}" width="${w}" height="${44+DRAWERS.length*(dh+8)}" rx="12" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+ <text class="mb" x="${x+16}" y="${y+26}">PINECONE · THE SEARCHABLE LIBRARY</text>
+ ${DRAWERS.map(([n,c],i)=>`<g id="dw${i}"><rect x="${x+12}" y="${y+40+i*(dh+8)}" width="${w-24}" height="${dh}" rx="7" fill="var(--sunk)" stroke="var(--line)"/>
+  <rect x="${x+w/2-22}" y="${y+40+i*(dh+8)+dh/2-2}" width="44" height="4" rx="2" fill="var(--faint)"/>
+  <text class="m" x="${x+26}" y="${y+40+i*(dh+8)+dh/2+4}" style="fill:var(--muted)">${n}</text>
+  ${withCounts&&c!=null?`<text id="cn${i}" class="mb" x="${x+w-28}" y="${y+40+i*(dh+8)+dh/2+5}" text-anchor="end" style="font-size:15px">0</text>`:''}</g>`).join('')}`;
+
+/* ---------------- 1 · UPLOAD ---------------- */
+// The factory admin: a hard-hat person (hi-vis stripe) in front of a factory
+const hardHat=(x,y)=>`<path d="M${x-19},${y} C${x-19},${y-20} ${x+19},${y-20} ${x+19},${y} Z" fill="var(--brass)" stroke="var(--ink)" stroke-width="1.8"/>
+ <rect x="${x-23}" y="${y-2}" width="46" height="5" rx="2.5" fill="var(--brass)" stroke="var(--ink)" stroke-width="1.8"/><path d="M${x},${y-19} V${y-4}" stroke="var(--ink)" stroke-width="1.4"/>`;
+const adminIcon=(x,y)=>`<g transform="translate(${x-77*1.1},${y-92*1.1}) scale(1.1)">
+ <path d="M14,128 V82 L38,94 V82 L62,94 V82 L86,94 V70 H100 V128 Z" fill="var(--steel-soft)" stroke="var(--steel)" stroke-width="1.6" stroke-linejoin="round"/>
+ <rect x="88" y="52" width="10" height="20" fill="var(--steel-soft)" stroke="var(--steel)" stroke-width="1.6"/>
+ <rect x="24" y="104" width="10" height="10" fill="var(--paper)"/><rect x="48" y="104" width="10" height="10" fill="var(--paper)"/>
+ <path d="M84,132 C84,108 96,98 112,98 C128,98 140,108 140,132 Z" fill="var(--pine)"/>
+ <path d="M104,132 L106,100 C109,99 115,99 118,100 L120,132 Z" fill="var(--brass)"/>
+ <circle cx="112" cy="78" r="13" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.8"/>
+ ${hardHat(112,71)}</g>`;
+const TAGS=[['FL-101','pine'],['WORK INSTRUCTION','steel'],['REV 1.0','steel']];
+const LIB=[['FL-101 SOP','FL-101','SOP',470,78],['FL-101 NCR','FL-101','NCR',470,228],['WM-101 SOP','WM-101','SOP',870,78],['SHIFT LOG','FL-101','SHIFT LOG',870,228]];
+const miniDoc=([n,m,ty,x,y],i)=>`<g id="ld${i}"><rect x="${x}" y="${y}" width="80" height="96" rx="6" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.1"/>
+ <text class="mb" x="${x+8}" y="${y+17}" style="font-size:8.5px">${n}</text>
+ ${[0,1,2,3].map(k=>`<rect x="${x+8}" y="${y+30+k*13}" width="${62-(k%2)*16}" height="4" rx="2" fill="var(--line)"/>`).join('')}
+ ${chip(x,y+114,m,'pine',8.5)}${chip(x,y+134,ty,'steel',8.5)}</g>`;
+const S1={life:'Upload',term:'Metadata',dur:13000,
+ title:'Documents are uploaded and tagged',
+ lead:'An admin uploads the bottle filler’s work instruction to the document library, where manuals and instructions for other machines are already stored. The document is tagged with details like the machine name, document type, and revision number. These tags help PlantMind narrow down searches and find the right documents when needed.',
+ fact:'<b>IN PLANTMIND</b>Each document is tagged with details like the machine, plant, production line, document type, and revision number. This helps PlantMind find documents for the correct machine and leave out information from other equipment.',
+ build:()=>`${adminIcon(105,215)}<text class="mb" x="110" y="290" text-anchor="middle">ADMIN</text>
+  <rect x="450" y="30" width="520" height="360" rx="16" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="7 6"/>
+  <text class="mb" x="470" y="56" style="fill:var(--muted)">DOC LIBRARY</text>
+  ${LIB.map(miniDoc).join('')}
+  <path id="ua" d="M196,230 H430" fill="none" stroke="var(--faint)" stroke-width="1.4" stroke-dasharray="5 5" marker-end="url(#ah)"/>
+  ${docCard('d1',130,170)}
+  <line id="tl" x1="600" y1="${84+150}" x2="600" y2="344" stroke="var(--muted)" stroke-width="1.2"/>
+  ${TAGS.map(([t,c],i)=>{const w=t.length*7.4+30;return `<g id="tg${i}"><path d="M0,0 H30" fill="none" stroke="var(--${c})" stroke-width="1.4"/>
+   <path d="M30,-12 h${w} a6,6 0 0 1 6,6 v12 a6,6 0 0 1 -6,6 h-${w} l-10,-12 z" fill="var(--${c}-soft)" stroke="var(--${c})" stroke-width="1.3"/>
+   <circle cx="34" cy="0" r="2.6" fill="var(--paper)" stroke="var(--${c})"/><text class="mb" x="44" y="4" style="fill:var(--${c})">${t}</text></g>`;}).join('')}
+  <g id="mdg"><rect x="590" y="266" width="202" height="98" rx="10" fill="none" stroke="var(--pine)" stroke-width="1.3" stroke-dasharray="5 4"/>
+   <rect x="712" y="258" width="74" height="16" rx="8" fill="var(--surface)" stroke="var(--pine)"/><text class="mb" x="749" y="270" text-anchor="middle" style="fill:var(--pine);font-size:9.5px">METADATA</text></g>
+  <g id="flt1">${chip(600,58,'FILTER · FL-101 · WORK INSTRUCTION','pine',9.5)}</g>
+  <rect id="ring" x="602" y="76" width="146" height="182" rx="11" fill="none" stroke="var(--pine)" stroke-width="2.6"/>
+  <text id="u1" class="say" x="500" y="420" text-anchor="middle">Tags help find the right documents when they’re needed.</text>`,
+ render(t){
+  LIB.forEach((_,i)=>op('ld'+i,seg(t,.01+i*.02,.06+i*.02)*lerp(1,.22,seg(t,.72,.8))));
+  op('ua',seg(t,.08,.14));const f=seg(t,.1,.38);mv('d1',lerp(170,610,f),lerp(150,84,f),lerp(.5,1,f),seg(t,.08,.12));
+  op('tl',seg(t,.42,.45));
+  TAGS.forEach((_,i)=>{const u=seg(t,.45+i*.06,.52+i*.06);set('tg'+i,{transform:`translate(${lerp(640,600,u)},${284+i*30})`,opacity:u});});
+  op('mdg',seg(t,.6,.64));op('flt1',seg(t,.66,.7));op('ring',seg(t,.74,.8));
+  op('u1',seg(t,.86,.92));}};
+
+/* ---------------- 2 · CHUNKING ---------------- */
+// Real text and real cuts: the start of FL-101's work instruction, split by PlantMind's own
+// settings (about 1,000 characters, up to 200 shared, cut at the nearest natural break).
+const WID={"ranges": [[0, 918], [758, 1697], [1688, 2214]], "lines": [[0, "WORK INSTRUCTION"], [17, "Equipment: FL-101 Bottle Filler"], [49, "Document Type: Work Instruction"], [81, "Reference: WI-FL101-001"], [105, "Revision: 1.0"], [119, "Plant: Demo Bottling Plant"], [146, "Line: Filling Line 1"], [167, "Owner: Maintenance Supervisor"], [197, "Approved by: Maintenance Supervisor — K. Brandt"], [245, "Date: February 2026"], [265, "Effective from: 1 March 2026"], [294, "Uncontrolled when printed. Always check the document system for the latest revision."], [379, ""], [380, "DEMO DATA — written for the PlantMind learning project. Not from a real plant."], [459, ""], [460, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"], [517, "FILL VALVE SEAL REPLACEMENT"], [545, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"], [602, ""], [603, "1. PURPOSE"], [614, ""], [615, "This work instruction explains how to replace the seal kit in an FL-101"], [687, "fill valve. A worn seal is the most common cause of underfill alarms."], [757, ""], [758, "2. SCOPE"], [767, ""], [768, "Applies to all 24 fill valves on the FL-101 Bottle Filler. Only trained"], [840, "maintenance technicians may carry out this work."], [889, ""], [890, "3. WHEN TO REPLACE THE SEALS"], [919, ""], [920, "Replace the seal kit when:"], [947, "  - A valve drips between fills"], [979, "  - The checkweigher shows the same valve underfilling again and again"], [1050, "  - Three or more underfill alarms happen in one shift"], [1105, "  - The seal has reached its limit: 3 months or 1,500 running hours,"], [1174, "    whichever comes first"], [1200, ""], [1201, "4. TIME NEEDED"], [1216, ""], [1217, "  One valve:                     about 15 minutes"], [1267, "  A typical job (1 to 4 valves): 30 to 45 minutes"], [1317, "  Including rinse and check:     about 1 hour"], [1363, ""], [1364, "5. PARTS AND TOOLS"], [1383, ""], [1384, "  Seal kit, one per valve:  SEAL-FV-24 (main seal and O-ring)"], [1446, "  Food-grade lubricant:     FGL-1"], [1480, "  Location:                 Filling Line 1 spares cabinet, shelf 2"], [1547, "  Tools:                    valve key, seal pick, clean lint-free cloths,"], [1621, "                            20 empty 500 ml bottles for the check"], [1687, ""], [1688, "6. SAFETY"], [1698, ""], [1699, "  - Lock out the machine before starting (LOTO, SOP Section 6.2)."]]};
+const WL=WID.lines, CR=WID.ranges;                                   // lines [offset,text]; chunk [start,end)
+const TP={x:150,y:50,w:490,h:300,lh:13,cw:5.7,tx:158};               // the magnified text panel
+const LIM=[CR[0][0]+1000,CR[1][0]+1000];                             // where ~1,000 characters would land
+const lineOf=ch=>{let k=0;WL.forEach(([o],i)=>{if(o<=ch)k=i;});return k;};
+const TH={x:30,y:60,lh:4.6};                                         // the small whole-document thumbnail
+const VIS=Math.floor(TP.h/TP.lh)-1;
+const bands=(a,b,fill,op)=>WL.map(([o,l])=>{const s0=Math.max(a,o),e0=Math.min(b,o+l.length+1);if(e0<=s0)return '';
+  const x=TP.tx+(s0-o)*TP.cw,w=Math.max((Math.min(e0,o+l.length)-s0)*TP.cw,TP.cw*1.2),y=TP.y+14+WL.findIndex(r=>r[0]===o)*TP.lh-10;
+  return `<rect x="${x-2}" y="${y}" width="${w+4}" height="${TP.lh}" fill="${fill}" fill-opacity="${op}"/>`;}).join('');
+const S2={life:'Chunking',term:'Fixed-size chunking',dur:21000,
+ title:'The document is split into smaller chunks',
+ lead:'Instead of searching through an entire manual at once, PlantMind breaks it into smaller chunks of about 1,000 characters each (fixed-size chunking). It looks for a natural stopping point so instructions aren’t cut off in the middle of a sentence. Each new chunk also includes up to 200 characters of overlap from the previous one, helping keep important details together. How a document is split affects how easily PlantMind finds the right information.',
+ fact:'The way a document is split can affect how well PlantMind finds the right information and answers questions. Different chunking methods can be used depending on the type of document and how the information will be searched.',
+ build:()=>`<defs><clipPath id="tpc"><rect x="${TP.x}" y="${TP.y}" width="${TP.w}" height="${TP.h}" rx="10"/></clipPath></defs>
+  <g id="thumb"><rect x="${TH.x-8}" y="${TH.y-12}" width="104" height="${WL.length*TH.lh+24}" rx="6" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.2"/>
+   ${WL.map(([o,l],i)=>l.trim()?`<rect x="${TH.x}" y="${TH.y+i*TH.lh}" width="${Math.min(l.length,84)/84*86}" height="2" rx="1" fill="var(--line)"/>`:'').join('')}
+   <g id="thb"></g><rect id="mag" x="${TH.x-5}" y="${TH.y-3}" width="98" height="${VIS*TH.lh}" rx="3" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+   <text class="m" x="${TH.x+44}" y="${TH.y+WL.length*TH.lh+28}" text-anchor="middle" style="font-size:8.5px">WI-FL101-001</text></g>
+  <rect x="${TP.x}" y="${TP.y}" width="${TP.w}" height="${TP.h}" rx="10" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.3"/>
+  <path id="magl" d="M128,${TH.y} L${TP.x},${TP.y+4}" stroke="var(--faint)" stroke-dasharray="3 3" fill="none"/>
+  <g clip-path="url(#tpc)"><g id="tsc"><g id="hb1"></g><g id="hb2"></g>
+   ${WL.map(([o,l],i)=>`<text x="${TP.tx}" y="${TP.y+14+i*TP.lh}" style="font:400 9.5px 'IBM Plex Mono',monospace;fill:var(--ink);white-space:pre" xml:space="preserve">${l.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</text>`).join('')}
+   <line id="cutl" x1="${TP.x}" x2="${TP.x+TP.w}" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="6 4"/></g></g>
+  <g id="tag"><rect id="tagr" rx="9" height="18" fill="var(--ink)"/><text id="tagt" class="mb" style="fill:var(--surface);font-size:9px"></text></g>
+  <g id="ctr"><text id="ctrl" class="m" x="${TP.x}" y="${TP.y+TP.h+20}" style="fill:var(--ink)"></text>
+   <rect x="${TP.x}" y="${TP.y+TP.h+28}" width="${TP.w}" height="8" rx="4" fill="var(--sunk)"/><rect id="ctrf" x="${TP.x}" y="${TP.y+TP.h+28}" width="0" height="8" rx="4" fill="var(--steel)"/>
+   <line x1="${TP.x+TP.w*1000/1100}" y1="${TP.y+TP.h+24}" x2="${TP.x+TP.w*1000/1100}" y2="${TP.y+TP.h+40}" stroke="var(--ink)" stroke-width="1.4"/>
+   <text class="m" x="${TP.x+TP.w*1000/1100}" y="${TP.y+TP.h+52}" text-anchor="middle" style="fill:var(--ink);font-size:9px">~1,000 LIMIT</text>
+   <text id="ctrn" class="mb" x="${TP.x+TP.w}" y="${TP.y+TP.h+20}" text-anchor="end"></text></g>
+  ${[0,1].map(c=>{const pv=c?[WL[lineOf(CR[1][0])][1],WL[lineOf(CR[1][0])+2][1]]:[WL[0][1],WL[1][1]];return `<g id="cc${c}"><rect x="0" y="0" width="300" height="62" rx="7" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.2"/>
+   <rect x="0" y="0" width="8" height="62" rx="4" fill="${c?'var(--brass)':'var(--steel)'}"/>
+   <text class="mb" x="18" y="18" style="font-size:9.5px">CHUNK ${c+1} · ${CR[c][1]-CR[c][0]} CHARACTERS</text>
+   ${pv.map((l,j)=>`<text x="18" y="${36+j*14}" style="font:400 9px 'IBM Plex Mono',monospace;fill:var(--muted);white-space:pre" xml:space="preserve">${l.trim().slice(0,44).replace(/&/g,'&amp;')}${l.trim().length>44?'…':''}</text>`).join('')}</g>`;}).join('')}
+  <g id="rest"><text class="m" x="664" y="226" style="font-size:9px">THE REST OF THE DOCUMENT IS CHUNKED THE SAME WAY</text>
+   ${[...Array(8)].map((_,k)=>`<g id="rt${k}"><rect x="${664+k*37}" y="236" width="29" height="38" rx="4" fill="var(--paper)" stroke="${k===0?'var(--steel)':k===1?'var(--brass)':'var(--faint)'}" stroke-width="${k<2?1.6:1}"/>
+    ${[0,1,2].map(j=>`<rect x="${669+k*37}" y="${244+j*8}" width="${18-(j%2)*6}" height="2.5" rx="1" fill="var(--line)"/>`).join('')}</g>`).join('')}</g>
+  <text id="s2" class="say" x="500" y="428" text-anchor="middle">Split the document at natural stopping points, with some overlap between sections so important information isn’t missed.</text>`,
+ render(t){
+  op('thumb',seg(t,0,.04));
+  // where each chunk's highlighter has reached (characters)
+  let p1=null,p2=null,lab='',labCh=0,cnt=null,cname='';
+  if(t>=.06){p1=t<.3?lerp(CR[0][0],LIM[0],seg(t,.06,.3,true)):t<.33?LIM[0]:lerp(LIM[0],CR[0][1],seg(t,.33,.4));cnt=p1-CR[0][0];cname='CHUNK 1';}
+  if(t>=.28&&t<.34){lab='~1,000 CHARACTERS · MID-SENTENCE';labCh=LIM[0];}
+  if(t>=.34&&t<.44){lab='↩ BACK TO THE NEAREST BREAK';labCh=CR[0][1];}
+  if(t>=.5){p2=t<.54?CR[1][0]+1:t<.68?lerp(CR[1][0],LIM[1],seg(t,.54,.68,true)):t<.7?LIM[1]:lerp(LIM[1],CR[1][1],seg(t,.7,.74));cnt=p2-CR[1][0];cname='CHUNK 2';}
+  if(t>=.5&&t<.6){lab='OVERLAP · IN CHUNK 1 AND CHUNK 2';labCh=CR[0][1]-1;}
+  if(t>=.66&&t<.7){lab='~1,000 CHARACTERS AGAIN';labCh=LIM[1];}
+  if(t>=.7&&t<.76){lab='↩ BACK TO THE NEAREST BREAK';labCh=CR[1][1];}
+  $('hb1').innerHTML=p1!=null?bands(CR[0][0],p1,'var(--steel)',.32):'';
+  $('hb2').innerHTML=p2!=null?bands(CR[1][0],p2,'var(--brass)',.38):'';
+  // scroll so the highlighter stays in view; the thumbnail shows where we are
+  const head=p2!=null?p2:(p1!=null?p1:0),hl=lineOf(head);
+  const sc=Math.max(0,Math.min((WL.length-VIS)*TP.lh,(hl-VIS*.7)*TP.lh));
+  set('tsc',{transform:`translate(0,${-sc})`});set('mag',{y:TH.y-3+sc/TP.lh*TH.lh});
+  $('thb').innerHTML=[[CR[0][0],p1,'var(--steel)'],[CR[1][0],p2,'var(--brass)']].filter(r=>r[1]!=null).map(([a,b,c])=>`<rect x="${TH.x-4}" y="${TH.y+lineOf(a)*TH.lh-1}" width="96" height="${(lineOf(b)-lineOf(a)+1)*TH.lh}" fill="${c}" fill-opacity=".3"/>`).join('');
+  // the cut line sits where the current chunk ends
+  const cutCh=(t>=.4&&t<.5)?CR[0][1]:(t>=.74)?CR[1][1]:null;
+  if(cutCh!=null){const k=lineOf(cutCh);set('cutl',{y1:TP.y+14+k*TP.lh+3,y2:TP.y+14+k*TP.lh+3,opacity:1});}else op('cutl',0);
+  // a small tag beside the line that matters
+  if(lab){const k=lineOf(labCh),y=TP.y+14+k*TP.lh-sc,w=lab.length*6.1+18;set('tagr',{x:TP.x+TP.w-w-8,y:Math.max(TP.y+4,Math.min(TP.y+TP.h-22,y-12)),width:w});
+   set('tagt',{x:TP.x+TP.w-w+1,y:Math.max(TP.y+4,Math.min(TP.y+TP.h-22,y-12))+12.5});$('tagt').textContent=lab;op('tag',1);}else op('tag',0);
+  // the character counter under the text
+  op('ctr',cnt!=null?1:0);if(cnt!=null){set('ctrf',{width:TP.w*Math.min(cnt,1100)/1100,fill:cname==='CHUNK 2'?'var(--brass)':'var(--steel)'});
+   $('ctrl').textContent=`${cname} · CHARACTERS SO FAR`;$('ctrn').textContent=Math.round(cnt).toLocaleString('en-US');}
+  // finished chunks leave as cards; the rest of the document follows
+  [0,1].forEach(c=>{const u=seg(t,c?.76:.42,c?.82:.48);set('cc'+c,{transform:`translate(${lerp(TP.x+120,664,u)},${lerp(TP.y+120,c?140:60,u)}) scale(${lerp(.4,1,u)})`,opacity:u>0?1:0});});
+  op('rest',seg(t,.84,.86));[...Array(8)].forEach((_,k)=>op('rt'+k,seg(t,.85+k*.008,.87+k*.008)));
+  op('s2',seg(t,.93,.97));}};
+
+/* ---------------- 3 · EMBED & STORE ---------------- */
+// A small neural-network glyph for "the model": three layers of nodes, lines light up while it works.
+const nnIcon=(cx,cy,id)=>{const L=[[-11,0,11],[-15,-5,5,15],[-11,0,11]].map((ys,i)=>ys.map(y=>[cx-26+i*26,cy+y]));let l='';
+  for(let i=0;i<2;i++)L[i].forEach(a=>L[i+1].forEach(b=>{l+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;}));
+  return `<g id="${id}" stroke="var(--steel)" stroke-width="1" stroke-opacity=".45">${l}</g>${L.flat().map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.2" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.3"/>`).join('')}`;};
+
+// Constants the Asked stage still uses (its cabinet view).
+const CX=540,CY=30,CW=400,DH=58,WI=1,DRY=i=>CY+40+i*(DH+8);
+// chunks → embedding model → one row of numbers per chunk → a dot in the vector database
+const N3=12, T3=k=>[30+(k%4)*50,96+Math.floor(k/4)*74], T3W=40, T3H=56;
+const MB={x:236,y:178,w:96,h:80};                                   // embedding model
+const TB={x:356,y:146,rh:24,cw:[54,54,62,54]},TBV=6;                // the embeddings table: only the latest 6 rows show
+const TBW=TB.cw.reduce((a,b)=>a+b,0), ROWY=k=>TB.y+k*TB.rh;
+// The vector database, drawn as a flat meaning map (1,024 dimensions drawn as 2).
+const CUBE={cx:800,cy:200};
+const CL3=[[-68,-64,-40],[62,-60,50],[-38,62,60],[70,58,-55]];      // topic clusters (3D)
+const TOPIC=['seal replacement','lockout & safety','checks after the fix','purpose & scope'];
+const TCOL=['var(--steel)','var(--pine)','var(--brass)','var(--plum)'];      // colour = what a chunk is about
+const nnBig=(cx,cy,id)=>{const L=[[-18,0,18],[-27,-9,9,27],[-18,0,18]].map((ys,i)=>ys.map(y=>[cx-34+i*34,cy+y]));let l='';
+  for(let i=0;i<2;i++)L[i].forEach(a=>L[i+1].forEach(b=>{l+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;}));
+  return `<path d="M${cx-66},${cy} H${cx-46}" stroke="var(--muted)" stroke-width="1.6" fill="none" marker-end="url(#ah)"/>
+   <path d="M${cx+42},${cy} H${cx+60}" stroke="var(--muted)" stroke-width="1.6" fill="none" marker-end="url(#ah)"/>
+   <g id="${id}" stroke="var(--steel)" stroke-width="1" stroke-opacity=".45">${l}</g>
+   ${L.flat().map(([x,y])=>`<circle cx="${x}" cy="${y}" r="6.5" fill="var(--faint)" stroke="var(--ink)" stroke-width="1.2"/>`).join('')}
+   <text class="mb" x="${cx}" y="${cy+50}" text-anchor="middle">EMBEDDING MODEL</text>`;};
+const OFF=[[-10,-6,0],[9,4,0],[-1,10,0]];
+const P3=[...Array(N3)].map((_,k)=>{const c=CL3[k%4],o=OFF[Math.floor(k/4)];return [c[0]+o[0],c[1]+o[1],c[2]+o[2]];});
+const hsh=(k,i)=>{const x=Math.sin(k*127.1+i*311.7+7.3)*43758.5453;return x-Math.floor(x);};
+const OLD3=[...Array(10)].map((_,i)=>[(hsh(i,1)-.5)*180,(hsh(i,2)-.5)*180,(hsh(i,3)-.5)*180]);
+const proj=([x,y])=>[CUBE.cx+x*1.5,CUBE.cy+y*1.25,1,0];   // a flat meaning map: what looks close is close
+const VEC=[...Array(N3)].map((_,k)=>[...Array(6)].map((_,i)=>(hsh(k,i)-.5)*.3));
+const fmtv=v=>(v<0?'−':'')+Math.abs(v).toFixed(3);
+const tile3=(id,x,y,k)=>`<g id="${id}"><rect x="${x}" y="${y}" width="${T3W}" height="${T3H}" rx="5" fill="var(--paper)" stroke="var(--steel)" stroke-width="1.2"/>
+ ${k>0?`<rect x="${x+1}" y="${y+1}" width="${T3W-2}" height="6" rx="3" fill="var(--steel)" fill-opacity=".3"/>`:''}${k<N3-1?`<rect x="${x+1}" y="${y+T3H-7}" width="${T3W-2}" height="6" rx="3" fill="var(--steel)" fill-opacity=".3"/>`:''}
+ ${[0,1,2,3].map(j=>`<rect x="${x+6}" y="${y+13+j*8}" width="${T3W-12-(j%2)*8}" height="2.5" rx="1.2" fill="var(--line)"/>`).join('')}</g>`;
+const row3=k=>{const y=ROWY(k);let x=TB.x,o=`<rect x="${TB.x-12}" y="${y+7}" width="8" height="10" rx="2" fill="${TCOL[k%4]}"/>`;TB.cw.forEach((w,c)=>{o+=`<rect x="${x}" y="${y}" width="${w}" height="${TB.rh}" fill="var(--paper)" stroke="var(--ink)" stroke-width="1"/>`;
+  o+=c===2?`${[0,1,2].map(d=>`<circle cx="${x+w/2-10+d*10}" cy="${y+TB.rh/2}" r="2.6" fill="var(--steel)"/>`).join('')}`:`<text id="rv${k}_${c}" class="mb" x="${x+w/2}" y="${y+16}" text-anchor="middle" style="font-size:10.5px;letter-spacing:0;fill:var(--steel)"></text>`;x+=w;});
+  return `<g id="row${k}">${o}</g>`;};
+const REC={x:668,y:226,w:250,h:112};
+const S3={life:'Searchable',term:'Embedding + indexing',dur:17000,
+ title:'Each chunk becomes searchable data',
+ lead:'PlantMind turns each chunk into a set of numbers called an <em>embedding</em>. These numbers represent what the chunk is about, helping PlantMind find related information even when different words are used.<br><br>Each embedding is then indexed in a vector database, along with the original text and tags, so PlantMind can quickly find the most relevant chunks when an operator asks a question.',
+ fact:'When an operator asks a question, PlantMind uses the same embedding model to turn that question into numbers too. It then compares them with the stored embeddings to find sections with similar meaning.',
+ build:()=>`${[...Array(N3)].map((_,k)=>{const [x,y]=T3(k);return tile3('t3'+k,x,y,k);}).join('')}
+  <g id="mb">${nnBig(MB.x+MB.w/2,MB.y+MB.h/2-6,'nn3')}</g>
+  <text id="tbh" class="mb" x="${TB.x}" y="${TB.y-12}">EMBEDDINGS</text>
+  ${[...Array(N3)].map((_,k)=>row3(k)).join('')}
+  <g id="tbl"><text class="m" x="${TB.x}" y="${ROWY(TBV)+18}" style="fill:var(--ink)">ONE ROW PER CHUNK · 1,024 NUMBERS EACH</text>
+   <text class="m" x="${TB.x}" y="${ROWY(TBV)+32}" style="font-size:9px">VALUES ILLUSTRATIVE</text></g>
+  <g id="vd"><text class="mb" x="${CUBE.cx}" y="44" text-anchor="middle">VECTOR DATABASE · PINECONE</text>
+   <text class="m" x="${CUBE.cx}" y="60" text-anchor="middle" style="font-size:9px">1,024 DIMENSIONS DRAWN AS 2</text>
+   <rect x="650" y="70" width="300" height="260" rx="14" fill="var(--sunk)" fill-opacity=".5" stroke="var(--line)" stroke-width="1.4"/>
+   ${OLD3.map((_,i)=>`<circle id="og${i}" fill="var(--faint)"/>`).join('')}
+   ${TCOL.map((c,i)=>`<circle cx="${CUBE.cx-150+i*9}" cy="352" r="4" fill="${c}"/>`).join('')}<text class="m" x="${CUBE.cx-112}" y="356" style="fill:var(--ink)">THIS DOCUMENT</text>
+   <circle cx="${CUBE.cx+2}" cy="352" r="4" fill="var(--faint)" fill-opacity=".6"/><text class="m" x="${CUBE.cx+12}" y="356">OTHER DOCUMENTS</text></g>
+  <g id="hl"></g>
+  <g id="hlt">${CL3.map((_,i)=>`<text id="ht${i}" class="s" text-anchor="middle" style="font-size:10px;font-weight:600;fill:${TCOL[i]}">${TOPIC[i]}</text>`).join('')}</g>
+  ${P3.map((_,k)=>`<circle id="dd${k}" fill="${TCOL[k%4]}"/>`).join('')}
+  ${[...Array(N3)].map((_,k)=>`<circle id="mv${k}" r="5" fill="var(--ink)"/>`).join('')}
+  <g id="rec"><line id="recl" stroke="var(--ink)" stroke-width="1.2"/>
+   <rect x="${REC.x}" y="${REC.y}" width="${REC.w}" height="${REC.h}" rx="8" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.5"/>
+   <text class="mb" x="${REC.x+14}" y="${REC.y+20}">ONE RECORD</text>
+   <text class="m" x="${REC.x+14}" y="${REC.y+42}" style="fill:var(--steel);font-weight:600">NUMBERS</text><text class="mb" x="${REC.x+84}" y="${REC.y+42}" style="font-size:9.5px;letter-spacing:.01em">[${VEC[0].slice(0,3).map(fmtv).join(', ')}, …]</text>
+   <text class="m" x="${REC.x+14}" y="${REC.y+66}" style="fill:var(--steel);font-weight:600">WORDS</text><text class="q" x="${REC.x+84}" y="${REC.y+66}" style="font-size:11px">“WORK INSTRUCTION · FL-101…”</text>
+   <text class="m" x="${REC.x+14}" y="${REC.y+90}" style="fill:var(--steel);font-weight:600">TAGS</text><text class="mb" x="${REC.x+84}" y="${REC.y+90}" style="fill:var(--pine);font-size:9.5px">FL-101 · WORK INSTR. · REV 1.0</text></g>
+  <text id="s3" class="say" x="500" y="428" text-anchor="middle">PlantMind organises information by meaning, making related sections easier to find.</text>`,
+ render(t){
+  const M=[MB.x+MB.w/2,MB.y+MB.h/2];
+  // the cube sways gently so it reads as 3D (still when motion is reduced)
+  const ang=0,depthOp=()=>1;
+  OLD3.forEach((p,i)=>{const [x,y,s,Z]=proj(p,ang);set('og'+i,{cx:x,cy:y,r:4,'fill-opacity':.45});});
+  CL3.forEach((c,i)=>{const [x,y,s]=proj(c,ang);set('ha'+i,{cx:x,cy:y+3,rx:30*s,ry:22*s});set('ht'+i,{x:x,y:i<2?y-22*s-6:y+22*s+15});});
+  op('vd',seg(t,0,.05));op('mb',seg(t,.02,.06));op('tbh',seg(t,.04,.08));op('tbl',seg(t,.3,.34));
+  const RT=k=>k===0?.24:.6+(k-1)*.026+.012;let latest=-1;for(let k=0;k<N3;k++)if(t>=RT(k))latest=k;
+  const top=Math.max(0,latest-(TBV-1)), SLOT=k=>k-top;                 // rows scroll up as new ones arrive
+  for(let k=0;k<N3;k++){const [x,y]=T3(k),C=[x+T3W/2,y+T3H/2],[dx,dy,ds,dz]=proj(P3[k],ang),R=[TB.x+TBW,ROWY(Math.max(0,SLOT(k)))+TB.rh/2];
+   // a: chunk leaves its tile · r: its row of numbers appears · b..e: its dot flies into the database
+   const a=k===0?.08:.6+(k-1)*.026, r=k===0?.24:a+.012, b=k===0?.36:a+.014, e=k===0?.44:a+.04;
+   op('t3'+k,seg(t,0,.05)*(1-seg(t,a,a+(k===0?.06:.012))));
+   let o=0,px=C[0],py=C[1];
+   if(t>=a&&t<(k===0?.16:r)){o=1;const u=seg(t,a,k===0?.16:r);px=lerp(C[0],M[0],u);py=lerp(C[1],M[1],u);}
+   else if(t>=b&&t<e){o=1;const u=seg(t,b,e);px=lerp(R[0],dx,u);py=lerp(R[1],dy,u)-Math.sin(u*Math.PI)*40;}
+   set('mv'+k,{cx:px,cy:py,opacity:o,fill:t>=b?TCOL[k%4]:'var(--ink)'});set('dd'+k,{cx:dx,cy:dy,r:5.6*ds,opacity:t>=e?depthOp(dz):0});
+   const ro=seg(t,r,r+(k===0?.04:.008)),vis=SLOT(k)>=0?1:0;
+   set('row'+k,{opacity:ro*vis,transform:`translate(${lerp(-10,0,ro)},${(SLOT(k)-k)*TB.rh})`});
+   let v=VEC[k];if(k===0&&t<.3){const f=Math.floor(t*400);v=v.map((_,i)=>(hsh(f+50,i)-.5)*.3);}
+   [0,1,3].forEach(c=>{const el=$(`rv${k}_${c}`);if(el)el.textContent=fmtv(c===3?v[5]:v[c]);});}
+  const sc=seg(t,.16,.24,true);set('mscan',{width:(MB.w-28)*(sc<1&&sc>0?(sc*3%1):0)});
+  {let busy=sc>0&&sc<1;for(let k=1;k<N3;k++){const a=.6+(k-1)*.026;if(t>=a&&t<a+.014)busy=true;}set('nn3',{'stroke-opacity':busy?.55+.45*Math.abs(Math.sin(t*90)):.45,stroke:busy?'var(--ink)':'var(--steel)'});}
+  {const [x,y]=proj(P3[0],ang);set('recl',{x1:x,y1:y+5,x2:REC.x+60,y2:REC.y});}
+  op('rec',seg(t,.46,.5)*(1-seg(t,.62,.65)));
+  op('hl',seg(t,.88,.93));op('hlt',seg(t,.9,.95));op('s3',seg(t,.92,.97));}};
+
+/* ---------------- 5 · ASKED ---------------- */
+// The question takes the same path as the chunks: same model, a row of numbers, a position on the same map.
+const QL=['“What checks are needed after changing','the fill valve seals?”'];
+const QV=[...Array(6)].map((_,i)=>(hsh(97,i)-.5)*.3);
+const QROW={x:356,y:206};
+const QLAND=[762,262];                                              // near the “checks after the fix” chunks
+const mapSVG=()=>`<text class="mb" x="${CUBE.cx}" y="44" text-anchor="middle">VECTOR DATABASE · PINECONE</text>
+  <text class="m" x="${CUBE.cx}" y="60" text-anchor="middle" style="font-size:9px">1,024 DIMENSIONS DRAWN AS 2</text>
+  <rect x="650" y="70" width="300" height="260" rx="14" fill="var(--sunk)" fill-opacity=".5" stroke="var(--line)" stroke-width="1.4"/>
+  <g id="aold">${OLD3.map(p=>{const [x,y]=proj(p);return `<circle cx="${x}" cy="${y}" r="4" fill="var(--faint)" fill-opacity=".45"/>`;}).join('')}</g>
+  ${CL3.map((c,i)=>{const [x,y]=proj(c);return `<text class="s" x="${x}" y="${i<2?y-25:y+40}" text-anchor="middle" style="font-size:10px;font-weight:600;fill:${TCOL[i]}">${TOPIC[i]}</text>`;}).join('')}
+  ${P3.map((p,k)=>{const [x,y]=proj(p);return `<circle cx="${x}" cy="${y}" r="5.6" fill="${TCOL[k%4]}"/>`;}).join('')}
+  
+  <g id="aleg">${TCOL.map((c,i)=>`<circle cx="${CUBE.cx-160+i*9}" cy="352" r="4" fill="${c}"/>`).join('')}<text class="m" x="${CUBE.cx-122}" y="356" style="fill:var(--ink)">FL-101 WORK INSTR.</text>
+   <circle cx="${CUBE.cx+50}" cy="352" r="4" fill="var(--faint)" fill-opacity=".6"/><text class="m" x="${CUBE.cx+60}" y="356">OTHER DOCUMENTS</text></g>`;
+const S5={life:'Question',term:'Query + metadata filter',dur:15000,
+ title:'The operator asks a question, and PlantMind gets it ready to search',
+ lead:'An operator asks a question in their own words. PlantMind identifies which machine they’re asking about and turns the question into a set of numbers using the same embedding model used for the documents. This helps PlantMind find chunks that match the meaning of the question, even if different words are used.<br><br>Before searching, PlantMind uses the document tags to narrow down where to look. For example, if the question is about machine FL-101, it searches only the relevant work instructions for that machine. If PlantMind can’t identify the machine, it says so instead of searching other equipment’s documents.',
+ fact:'<b>IN PLANTMIND</b>Every investigation needs a machine to be identified first. If PlantMind can’t identify the machine, it shows “No matching equipment manual found” instead of searching through documents for other equipment.',
+ build:()=>`${person(54,92)}<text class="mb" x="76" y="96">OPERATOR</text>
+  <rect x="30" y="112" width="276" height="60" rx="10" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.3"/>
+  ${QL.map((l,i)=>`<text id="q5${i}" class="q" x="44" y="${137+i*22}" style="font-size:14px"></text>`).join('')}
+  <rect id="qhl" x="44" y="${142}" width="0" height="2.5" fill="var(--pine)"/>
+  <g id="mc">${chip(30,206,'MACHINE · FL-101','pine',10)}<text class="m" x="30" y="232" style="font-size:9px">THE MACHINE THE QUESTION IS ABOUT</text></g>
+  <circle id="qtok" r="5" fill="var(--ink)"/>
+  <g id="mb5">${nnBig(MB.x+MB.w/2,MB.y+70+MB.h/2-6,'nn5')}
+   <text class="m" x="${MB.x+MB.w/2}" y="${MB.y+MB.h+98}" text-anchor="middle" style="font-size:8.5px">SAME MODEL AS THE CHUNKS</text></g>
+  <g id="qrow"><text class="mb" x="${QROW.x}" y="${QROW.y+56}">QUESTION EMBEDDING</text>
+   ${(()=>{let x=QROW.x,o='';TB.cw.forEach((w,c)=>{o+=`<rect x="${x}" y="${QROW.y+64}" width="${w}" height="${TB.rh}" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.4"/>`;
+     o+=c===2?[0,1,2].map(d=>`<circle cx="${x+w/2-10+d*10}" cy="${QROW.y+64+TB.rh/2}" r="2.6" fill="var(--ink)"/>`).join(''):`<text id="qv${c}" class="mb" x="${x+w/2}" y="${QROW.y+80}" text-anchor="middle" style="font-size:10.5px;letter-spacing:0"></text>`;x+=w;});return o;})()}</g>
+  <g id="flt"><text class="mb" x="${QROW.x}" y="${QROW.y+124}">METADATA FILTER</text>
+   ${chip(QROW.x,QROW.y+146,'MACHINE = FL-101','pine',9)}${chip(QROW.x,QROW.y+168,'TYPE = WORK INSTRUCTION','pine',9)}</g>
+  ${mapSVG()}
+  <g id="qd"><path d="M0,-9 l9,9 l-9,9 l-9,-9 z" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.2"/></g>
+  <text id="qdl" class="mb" x="${QLAND[0]+14}" y="${QLAND[1]+4}">THE QUESTION</text>
+  <text id="s5" class="say" x="500" y="428" text-anchor="middle">The question is converted into the same format as the stored sections, so PlantMind can compare their meaning.</text>`,
+ render(t){
+  typeOut('q5',QL,seg(t,.03,.2,true));
+  let w=0;try{w=$('q50').getSubStringLength(0,Math.min(8,$('q50').textContent.length));}catch(e){}
+  op('mc',seg(t,.25,.29));
+  const M=[MB.x+MB.w/2,MB.y+70+MB.h/2];
+  op('mb5',seg(t,.3,.33));
+  const go=seg(t,.33,.39);set('qtok',{cx:lerp(170,M[0],go),cy:lerp(172,M[1],go),opacity:t>.33&&t<.39?1:0});
+  const sc=seg(t,.39,.46,true);set('ms5',{width:(MB.w-28)*(sc<1&&sc>0?(sc*3%1):0)});
+  {const busy=sc>0&&sc<1;set('nn5',{'stroke-opacity':busy?.55+.45*Math.abs(Math.sin(t*90)):.45,stroke:busy?'var(--ink)':'var(--steel)'});}
+  op('qrow',seg(t,.46,.5));
+  let v=QV;if(t<.55){const f=Math.floor(t*400);v=v.map((_,i)=>(hsh(f+300,i)-.5)*.3);}
+  ['qv0','qv1','qv3'].forEach((id,j)=>{$(id).textContent=fmtv(j===2?v[5]:v[j]);});
+  op('flt',seg(t,.58,.62));op('aold',lerp(1,.08,seg(t,.62,.7)));
+  const R=[QROW.x+TBW,QROW.y+64+TB.rh/2],f=seg(t,.72,.84);
+  set('qd',{transform:`translate(${lerp(R[0],QLAND[0],f)},${lerp(R[1],QLAND[1],f)-Math.sin(f*Math.PI)*50})`,opacity:t>.71?1:0});
+  op('qdl',seg(t,.84,.88));op('s5',seg(t,.9,.95));}};
+
+/* ---------------- 6 · RETRIEVED ---------------- */
+// Real result (evals/lifecycle/retrieved_ranking.json): the maintenance search for this question,
+// filtered to FL-101 work instructions (8 sections). Pinecone order, then the reranker's order; top 4 go on to Read.
+const Q2='What checks are needed after changing the fill valve seals?';
+const SECS={2:['Scope · when to replace','Replace the seal kit when a valve drips…'],7:['Troubleshooting after the job','Valve still drips → refit the seal'],
+ 5:['Rinse + first-bottle check','Weigh the first 20 bottles: 495–505 ml'],8:['Sign-off','Supervisor signs off the first-bottle check'],
+ 1:['Document header','Equipment: FL-101 Bottle Filler'],3:['Safety','Lock out the machine before starting'],
+ 4:['Procedure','Press STOP and lock out the machine'],6:['Inspecting the old seals','Look at every seal you remove']};
+const PINE_ORDER=[2,7,5,8,1,3,4,6], RERANK_ORDER=[5,2,7,4,1,3,6,8], TOP4=RERANK_ORDER.slice(0,4);
+const CARD={x:380,y:66,w:580,h:36,gap:42}, rowY=r=>CARD.y+r*CARD.gap;
+// the operator's question stays pinned in the same corner through Question → Retrieved → Read
+const qChip=()=>`<g id="qch"><rect x="20" y="10" width="${Q2.length*6.4+128}" height="26" rx="13" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.2"/>
+ <text class="m" x="34" y="27" style="fill:var(--ink);font-weight:600">OPERATOR ASKS</text><text class="q" x="134" y="28" style="font-size:12.5px">“${Q2}”</text></g>`;
+const secCard=(p,id,x,y,w)=>`<g id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${CARD.h}" rx="7" fill="var(--paper)" stroke="var(--steel)" stroke-width="1.2"/>
+ <text id="${id}n" class="mb" x="${x+14}" y="${y+23}" style="fill:var(--steel)"></text>
+ <text class="mb" x="${x+40}" y="${y+16}" style="font-size:10px">${SECS[p][0].toUpperCase()}</text>
+ <text class="q" x="${x+40}" y="${y+30}" style="font-size:11px;fill:var(--muted)">${SECS[p][1]}</text></g>`;
+const MD=PINE_ORDER.map((p,i)=>[[200,176],[150,214],[196,230],[132,170],[246,150],[110,246],[262,252],[86,140]][i]);
+const MQ=[178,200];
+const S6={life:'Retrieved',term:'Similarity search · Top 4 matches',dur:19000,
+ title:'The closest matching chunks are found and returned as stored',
+ lead:'PlantMind compares the operator’s question with the stored document chunks and selects the four closest matches (top K = 4). It returns the original text exactly as it was uploaded, without rewriting or summarising it. At this stage, AI hasn’t generated an answer yet. The four best matches are sent to an AI, which reads them before an answer is written.',
+ fact:'<b>IN PLANTMIND</b>Top K is the number of matches PlantMind keeps from a search. Here K = 4: the four sections closest in meaning to the question. Because the search works by meaning, a section can match even when it uses different words from the question.',
+ build:()=>{seed=33;let grey='';for(let i=0;i<12;i++)grey+=`<circle cx="${50+rnd()*260}" cy="${80+rnd()*220}" r="4" fill="var(--faint)" fill-opacity=".35"/>`;
+  return `${qChip()}
+  <g id="m6"><rect x="30" y="60" width="300" height="260" rx="12" fill="var(--sunk)" fill-opacity=".5" stroke="var(--line)"/>
+   <text class="m" x="44" y="80" style="font-size:9px">MEANING MAP · FL-101 WORK INSTRUCTION ONLY</text>${grey}
+   <circle id="mring" cx="${MQ[0]}" cy="${MQ[1]}" r="0" fill="none" stroke="var(--ink)" stroke-width="1.4" stroke-dasharray="5 4"/>
+   <g transform="translate(${MQ[0]},${MQ[1]})"><path d="M0,-9 l9,9 l-9,9 l-9,-9 z" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/></g></g>
+  ${MD.map(([x,y],i)=>`<circle id="md${i}" cx="${x}" cy="${y}" r="6" fill="var(--steel)"/>`).join('')}
+  <text id="stepl" class="mb" x="${CARD.x}" y="50" style="fill:var(--pine)"></text>
+  <rect id="rscan" x="${CARD.x-6}" y="${CARD.y-4}" width="${CARD.w+12}" height="4" rx="2" fill="var(--pine)"/>
+  ${PINE_ORDER.map((p,i)=>secCard(p,'sc'+p,0,0,CARD.w)).join('')}
+  <rect id="top4" x="${CARD.x-8}" y="${CARD.y-6}" width="${CARD.w+16}" height="${3*CARD.gap+CARD.h+12}" rx="11" fill="none" stroke="var(--ink)" stroke-width="2"/>
+  <g id="toread"><text class="mb" x="${CARD.x+CARD.w}" y="${rowY(4)+22}" text-anchor="end">→ THESE FOUR GO TO THE AI, WORD FOR WORD</text></g>
+  <text id="s6" class="say" x="500" y="430" text-anchor="middle">Original text returned exactly as stored</text>`;},
+ render(t){
+  op('qch',1);op('m6',lerp(1,.25,seg(t,.38,.46)));
+  const ring=seg(t,.06,.16);set('mring',{r:lerp(0,110,ring),opacity:ring>0&&t<.4?1:0});
+  // 1 · Pinecone: the nearby sections come forward as cards, in meaning order
+  const lab=t<.42?'1 · PINECONE · CLOSEST IN MEANING':t<.7?'2 · RERANKER · MOST RELEVANT TO THE QUESTION':'3 · TOP K = 4 · BEST FOUR SELECTED';
+  $('stepl').textContent=lab;op('stepl',seg(t,.06,.1));
+  const mv=seg(t,.52,.68);
+  PINE_ORDER.forEach((p,i)=>{const u=seg(t,.18+i*.02,.28+i*.02),[dx,dy]=MD[i];
+   op('md'+i,u<1?1-u:0);set('md'+i,{cx:lerp(dx,CARD.x,u),cy:lerp(dy,rowY(i)+18,u)});
+   const r2=RERANK_ORDER.indexOf(p),y=lerp(rowY(i),rowY(r2),mv),keep=r2<4;
+   const fade=keep?1:lerp(1,.22,seg(t,.74,.8));
+   set('sc'+p,{transform:`translate(${CARD.x+lerp(-30,0,u)},${y})`,opacity:u*fade});
+   $('sc'+p+'n').textContent='#'+(mv<.5?i+1:r2+1);
+   const card=$('sc'+p).firstElementChild;const hl=p===5&&t>.5;card.setAttribute('stroke',hl?'var(--pine)':'var(--steel)');card.setAttribute('stroke-width',hl?2.4:1.2);});
+  // 2 · Reranker: reads each section with the question, then the order changes
+  const sc2=seg(t,.44,.52,true);set('rscan',{y:CARD.y-4+sc2*(7*CARD.gap+CARD.h),opacity:sc2>0&&sc2<1?1:0});
+  // 3 · Top K = 4: the best four are gathered and handed on
+  op('top4',seg(t,.76,.8));op('toread',seg(t,.84,.9));op('s6',seg(t,.92,.97));}};
+
+/* ---------------- 6 · ANSWER ---------------- */
+// The four sections Retrieved handed over → tokens → the answer, written word by word → verifier (planned) → operator.
+const TOKS=['After',' changing',' the',' seals',' rinse',' 10',' minutes',' weigh',' the',' first',' 20',' bottles','495','–','505',' ml',' refit',' nozzle'];
+// the answer: each line draws on the section it came from (index into TOP4) — wording illustrative
+const ANS=[['After changing the seals:',0],['1. Run the 10-minute sanitation rinse.',0],['2. Weigh the first 20 bottles: 495–505 ml.',0],['3. Still dripping? Refit the seal.',2],['4. Underfilling, no drip? Clean the nozzle.',2]];
+const AIB={x:378,y:150,w:150,h:96}, ANB={x:580,y:52,w:380,h:226};
+const CC=[455,158], CH=32;                                          // AI chip centre and half-size
+const LIN=[-22,-8,8,22].map(dy=>CC[1]+dy).map(y=>{const y2=y+(y-CC[1])*.6;return {y,y2,d:`M368,${y2} H388 L398,${y} H${CC[0]-CH}`};});
+const chipSVG=()=>{let o='';
+ LIN.forEach((l,i)=>{o+=`<path id="ti${i}" d="${l.d}" fill="none" stroke="var(--steel)" stroke-width="2"/><circle cx="364" cy="${l.y2}" r="4.5" fill="var(--paper)" stroke="var(--steel)" stroke-width="2"/>`;});
+ [-14,14].forEach(dy=>{const y=CC[1]+dy;o+=`<path d="M${CC[0]+CH},${y} H${CC[0]+CH+22}" fill="none" stroke="var(--steel)" stroke-width="2"/><circle cx="${CC[0]+CH+26}" cy="${y}" r="4.5" fill="var(--paper)" stroke="var(--steel)" stroke-width="2"/>`;});
+ o+=`<rect id="chip" x="${CC[0]-CH}" y="${CC[1]-CH}" width="${CH*2}" height="${CH*2}" rx="10" fill="var(--surface)" stroke="var(--steel)" stroke-width="3"/>
+  <text id="chipt" x="${CC[0]}" y="${CC[1]+10}" text-anchor="middle" style="font:700 28px 'IBM Plex Sans',sans-serif;fill:var(--steel)">AI</text>
+  <text class="mb" x="${CC[0]}" y="${CC[1]+CH+24}" text-anchor="middle">THE AI</text><text class="m" x="${CC[0]}" y="${CC[1]+CH+38}" text-anchor="middle" style="font-size:9px">READS TOKENS · GENERATES THE ANSWER</text>`;
+ return o;};
+const S7={life:'Answer',term:'Tokens · generation · verifier',dur:21000,
+ title:'The AI prepares an answer, which is checked before the operator sees it',
+ lead:'PlantMind sends the operator’s question and the four selected chunks to the AI. The AI uses this information to prepare an answer, with references to the original documents.<br><br>First, specialist AIs review the relevant chunks and pull out important details. A writer AI then brings everything together into a clear, easy-to-understand answer. Finally, a verifier will check the answer against the source documents to make sure the information is supported before showing it to the operator.',
+ fact:'',
+ build:()=>`${qChip()}
+  ${TOP4.map((p,i)=>secCard(p,'ev'+p,30,56+i*44,300)).join('')}
+  ${ANS.map((l,i)=>{const [cx,cy]=[330,56+l[1]*44+18],ay=ANB.y+56+i*24;return `<path id="att${i}" d="M${ANB.x},${ay-4} C${ANB.x-90},${ay-4} ${cx+90},${cy} ${cx},${cy}" fill="none" stroke="var(--pine)" stroke-width="1.3"/>`;}).join('')}
+  ${TOKS.map((k,i)=>`<g id="tk${i}"><rect x="-${k.length*3.4+6}" y="-9" width="${k.length*6.8+12}" height="18" rx="5" fill="var(--steel-soft)" stroke="var(--steel)"/><text class="mb" x="0" y="4" text-anchor="middle" style="font-size:9.5px;letter-spacing:0;fill:var(--steel)">${k.trim()||'·'}</text></g>`).join('')}
+  <g id="aib">${chipSVG()}</g>
+  <path id="aia" d="M${CC[0]+CH},${CC[1]} H${ANB.x-4}" fill="none" stroke="var(--ink)" stroke-width="1.4" marker-end="url(#ah)"/>
+  <text id="stp7" class="mb" x="30" y="248" style="fill:var(--pine)"></text>
+  <g id="anb"><rect x="${ANB.x}" y="${ANB.y}" width="${ANB.w}" height="${ANB.h}" rx="10" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.6"/>
+   <text class="mb" x="${ANB.x+16}" y="${ANB.y+24}">ANSWER</text><text class="m" x="${ANB.x+ANB.w-14}" y="${ANB.y+24}" text-anchor="end" style="font-size:8.5px">WORDING ILLUSTRATIVE</text>
+   ${ANS.map((l,i)=>`<text id="an${i}" class="s" x="${ANB.x+16}" y="${ANB.y+56+i*24}" style="font-size:13px;${i?'':'font-weight:600'}"></text>`).join('')}
+   <text id="ansrc" class="m" x="${ANB.x+16}" y="${ANB.y+ANB.h-14}" style="fill:var(--steel);font-weight:600">SOURCE · WI-FL101-001 · CHUNKS #1 AND #3</text></g>
+  <g id="ver"><rect x="${ANB.x}" y="300" width="${ANB.w}" height="52" rx="10" fill="var(--brass-soft)" fill-opacity=".5" stroke="var(--brass)" stroke-width="1.6" stroke-dasharray="7 5"/>
+   <text class="mb" x="${ANB.x+16}" y="322" style="fill:var(--brass)">VERIFIER</text>
+   <text class="s" x="${ANB.x+16}" y="341" style="font-size:11.5px">Checks every step and value against the sources.</text></g>
+  <path id="opa" d="M${ANB.x+ANB.w/2},352 V378" fill="none" stroke="var(--ink)" stroke-width="1.4" marker-end="url(#ah)"/>
+  <g id="opg">${person(ANB.x+ANB.w/2-70,404,.9)}<text class="mb" x="${ANB.x+ANB.w/2-44}" y="402">OPERATOR</text><text class="m" x="${ANB.x+ANB.w/2-44}" y="416">GETS THE ANSWER AND ITS SOURCE</text></g>`,
+ render(t){
+  op('qch',1);TOP4.forEach((p,i)=>{op('ev'+p,1);$('ev'+p+'n').textContent='#'+(i+1);});
+  op('aib',seg(t,.03,.07));
+  // 1 · tokens: pieces of the sections and the question flow into the AI
+  const busy=[0,0,0,0];
+  TOKS.forEach((k,i)=>{const s0=.06+i*.011,li=i%4,L=LIN[li],src=i<4?[200,23]:[330,56+(i%4)*44+18];
+   const a=seg(t,s0,s0+.05),b=seg(t,s0+.05,s0+.09,true);let x,y,o=0;
+   if(a>0&&a<1){o=1;x=lerp(src[0],364,a);y=lerp(src[1],L.y2,a);}
+   else if(a>=1&&b<1){o=1;busy[li]=1;const pt=along('ti'+li,b);x=pt.x;y=pt.y;}
+   set('tk'+i,{transform:`translate(${x||0},${y||0}) scale(${o?lerp(1,.75,b):1})`,opacity:o});});
+  LIN.forEach((_,li)=>set('ti'+li,{stroke:busy[li]?'var(--pine)':'var(--steel)','stroke-width':busy[li]?3:2}));
+  const gen=t>.28&&t<.62;set('chip',{stroke:gen?'var(--pine)':'var(--steel)','stroke-opacity':gen?.6+.4*Math.abs(Math.sin(t*60)):1});set('chipt',{style:`font:700 28px 'IBM Plex Sans',sans-serif;fill:${gen?'var(--pine)':'var(--steel)'}`});
+  const lab=t<.26?'1 · TOKENS · TEXT IN SMALL PIECES':t<.64?'2 · GENERATED WORD BY WORD, WEIGHING THE SECTIONS':t<.8?'3 · VERIFIER':'4 · THE OPERATOR GETS THE ANSWER';
+  $('stp7').textContent=lab;op('stp7',seg(t,.05,.09));
+  // 2 · the answer, word by word; a faint line shows which section each line leans on
+  op('aia',seg(t,.24,.27));op('anb',seg(t,.25,.28));
+  const words=ANS.map(l=>l[0].split(' ')),tot=words.flat().length,n=Math.floor(tot*seg(t,.28,.62,true));let used=0;
+  ANS.forEach((l,i)=>{const w=words[i];const shown=Math.max(0,Math.min(w.length,n-used));$('an'+i).textContent=w.slice(0,shown).join(' ');
+   const active=shown>0&&shown<w.length,done=shown===w.length;op('att'+i,active?.85:0);used+=w.length;});
+  op('ansrc',seg(t,.6,.64));
+  // 3 · verifier (planned)  4 · to the operator
+  op('ver',seg(t,.66,.71));op('opa',seg(t,.82,.85));op('opg',seg(t,.84,.88));}};
+
+const ST=[S1,S2,S3,S5,S6,S7];
+const PACE=.7, READ=7000, HOLD=2000;      // calm pace · reading pause · hold on the finished picture
+let cur=0,t=0,playing=false,wait=0,raf=0,last=0,on=false;
+function bar(){const b=$('dj-bar');if(!b)return;b.querySelectorAll('button').forEach((x,k)=>{x.classList.toggle('on',k===cur);x.classList.toggle('done',k<cur);});
+  $('dj-fill').style.width=`${(100-100/ST.length)*cur/(ST.length-1)}%`;
+  b.onclick=e=>{const x=e.target.closest('button');if(x){const tick=document.querySelector(`#acts i[data-j="${x.dataset.k}"]`);if(tick)tick.click();}};}
+function go(i){cur=i;t=0;const S=ST[i];sc=$('dj-sc');sc.innerHTML=DEFS+S.build();sc.setAttribute('aria-label',S.title);
+  $('dj-kick').textContent=`Stage ${i+1} of ${ST.length} · ${S.life} · ${S.term}`;$('dj-ttl').textContent=S.title;$('dj-lead').innerHTML=S.lead;
+  sc.querySelectorAll('.say').forEach(e=>e.remove());bar();frame();}
+function frame(){ST[cur].render(t);}
+function label(){const c=$('dj-count');if(c)c.textContent=playing&&wait>0?`Animation starts in ${Math.ceil(wait/1000)}s`:'';}
+function loop(now){if(!on)return;const dt=Math.min(64,now-(last||now));last=now;
+  if(playing){if(wait>0){wait-=dt;label();}else if(t<1){t=Math.min(1,t+dt*PACE/ST[cur].dur);frame();}}
+  raf=requestAnimationFrame(loop);}
+return {
+  html:()=>`<div class="dj"><div class="dj-bar" id="dj-bar"><div class="dj-rail"></div><div class="dj-fill" id="dj-fill"></div>${ST.map((S,i)=>`<button data-k="${i}"><i></i>${i+1} ${S.life}</button>`).join('')}</div>
+    <div class="dj-kick" id="dj-kick"></div><div class="dj-title" id="dj-ttl"></div><p class="dj-lead" id="dj-lead"></p>
+    <div class="dj-count" id="dj-count"></div><div class="dj-scroll"><svg id="dj-sc" viewBox="0 0 1000 440" role="img"></svg></div>
+    <svg class="dj-hide" width="0" height="0" aria-hidden="true"><g class="toks"></g></svg></div>`,
+  names:()=>ST.map(S=>S.life),
+  durs:()=>ST.map(S=>READ+S.dur/PACE+HOLD),
+  step(k){if(!on){on=true;last=0;raf=requestAnimationFrame(loop);}go(k);if(reduce){t=1;frame();}wait=playing&&!reduce?READ:0;label();},
+  play(){playing=true;if(t===0&&!reduce)wait=READ;label();},
+  pause(){playing=false;wait=0;label();},
+  leave(){on=false;playing=false;cancelAnimationFrame(raf);}
+};
+})();
+
 const L = [
  {name:'How it works', lesson:'', plain:'',
   acts:[['J','The journey','var(--pine)']],
@@ -933,6 +1401,12 @@ const L = [
   ['J','Evidence shows us what the plant’s sources say. Validation is where we pressure-test the answer: does it fit what we know, did we include the steps that matter, and what do we do when two sources disagree?',15000],
   ['J','Only now does PlantMind answer: how serious is the situation, what should the operator check, and where did each recommendation come from? The operator remains in charge.',12000],
  ],
+  below:''},
+
+ {name:'From Document to Answer', lesson:'', plain:'', kick:'',
+  acts:DJ.names().map((n,i)=>['D'+i,n,'var(--pine)']),
+  scene:DJ.html, caps:DJ.durs().map((d,i)=>['D'+i,'',d]),
+  onStep:k=>DJ.step(k), onPlay:()=>DJ.play(), onStop:()=>DJ.pause(), onLeave:()=>DJ.leave(), hideActs:true,
   below:''},
 
  {name:'Architecture', lesson:'', plain:'', kick:'',
@@ -988,6 +1462,7 @@ SOON.forEach((n,i) => { const li = document.createElement('li'); li.className = 
   li.innerHTML = `<button disabled><span>${L.length+i}</span>${n}<em>soon</em></button>`; $('steps').appendChild(li); });
 
 function open(i){
+  if (L[cur] && L[cur].onLeave && cur !== i) L[cur].onLeave();
   cur = i; stop();
   document.querySelectorAll('.steps li:not(.soon) button').forEach((b,j) => b.classList.toggle('on', j === i));
   const l = L[i];
@@ -1001,6 +1476,7 @@ function open(i){
   $('stage').querySelectorAll('.hl').forEach(r => { const t = r.nextElementSibling; if (t) r.setAttribute('width', t.getBBox().width + 8); });
   $('stage').querySelectorAll('[data-edge]:not(.store)').forEach(p => { const n = p.getTotalLength(); p.dataset.len = n; p.style.strokeDasharray = n; p.style.strokeDashoffset = n; });
   caps = l.caps; acts = l.acts;
+  $('acts').style.visibility = l.hideActs ? 'hidden' : '';
   $('acts').innerHTML = acts.map(([k,n,c]) => `<div class="act" data-a="${k}" style="--ac:${c}"><span>${n}</span><div class="tk">`
     + caps.map((cp,j) => cp[0]===k ? `<i data-j="${j}"></i>` : '').join('') + '</div></div>').join('');
   $('acts').querySelectorAll('i').forEach(t => t.onclick = () => { stop(); show(+t.dataset.j); });
@@ -1043,6 +1519,7 @@ function scene(k){
 
 function show(k){
   step = k; scene(k);
+  if (L[cur].onStep) L[cur].onStep(k);
   const md = L[cur].model, last = caps.length-1;
   if (md) $('model').querySelectorAll('b').forEach(b => { const at = md[+b.dataset.j][2][0]; b.classList.toggle('on', k === at || k === last); b.classList.toggle('seen', k > at && k !== last); });
   const [a, text] = caps[k], act = acts.find(x => x[0] === a), inAct = caps.filter(c => c[0] === a), idx = caps.slice(0,k+1).filter(c => c[0] === a).length;
@@ -1057,10 +1534,11 @@ const wait = () => caps[step][2] || Math.max(3000, caps[step][1].length * 42);
 function play(){
   stop(); if (step >= caps.length-1) show(0);
   $('play').textContent = '❚❚ Pause';
+  if (L[cur].onPlay) L[cur].onPlay();
   const tick = () => { if (step >= caps.length-1) return stop(); show(step+1); timer = setTimeout(tick, wait()); };
   timer = setTimeout(tick, wait());
 }
-function stop(){ clearTimeout(timer); timer = null; $('play').textContent = '▶ Play'; }
+function stop(){ clearTimeout(timer); timer = null; $('play').textContent = '▶ Play'; if (L[cur] && L[cur].onStop) L[cur].onStop(); }
 $('play').onclick = () => timer ? stop() : play();
 $('next').onclick = () => { stop(); show(Math.min(step+1, caps.length-1)); };
 $('prev').onclick = () => { stop(); show(Math.max(step-1, 0)); };
