@@ -1579,11 +1579,19 @@ def investigate():
         context  = f"[Plant: {plant}, Line: {line}] "
         incident = context + incident
 
+    # The run_id is made HERE, before the investigation starts, so it can go
+    # back in a response header (X-PM-Run-Id): promptfoo saves response
+    # headers in its results, which links every eval score to its run record.
+    # Sent for failed runs too, since headers go out before the first chunk.
+    import uuid
+    run_id = str(uuid.uuid4())
+
     def stream():
         try:
             for chunk in investigate_incident(incident, equipment_id=equip,
                                               run_tag=run_tag, source=source,
-                                              plant_site=plant, line=line):
+                                              plant_site=plant, line=line,
+                                              run_id=run_id):
                 yield chunk
         except Exception as e:
             err = str(e)
@@ -1593,7 +1601,7 @@ def investigate():
                 yield f"\n\nInvestigation error: {err}"
 
     return Response(stream_with_context(stream()), mimetype="text/plain",
-                    headers={"X-Accel-Buffering": "no"})
+                    headers={"X-Accel-Buffering": "no", "X-PM-Run-Id": run_id})
 
 @app.route("/api/llm-stats", methods=["GET"])
 def llm_stats():

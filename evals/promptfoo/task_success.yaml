@@ -80,7 +80,7 @@ defaultTest:
     equip_tag: FL-101
     # Change this for each run (ts-d1, ts-d2, ...) so runs stay apart in
     # investigation_runs.run_tag.
-    run_label: obs-check
+    run_label: obs-check-3
   assert:
     # Sanity checks on every answer (already tested in this project):
     # no repetition loop, not cut off mid-sentence.

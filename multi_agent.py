@@ -1739,7 +1739,7 @@ def _is_rate_limit(err):
 
 @traceable(name="investigation", reduce_fn=join_stream)
 def investigate_incident(incident, equipment_id=None, run_tag="", source="script",
-                         plant_site="", line=""):
+                         plant_site="", line="", run_id=None):
     """
     Runs one investigation and keeps a run record of it (run_record.py): a
     "running" row at the start, the full result at the end. The end is
@@ -1760,7 +1760,7 @@ def investigate_incident(incident, equipment_id=None, run_tag="", source="script
         return
 
     rec = run_record.start(incident, equipment_id, plant_site=plant_site, line=line,
-                           run_tag=run_tag, source=source)
+                           run_tag=run_tag, source=source, run_id=run_id)
     rec.set(model_fast=MODEL_FAST, model_deep=MODEL_DEEP, switches=_run_switches(),
             langsmith_trace_id=tag_trace(rec.run_id))
     status, error = "cancelled", None   # stays "cancelled" if the caller goes away

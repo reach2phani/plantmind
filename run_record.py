@@ -108,8 +108,10 @@ CODE_HASH  = _code_hash()
 
 class RunRecord:
     def __init__(self, question, equip_tag, plant_site="", line="",
-                 run_tag="", source="script"):
-        self.run_id = str(uuid.uuid4())
+                 run_tag="", source="script", run_id=None):
+        # The caller may choose the id (app.py sends it to promptfoo in a
+        # header before the investigation starts); otherwise make one.
+        self.run_id = run_id or str(uuid.uuid4())
         self._lock = threading.Lock()
         self._t0 = time.time()
         self._finished = False
@@ -299,11 +301,12 @@ def _bounded(fn, timeout_s, what, backup=None):
 
 # ── Public helpers ────────────────────────────────────────────────────────
 
-def start(question, equip_tag, plant_site="", line="", run_tag="", source="script"):
+def start(question, equip_tag, plant_site="", line="", run_tag="", source="script",
+          run_id=None):
     """Create the record and write the "running" row without waiting for it
     (finish() waits for it, at most START_TIMEOUT_S). The caller makes it
     current with use(), step by step."""
-    rec = RunRecord(question, equip_tag, plant_site, line, run_tag, source)
+    rec = RunRecord(question, equip_tag, plant_site, line, run_tag, source, run_id)
     row = dict(rec.summary)
 
     def write():
