@@ -85,7 +85,8 @@ def acquire(model, tokens):
                     s = _stats.setdefault(model, {"waits": 0, "waited_s": 0.0})
                     s["waits"] += 1
                     s["waited_s"] += waited
-                return {"model": model, "entry": entry}
+                return {"model": model, "entry": entry, "waited_s": waited, "used": used,
+                        "budget": budget, "tokens": tokens}
             wait = max(0.2, WINDOW_S - (now - window[0][0]) + 0.1)
             if not announced:
                 print(f"  [token budget] {model}: {used}+{tokens} > {budget} tokens/min "

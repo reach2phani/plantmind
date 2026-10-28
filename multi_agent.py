@@ -32,8 +32,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from llm_logger import log_llm_call
-from tracing import traceable, llm_inputs, llm_outputs, join_stream
+from tracing import traceable, llm_inputs, llm_outputs, join_stream, tag_trace
 import contextvars
+import run_record
 
 import time as _time
 
@@ -74,6 +75,17 @@ def _groq_call_with_retry(fn, max_retries=3, call_type="specialist",
     """
     for attempt in range(max_retries):
         reservation = acquire(model, estimate)
+        # Time spent waiting for free-tier quota (token_budget.py), recorded
+        # so a slow run can be split into "working" vs "waiting for quota".
+        waited = (reservation or {}).get("waited_s", 0) or 0
+        if waited > 0.05:
+            rec = run_record.current()
+            if rec:
+                rec.count("budget_wait_ms", int(waited * 1000))
+                rec.event("budget_wait", call_type=call_type, model=model,
+                          waited_s=round(waited, 1), needed_tokens=reservation.get("tokens"),
+                          used_this_minute=reservation.get("used"),
+                          budget_per_minute=reservation.get("budget"))
         try:
             response = log_llm_call(
                 fn=fn, call_type=call_type, model=model,
@@ -98,6 +110,10 @@ def _groq_call_with_retry(fn, max_retries=3, call_type="specialist",
                 # of a flat 55s wait, with a short backoff as the fallback.
                 wait = _retry_after_seconds(str(e), default=[3, 8, 15][attempt])
                 print(f"  Rate limit hit — waiting {wait:.1f}s before retry {attempt+1}/{max_retries}")
+                rec = run_record.current()
+                if rec:
+                    rec.count("retries")
+                    rec.event("retry", call_type=call_type, model=model, wait_s=round(wait, 1))
                 _time.sleep(wait)
             else:
                 raise
@@ -194,6 +210,9 @@ def _rerank(query, matches, top_k):
         with _search_stats_lock:
             _search_stats["fallback"] += 1
             _search_stats["last_error"] = str(e)[:200]
+        rec = run_record.current()
+        if rec:
+            rec.count("rerank_fallbacks")
         print(f"  [search] rerank unavailable ({str(e)[:100]}): using meaning order")
         return None
 
@@ -229,17 +248,27 @@ def search_plantmind(query, doc_type_filter=None, equipment_filter=None, top_k=4
         filter=filter_dict if filter_dict else None
     )
 
+    rec = run_record.current()
     if not results.matches:
+        if rec:
+            rec.pieces("documents", doc_type_filter, query, [], outcome="no_data")
         return "NO_DATA: No documents found in PlantMind for this query."
 
     strong_matches = [m for m in results.matches if m.score >= 0.4]
 
     if not strong_matches:
+        if rec:
+            rec.pieces("documents", doc_type_filter, query, [], outcome="low_confidence")
         return "LOW_CONFIDENCE: Documents found but similarity score below threshold. Do not cite — state insufficient data."
 
+    reranked = False
     if rerank:
         picked = _rerank(query, strong_matches, top_k) if len(strong_matches) > 1 else None
+        reranked = bool(picked)
         strong_matches = picked if picked else strong_matches[:top_k]
+
+    if rec:   # exactly the pieces handed to the specialist, in order
+        rec.pieces("documents", doc_type_filter, query, strong_matches, reranked=reranked)
 
     output = []
     for match in strong_matches:
@@ -357,13 +386,20 @@ def search_expert_fixes(query, equipment_filter=None, top_k=3):
         filter=filter_dict
     )
 
+    rec = run_record.current()
     if not results.matches:
+        if rec:
+            rec.pieces("expert_fixes", "Expert Fix", query, [], outcome="no_data")
         return "NO_DATA: No expert fixes found in PlantMind for this equipment.", []
 
     strong_matches = [m for m in results.matches if m.score >= 0.4]
     strong_matches = _drop_disputed(strong_matches)
     if not strong_matches:
+        if rec:
+            rec.pieces("expert_fixes", "Expert Fix", query, [], outcome="low_confidence")
         return "LOW_CONFIDENCE: Expert fixes found but similarity too low — do not cite.", []
+    if rec:
+        rec.pieces("expert_fixes", "Expert Fix", query, strong_matches)
 
     approved = _approved_fix_ids([m.metadata.get("expert_fix_id") for m in strong_matches])
 
@@ -1673,21 +1709,43 @@ def supervisor_route(incident, equipment_id=None, graph_context=None):
 
 # ── Parallel Coordinator + Streaming Generator ─────────────────────────────────
 
+def _graph_source(graph_context, graph_disabled):
+    if graph_disabled:
+        return "off"
+    if not graph_context:
+        return "none"
+    if graph_context.get("degraded"):
+        return graph_context.get("source") or "local_file"
+    return graph_context.get("source") or "neo4j"
+
+
+def _run_switches():
+    """The settings that change an answer, saved with every run record."""
+    return {
+        "search_rerank": SEARCH_RERANK,
+        "writer_gets_evidence": WRITER_GETS_EVIDENCE,
+        "graph_disabled": os.getenv("PM_EVAL_DISABLE_GRAPH", "").strip().lower() == "true",
+        "graph_no_routing": os.getenv("PM_EVAL_GRAPH_NO_ROUTING", "").strip().lower() == "true",
+        "reflection": ENABLE_REFLECTION,
+        "specialist_query_version": SPECIALIST_QUERY_VERSION,
+        "search_piece_max_chars": SEARCH_PIECE_MAX_CHARS,
+    }
+
+
+def _is_rate_limit(err):
+    t = str(err).lower()
+    return "rate_limit" in t or "429" in t or "413" in t or "too large" in t
+
+
 @traceable(name="investigation", reduce_fn=join_stream)
-def investigate_incident(incident, equipment_id=None):
+def investigate_incident(incident, equipment_id=None, run_tag="", source="script",
+                         plant_site="", line=""):
     """
-    Generator — supervisor routes to relevant agents, then orchestrates.
-    Yields progress updates and the final report for streaming to the UI.
-
-    Architecture change from PM-037:
-      Before: always runs all 4 agents (fixed fan-out)
-      After:  supervisor reads incident → selects 1-4 agents (dynamic routing)
-
-    Benefits: fewer tokens, better focused reports, more investigations/day.
-    Falls back to all 4 agents if supervisor classification fails.
+    Runs one investigation and keeps a run record of it (run_record.py): a
+    "running" row at the start, the full result at the end. The end is
+    written whatever happens: finished (ok), failed (error / rate_limited),
+    or the caller went away mid-stream (cancelled).
     """
-
-    # Use passed equipment_id or extract from incident text as fallback
     if not equipment_id:
         import re
         equipment_match = re.search(r'\b([A-Z]{1,3}-\d{2,4})\b', incident)
@@ -1701,6 +1759,37 @@ def investigate_incident(incident, equipment_id=None):
                "below (e.g., WM-101) or upload the required documents to proceed.\n")
         return
 
+    rec = run_record.start(incident, equipment_id, plant_site=plant_site, line=line,
+                           run_tag=run_tag, source=source)
+    rec.set(model_fast=MODEL_FAST, model_deep=MODEL_DEEP, switches=_run_switches(),
+            langsmith_trace_id=tag_trace(rec.run_id))
+    status, error = "cancelled", None   # stays "cancelled" if the caller goes away
+    try:
+        status, error = yield from _investigate_steps(incident, equipment_id, rec)
+    except Exception as e:
+        status, error = ("rate_limited" if _is_rate_limit(e) else "error"), e
+        raise
+    finally:
+        rec.finish(status, error)
+
+
+def _investigate_steps(incident, equipment_id, rec):
+    """
+    Generator — supervisor routes to relevant agents, then orchestrates.
+    Yields progress updates and the final report for streaming to the UI.
+
+    Architecture change from PM-037:
+      Before: always runs all 4 agents (fixed fan-out)
+      After:  supervisor reads incident → selects 1-4 agents (dynamic routing)
+
+    Benefits: fewer tokens, better focused reports, more investigations/day.
+    Falls back to all 4 agents if supervisor classification fails.
+
+    Returns (status, error) for the run record. Each step runs inside
+    run_record.use(rec, step) so its AI calls and searches land in the record.
+    Never yield inside a use() block: a context variable must be reset in the
+    same context it was set in.
+    """
     yield "🔍 Multi-agent investigation started...\n\n"
     yield f"📍 Equipment identified: {equipment_id}\n\n"
 
@@ -1721,7 +1810,10 @@ def investigate_incident(incident, equipment_id=None):
             # Pass the operator's own words: the graph text then leads with the
             # fault that matches THIS incident, instead of dumping every fault
             # the machine can have into every report (Phase 1B usage fix).
-            graph_context = get_fault_chain(equipment_id, incident_text=incident)
+            _t = _time.time()
+            with run_record.use(rec, "graph"):
+                graph_context = get_fault_chain(equipment_id, incident_text=incident)
+            rec.set(graph_ms=int((_time.time() - _t) * 1000))
             if graph_context and graph_context.get("has_data"):
                 node_count = len(graph_context.get("chain_nodes", []))
                 warn_count = len(graph_context.get("warnings", []))
@@ -1768,9 +1860,19 @@ def investigate_incident(incident, equipment_id=None):
     graph_routing_off = os.getenv("PM_EVAL_GRAPH_NO_ROUTING", "").strip().lower() == "true"
     if graph_routing_off:
         yield "🧪 Graph does NOT pick the searches (eval switch) — graph facts still go to the report.\n\n"
-    routed_agents, routing_reason = supervisor_route(
-        incident, equipment_id,
-        graph_context=None if graph_routing_off else graph_context)
+    gc = graph_context or {}
+    rec.set(graph_source=_graph_source(graph_context, graph_disabled),
+            fault_matched=", ".join(gc.get("matched_faults") or []) or None,
+            match_confidence=gc.get("match_confidence"))
+    rec.set_detail(graph_warnings=list(gc.get("warnings") or []))
+
+    _t = _time.time()
+    with run_record.use(rec, "supervisor"):
+        routed_agents, routing_reason = supervisor_route(
+            incident, equipment_id,
+            graph_context=None if graph_routing_off else graph_context)
+    rec.set(supervisor_ms=int((_time.time() - _t) * 1000), agents_used=list(routed_agents))
+    rec.set_detail(routing_reason=routing_reason)
 
     agent_map = {
         "alarm":       ("🚨 Alarm Agent",       run_alarm_agent),
@@ -1780,7 +1882,9 @@ def investigate_incident(incident, equipment_id=None):
         "ncr":         ("📊 NCR Agent",         run_ncr_agent),
     }
 
-    specialist_functions = [agent_map[a] for a in routed_agents if a in agent_map]
+    # Each specialist runs with the run record current and its step named.
+    specialist_functions = [(agent_map[a][0], run_record.in_thread(rec, a, agent_map[a][1]))
+                            for a in routed_agents if a in agent_map]
     agent_count = len(specialist_functions)
 
     yield f"⚡ Dispatching {agent_count} specialist agent{'s' if agent_count != 1 else ''} in parallel...\n"
@@ -1797,6 +1901,7 @@ def investigate_incident(incident, equipment_id=None):
     # Simultaneous calls stack their tokens into the same 60s window and
     # trip the TPM limit (the 429 we saw). Two-at-a-time halves the burst while
     # staying nearly as fast. Matters more on GPT-OSS, which adds reasoning tokens.
+    _t = _time.time()
     with ThreadPoolExecutor(max_workers=2) as executor:
         future_to_name = {
             executor.submit(contextvars.copy_context().run, fn, incident, equipment_id): label
@@ -1819,6 +1924,11 @@ def investigate_incident(incident, equipment_id=None):
                 })
                 progress_lines.append(f"   ⚠️ {label} encountered an error — continuing\n")
 
+    rec.set(specialists_ms=int((_time.time() - _t) * 1000))
+    rec.set_detail(findings=[{"agent": r.get("agent"), "findings": r.get("findings"),
+                              "unreviewed": len(r.get("unreviewed") or [])}
+                             for r in specialist_results])
+
     # Executor is fully closed — now safe to yield
     for line in progress_lines:
         yield line
@@ -1826,13 +1936,17 @@ def investigate_incident(incident, equipment_id=None):
     yield "\n📝 All specialists complete. Orchestrator synthesizing report...\n\n"
 
     # ── Run orchestrator ───────────────────────────────────────────────────────
+    _t = _time.time()
     try:
-        final_report = run_orchestrator(incident, specialist_results,
-                                        graph_context=graph_context, equipment_id=equipment_id)
+        with run_record.use(rec, "writer"):
+            final_report = run_orchestrator(incident, specialist_results,
+                                            graph_context=graph_context, equipment_id=equipment_id)
     except Exception as e:
+        rec.set(writer_ms=int((_time.time() - _t) * 1000))
         yield f"\n❌ Orchestrator error: {str(e)}\n"
         yield "\nNote: Rate limit hit. Please wait a minute and try again.\n"
-        return
+        return ("rate_limited" if _is_rate_limit(e) else "error"), e
+    rec.set(writer_ms=int((_time.time() - _t) * 1000))
 
     # Phase 2a guardrails: code checks the finished report (see check_report).
     _guard_events = []
@@ -1845,15 +1959,21 @@ def investigate_incident(incident, equipment_id=None):
     try:
         _confidence = assess_confidence(graph_context, specialist_results, _guard_events)
         final_report = add_confidence_block(final_report, _confidence, graph_context)
+        rec.set(confidence=_confidence.get("level"), engineer_review=bool(_confidence.get("review")))
         print(f"  [confidence] {_confidence['level']}; review "
               f"{'needed' if _confidence['review'] else 'not needed'}; {_confidence['reasons']}")
     except Exception as e:  # never lose a report over its confidence line
         print(f"  [confidence] skipped: {str(e)[:100]}")
 
+    rec.set(criticality=run_record.criticality(final_report))
+    rec.set_detail(report=final_report, guard_events=list(_guard_events),
+                   sources_cited=run_record.sources_cited(final_report))
+
     yield "\n" + "═" * 50 + "\n"
     yield "INVESTIGATION REPORT\n"
     yield "═" * 50 + "\n\n"
     yield final_report
+    return "ok", None
 
 
 # ── CLI test harness ───────────────────────────────────────────────────────────

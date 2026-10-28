@@ -1542,6 +1542,10 @@ def investigate():
     incident = data.get("incident", "").strip()
     plant    = data.get("plant_site", "")
     line     = data.get("line", "")
+    # Run record labels (run_record.py): evals send source "eval" and a
+    # run_tag such as "baseline-d1-TC1"; the web page sends neither.
+    run_tag  = (data.get("run_tag") or "").strip()[:100]
+    source   = data.get("source") if data.get("source") in ("ui", "eval", "script") else "ui"
 
     if not incident:
         return jsonify({"error": "Please describe the incident"}), 400
@@ -1577,7 +1581,9 @@ def investigate():
 
     def stream():
         try:
-            for chunk in investigate_incident(incident, equipment_id=equip):
+            for chunk in investigate_incident(incident, equipment_id=equip,
+                                              run_tag=run_tag, source=source,
+                                              plant_site=plant, line=line):
                 yield chunk
         except Exception as e:
             err = str(e)
@@ -1596,7 +1602,11 @@ def llm_stats():
     Call this anytime to see token consumption before hitting limits.
     Example: GET http://localhost:5000/api/llm-stats
     """
-    return jsonify(get_today_stats())
+    stats = get_today_stats() or {}
+    if isinstance(stats, dict):
+        import run_record
+        stats["run_record_write_failures"] = run_record.write_failures()
+    return jsonify(stats)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ALERTS ROUTES — Session 11

@@ -69,7 +69,7 @@ _warned_missing_columns = False
 
 def _write_log(model, call_type, input_tokens, output_tokens,
                latency_ms, error=None, plant_site="", equip_tag="",
-               finish_reason=None, graph_source=None):
+               finish_reason=None, graph_source=None, run_id=None):
     """Write one log entry to Supabase. Runs in background thread — never blocks."""
     global _EXTENDED_COLUMNS_OK, _warned_missing_columns
     row = {
@@ -88,6 +88,8 @@ def _write_log(model, call_type, input_tokens, output_tokens,
         extended["truncated"] = finish_reason == "length"
     if graph_source is not None:
         extended["graph_source"] = graph_source
+    if run_id is not None:
+        extended["run_id"] = run_id   # sql/07_investigation_runs.sql
 
     try:
         if extended and _EXTENDED_COLUMNS_OK:
@@ -96,12 +98,13 @@ def _write_log(model, call_type, input_tokens, output_tokens,
                 return
             except Exception as e:
                 msg = str(e)
-                if any(c in msg for c in ("finish_reason", "graph_source", "truncated", "PGRST204")):
+                if any(c in msg for c in ("finish_reason", "graph_source", "truncated", "run_id", "PGRST204")):
                     _EXTENDED_COLUMNS_OK = False
                     if not _warned_missing_columns:
                         _warned_missing_columns = True
-                        print("  [llm_logger] llm_logs is missing the Batch C columns — "
-                              "run sql/06_llm_logs_observability.sql. Logging without them for now.")
+                        print("  [llm_logger] llm_logs is missing newer columns — run "
+                              "sql/06_llm_logs_observability.sql and sql/07_investigation_runs.sql. "
+                              "Logging without them for now.")
                 else:
                     raise
         _get_supabase().table("llm_logs").insert(row).execute()
@@ -112,12 +115,13 @@ def _write_log(model, call_type, input_tokens, output_tokens,
 
 def _log_async(model, call_type, input_tokens, output_tokens,
                latency_ms, error=None, plant_site="", equip_tag="",
-               finish_reason=None, graph_source=None):
+               finish_reason=None, graph_source=None, run_id=None):
     """Fire-and-forget background log write."""
     t = threading.Thread(
         target=_write_log,
         args=(model, call_type, input_tokens, output_tokens,
-              latency_ms, error, plant_site, equip_tag, finish_reason, graph_source),
+              latency_ms, error, plant_site, equip_tag, finish_reason, graph_source,
+              run_id),
         daemon=True
     )
     t.start()
@@ -151,6 +155,11 @@ def log_llm_call(fn, call_type, model, plant_site="", equip_tag="", graph_source
     Teaching note: we wrap the call in try/except so logging never swallows
     real errors — if Groq throws, we log the error and re-raise.
     """
+    # The investigation this call belongs to (run_record.py). Read HERE, in
+    # the calling thread: the background log thread does not inherit it.
+    import run_record
+    rec = run_record.current()
+    run_id = rec.run_id if rec else None
     start = time.time()
 
     try:
@@ -162,8 +171,10 @@ def log_llm_call(fn, call_type, model, plant_site="", equip_tag="", graph_source
             input_tokens=0, output_tokens=0,
             latency_ms=latency_ms, error=e,
             plant_site=plant_site, equip_tag=equip_tag,
-            graph_source=graph_source
+            graph_source=graph_source, run_id=run_id
         )
+        if rec:
+            rec.llm_call(call_type, model, 0, 0, latency_ms, error=e)
         raise  # re-raise so caller handles it normally
 
     latency_ms = int((time.time() - start) * 1000)
@@ -179,8 +190,11 @@ def log_llm_call(fn, call_type, model, plant_site="", equip_tag="", graph_source
         latency_ms=latency_ms, error=None,
         plant_site=plant_site, equip_tag=equip_tag,
         finish_reason=_finish_reason_of(response),
-        graph_source=graph_source
+        graph_source=graph_source, run_id=run_id
     )
+    if rec:
+        rec.llm_call(call_type, model, input_tokens, output_tokens, latency_ms,
+                     finish_reason=_finish_reason_of(response))
 
     return response
 

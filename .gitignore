@@ -19,3 +19,6 @@ evals/results/
 # Graph backups written by graph_rebuild_phase1b.py (kept out of git;
 # your durable backups live in C:\plantmind-backups)
 backups/
+
+# Run records that could not be written to Supabase (run_record.py backup)
+logs/

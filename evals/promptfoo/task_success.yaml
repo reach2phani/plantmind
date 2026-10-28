@@ -1,0 +1,242 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+# ─────────────────────────────────────────────────────────────────────────────
+# PlantMind — Golden Test Set v1.1 — TASK SUCCESS (FL-101 bottle filler)
+#
+# WHAT THIS MEASURES (simple version)
+#   Task success = would the operator succeed, safely, by following the answer?
+#   A test PASSES only if EVERY check in it passes. Only CRITICAL items are
+#   checked here (without them the operator is unsafe or fails). Nice-to-have
+#   items belong to OUTPUT QUALITY, measured separately later.
+#
+#   Scope: Investigate mode only (specialists + graph + guardrails).
+#   LATENCY: promptfoo's "Latency" is WRONG for Investigate — it streams, and
+#   promptfoo times only the first part of the reply (smoke test showed 321 ms
+#   for a run that took over a minute). Measure time from the app's own logs.
+#
+# RESULT LABELS
+#   PASS  every critical check met
+#   FAIL  at least one check missed  -> click it to see WHICH check and why
+#   ERROR the run itself broke (app down, Groq "413 too large", timeout).
+#         NOT a quality failure: note it, re-run that cell another day.
+#   Task success rate (per column) = PASS / (PASS + FAIL); list errors separately.
+#
+# ALWAYS add --no-cache to a real run. promptfoo stores every answer and, for
+# an identical request, returns the stored one without calling PlantMind
+# (found 2026-10-28: a "run" took 0.1 s, cached: true, no run record). With
+# the cache on, repeat runs would be copies of the first and look perfectly
+# stable. Also change run_label below for every run.
+#
+# RUN (from C:\plantmind, with the app running: python app.py)
+#   npx promptfoo@0.123.1 cache clear
+#   smoke test, TC1 only:
+#   npx promptfoo@0.123.1 eval -c evals/promptfoo/task_success.yaml --env-file .env --filter-first-n 1 -o evals/results/task_success_smoke.json
+#   full run (once a day; Investigate ~13K tokens per question):
+#   npx promptfoo@0.123.1 eval -c evals/promptfoo/task_success.yaml --env-file .env -o evals/results/task_success_day1.json
+#   npx promptfoo@0.123.1 view
+#
+# Questions and expected answers: golden set v1.1 (user-written, checked
+# against FL-101-SOP, WI-FL101-001 and NCR-2026-012). Demo documents, written
+# for learning: not real-world operating guidance.
+# ─────────────────────────────────────────────────────────────────────────────
+
+description: PlantMind FL-101 — Task success, golden set v1.1
+
+prompts:
+  - '{{question}}'
+
+providers:
+  # Investigate mode only (decided 2026-10-26). The smoke test also ran Docs
+  # mode: it failed TC1 by leaving out STOP and lockout (a 3-line answer) —
+  # recorded as a known issue in CLAUDE.md, not measured further here.
+  - id: http
+    label: plantmind-investigate
+    config:
+      url: 'http://localhost:5000/investigate'
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        incident: '{{prompt}}'
+        plant_site: '{{plant_site}}'
+        line: '{{line}}'
+        equip_tag: '{{equip_tag}}'
+        # Run record labels (run_record.py): find this answer in Supabase with
+        #   SELECT * FROM investigation_runs WHERE run_tag = 'ts-d1-TC1';
+        source: eval
+        run_tag: '{{run_label}}-{{tc}}'
+      # Keeps only the report, drops the progress lines.
+      transformResponse: 'file://transforms/investigate.js'
+      # No automatic retries: a broken run must show as ERROR, not be hidden.
+      maxRetries: 0
+
+# One at a time, so investigations don't collide on the per-minute token limit.
+evaluateOptions:
+  maxConcurrency: 1
+
+defaultTest:
+  vars:
+    plant_site: Demo Bottling Plant
+    line: Filling Line 1
+    equip_tag: FL-101
+    # Change this for each run (ts-d1, ts-d2, ...) so runs stay apart in
+    # investigation_runs.run_tag.
+    run_label: obs-check
+  assert:
+    # Sanity checks on every answer (already tested in this project):
+    # no repetition loop, not cut off mid-sentence.
+    - type: javascript
+      value: file://lib/no_repeat_lines.js
+    - type: javascript
+      value: file://lib/not_truncated.js
+  options:
+    # The judge: Qwen, a different model family from PlantMind's GPT-OSS.
+    provider:
+      id: groq:qwen/qwen3.8-27b
+      config:
+        temperature: 0
+        max_completion_tokens: 2048
+        reasoning_format: hidden
+
+tests:
+  # ── TC1 ────────────────────────────────────────────────────────────────────
+  # Critical: stop, find the valves, drips = worn seal, lock out before
+  # cleaning, never raise the fill time. Not checked here (output quality):
+  # checking supply pressure, the "3 alarms" escalation (the question doesn't
+  # say 3 alarms, so it is conditional and not triggered).
+  - description: 'TC1 — Underfill alarm'
+    vars:
+      tc: TC1
+      question: "I'm getting an underfill alarm on FL-101. What should I check first? And is there anything I definitely shouldn't do?"
+    assert:
+      - type: llm-rubric
+        metric: TC1-stop
+        value: The answer tells the operator to stop the machine with the normal STOP (the emergency stop only if someone is in danger). Equivalent wording is acceptable.
+      - type: llm-rubric
+        metric: TC1-find-valves
+        value: The answer tells the operator to find which valves are underfilling, for example from the checkweigher report.
+      - type: llm-rubric
+        metric: TC1-drips
+        value: The answer tells the operator to check those valves for dripping, and says a dripping valve has a worn seal that maintenance should replace.
+      - type: llm-rubric
+        metric: TC1-lockout
+        value: The answer says the machine must be locked out (LOTO) before anyone cleans a nozzle or works on a valve.
+      - type: llm-rubric
+        metric: TC1-no-fill-time
+        value: The answer clearly says NOT to increase the fill time to fix the underfill.
+      - type: llm-rubric
+        metric: TC1-safe
+        value: The answer does NOT recommend anything unsafe, such as increasing the fill time or working on the machine without lockout. Warnings NOT to do these things are fine. Pass if nothing unsafe is recommended.
+
+  # ── TC2 ────────────────────────────────────────────────────────────────────
+  # Critical: never reach in while running, stop + lockout before clearing,
+  # rails A/B (the usual cause; without it the jam returns), slow restart.
+  # Not checked here: gloves, removing chipped bottles, who removes the lock,
+  # the broken-bottle branch (conditional: the question says bottles are stuck,
+  # not broken).
+  - description: 'TC2 — Infeed jam'
+    vars:
+      tc: TC2
+      question: "FL-101 has stopped with an infeed jam alarm. There are bottles stuck near the star wheel. What's the safe way to clear it and get the line running again?"
+    assert:
+      - type: llm-rubric
+        metric: TC2-no-reach
+        value: The answer warns never to reach into the infeed or the star wheel while the machine is running.
+      - type: llm-rubric
+        metric: TC2-stop-lockout
+        value: The answer says to press STOP and lock out the machine (LOTO) before removing the jammed bottles.
+      - type: llm-rubric
+        metric: TC2-rails
+        value: The answer says to check that the guide rails match the bottle size (position A for 500 ml, position B for 330 ml) and reset them if they are wrong.
+      - type: llm-rubric
+        metric: TC2-slow-restart
+        value: The answer says to restart slowly, at 60 bottles per minute for about 2 minutes, before going back to normal speed.
+      - type: llm-rubric
+        metric: TC2-safe
+        value: The answer does NOT recommend anything unsafe, such as clearing the jam while the machine runs or skipping lockout. Warnings NOT to do these things are fine. Pass if nothing unsafe is recommended.
+
+  # ── TC3 ────────────────────────────────────────────────────────────────────
+  # Critical: the actions that fix the pressure (filter, bleed air), the number
+  # that says it is fixed (1.5-2.0 bar) before restarting, the check after
+  # restarting (first 20 bottles 495-505 ml). Not checked here: stop first,
+  # naming all three causes, the tank-level check (listed in the SOP as a
+  # cause, not an immediate action).
+  - description: 'TC3 — Low product supply pressure'
+    vars:
+      tc: TC3
+      question: "I'm getting a low product supply pressure alarm on FL-101. It's showing below 1.3 bar. What usually causes this, and what should I do?"
+    assert:
+      - type: llm-rubric
+        metric: TC3-filter
+        value: The answer says to clean (or replace) the supply filter.
+      - type: llm-rubric
+        metric: TC3-bleed
+        value: The answer says to bleed air out of the supply line.
+      - type: llm-rubric
+        metric: TC3-pressure-back
+        value: The answer says to make sure the pressure is back in the normal range of 1.5 to 2.0 bar before restarting.
+      - type: llm-rubric
+        metric: TC3-first-20
+        value: The answer says to weigh the first 20 bottles after restarting and that they must be between 495 and 505 ml.
+      - type: llm-rubric
+        metric: TC3-safe
+        value: The answer does NOT recommend anything unsafe, such as restarting before the pressure is back in range or increasing the fill time to make up for low pressure. Warnings NOT to do these things are fine. Pass if nothing unsafe is recommended.
+
+  # ── TC4 ────────────────────────────────────────────────────────────────────
+  # Critical, protecting PEOPLE: emergency stop, lockout before opening guards.
+  # Protecting CUSTOMERS: QA HOLD on the last 30 minutes of bottles, clean-up
+  # without compressed air, quality lead sign-off before restart.
+  # Not checked here: discarding open bottles within 2 m, the rinse, the log
+  # entry, who may release QA HOLD bottles.
+  - description: 'TC4 — Glass breakage'
+    vars:
+      tc: TC4
+      question: "We've had a bottle break inside the filler, and the glass breakage alarm has come on. What do I need to do right now?"
+    assert:
+      - type: llm-rubric
+        metric: TC4-estop
+        value: The answer says to stop the line immediately with the emergency stop.
+      - type: llm-rubric
+        metric: TC4-lockout-guards
+        value: The answer says not to open any guard until the machine has stopped and is locked out (LOTO).
+      - type: llm-rubric
+        metric: TC4-qa-hold
+        value: The answer says to put every bottle filled in the last 30 minutes on QA HOLD.
+      - type: llm-rubric
+        metric: TC4-no-air
+        value: The answer says to clean up the glass with the glass kit or a vacuum, and never with compressed air.
+      - type: llm-rubric
+        metric: TC4-signoff
+        value: The answer says the quality lead must sign off before the line restarts.
+      - type: llm-rubric
+        metric: TC4-safe
+        value: The answer does NOT recommend anything unsafe, such as using compressed air on glass, opening guards before lockout, or restarting before quality sign-off. Warnings NOT to do these things are fine. Pass if nothing unsafe is recommended.
+
+  # ── TC5 ────────────────────────────────────────────────────────────────────
+  # Critical: the ONE thing to understand (slight overfill for the first 2-3
+  # minutes is normal), what NOT to do (change settings), and what must be
+  # confirmed before full production (rinse done, first 20 bottles in range,
+  # supervisor sign-off). Not checked here: the troubleshooting table, the
+  # maintenance record, who may do seal work.
+  - description: 'TC5 — After a valve seal change'
+    vars:
+      tc: TC5
+      question: "Maintenance has just changed a fill valve seal on FL-101. I'm seeing a few bottles overfill, and I'm not sure if that's normal. What should I watch for, and what needs checking before we go back to full production?"
+    assert:
+      - type: llm-rubric
+        metric: TC5-normal
+        value: The answer says a slight overfill (up to about 510 ml) in the first 2 to 3 minutes after a seal change is normal or expected while the new seals settle, not a fault.
+      - type: llm-rubric
+        metric: TC5-no-settings
+        value: The answer says NOT to change the fill settings (such as the fill time) to correct this temporary overfill.
+      - type: llm-rubric
+        metric: TC5-rinse
+        value: The answer says the 10-minute sanitation rinse must be done (or confirmed done) after the seal change, before normal production.
+      - type: llm-rubric
+        metric: TC5-first-20
+        value: The answer says to check the first 20 bottles and that every one must be between 495 and 505 ml before normal production resumes.
+      - type: llm-rubric
+        metric: TC5-signoff
+        value: The answer says the shift supervisor must sign off the first-bottle check before normal production resumes.
+      - type: llm-rubric
+        metric: TC5-safe
+        value: The answer does NOT recommend anything unsafe, such as changing the fill settings to compensate, replacing seals again without reason, or working on valves without lockout. Warnings NOT to do these things are fine. Pass if nothing unsafe is recommended.

@@ -72,6 +72,25 @@ def fault_chain_outputs(result):
     }
 
 
+def tag_trace(run_id):
+    """Put PlantMind's run_id on the current LangSmith trace, so a run record
+    and its trace can be found from each other. Returns the trace id (or None
+    when tracing is off). Never raises."""
+    try:
+        from langsmith.run_helpers import get_current_run_tree
+        rt = get_current_run_tree()
+        if rt is None:
+            return None
+        if hasattr(rt, "add_metadata"):
+            rt.add_metadata({"pm_run_id": run_id})
+        else:
+            rt.extra = rt.extra or {}
+            rt.extra.setdefault("metadata", {})["pm_run_id"] = run_id
+        return str(rt.trace_id)
+    except Exception:
+        return None
+
+
 def join_stream(chunks):
     """investigate_incident streams text; show the whole thing as one output."""
     return "".join(str(c) for c in chunks)
