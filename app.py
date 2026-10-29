@@ -1671,6 +1671,104 @@ def work_orders_page():
     return render_template("work_orders.html")
 
 
+# ── Evals dashboard (read-only) ─────────────────────────────────────────────
+# Shows report folders written by evals/eval_summary.py. It only DISPLAYS
+# stored results (summary.json, runs.json); it never grades or calls an AI.
+# Reads files, not Supabase, so a committed baseline still shows if Supabase
+# is paused. Reached from the menu under the user's name (static/user_menu.js).
+_EVAL_DIRS = {
+    "baseline": os.path.join(os.path.dirname(os.path.abspath(__file__)), "evals", "baselines", "fl101_eval"),
+    "preview":  os.path.join(os.path.dirname(os.path.abspath(__file__)), "evals", "results", "summary_test"),
+}
+_EVAL_NAME_OK = re.compile(r"^[A-Za-z0-9._-]{1,100}$")
+_langsmith_urls = {}
+
+
+def _eval_folder(kind, name):
+    """The report folder, or None. Names are checked so a request can never
+    reach outside the two report folders."""
+    if kind not in _EVAL_DIRS or not _EVAL_NAME_OK.match(name or ""):
+        return None
+    path = os.path.join(_EVAL_DIRS[kind], name)
+    return path if os.path.isfile(os.path.join(path, "summary.json")) else None
+
+
+def _read_json(path):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+@app.route("/admin/evals")
+def evals_page():
+    return render_template("evals.html")
+
+
+@app.route("/api/evals/reports")
+def evals_reports():
+    out = []
+    for kind, base in _EVAL_DIRS.items():
+        if not os.path.isdir(base):
+            continue
+        for name in sorted(os.listdir(base)):
+            folder = _eval_folder(kind, name)
+            if not folder:
+                continue
+            try:
+                s = _read_json(os.path.join(folder, "summary.json"))
+            except Exception:
+                continue
+            if not isinstance(s, dict):   # older format (a plain list): skip
+                continue
+            out.append({"kind": kind, "name": name, "written_utc": s.get("written_utc"),
+                        "repeats": s.get("repeats"), "scenarios": len(s.get("scenarios") or [])})
+    out.sort(key=lambda r: (r["kind"] != "baseline", r["written_utc"] or ""), reverse=False)
+    return jsonify({"reports": out})
+
+
+@app.route("/api/evals/report/<kind>/<name>")
+def evals_report(kind, name):
+    folder = _eval_folder(kind, name)
+    if not folder:
+        return jsonify({"error": "report not found"}), 404
+    return jsonify(_read_json(os.path.join(folder, "summary.json")))
+
+
+@app.route("/api/evals/run/<kind>/<name>/<run_id>")
+def evals_run(kind, name, run_id):
+    """One run's evidence from the frozen runs.json: the report, the pieces it
+    read, the graph warnings, its timeline, plus a LangSmith link if possible."""
+    folder = _eval_folder(kind, name)
+    if not folder or not _EVAL_NAME_OK.match(run_id or ""):
+        return jsonify({"error": "run not found"}), 404
+    runs_path = os.path.join(folder, "runs.json")
+    rec = (_read_json(runs_path) if os.path.isfile(runs_path) else {}).get(run_id)
+    if not rec:
+        return jsonify({"error": "no run record saved for this answer"}), 404
+    summ, det = rec.get("summary") or {}, rec.get("details") or {}
+    trace = summ.get("langsmith_trace_id")
+    if trace and trace not in _langsmith_urls:
+        try:   # one small API call, only when a run is opened
+            from langsmith import Client
+            c = Client()
+            _langsmith_urls[trace] = c.get_run_url(run=c.read_run(trace))
+        except Exception:
+            _langsmith_urls[trace] = None
+    return jsonify({
+        "run_id": run_id,
+        "summary": {k: summ.get(k) for k in (
+            "run_tag", "status", "criticality", "confidence", "fault_matched", "match_confidence",
+            "graph_source", "agents_used", "tokens_total", "cost_usd", "total_ms", "git_commit",
+            "code_hash", "model_fast", "model_deep")},
+        "report": det.get("report"),
+        "pieces": [{k: p.get(k) for k in ("step", "doc_type", "document", "rank", "score", "reranked", "text")}
+                   for p in det.get("pieces") or []],
+        "graph_warnings": det.get("graph_warnings") or [],
+        "sources_cited": det.get("sources_cited") or [],
+        "events": det.get("events") or [],
+        "langsmith_url": _langsmith_urls.get(trace),
+    })
+
+
 def _equip_context(equip_tag):
     """Look up plant_site/line for an equip_tag from the equipment config table.
     Plant/line are NOT stored on work_orders/parts — derived here so the

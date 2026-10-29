@@ -535,8 +535,6 @@ def write_outputs(name, files, graded, records, warnings_):
         shutil.copy2(f, out / "results" / Path(f).name)
     (out / "runs.json").write_text(json.dumps(records, indent=1, ensure_ascii=False, default=str),
                                    encoding="utf-8")
-    (out / "summary.json").write_text(json.dumps(graded, indent=1, ensure_ascii=False, default=str),
-                                      encoding="utf-8")
 
     by_tc = defaultdict(list)
     for g in graded:
@@ -556,6 +554,17 @@ def write_outputs(name, files, graded, records, warnings_):
           f"| Judge | {JUDGE_MODEL} |",
           f"| Limits | tokens < {MAX_TOKENS:,}; working time < {MAX_WORKING_S} s; steps grounded >= {MIN_STEPS_GROUNDED:.0%} |",
           ""]
+    # Headline: one percentage per dimension = passing runs / measured runs.
+    head = {}
+    for d in DIMENSIONS:
+        vals = [g["dims"][d] for g in graded if g["dims"][d] is not None]
+        head[d] = {"passed": sum(1 for v in vals if v), "measured": len(vals)}
+    L[2:2] = [" · ".join(f"**{NAMES[d]} {h['passed'] / h['measured']:.0%}**" if h["measured"]
+                         else f"**{NAMES[d]} –**" for d, h in head.items()), "",
+              f"Each percentage is the share of the {len(tcs)} author-written demo scenarios that passed "
+              "every check in that dimension (with repeats: the share of all runs). These are not "
+              "production performance estimates.", ""]   # right under the title
+
     if warnings_:
         L += ["**Warnings**", ""] + [f"- {w}" for w in warnings_] + [""]
 
@@ -580,7 +589,7 @@ def write_outputs(name, files, graded, records, warnings_):
                 cells.append(f"{p}/{len(known)}" + (" –" * (len(vals) - len(known))) if known else "–")
         ex = [c["score"] for g in runs for c in g["checks"] if c["dim"] == "OQx" and c.get("score") is not None]
         cells.append(f"{sum(ex) / len(ex):.0%}" if ex else "–")
-        L.append(f"| {tc} {runs[0]['description'] or ''} | " + " | ".join(cells) + " |")
+        L.append(f"| {runs[0]['description'] or tc} | " + " | ".join(cells) + " |")
     L.append("| **All** | " + " | ".join(
         f"**{p}/{n}**" + (f" ({p / n:.0%})" if n else "") for p, n in (totals[d] for d in DIMENSIONS)) + " | |")
     L += ["", "✅ pass · ❌ fail · – not measured (no run record, judge unavailable, or error)", ""]
@@ -623,6 +632,33 @@ def write_outputs(name, files, graded, records, warnings_):
                      f"{work:.1f} | {wait:.1f} | {s.get('cost_usd')} |")
     L.append("")
     (out / "summary.md").write_text("\n".join(L), encoding="utf-8")
+
+    # summary.json: what a dashboard reads (it only DISPLAYS these; it never re-grades).
+    run_numbers = {}
+    for g in graded:
+        rec = records.get(g["run_id"]) or {}
+        s_ = rec.get("summary") or {}
+        if s_:
+            wait = wall_wait_ms(rec)
+            run_numbers[g["run_id"]] = {
+                "status": s_.get("status"), "criticality": s_.get("criticality"),
+                "tokens": s_.get("tokens_total"), "cost_usd": s_.get("cost_usd"),
+                "working_s": round(((s_.get("total_ms") or 0) - wait) / 1000, 1),
+                "quota_wait_s": round(wait / 1000, 1), "git_commit": s_.get("git_commit"),
+                "code_hash": s_.get("code_hash"), "langsmith_trace_id": s_.get("langsmith_trace_id")}
+    (out / "summary.json").write_text(json.dumps({
+        "name": name,
+        "written_utc": datetime.now(timezone.utc).isoformat(),
+        "judge": JUDGE_MODEL,
+        "limits": {"max_tokens": MAX_TOKENS, "max_working_s": MAX_WORKING_S,
+                   "min_steps_grounded": MIN_STEPS_GROUNDED},
+        "dimensions": {d: {"name": NAMES[d], **head[d]} for d in DIMENSIONS},
+        "scenarios": tcs,
+        "repeats": repeats,
+        "warnings": warnings_,
+        "answers": graded,
+        "runs": run_numbers,
+    }, indent=1, ensure_ascii=False, default=str), encoding="utf-8")
     return out
 
 
@@ -671,7 +707,16 @@ def main():
                        "criticality": (rec or {}).get("summary", {}).get("criticality"),
                        "dims": dim_results(checks, rec is not None, client is not None)})
 
-    out = write_outputs(args.name, args.results, graded, records, sorted(set(warnings_)))
+    # One line per kind of warning, listing the answers it applies to (the
+    # same "uncommitted code" note was printed once per question).
+    grouped = {}
+    for w in warnings_:
+        who, _, what = w.partition("): ")
+        grouped.setdefault(what or w, []).append(who + ")" if what else "")
+    warnings_ = [f"{what} — {', '.join(sorted(set(filter(None, who))))}" if any(who) else what
+                 for what, who in grouped.items()]
+
+    out = write_outputs(args.name, args.results, graded, records, sorted(warnings_))
     print(f"\nWritten: {out / 'summary.md'}")
 
 

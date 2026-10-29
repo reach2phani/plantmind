@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantMind - Evals</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc}
+.nav{background:#1e293b;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.nav-brand{font-size:17px;font-weight:700;color:#fff}
+.nav-brand span{color:#a5b4fc}
+.page-tabs{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0 20px;display:flex;flex-shrink:0;overflow-x:auto}
+.page-tab{padding:11px 18px;font-size:13px;font-weight:500;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;text-decoration:none;display:flex;align-items:center;white-space:nowrap}
+.page-tab:hover{color:#64748b}
+.main{max-width:1080px;margin:0 auto;padding:24px 20px 48px}
+.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.hd h1{font-size:18px;font-weight:700;color:#0f172a}
+.hd-sub{font-size:12px;color:#64748b;margin-top:3px}
+.pick{display:flex;align-items:center;gap:8px;font-size:12px;color:#64748b}
+.pick select{font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;color:#0f172a;max-width:320px}
+.section-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin:24px 0 10px}
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.tile{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px}
+.tile-v{font-size:26px;font-weight:700;color:#0f172a;line-height:1.1}
+.tile-l{font-size:12px;font-weight:600;color:#334155;margin-top:4px}
+.tile-s{font-size:11px;color:#94a3b8;margin-top:2px}
+.tile-bar{height:4px;border-radius:2px;background:#f1f5f9;margin-top:10px;overflow:hidden}
+.tile-bar i{display:block;height:100%;background:#4f46e5}
+.note{font-size:11px;color:#64748b;margin-top:10px;line-height:1.6}
+.warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:8px;padding:8px 12px;font-size:12px;margin-top:12px;line-height:1.6}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+table.grid{width:100%;border-collapse:collapse;font-size:13px}
+.grid th{font-size:11px;font-weight:600;color:#64748b;text-align:center;padding:10px 8px;background:#f8fafc;border-bottom:1px solid #e2e8f0}
+.grid th:first-child{text-align:left;padding-left:14px}
+.grid td{padding:9px 8px;border-bottom:1px solid #f1f5f9;text-align:center}
+.grid td:first-child{text-align:left;padding-left:14px;color:#0f172a;font-weight:500}
+.grid tr:last-child td{border-bottom:none}
+.grid tfoot td{background:#f8fafc;font-weight:700;color:#0f172a;border-top:1px solid #e2e8f0}
+.cell{display:inline-block;min-width:54px;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent}
+.cell.pass{background:#dcfce7;color:#166534}
+.cell.fail{background:#fee2e2;color:#b91c1c}
+.cell.mixed{background:#fef3c7;color:#92400e}
+.cell.none{background:#f1f5f9;color:#94a3b8}
+.cell:hover{border-color:#6366f1}
+.cell.sel{border-color:#4f46e5;box-shadow:0 0 0 2px #c7d2fe}
+.extras{font-size:12px;color:#64748b}
+.legend{font-size:11px;color:#94a3b8;padding:8px 14px;border-top:1px solid #f1f5f9}
+.time-row{display:flex;align-items:center;gap:10px;font-size:12px;color:#334155;padding:7px 14px;border-bottom:1px solid #f1f5f9}
+.time-row:last-child{border-bottom:none}
+.time-lbl{width:170px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.time-bar{flex:1;height:12px;border-radius:3px;background:#f8fafc;display:flex;overflow:hidden}
+.time-bar .w{background:#4f46e5}
+.time-bar .q{background:repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 4px,#e2e8f0 4px,#e2e8f0 8px)}
+.time-num{width:230px;flex-shrink:0;text-align:right;color:#64748b;font-size:11px;font-variant-numeric:tabular-nums}
+.key{display:flex;gap:16px;font-size:11px;color:#64748b;padding:8px 14px;border-top:1px solid #f1f5f9}
+.key i{display:inline-block;width:12px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.empty{padding:40px;text-align:center;color:#94a3b8;font-size:13px}
+/* side panel */
+.panel{position:fixed;top:0;right:0;width:min(560px,100%);height:100%;background:#fff;border-left:1px solid #e2e8f0;box-shadow:-12px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .2s;z-index:900;display:flex;flex-direction:column}
+.panel.open{transform:none}
+.p-hd{padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:flex-start;gap:10px}
+.p-title{font-size:14px;font-weight:700;color:#0f172a}
+.p-sub{font-size:11px;color:#64748b;margin-top:2px}
+.p-close{margin-left:auto;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1}
+.p-body{overflow-y:auto;padding:12px 16px 24px;flex:1}
+.run{border:1px solid #e2e8f0;border-radius:10px;margin-bottom:12px;overflow:hidden}
+.run-hd{padding:9px 12px;background:#f8fafc;font-size:12px;color:#334155;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.run-hd b{color:#0f172a}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#64748b}
+.chk{padding:8px 12px;border-top:1px solid #f1f5f9;font-size:12px;line-height:1.55;color:#334155}
+.chk-hd{display:flex;align-items:center;gap:6px;font-weight:600;color:#0f172a}
+.pill{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em}
+.pill.pass{background:#dcfce7;color:#166534}.pill.fail{background:#fee2e2;color:#b91c1c}.pill.none{background:#f1f5f9;color:#64748b}
+.by{font-size:10px;color:#94a3b8;font-weight:500}
+.why{color:#475569;margin-top:2px}
+.btns{display:flex;gap:6px;flex-wrap:wrap;padding:9px 12px;border-top:1px solid #f1f5f9}
+.btn{font-size:12px;border-radius:6px;padding:5px 11px;cursor:pointer;border:1px solid #e2e8f0;background:#fff;color:#475569;text-decoration:none}
+.btn:hover{background:#f8fafc}
+.btn.on{border-color:#4f46e5;color:#4f46e5;background:#eef2ff}
+.ev{padding:10px 12px;border-top:1px solid #f1f5f9;font-size:12px;color:#334155;display:none}
+.ev.show{display:block}
+.ev pre{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.55;color:#0f172a;background:#f8fafc;border-radius:6px;padding:10px;max-height:420px;overflow:auto}
+.piece{border:1px solid #f1f5f9;border-radius:6px;margin-bottom:6px}
+.piece-hd{font-size:11px;color:#334155;padding:6px 8px;background:#f8fafc;cursor:pointer}
+.piece pre{display:none;margin:0;border-radius:0 0 6px 6px}
+.piece.open pre{display:block}
+@media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.time-num{width:120px}.time-lbl{width:90px}}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">Plant<span>Mind</span></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="/plant-setup" style="font-size:11px;color:#a5b4fc;padding:4px 10px;border-radius:6px;border:1px solid #4f46e5;background:rgba(79,70,229,.15);text-decoration:none;white-space:nowrap">&#9881; Plant setup</a>
+    <div style="display:flex;align-items:center;gap:6px;background:#0f172a;padding:4px 10px;border-radius:6px">
+      <div style="width:22px;height:22px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">GP</div>
+      <span style="font-size:11px;color:#e2e8f0;font-weight:500;white-space:nowrap">G. Phani</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-tabs">
+  <a class="page-tab" href="/chat">Ask</a>
+  <a class="page-tab" href="/library">Library</a>
+  <a class="page-tab" href="/alerts">Alerts</a>
+  <a class="page-tab" href="/graph">Graph</a>
+  <a class="page-tab" href="/work-orders">Work orders</a>
+  <a class="page-tab" href="/expert-capture">Capture knowledge</a>
+</div>
+
+<div class="main">
+  <div class="hd">
+    <div>
+      <h1>Evaluations</h1>
+      <div class="hd-sub" id="hdSub">FL-101 bottle filler · five dimensions</div>
+    </div>
+    <label class="pick">Report
+      <select id="reportPick"></select>
+    </label>
+  </div>
+
+  <div id="content"><div class="empty">Loading reports…</div></div>
+</div>
+
+<div class="panel" id="panel" aria-hidden="true">
+  <div class="p-hd">
+    <div><div class="p-title" id="pTitle"></div><div class="p-sub" id="pSub"></div></div>
+    <button class="p-close" onclick="closePanel()" aria-label="Close">&times;</button>
+  </div>
+  <div class="p-body" id="pBody"></div>
+</div>
+
+<script>
+var DIMS = ['TS', 'OQ', 'SR', 'GR', 'CE'];
+var SHORT = {TS: 'Task success', OQ: 'Output quality', SR: 'Safety & reliability', GR: 'Grounding', CE: 'Efficiency & cost'};
+var report = null, current = null;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+  });
+}
+function pct(p, n) { return n ? Math.round(100 * p / n) + '%' : '–'; }
+
+function loadReports() {
+  fetch('/api/evals/reports').then(function (r) { return r.json(); }).then(function (d) {
+    var sel = document.getElementById('reportPick');
+    var list = d.reports || [];
+    if (!list.length) {
+      document.getElementById('content').innerHTML =
+        '<div class="empty">No reports yet. Run <span class="mono">evals/eval_summary.py</span> after a promptfoo run.</div>';
+      return;
+    }
+    sel.innerHTML = list.map(function (r, i) {
+      return '<option value="' + i + '">' + esc(r.name) + (r.kind === 'preview' ? ' (preview)' : '') + '</option>';
+    }).join('');
+    sel.onchange = function () { open_(list[sel.value]); };
+    var saved = null;
+    try { saved = localStorage.getItem('pm_evals_report'); } catch (e) {}
+    var idx = 0;
+    list.forEach(function (r, i) { if (r.kind + '/' + r.name === saved) idx = i; });
+    sel.value = idx;
+    open_(list[idx]);
+  }).catch(function () {
+    document.getElementById('content').innerHTML = '<div class="empty">Could not load the reports.</div>';
+  });
+}
+
+function open_(r) {
+  current = r;
+  try { localStorage.setItem('pm_evals_report', r.kind + '/' + r.name); } catch (e) {}
+  closePanel();
+  fetch('/api/evals/report/' + r.kind + '/' + encodeURIComponent(r.name))
+    .then(function (x) { return x.json(); })
+    .then(function (d) { report = d; render(); });
+}
+
+function groupByTc() {
+  var by = {};
+  report.answers.forEach(function (a) { (by[a.tc] = by[a.tc] || []).push(a); });
+  return by;
+}
+
+function render() {
+  var d = report, by = groupByTc(), H = [];
+  var when = (d.written_utc || '').slice(0, 16).replace('T', ' ');
+  document.getElementById('hdSub').textContent =
+    'FL-101 bottle filler · ' + d.scenarios.length + ' scenarios × ' + d.repeats + ' run' +
+    (d.repeats > 1 ? 's' : '') + ' each · judge ' + d.judge + ' · written ' + when + ' UTC';
+
+  // tiles
+  H.push('<div class="tiles">');
+  DIMS.forEach(function (k) {
+    var x = d.dimensions[k], p = x.measured ? 100 * x.passed / x.measured : 0;
+    H.push('<div class="tile"><div class="tile-v">' + pct(x.passed, x.measured) + '</div>' +
+      '<div class="tile-l">' + esc(SHORT[k]) + '</div>' +
+      '<div class="tile-s">' + x.passed + ' of ' + x.measured + ' passed</div>' +
+      '<div class="tile-bar"><i style="width:' + p + '%"></i></div></div>');
+  });
+  H.push('</div><div class="note">Each percentage is the share of the ' + d.scenarios.length +
+    ' author-written demo scenarios that passed every check in that dimension (with repeats: the share of all runs). ' +
+    'These are not production performance estimates.</div>');
+  if (d.warnings && d.warnings.length) {
+    H.push('<div class="warn">' + d.warnings.map(esc).join('<br>') + '</div>');
+  }
+
+  // grid
+  H.push('<div class="section-label">Scenario × dimension — click a cell for the reasons</div><div class="card"><table class="grid"><thead><tr><th>Scenario</th>');
+  DIMS.forEach(function (k) { H.push('<th>' + esc(SHORT[k]) + '</th>'); });
+  H.push('<th>Extras</th></tr></thead><tbody>');
+  d.scenarios.forEach(function (tc) {
+    var runs = by[tc] || [];
+    H.push('<tr><td>' + esc(runs[0] ? runs[0].description || tc : tc) + '</td>');
+    DIMS.forEach(function (k) {
+      var vals = runs.map(function (a) { return a.dims[k]; });
+      var known = vals.filter(function (v) { return v !== null; });
+      var p = known.filter(function (v) { return v; }).length;
+      var cls = !known.length ? 'none' : p === known.length ? 'pass' : p === 0 ? 'fail' : 'mixed';
+      var label = runs.length === 1 ? ({pass: 'Pass', fail: 'Fail', none: '–'}[cls] || '') :
+        (known.length ? p + '/' + known.length : '–');
+      H.push('<td><span class="cell ' + cls + '" data-tc="' + esc(tc) + '" data-dim="' + k + '" tabindex="0">' + label + '</span></td>');
+    });
+    var ex = [];
+    runs.forEach(function (a) { a.checks.forEach(function (c) { if (c.dim === 'OQx' && c.score != null) ex.push(c.score); }); });
+    H.push('<td class="extras">' + (ex.length ? Math.round(100 * ex.reduce(function (s, v) { return s + v; }, 0) / ex.length) + '%' : '–') + '</td></tr>');
+  });
+  H.push('</tbody><tfoot><tr><td>All</td>');
+  DIMS.forEach(function (k) {
+    var x = d.dimensions[k];
+    H.push('<td>' + x.passed + '/' + x.measured + '</td>');
+  });
+  H.push('<td></td></tr></tfoot></table><div class="legend">Pass · Fail · – not measured' +
+    (d.repeats > 1 ? ' · amber = passed in some runs, not all' : '') + '</div></div>');
+
+  // timing
+  var rows = [], maxT = 0;
+  d.scenarios.forEach(function (tc) {
+    (by[tc] || []).forEach(function (a, i) {
+      var r = d.runs[a.run_id];
+      if (!r) return;
+      maxT = Math.max(maxT, r.working_s + r.quota_wait_s);
+      rows.push({lbl: (by[tc][0].description || tc) + (by[tc].length > 1 ? ' · run ' + (i + 1) : ''), r: r});
+    });
+  });
+  if (rows.length) {
+    H.push('<div class="section-label">Time per answer — working vs waiting for free-tier quota</div><div class="card">');
+    rows.forEach(function (x) {
+      var w = 100 * x.r.working_s / maxT, q = 100 * x.r.quota_wait_s / maxT;
+      H.push('<div class="time-row"><div class="time-lbl" title="' + esc(x.lbl) + '">' + esc(x.lbl) + '</div>' +
+        '<div class="time-bar"><span class="w" style="width:' + w + '%"></span><span class="q" style="width:' + q + '%"></span></div>' +
+        '<div class="time-num">' + x.r.working_s.toFixed(1) + ' s work + ' + x.r.quota_wait_s.toFixed(1) + ' s wait · ' +
+        (x.r.tokens || 0).toLocaleString() + ' tok</div></div>');
+    });
+    H.push('<div class="key"><span><i style="background:#4f46e5"></i>working</span>' +
+      '<span><i style="background:repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 3px,#e2e8f0 3px,#e2e8f0 6px)"></i>waiting for quota</span></div></div>');
+  }
+
+  document.getElementById('content').innerHTML = H.join('');
+  document.querySelectorAll('.cell').forEach(function (el) {
+    el.onclick = function () { openCell(el); };
+    el.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCell(el); } };
+  });
+}
+
+function openCell(el) {
+  document.querySelectorAll('.cell.sel').forEach(function (x) { x.classList.remove('sel'); });
+  el.classList.add('sel');
+  var tc = el.getAttribute('data-tc'), dim = el.getAttribute('data-dim');
+  var runs = groupByTc()[tc] || [];
+  document.getElementById('pTitle').textContent = (runs[0] && runs[0].description || tc) + ' · ' + SHORT[dim];
+  document.getElementById('pSub').textContent = runs.length + ' run' + (runs.length > 1 ? 's' : '') + ' · question: ' + (runs[0] ? runs[0].question : '');
+  var H = [];
+  runs.forEach(function (a, i) {
+    var res = a.dims[dim];
+    var checks = a.checks.filter(function (c) { return c.dim === dim || (dim === 'OQ' && c.dim === 'OQx'); });
+    checks.sort(function (x, y) { return (x.pass === false ? 0 : 1) - (y.pass === false ? 0 : 1); });
+    H.push('<div class="run"><div class="run-hd"><b>Run ' + (i + 1) + '</b> <span class="pill ' +
+      (res === true ? 'pass' : res === false ? 'fail' : 'none') + '">' + (res === true ? 'pass' : res === false ? 'fail' : 'not measured') +
+      '</span><span class="mono">' + esc(a.run_label) + '</span><span class="mono">run_id ' + esc(a.run_id || 'none') + '</span></div>');
+    checks.forEach(function (c) {
+      var st = c.dim === 'OQx' ? 'none' : c.pass === true ? 'pass' : c.pass === false ? 'fail' : 'none';
+      var lab = c.dim === 'OQx' ? 'score ' + Math.round(100 * (c.score || 0)) + '%' : c.pass === true ? 'pass' : c.pass === false ? 'fail' : 'n/a';
+      H.push('<div class="chk"><div class="chk-hd"><span class="pill ' + st + '">' + lab + '</span>' + esc(c.metric) +
+        ' <span class="by">' + esc(c.by) + '</span></div><div class="why">' + esc(c.reason || '') + '</div></div>');
+    });
+    if (a.run_id) {
+      var id = 'ev' + i;
+      H.push('<div class="btns" data-run="' + esc(a.run_id) + '" data-ev="' + id + '">' +
+        '<button class="btn" data-show="report">Show report</button>' +
+        '<button class="btn" data-show="pieces">Documents it read</button>' +
+        '<button class="btn" data-show="warnings">Graph warnings</button>' +
+        '<a class="btn" data-show="trace" style="display:none" target="_blank" rel="noopener">LangSmith trace ↗</a></div>' +
+        '<div class="ev" id="' + id + '"></div>');
+    }
+    H.push('</div>');
+  });
+  var body = document.getElementById('pBody');
+  body.innerHTML = H.join('');
+  body.querySelectorAll('.btns').forEach(wireRun);
+  var p = document.getElementById('panel');
+  p.classList.add('open');
+  p.setAttribute('aria-hidden', 'false');
+}
+
+var runCache = {};
+function getRun(runId) {
+  var key = current.kind + '/' + current.name + '/' + runId;
+  if (!runCache[key]) {
+    runCache[key] = fetch('/api/evals/run/' + current.kind + '/' + encodeURIComponent(current.name) + '/' + runId)
+      .then(function (r) { return r.json(); });
+  }
+  return runCache[key];
+}
+
+function wireRun(box) {
+  var runId = box.getAttribute('data-run'), ev = document.getElementById(box.getAttribute('data-ev'));
+  getRun(runId).then(function (d) {
+    var a = box.querySelector('[data-show="trace"]');
+    if (d.langsmith_url) { a.href = d.langsmith_url; a.style.display = ''; }
+  });
+  box.querySelectorAll('button').forEach(function (b) {
+    b.onclick = function () {
+      var what = b.getAttribute('data-show'), was = b.classList.contains('on');
+      box.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+      if (was) { ev.classList.remove('show'); return; }
+      b.classList.add('on');
+      ev.innerHTML = 'Loading…';
+      ev.classList.add('show');
+      getRun(runId).then(function (d) {
+        if (d.error) { ev.textContent = d.error; return; }
+        if (what === 'report') {
+          ev.innerHTML = '<pre>' + esc(d.report || '(no report saved)') + '</pre>';
+        } else if (what === 'warnings') {
+          ev.innerHTML = d.graph_warnings.length
+            ? d.graph_warnings.map(function (w) { return '<div style="margin-bottom:6px">⚠ ' + esc(w) + '</div>'; }).join('')
+            : 'No graph warnings for this run.';
+        } else {
+          ev.innerHTML = d.pieces.length ? d.pieces.map(function (p, j) {
+            return '<div class="piece"><div class="piece-hd" data-p="' + j + '">' + esc(p.step || '') + ' · ' + esc(p.doc_type || '') +
+              ' #' + esc(p.rank) + ' · ' + esc(p.document || '') + ' · score ' + esc(p.score) + (p.reranked ? ' · reranked' : '') +
+              '</div><pre>' + esc(p.text || '') + '</pre></div>';
+          }).join('') : 'No document pieces saved for this run.';
+          ev.querySelectorAll('.piece-hd').forEach(function (h) {
+            h.onclick = function () { h.parentElement.classList.toggle('open'); };
+          });
+        }
+      });
+    };
+  });
+}
+
+function closePanel() {
+  var p = document.getElementById('panel');
+  p.classList.remove('open');
+  p.setAttribute('aria-hidden', 'true');
+  document.querySelectorAll('.cell.sel').forEach(function (x) { x.classList.remove('sel'); });
+}
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePanel(); });
+
+loadReports();
+</script>
+<script src="/static/user_menu.js"></script>
+</body>
+</html>
