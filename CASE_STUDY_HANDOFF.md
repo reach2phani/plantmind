@@ -171,12 +171,61 @@ Block 1 also has a screenshot slot `docs/img/trust-restart-after-fix.png`. Both 
 - Removed by the user: grade chips ("Tested · not good enough yet"), the caption box, inner/outer layer drawing (confusing).
 - Rejected along the way (don't re-propose without a new reason): stamps/lightbox, Swiss-cheese slices, wheel/petals, seal ring, andon light, filter/funnel, autopsy, 2×2 sure/right grid with dots, timeline "when was that", report card, left/centre/right spine, agents→shield→operator player, Cesium (geospatial, too heavy, breaks the self-contained page).
 
-## NEXT: Page 5 "Tracing" (start here in the new chat)
+## NEXT: Page 5 "Tracing" — new approach agreed 20 Oct 2026 (start here in the new chat)
 
-**Working method that worked (keep it):** agree the one sentence the reader should remember first, then the
-story, then sketch on a scratch page, then merge into `preview.html`. Keep sketches in the scratch folder,
-not in `docs/`. Give the page its own look.
+**Working method (keep):** agree the one sentence first, then the story, then sketch on a scratch page, then merge
+into `preview.html` as a lesson (see how "From Document to Answer" was merged: a closure + optional player hooks).
+Plan → user approves → build → user tests. No measurements on slides unless the user asks; real data only, and
+anything illustrative is labelled. `docs/tracing_build.html` ("Tracing sketch 4") is the previous attempt —
+read it, but the approach below replaces it.
 
+**The one sentence:** *When an AI answer is wrong, an engineer works backwards from the failure to the first
+hand-off where the fact went missing — and tracing is what makes each hand-off visible.*
+
+**The concept: "Follow the Failure"** — failure first, worked backwards, unfolding on its own (no clicks needed),
+with reading pauses like lesson 1 (7 s before motion). Styled as an **evidence wall**: the failed answer is pinned
+in the centre; a thread travels to each checkpoint; a pin shows the real evidence there (what went in, what came
+out); the thread turns **sage** where the fact survived a hand-off and **rust** (broken) where it was lost. Pin the
+familiar visuals from lesson 1 (chunk cards, top 4, the AI chip) — new wall, recognisable pieces. Teach the
+engineer's reasoning, not the tool: the learner watches the reasoning unfold.
+
+**Scenes (Case A):**
+1. *Something went wrong* — the question, the answer, the missing fact highlighted. Caught by the **evals' answer
+   key** (true; there is no live check yet). "Where should we look first?"
+2. *The critical split* — did the fact reach the **writer's** input? (PlantMind has two AIs: specialists read the
+   chunks and write notes; the writer reads only the notes + graph facts. Say which AI.) Here: no → upstream.
+3. *Walk backwards* — writer input ✗ → specialist notes ✗ → specialist input ✓ → search ✓ → chunks ✓ → document ✓.
+4. *First broken hand-off* — the specialist's summary turns red; show the before/after evidence (the chunk it had,
+   the notes it wrote).
+5. *What we tested* — the real fix experiment (C2: pass the found chunks to the writer, not only the notes) and its
+   real result, including the honest twist that the first attempt failed because a 6,000-character evidence cap
+   cut the very chunk needed (LEARNINGS). Check which numbers apply to the chosen case before quoting.
+Then **Case B (the other branch, short):** the fact reached the writer and was still left out → a generation
+failure. Then a one-screen **field guide**: where the 84 lost facts leaked (the leaky pipe).
+
+**Real cases to use (from `evals/context/attribution.md`; verify each against the saved run files first):**
+- **Case A, recommended: FL-03 infeed jam, graph OFF** — "rails to position B for 330 ml" and "restart at 60
+  bottles per minute for 2 minutes" were found by the **shift-log (alarm) search** and **summarised away by the
+  alarm specialist in all 3 runs**. New to the site.
+- **Avoid T-1 (first-bottle check, 495–505 ml) as the main case:** the Evals page step 7 already tells it. Use it
+  only as a one-line callback ("you saw this kind of loss on the Evals page").
+- **Case B: FL-01, graph ON, run 3** — "10-minute sanitation rinse after the seal change": **reached the writer,
+  left out**. With the graph on, all 10 losses were of this kind (writer left out a fact it was given).
+- Rejected for Case B: the "1.4 bar" answer (issue 20) — not verified that 1.3 bar reached the writer.
+- Rejected: the user's first draft used "oil fill quantity" with 495–505 mL — that is a bottle volume; don't mix.
+
+**Needed before building (the new chat should find or ask for these):**
+- The **real step inputs/outputs** for Case A and Case B: the chunk text each search returned, the specialist's
+  actual notes, what the writer received, the final report lines. Look in `evals/fl101/results/` and
+  `evals/context/attribution.json`; otherwise a LangSmith trace export (none in the repo yet).
+- Confirm the C2 result numbers for the chosen fact.
+
+**Rejected directions (don't re-propose):** an interactive "solve the mystery" (the user wants to show how an
+engineer reasons, not a puzzle); an "evidence factory" metaphor (a second visual language for the same pipeline
+after lesson 1); trace dashboards / timelines as the main picture; teaching what tracing is before showing a
+failure that needs it; showing every branch at once; a live "quality check" station (PlantMind has none).
+
+**Background material (still true):**
 **What Tracing means here (from the code):** `tracing.py` sends each investigation to LangSmith as a timeline
 tree: graph lookup → supervisor (router) → specialists (each with its search) → report writer → report
 guardrails, with each step's exact input and output and the tokens of every Groq call. It shows what each step
@@ -209,11 +258,6 @@ the rinse fact". Obvious fix that fails: "just log the final answer" (you learn 
   the repo today.
 - **Cost and speed:** `evals/ops_report.py` over the time window of a run — tokens per investigation, p50/p95 time
   per step, cut-off answers, errors, share of the daily free quota.
-
-**Open decisions for Tracing:**
-1. The one sentence to remember (candidate: "When an answer is wrong, tracing shows where it went wrong").
-2. Wide (the 84 lost facts, where they leaked) or deep (one real investigation timeline), or one of each.
-3. Whether to wait for the real trace export before building the timeline part.
 
 ## Lesson "From Document to Answer" (DONE, 20 Oct 2026 · lesson 1, between How it works and Architecture)
 
