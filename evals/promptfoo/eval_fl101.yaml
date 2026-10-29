@@ -86,12 +86,19 @@ defaultTest:
     line: Filling Line 1
     equip_tag: FL-101
     max_steps: 10
-    # NEW for every run (e.g. bl1-r1, bl1-r2, bl1-r3) — becomes run_tag.
-    run_label: CHANGE-ME
+    # NEW value for every run — becomes run_tag (+ "-TC1" ...) in Supabase.
+    # Pattern: <purpose>-<what>-<MMDD>[-r<repeat>], lowercase, no spaces:
+    #   smoke-judgefix-1029 · baseline-v1-1030-r1 · fix-donot-1104-r1 · debug-tc1-filltime-1029
+    run_label: sample-test-5d
   options:
+    # The judge: Qwen through OUR connector (lib/groq_judge.js), which waits
+    # only as long as Groq says on a rate limit. promptfoo's own groq: connector
+    # waited ~6 minutes per limit hit (smoke test: 19 min for one question).
     provider:
-      id: groq:qwen/qwen3.8-27b
+      id: 'file://lib/groq_judge.js'
+      label: judge-qwen3.8-27b
       config:
+        model: qwen/qwen3.8-27b
         temperature: 0
         max_completion_tokens: 2048
         reasoning_format: hidden
@@ -104,11 +111,16 @@ defaultTest:
         that question (for example, if they asked what to check AND what not to
         do, both are answered directly for the operator, not only as training
         or management notes).
+    # Changed 2026-10-29 (was "action-first": the first thing the operator
+    # reads is what to do). The report template puts the actions in section 5
+    # of 6 BY DESIGN, so that check failed every report for the template, not
+    # the answer. This asks whether an operator can FIND the actions quickly.
     - type: llm-rubric
-      metric: 'OQ:action-first'
+      metric: 'OQ:actions-findable'
       value: >-
-        The first thing an operator would act on is what to do right now. The
-        immediate actions are easy to find and are not buried under background,
+        An operator scanning this answer could quickly find what to do right
+        now: the immediate actions are clearly marked (for example a labelled
+        section with numbered steps) and are not mixed into background,
         history or analysis.
     - type: llm-rubric
       metric: 'OQ:order'

@@ -263,11 +263,15 @@ def _cached(kind, key_text, fn):
     if _cache is None:
         _cache = json.loads(CACHE_FILE.read_text(encoding="utf-8")) if CACHE_FILE.exists() else {}
     key = kind + ":" + hashlib.sha1(key_text.encode("utf-8")).hexdigest()[:16]
-    if key not in _cache:
-        _cache[key] = fn()
-        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        CACHE_FILE.write_text(json.dumps(_cache, indent=1, ensure_ascii=False), encoding="utf-8")
-    return _cache[key]
+    if key in _cache:
+        return _cache[key]
+    result = fn()
+    if result is None:   # a failed judge call is NOT cached: the next run tries again
+        return None
+    _cache[key] = result
+    CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    CACHE_FILE.write_text(json.dumps(_cache, indent=1, ensure_ascii=False), encoding="utf-8")
+    return result
 
 
 def _judge_json(client, prompt, max_tokens=1500):
@@ -285,8 +289,23 @@ def _judge_json(client, prompt, max_tokens=1500):
         except TypeError:
             extra = {}
         except Exception as e:
-            wait = 20 * (attempt + 1)
-            print(f"    judge error ({str(e)[:80]}) — retry in {wait}s")
+            msg = str(e)
+            # "Request too large": this ONE request is bigger than the judge's
+            # whole per-minute allowance, so waiting can never help. Stop now;
+            # the check shows as not measured. (Found 2026-10-29: the spec check
+            # sent ~16,000 characters of documents and retried for minutes.)
+            if "too large" in msg.lower() or "413" in msg:
+                print("    judge: request too large for the per-minute limit — check not measured")
+                return None
+            # Normal rate limit: wait as long as Groq says, like groq_judge.js.
+            hint = re.search(r"try again in\s+(?:([\d.]+)ms|(?:(\d+)m\s*)?([\d.]+)s)", msg)
+            if hint:
+                wait = (float(hint.group(1)) / 1000 if hint.group(1)
+                        else float(hint.group(2) or 0) * 60 + float(hint.group(3))) + 0.5
+                wait = min(wait, 60)
+            else:
+                wait = 20 * (attempt + 1)
+            print(f"    judge error ({msg[:80]}) — retry in {wait:.1f}s")
             time.sleep(wait)
     return None
 
@@ -353,12 +372,15 @@ def check_specs_correct(client, report, rec):
             pieces.append(f"[{label}]\n{t}")
     for line in body.splitlines():
         if re.search(r"\d", line) and len(line.strip()) > 15:
-            for ps in passages_for(line.strip()[:500], EQUIPMENT):
+            for ps in passages_for(line.strip()[:500], EQUIPMENT)[:1]:   # closest one only
                 head, _, txt = ps.partition("\n")
                 if "Shift Log" not in head:   # logs hold readings, not specifications
                     add(head.strip("[]"), txt)
     reference = "[SOP section 10: OPERATING SETTINGS]\n" + _sop_settings() + "\n\n" + "\n---\n".join(pieces)
-    reference = reference[:16000]   # keep one judge request under the per-minute limit
+    # The judge reads at most 7,000 tokens a MINUTE, so one request must stay
+    # well under that: ~9,000 characters of documents + the report (~4,000)
+    # + instructions is about 4,500 tokens. 16,000 was rejected as too large.
+    reference = reference[:9000]
     prompt = (
         "Check the SPECIFICATIONS in a maintenance report against the machine's documents.\n"
         "A specification is a value the report presents as required, normal, allowed, specified, "
