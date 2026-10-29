@@ -89,7 +89,7 @@ defaultTest:
     # NEW value for every run — becomes run_tag (+ "-TC1" ...) in Supabase.
     # Pattern: <purpose>-<what>-<MMDD>[-r<repeat>], lowercase, no spaces:
     #   smoke-judgefix-1029 · baseline-v1-1030-r1 · fix-donot-1104-r1 · debug-tc1-filltime-1029
-    run_label: sample-test-5d
+    run_label: baseline-v1-1029-r1
   options:
     # The judge: Qwen through OUR connector (lib/groq_judge.js), which waits
     # only as long as Groq says on a rate limit. promptfoo's own groq: connector
