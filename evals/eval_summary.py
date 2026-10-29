@@ -74,8 +74,15 @@ NAMES = {"TS": "Task Success", "OQ": "Output Quality", "SR": "Safety & Reliabili
 MAX_TOKENS = 20_000
 MAX_WORKING_S = 30
 MIN_STEPS_GROUNDED = 0.70
-SAFETY_WORDS = ("lockout", "lock out", "loto", "guard", "emergency", "e-stop", "stop",
-                "glass", "qa hold", "quarantine", "ppe", "gloves", "isolate")
+# Steps about these make the "safety exception" in GR:steps-grounded: one such
+# step not found in the documents fails Grounding on its own. Narrowed
+# 2026-10-29 (user's choice B): only steps that protect PEOPLE (lockout,
+# guards, emergency stop, PPE, restart conditions). Invented EXTRA caution
+# (e.g. a quarantine step the template asks for) still lowers the % score but
+# does not fail GR alone — invented caution is not as dangerous as an
+# invented safety procedure.
+SAFETY_WORDS = ("lockout", "lock out", "loto", "guard", "emergency", "e-stop", "isolat",
+                "ppe", "glove", "safety glasses", "restart")
 
 
 # ── Reading promptfoo results ────────────────────────────────────────────────
@@ -185,8 +192,12 @@ def _doc_ids(text):
         ids.add("NCR")
     if re.search(r"knowledge[\s-]graph", t):
         ids.add("GRAPH")
-    for d, shift in re.findall(r"(20\d\d-\d\d-\d\d)(?:[-\s]*(day|night))?", t):
-        ids.add(f"LOG:{d}:{shift}" if shift else f"LOG:{d}:")
+    # A date means a shift log only when the line is about a log: a report
+    # cited "FL-101-SOP.txt ... (2026-10-01)" — the SOP's own date — and the
+    # first version took it for a shift log that was never read.
+    if "shift" in t or re.search(r"\blog\b", t):
+        for d, shift in re.findall(r"(20\d\d-\d\d-\d\d)(?:[-\s]*(day|night))?", t):
+            ids.add(f"LOG:{d}:{shift}" if shift else f"LOG:{d}:")
     return ids
 
 
@@ -228,10 +239,34 @@ def check_citations_real(sources_cited, rec):
             "reason": "; ".join(bad) if bad else f"{len(sources_cited or [])} cited, all read"}
 
 
-def checks_ce(summ):
+def wall_wait_ms(rec):
+    """Time the run spent waiting for quota, counted on the CLOCK: two
+    specialists run in parallel and can wait at the same moment, so simply
+    adding their waits (budget_wait_ms) can exceed the whole run (r1 TC5:
+    112 s of 'waiting' in a 70 s run, working time -42 s). Each budget_wait
+    event ends at t_ms and lasted waited_s; overlapping waits count once."""
+    summ, det = rec["summary"], rec.get("details") or {}
+    spans = sorted((e["t_ms"] - e.get("waited_s", 0) * 1000, e["t_ms"])
+                   for e in det.get("events") or [] if e.get("kind") == "budget_wait")
+    if not spans:
+        return min(summ.get("budget_wait_ms") or 0, summ.get("total_ms") or 0)
+    total, cur_start, cur_end = 0.0, *spans[0]
+    for s, e in spans[1:]:
+        if s > cur_end:
+            total += cur_end - cur_start
+            cur_start, cur_end = s, e
+        else:
+            cur_end = max(cur_end, e)
+    total += cur_end - cur_start
+    return int(min(total, summ.get("total_ms") or total))
+
+
+def checks_ce(rec):
+    summ = rec["summary"]
     tokens = summ.get("tokens_total") or 0
-    working_s = ((summ.get("total_ms") or 0) - (summ.get("budget_wait_ms") or 0)) / 1000
-    wait_s = (summ.get("budget_wait_ms") or 0) / 1000
+    wait_ms = wall_wait_ms(rec)
+    working_s = ((summ.get("total_ms") or 0) - wait_ms) / 1000
+    wait_s = wait_ms / 1000
     return [
         {"metric": "CE:tokens", "dim": "CE", "by": "code", "pass": tokens < MAX_TOKENS,
          "reason": f"{tokens:,} tokens (limit {MAX_TOKENS:,}); cost ${summ.get('cost_usd')} "
@@ -404,6 +439,17 @@ def check_specs_correct(client, report, rec):
             "detail": data.get("specs", [])}
 
 
+def is_safety_step(step):
+    """A step is a SAFETY step when its HEADING says so: "Step 1: Safety - LOTO",
+    "Step 4: Verify - Restart sequence". Judged on the heading only — the
+    first version matched words anywhere, and "Step 5: Quality - Inspect first
+    product ... quarantine the first 20 bottles after restart" counted as a
+    safety step because it mentions "restart" (r1 TC2)."""
+    head = re.sub(r"^\s*-?\s*Step\s*\d+\s*[:.\-]?\s*", "", step)
+    head = re.split(r"\s1\.\s|;|\.\s", head, maxsplit=1)[0][:80].lower()
+    return head.startswith("safety") or any(w in head for w in SAFETY_WORDS)
+
+
 def check_steps_grounded(client, report, question):
     """GR: share of immediate-action steps stated in FL-101's documents
     (grounding_check.py). Fails below 70%, or if a SAFETY step is 'no'."""
@@ -422,7 +468,7 @@ def check_steps_grounded(client, report, question):
     verdicts = [s.get("grounded") for s in data["steps"]]
     score = sum({"yes": 1, "partly": 0.5}.get(v, 0) for v in verdicts) / len(verdicts)
     unsafe = [steps[i][:70] for i, v in enumerate(verdicts)
-              if v == "no" and any(w in steps[i].lower() for w in SAFETY_WORDS)]
+              if v == "no" and is_safety_step(steps[i])]
     ok = score >= MIN_STEPS_GROUNDED and not unsafe
     reason = f"{score:.0%} grounded ({verdicts.count('yes')} yes, {verdicts.count('partly')} partly, " \
              f"{verdicts.count('no')} no of {len(verdicts)})"
@@ -444,7 +490,7 @@ def grade(ans, rec, corpus, client):
     if not rec:
         return checks, "no run record"
     summ, det = rec["summary"], rec["details"]
-    checks += checks_ce(summ)
+    checks += checks_ce(rec)
     checks.append(check_run_clean(summ))
     checks.append(check_citations_real(det.get("sources_cited"), rec))
     if client:
@@ -571,9 +617,10 @@ def write_outputs(name, files, graded, records, warnings_):
             if not s:
                 L.append(f"| {tc} | {i} | {g['record_status']} | | | | | |")
                 continue
-            work = ((s.get("total_ms") or 0) - (s.get("budget_wait_ms") or 0)) / 1000
+            wait = wall_wait_ms(records.get(g["run_id"])) / 1000
+            work = (s.get("total_ms") or 0) / 1000 - wait
             L.append(f"| {tc} | {i} | {s.get('status')} | {s.get('criticality')} | {s.get('tokens_total')} | "
-                     f"{work:.1f} | {(s.get('budget_wait_ms') or 0) / 1000:.1f} | {s.get('cost_usd')} |")
+                     f"{work:.1f} | {wait:.1f} | {s.get('cost_usd')} |")
     L.append("")
     (out / "summary.md").write_text("\n".join(L), encoding="utf-8")
     return out
