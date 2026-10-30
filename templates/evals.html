@@ -53,6 +53,11 @@ table.grid{width:100%;border-collapse:collapse;font-size:13px}
 .time-bar .w{background:#4f46e5}
 .time-bar .q{background:repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 4px,#e2e8f0 4px,#e2e8f0 8px)}
 .time-num{width:230px;flex-shrink:0;text-align:right;color:#64748b;font-size:11px;font-variant-numeric:tabular-nums}
+.time-grp{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 14px 4px;font-size:12px;font-weight:600;color:#0f172a;border-top:1px solid #e2e8f0}
+.time-grp:first-child{border-top:none}
+.time-grp-s{font-weight:500;color:#64748b;font-size:11px}
+.rng{color:#94a3b8}
+.time-row .mono{font-size:10px;color:#94a3b8;margin-left:4px}
 .key{display:flex;gap:16px;font-size:11px;color:#64748b;padding:8px 14px;border-top:1px solid #f1f5f9}
 .key i{display:inline-block;width:12px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .empty{padding:40px;text-align:center;color:#94a3b8;font-size:13px}
@@ -236,24 +241,49 @@ function render() {
     (d.repeats > 1 ? ' · each scenario was asked ' + d.repeats + ' times: a cell shows in how many of those runs it passed' +
       ' (green = every run, amber = some runs, red = none)' : '') + '</div></div>');
 
-  // timing
-  var rows = [], maxT = 0;
+  // time and tokens, compared across runs: one group per scenario, a bar per
+  // run, and a line with the average and the range (lowest–highest)
+  var groups = [], maxT = 0, all = [];
   d.scenarios.forEach(function (tc) {
+    var rs = [];
     (by[tc] || []).forEach(function (a, i) {
       var r = d.runs[a.run_id];
       if (!r) return;
       maxT = Math.max(maxT, r.working_s + r.quota_wait_s);
-      rows.push({lbl: (by[tc][0].description || tc) + (by[tc].length > 1 ? ' · run ' + (i + 1) : ''), r: r});
+      rs.push({n: i + 1, label: a.run_label, r: r});
+      all.push(r);
     });
+    if (rs.length) groups.push({name: (by[tc][0] && by[tc][0].description) || tc, rs: rs});
   });
-  if (rows.length) {
-    H.push('<div class="section-label">Time per answer — working vs waiting for free-tier quota</div><div class="card">');
-    rows.forEach(function (x) {
-      var w = 100 * x.r.working_s / maxT, q = 100 * x.r.quota_wait_s / maxT;
-      H.push('<div class="time-row"><div class="time-lbl" title="' + esc(x.lbl) + '">' + esc(x.lbl) + '</div>' +
-        '<div class="time-bar"><span class="w" style="width:' + w + '%"></span><span class="q" style="width:' + q + '%"></span></div>' +
-        '<div class="time-num">' + x.r.working_s.toFixed(1) + ' s work + ' + x.r.quota_wait_s.toFixed(1) + ' s wait · ' +
-        (x.r.tokens || 0).toLocaleString() + ' tok</div></div>');
+  function stats(list, key) {
+    var v = list.map(function (r) { return r[key] || 0; });
+    var avg = v.reduce(function (s, x) { return s + x; }, 0) / v.length;
+    return {avg: avg, min: Math.min.apply(null, v), max: Math.max.apply(null, v)};
+  }
+  function range(s, fmt) {
+    return fmt(s.avg) + (fmt(s.min) !== fmt(s.max) ? ' <span class="rng">(' + fmt(s.min) + '–' + fmt(s.max) + ')</span>' : '');
+  }
+  var sec = function (x) { return x.toFixed(1) + ' s'; };
+  var tok = function (x) { return (x / 1000).toFixed(1) + 'K'; };
+  if (groups.length) {
+    var aw = stats(all, 'working_s'), aq = stats(all, 'quota_wait_s'), at = stats(all, 'tokens');
+    H.push('<div class="section-label">Time and tokens per answer' + (d.repeats > 1 ? ', compared across runs' : '') + '</div>' +
+      '<div class="note" style="margin:-4px 0 10px">All ' + all.length + ' answers: working ' + range(aw, sec) +
+      ' · waiting for quota ' + range(aq, sec) + ' · tokens ' + range(at, tok) +
+      '. Average, with lowest–highest in brackets.</div><div class="card">');
+    groups.forEach(function (g) {
+      var w = stats(g.rs.map(function (x) { return x.r; }), 'working_s');
+      var t = stats(g.rs.map(function (x) { return x.r; }), 'tokens');
+      H.push('<div class="time-grp"><span>' + esc(g.name) + '</span><span class="time-grp-s">' +
+        (g.rs.length > 1 ? 'avg ' : '') + range(w, sec) + ' working · ' + (g.rs.length > 1 ? 'avg ' : '') + range(t, tok) + ' tokens</span></div>');
+      g.rs.forEach(function (x) {
+        var wp = 100 * x.r.working_s / maxT, qp = 100 * x.r.quota_wait_s / maxT;
+        H.push('<div class="time-row"><div class="time-lbl" title="' + esc(x.label) + '">Run ' + x.n +
+          ' <span class="mono">' + esc(x.label || '') + '</span></div>' +
+          '<div class="time-bar"><span class="w" style="width:' + wp + '%"></span><span class="q" style="width:' + qp + '%"></span></div>' +
+          '<div class="time-num">' + x.r.working_s.toFixed(1) + ' s work + ' + x.r.quota_wait_s.toFixed(1) + ' s wait · ' +
+          (x.r.tokens || 0).toLocaleString() + ' tok</div></div>');
+      });
     });
     H.push('<div class="key"><span><i style="background:#4f46e5"></i>working</span>' +
       '<span><i style="background:repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 3px,#e2e8f0 3px,#e2e8f0 6px)"></i>waiting for quota</span></div></div>');
