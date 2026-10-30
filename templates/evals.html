@@ -196,7 +196,7 @@ function render() {
     var x = d.dimensions[k], p = x.measured ? 100 * x.passed / x.measured : 0;
     H.push('<div class="tile"><div class="tile-v">' + pct(x.passed, x.measured) + '</div>' +
       '<div class="tile-l">' + esc(SHORT[k]) + '</div>' +
-      '<div class="tile-s">' + x.passed + ' of ' + x.measured + ' passed</div>' +
+      '<div class="tile-s">' + x.passed + ' of ' + x.measured + (d.repeats > 1 ? ' answers passed' : ' passed') + '</div>' +
       '<div class="tile-bar"><i style="width:' + p + '%"></i></div></div>');
   });
   H.push('</div><div class="note">Each percentage is the share of the ' + d.scenarios.length +
@@ -220,7 +220,8 @@ function render() {
       var cls = !known.length ? 'none' : p === known.length ? 'pass' : p === 0 ? 'fail' : 'mixed';
       var label = runs.length === 1 ? ({pass: 'Pass', fail: 'Fail', none: '–'}[cls] || '') :
         (known.length ? p + '/' + known.length : '–');
-      H.push('<td><span class="cell ' + cls + '" data-tc="' + esc(tc) + '" data-dim="' + k + '" tabindex="0">' + label + '</span></td>');
+      var tip = runs.length === 1 ? '' : (known.length ? 'Passed in ' + p + ' of ' + known.length + ' runs' : 'Not measured');
+      H.push('<td><span class="cell ' + cls + '" data-tc="' + esc(tc) + '" data-dim="' + k + '" tabindex="0" title="' + tip + '">' + label + '</span></td>');
     });
     var ex = [];
     runs.forEach(function (a) { a.checks.forEach(function (c) { if (c.dim === 'OQx' && c.score != null) ex.push(c.score); }); });
@@ -232,7 +233,8 @@ function render() {
     H.push('<td>' + x.passed + '/' + x.measured + '</td>');
   });
   H.push('<td></td></tr></tfoot></table><div class="legend">Pass · Fail · – not measured' +
-    (d.repeats > 1 ? ' · amber = passed in some runs, not all' : '') + '</div></div>');
+    (d.repeats > 1 ? ' · each scenario was asked ' + d.repeats + ' times: a cell shows in how many of those runs it passed' +
+      ' (green = every run, amber = some runs, red = none)' : '') + '</div></div>');
 
   // timing
   var rows = [], maxT = 0;
