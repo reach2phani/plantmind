@@ -1,0 +1,40 @@
+{
+  "_about": "What changed since the report this one is compared with. Written by hand before the runs; the dashboard shows it as 'What changed'.",
+  "compare_with": "baseline-v1",
+  "written": "2026-11-02",
+  "hypothesis": "The writer drops safety rules because they are not on the must-show list and the template has no place for them. Put them on the list and give them a place, and 'Missing safety warning' falls from 9 to 3 or fewer.",
+  "targets": [
+    {"measure": "Missing safety warning (failed checks)", "before": "9", "target": "3 or fewer"},
+    {"measure": "Safety & Reliability", "before": "7/15 (47%)", "target": "10/15 or more"},
+    {"measure": "Missing exact value (rails A/B)", "before": "3", "target": "1 or fewer"},
+    {"measure": "Any other dimension", "before": "-", "target": "drops by no more than 1 answer"}
+  ],
+  "not_expected_to_change": "Wrong severity rating (TC1/TC3 r3): needs the guardrail floor (Fix 3, after-fix-2).",
+  "changes": [
+    {
+      "fix": "Every rule in the graph goes on the must-show list",
+      "type": "Data preparation",
+      "pipeline_step": "Knowledge graph",
+      "files": ["knowledge_graph.py (_derive_warnings)"],
+      "detail": "Reads rule, safety_rule and any *_rule property on the matched fault's notes, all of them (was: only Safety.rule/action/required_before, first one only).",
+      "targets": ["Missing safety warning"]
+    },
+    {
+      "fix": "Glass breakage: 'Do not open any guard until stopped and locked out' as its own rule",
+      "type": "Data preparation",
+      "pipeline_step": "Knowledge graph",
+      "files": ["fl101_graph.json (fl101_glass_breakage.safety_rule)"],
+      "detail": "The rule existed only inside the response procedure's step list, so it could never be a must-show warning.",
+      "targets": ["Missing safety warning"]
+    },
+    {
+      "fix": "A 'Do NOT' block in the immediate actions + where mandatory items go",
+      "type": "Prompt / template",
+      "pipeline_step": "AI generation - writer",
+      "files": ["multi_agent.py (orchestrator SYSTEM_PROMPT, MANDATORY REQUIREMENTS heading)"],
+      "detail": "New 'Do NOT (read before starting)' lines before Step 1; every mandatory requirement must be in the immediate actions; write exact values, not only the sheet name; say 'Do not restart until ...' plainly.",
+      "targets": ["Missing safety warning", "Missing exact value", "Missing step"]
+    }
+  ],
+  "kept_for_later": ["Step 5 'Quality - parts to quarantine' forces invented steps (Not backed by documents): one problem per experiment."]
+}

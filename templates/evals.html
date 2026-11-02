@@ -219,11 +219,18 @@ function render() {
 
   // tiles
   H.push('<div class="tiles">');
+  var cmp = d.compare;
   DIMS.forEach(function (k) {
     var x = d.dimensions[k], p = x.measured ? 100 * x.passed / x.measured : 0;
+    var delta = '';
+    if (cmp && cmp.dimensions && cmp.dimensions[k] && cmp.dimensions[k].measured && x.measured) {
+      var b = cmp.dimensions[k], dp = Math.round(100 * x.passed / x.measured) - Math.round(100 * b.passed / b.measured);
+      delta = '<div class="tile-s" style="color:' + (dp > 0 ? '#166534' : dp < 0 ? '#b91c1c' : '#64748b') + '">' +
+        esc(cmp.name) + ' ' + pct(b.passed, b.measured) + ' → ' + (dp > 0 ? '+' : '') + dp + ' pts</div>';
+    }
     H.push('<div class="tile"><div class="tile-v">' + pct(x.passed, x.measured) + '</div>' +
       '<div class="tile-l">' + esc(SHORT[k]) + '</div>' +
-      '<div class="tile-s">' + x.passed + ' of ' + x.measured + (d.repeats > 1 ? ' answers passed' : ' passed') + '</div>' +
+      '<div class="tile-s">' + x.passed + ' of ' + x.measured + (d.repeats > 1 ? ' answers passed' : ' passed') + '</div>' + delta +
       '<div class="tile-bar"><i style="width:' + p + '%"></i></div></div>');
   });
   H.push('</div><div class="note">Each percentage is the share of the ' + d.scenarios.length +
@@ -231,6 +238,22 @@ function render() {
     'These are not production performance estimates.</div>');
   if (d.warnings && d.warnings.length) {
     H.push('<div class="warn">' + d.warnings.map(esc).join('<br>') + '</div>');
+  }
+
+  // what changed since the compared report (hand-written changes.json)
+  var ch = d.changes;
+  if (ch && ch.changes) {
+    H.push('<div class="section-label">What changed since ' + esc(ch.compare_with) + '</div><div class="card">' +
+      '<table class="grid"><thead><tr><th>Fix</th><th>Type</th><th>Pipeline step</th><th>Files</th><th>Targets</th></tr></thead><tbody>');
+    ch.changes.forEach(function (c) {
+      H.push('<tr><td title="' + esc(c.detail) + '">' + esc(c.fix) + '</td><td>' + esc(c.type) + '</td><td>' + esc(c.pipeline_step) +
+        '</td><td class="mono">' + esc((c.files || []).join(', ')) + '</td><td>' + esc((c.targets || []).join(', ')) + '</td></tr>');
+    });
+    H.push('</tbody></table><div class="legend"><b>Hypothesis:</b> ' + esc(ch.hypothesis) +
+      (ch.targets ? '<br><b>Targets (set before the runs):</b> ' + ch.targets.map(function (t) {
+        return esc(t.measure) + ' ' + esc(t.before) + ' → ' + esc(t.target);
+      }).join(' · ') : '') +
+      (ch.not_expected_to_change ? '<br><b>Not expected to change:</b> ' + esc(ch.not_expected_to_change) : '') + '</div></div>');
   }
 
   // what went wrong (Level 1), from evals/trace_failures.py
@@ -244,9 +267,21 @@ function render() {
         '<span class="sev s' + g.severity + '">' + esc(g.severity_name) + '</span>' +
         '<div class="wrong-main"><div class="wrong-t">' + esc(g.label) + '</div>' +
         '<div class="wrong-s">' + esc(g.why_it_matters) + '<br>' + esc(sc) + '</div></div>' +
-        '<div class="wrong-n"><b>' + g.count + '</b> failed check' + (g.count > 1 ? 's' : '') +
+        '<div class="wrong-n">' + (cmp && cmp.groups ? '<span class="rng">' + esc(cmp.name) + ' ' + (cmp.groups[g.type] ? cmp.groups[g.type].count : 0) + ' → </span>' : '') +
+        '<b>' + g.count + '</b> failed check' + (g.count > 1 ? 's' : '') +
         '<div class="wrong-s">mostly lost at: ' + esc(g.lost_at[0][0]) + '</div></div></div>');
     });
+    if (cmp && cmp.groups) {   // failure types that are gone since the compared report
+      var now = {};
+      at.groups.forEach(function (g) { now[g.type] = 1; });
+      Object.keys(cmp.groups).forEach(function (t) {
+        var g = cmp.groups[t];
+        if (now[t]) return;
+        H.push('<div class="wrong-row" style="cursor:default;opacity:.75"><span class="sev s' + g.severity + '">' + esc(g.severity_name) + '</span>' +
+          '<div class="wrong-main"><div class="wrong-t">' + esc(g.label) + '</div><div class="wrong-s">' + esc(g.why_it_matters) + '</div></div>' +
+          '<div class="wrong-n"><span class="rng">' + esc(cmp.name) + ' ' + g.count + ' → </span><b style="color:#166534">0</b> fixed</div></div>');
+      });
+    }
     H.push('<div class="legend">Level 1 = what went wrong and why it matters (failure map reviewed ' +
       esc(at.map.reviewed_on || '') + '). Level 2 = the pipeline step where it was lost. ' + esc(at.method) + '</div></div>');
   }

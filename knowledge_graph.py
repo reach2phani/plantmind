@@ -475,11 +475,19 @@ def _derive_warnings(nodes):
 
         Fault.criticality / .quality_impact / .wrong_response
         Procedure.mandatory / .important_note
-        Safety.rule / .action
+        Safety: the first of .rule / .action / .required_before
+        Any note: .rule / .safety_rule / any property ending in _rule
+
+    Rules (after-fix-1, Nov 2026): the baseline found safety rules that sat in
+    the graph but never reached this list, so the writer treated them as
+    optional - Fault.safety_rule ("never reach into the star wheel"),
+    Procedure.cleanup_rule ("never use compressed air") and every Safety rule
+    after the first (air_rule). Every rule-type property now counts, on any note.
     """
     out = []
     for n in nodes:
         p, label = n.get("properties", {}) or {}, n.get("label", "")
+        rules = [k for k in p if k == "rule" or k.endswith("_rule")]
         if n["type"] == "Fault":
             if p.get("criticality"):
                 out.append(f'{_clean(p["criticality"])}{_src(p)}')
@@ -492,11 +500,16 @@ def _derive_warnings(nodes):
                 out.append(f'{label} is MANDATORY — {_clean(p["mandatory"])}{_src(p)}')
             if p.get("important_note"):
                 out.append(f'{_clean(p["important_note"])}{_src(p)}')
-        elif n["type"] == "Safety":
+        used = None
+        if n["type"] == "Safety":
             for key in ("rule", "action", "required_before"):
                 if p.get(key):
                     out.append(f'{label}: {_clean(p[key])}{_src(p)}')
+                    used = key
                     break
+        for key in sorted(rules):
+            if key != used and p.get(key):
+                out.append(f'{label}: {_clean(p[key])}{_src(p)}')
     # De-duplicate while keeping the order.
     seen, unique = set(), []
     for w in out:

@@ -1294,6 +1294,18 @@ FORMATTING RULES (follow these EXACTLY — do not deviate):
 - Reproduce the section structure below verbatim, including the ═ divider lines.
 - Be concise. Prefer short, direct bullets over long paragraphs.
 
+WHAT MUST BE IN THE IMMEDIATE ACTIONS (after-fix-1 — follow strictly):
+- Every MANDATORY REQUIREMENT that applies to this incident goes in the immediate
+  actions: each prohibition ("never", "do not", "must not") as a "Do NOT" line, each
+  mandatory step inside the numbered steps. Mentioning it only under Root cause fix,
+  Preventive action or the summary does not count.
+- Prohibitions from the documents for this fault (SOP, work instruction) also go in
+  the "Do NOT" lines, in the operator's words: "Do NOT reach into ...", not only "apply LOTO".
+- When a document gives the exact value (a position, a setting, a range), write the
+  value, not only the name of the sheet or section that holds it.
+- If something must be finished before the machine restarts, say it plainly:
+  "Do not restart until ...".
+
 Produce the report in exactly this format:
 
 ═══════════════════════════════════════
@@ -1318,6 +1330,8 @@ HOW CRITICAL IS IT:
 
 HOW TO ADDRESS IT:
 - Immediate action (numbered steps in correct sequence — safety first, then fix, then verify)
+  Do NOT (read before starting):
+  - one line per prohibition for this incident, from MANDATORY REQUIREMENTS and the documents
   Step 1: Safety — LOTO, stop production, isolate
   Step 2: Diagnosis — what to inspect
   Step 3: Fix — what to replace or repair
@@ -1355,7 +1369,8 @@ RISK IF NOT ACTIONED: [One sentence — what happens if nothing is done]"""
 
         mandatory_warnings = ""
         if warnings:
-            mandatory_warnings = "\n\nMANDATORY REQUIREMENTS FROM KNOWLEDGE GRAPH (you MUST include ALL of these):"
+            mandatory_warnings = ("\n\nMANDATORY REQUIREMENTS FROM KNOWLEDGE GRAPH (you MUST include ALL of "
+                                  "these that apply, IN THE IMMEDIATE ACTIONS — prohibitions as \"Do NOT\" lines):")
             for w in warnings:
                 mandatory_warnings += f"\n  ⚠️  {w}"
 

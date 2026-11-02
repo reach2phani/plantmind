@@ -1734,6 +1734,19 @@ def evals_report(kind, name):
     # The failure analysis (evals/trace_failures.py), when it has been run.
     attr = os.path.join(folder, "attribution.json")
     data["attribution"] = _read_json(attr) if os.path.isfile(attr) else None
+    # What changed since an earlier report (hand-written changes.json), and
+    # that report's numbers, so the page can show before -> after.
+    chg = os.path.join(folder, "changes.json")
+    data["changes"] = _read_json(chg) if os.path.isfile(chg) else None
+    data["compare"] = None
+    base = (data["changes"] or {}).get("compare_with")
+    base_folder = next((f for f in (_eval_folder(k, base) for k in _EVAL_DIRS) if f), None) if base else None
+    if base_folder:
+        b = _read_json(os.path.join(base_folder, "summary.json"))
+        b_attr = os.path.join(base_folder, "attribution.json")
+        groups = _read_json(b_attr).get("groups", []) if os.path.isfile(b_attr) else []
+        data["compare"] = {"name": base, "dimensions": b.get("dimensions"),
+                           "groups": {g["type"]: g for g in groups}}
     return jsonify(data)
 
 

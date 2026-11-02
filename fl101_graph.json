@@ -84,6 +84,7 @@
         "criticality": "CRITICAL — broken glass can end up inside filled bottles. This is a product safety event. Follow GBP-001 (Glass and Brittle Plastics Policy).",
         "quality_impact": "Every bottle filled in the last 30 minutes goes on QA HOLD, and open bottles within 2 metres of the break are thrown away",
         "who_to_call": "The quality lead and the maintenance supervisor, for any glass breakage",
+        "safety_rule": "Do not open any guard until the machine has stopped and is locked out (SOP Section 12.3, Step 2).",
         "source": "FL-101-SOP Sections 12.3 and 13"
       }
     },
