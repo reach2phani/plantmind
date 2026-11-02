@@ -1730,7 +1730,11 @@ def evals_report(kind, name):
     folder = _eval_folder(kind, name)
     if not folder:
         return jsonify({"error": "report not found"}), 404
-    return jsonify(_read_json(os.path.join(folder, "summary.json")))
+    data = _read_json(os.path.join(folder, "summary.json"))
+    # The failure analysis (evals/trace_failures.py), when it has been run.
+    attr = os.path.join(folder, "attribution.json")
+    data["attribution"] = _read_json(attr) if os.path.isfile(attr) else None
+    return jsonify(data)
 
 
 @app.route("/api/evals/run/<kind>/<name>/<run_id>")

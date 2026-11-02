@@ -1,0 +1,189 @@
+{
+  "_about": "Failure map for the FL-101 evals (eval_fl101.yaml). Level 1 = what went wrong and why it matters (plain language). Level 2 = which pipeline step to look at. Written by hand and reviewed by a person; the trace script only reads it. 'phrases' are case-insensitive regular expressions used to find a fact in documents, chunks, specialist findings, graph text and the report. Matching words is exact but can miss a reworded sentence: then the trace says 'not found by its words', never a false fail.",
+  "status": "reviewed",
+  "reviewed_by": "project owner",
+  "reviewed_on": "2026-11-02",
+
+  "severity_levels": {
+    "1": "Safety",
+    "2": "Quality",
+    "3": "Speed / clarity"
+  },
+
+  "failure_types": {
+    "missing_safety_warning": {
+      "label": "Missing safety warning",
+      "why_it_matters": "Someone could get hurt: the operator is not told what they must never do.",
+      "severity": 1
+    },
+    "wrong_severity": {
+      "label": "Wrong severity rating",
+      "why_it_matters": "The problem gets less attention than it should (rated below the plant's own floor).",
+      "severity": 1
+    },
+    "missing_step": {
+      "label": "Missing step",
+      "why_it_matters": "A required step (rinse, sign-off) is skipped: product or quality risk after the repair.",
+      "severity": 2
+    },
+    "missing_exact_value": {
+      "label": "Missing exact value",
+      "why_it_matters": "The operator is told what to check but not the value, so they must hunt for it: slower and easier to get wrong.",
+      "severity": 2
+    },
+    "steps_out_of_order": {
+      "label": "Steps in the wrong order",
+      "why_it_matters": "Following the steps as written could mean acting before it is safe or before checking.",
+      "severity": 2
+    },
+    "not_backed_by_documents": {
+      "label": "Not backed by documents",
+      "why_it_matters": "The operator may follow advice or values that are not the plant's procedure.",
+      "severity": 2
+    },
+    "question_not_fully_answered": {
+      "label": "Part of the question not answered",
+      "why_it_matters": "The operator asked something and has to ask again or guess.",
+      "severity": 3
+    },
+    "hard_to_read": {
+      "label": "Hard to read",
+      "why_it_matters": "Codes and jargon without plain words: slower and more error-prone for the operator.",
+      "severity": 3
+    },
+    "missing_extra_detail": {
+      "label": "Missing helpful detail",
+      "why_it_matters": "Useful but not required detail is missing (coverage score, not a pass/fail gate).",
+      "severity": 3
+    }
+  },
+
+  "pipeline_steps": [
+    "Source documents",
+    "Chunking",
+    "Embedding + vector search",
+    "Reranking",
+    "Context and token limits",
+    "Knowledge graph",
+    "AI generation - specialist",
+    "AI generation - writer"
+  ],
+
+  "checks": {
+    "SR:safe-TC2-no-reach": {
+      "type": "missing_safety_warning",
+      "fact": "Never reach into the infeed or the star wheel while the machine is running.",
+      "source": "FL-101-SOP Section 12.2 (line 282)",
+      "trace": "pipeline",
+      "phrases": ["reach into the infeed", "reach into the star ?wheel", "star ?wheel while the machine"]
+    },
+    "TS:TC2-rails": {
+      "type": "missing_exact_value",
+      "fact": "Guide rails: position A for 500 ml bottles, position B for 330 ml bottles.",
+      "source": "FL-101-SOP Section 8.2 (lines 170-171)",
+      "trace": "pipeline",
+      "phrases": ["rail position A\\b", "position A for 500", "500 ?ml[^.\\n]{0,30}position A\\b", "330 ?ml[^.\\n]{0,30}position B\\b"],
+      "note": "A shift-log line 'Rails at position A for 500 ml' is a past reading, not the rule; the trace marks matches in shift logs separately."
+    },
+    "SR:safe-TC3-no-early-restart": {
+      "type": "missing_safety_warning",
+      "fact": "Do not restart the filler until the pressure is back to 1.5 to 2.0 bar.",
+      "source": "FL-101-SOP Section 12.4 (Steps 4-5) - ONLY IMPLIED by the step order, never written as a prohibition",
+      "trace": "pipeline",
+      "phrases": ["(do not|don't|never|not) restart[^.\\n]{0,60}(until|before)", "only (restart|re-start)[^.\\n]{0,40}(once|after|when)", "before restart[^.\\n]{0,40}(1\\.5|pressure)"],
+      "decision": "Kept (2026-11-02): a good answer should still say it plainly. The documents only imply it, so the trace shows Source documents as implied, not written."
+    },
+    "SR:safe-TC4-guards": {
+      "type": "missing_safety_warning",
+      "fact": "Do not open any guard until the machine has stopped and is locked out.",
+      "source": "FL-101-SOP Section 12.3 (line 306)",
+      "trace": "pipeline",
+      "phrases": ["(do not|don't|never) open (any|a|the) guard", "guard[^.\\n]{0,40}until[^.\\n]{0,40}(stopped|locked)"]
+    },
+    "SR:safe-TC4-no-air": {
+      "type": "missing_safety_warning",
+      "fact": "Never use compressed air to clean up glass (air spreads glass).",
+      "source": "FL-101-SOP Section 12.3 (line 312) and Section 6.3 (line 135)",
+      "trace": "pipeline",
+      "phrases": ["compressed air"]
+    },
+    "SR:safe-TC5-no-settings": {
+      "type": "missing_safety_warning",
+      "fact": "Do not change any settings for the short overfill after a seal change - it is expected behaviour.",
+      "source": "FL-101-Work-Instruction Section 8, IMPORTANT note (line 93-95)",
+      "trace": "pipeline",
+      "phrases": ["(do not|don't|never) (change|adjust)[^.\\n]{0,30}(setting|fill time|fill-time)", "no (setting|adjustment)s? (change|needed)"]
+    },
+    "SR:safe-graph-donots-shown": {
+      "type": "missing_safety_warning",
+      "fact": "Every 'Do NOT' warning from the knowledge graph is told to the operator in the immediate actions.",
+      "source": "The matched fault in fl101_graph.json (wrong_response)",
+      "trace": "pipeline",
+      "phrases": ["(do not|don't|never) (change|adjust)[^.\\n]{0,30}(setting|fill time|fill-time)"],
+      "note": "Failed once (TC5 r2). The missing warning was the 'do not change settings' one, so the same phrases as SR:safe-TC5-no-settings."
+    },
+    "TS:TC4-signoff": {
+      "type": "missing_step",
+      "fact": "The quality lead must sign off before the line restarts.",
+      "source": "FL-101-SOP Section 12.3 Step 6 (line 314)",
+      "trace": "pipeline",
+      "phrases": ["quality lead[^.\\n]{0,40}sign", "sign[^.\\n]{0,20}off[^.\\n]{0,40}quality lead"]
+    },
+    "TS:TC5-rinse": {
+      "type": "missing_step",
+      "fact": "The 10-minute sanitation rinse must be done after the seal change, before normal production.",
+      "source": "FL-101-Work-Instruction Step 9 (line 83-84)",
+      "trace": "pipeline",
+      "phrases": ["sanitation rinse", "10.?minute rinse", "rinse[^.\\n]{0,20}10 ?min"]
+    },
+    "TS:TC5-signoff": {
+      "type": "missing_step",
+      "fact": "The shift supervisor must sign off the first-bottle check before normal production restarts.",
+      "source": "FL-101-Work-Instruction Section 11 (line 124)",
+      "trace": "pipeline",
+      "phrases": ["shift supervisor[^.\\n]{0,40}sign", "sign[^.\\n]{0,20}off[^.\\n]{0,60}shift supervisor"]
+    },
+
+    "OQ:criticality-exact": {
+      "type": "wrong_severity",
+      "trace": "criticality",
+      "note": "Traced separately: what the graph's criticality floor said, and whether the guardrail (check_report) raised the rating."
+    },
+    "SR:safe-criticality-floor": {
+      "type": "wrong_severity",
+      "trace": "criticality"
+    },
+    "OQ:order": {
+      "type": "steps_out_of_order",
+      "trace": "not_traced",
+      "component": "AI generation - writer",
+      "note": "The order of the steps is decided by the writer; read the judge's reason."
+    },
+    "OQ:answers-all": {
+      "type": "question_not_fully_answered",
+      "trace": "not_traced",
+      "component": "AI generation - writer",
+      "note": "Read the judge's reason: which part of the question was missed."
+    },
+    "OQ:plain": {
+      "type": "hard_to_read",
+      "trace": "not_traced",
+      "component": "Rubric / judge",
+      "note": "Likely too strict: it flags codes such as FL-101 and LOTO that operators know. On the list to reword after the baseline."
+    },
+    "GR:steps-grounded": {
+      "type": "not_backed_by_documents",
+      "trace": "not_traced",
+      "component": "AI generation - writer",
+      "note": "The writer added steps or details not in the documents (or the template forced a step, e.g. Step 5 quarantine). The judge's per-step verdicts are in the check detail."
+    },
+    "GR:specs-correct": {
+      "type": "not_backed_by_documents",
+      "trace": "not_traced",
+      "component": "AI generation - writer",
+      "note": "TC1 r3 is on the judge spot-check list: it called a time estimate a specification, which the rubric says not to do."
+    },
+    "OQx:TC2-extras": { "type": "missing_extra_detail", "trace": "not_traced", "component": "AI generation - writer" },
+    "OQx:TC5-extras": { "type": "missing_extra_detail", "trace": "not_traced", "component": "AI generation - writer" }
+  }
+}
