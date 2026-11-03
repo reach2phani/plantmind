@@ -1215,6 +1215,20 @@ def _build_evidence_block(specialist_results, max_chars=None):
     return "\n\n---\n\n".join(chosen)
 
 
+def _without_warning_list(chain_text):
+    """The chain text minus its "Critical warnings:" list (see step 2b in run_orchestrator)."""
+    out, skipping = [], False
+    for line in chain_text.split("\n"):
+        if line.strip() == "Critical warnings:":
+            skipping = True
+            continue
+        if skipping and line.startswith("  ⚠️"):
+            continue
+        skipping = False
+        out.append(line)
+    return "\n".join(out)
+
+
 @traceable(name="orchestrator")
 def run_orchestrator(incident, specialist_results, graph_context=None, equipment_id=None):
     """
@@ -1389,6 +1403,15 @@ RISK IF NOT ACTIONED: [One sentence — what happens if nothing is done]"""
         if downtime:
             mandatory_warnings += f"\n  ⏱  Estimated downtime: {downtime} — include this in the impact section."
 
+        # Step 2b (Nov 2026): the chain text ends with the same warnings under
+        # "Critical warnings:", so the writer got them twice (~550-640 tokens on
+        # TC1/TC5). With the exact values added, TC5 went over Groq's free-tier
+        # 8,000 tokens per minute (413). Keep only the MANDATORY copy here; the
+        # chain text itself is unchanged for its other users (work orders).
+        chain_text = graph_context["chain_text"]
+        if warnings:
+            chain_text = _without_warning_list(chain_text)
+
         graph_block = f"""
 
 ─────────────────────────────────────────────────────
@@ -1397,7 +1420,7 @@ instruction and NCR and checked by a person, each with its source. Operator
 patterns shown here were approved in the Review queue (TIER 3); a DISPUTED
 claim was reviewed and rejected — never use it.
 ─────────────────────────────────────────────────────
-{graph_context["chain_text"]}
+{chain_text}
 ─────────────────────────────────────────────────────{mandatory_warnings}
 
 {_build_graph_rules(graph_context)}
