@@ -1319,6 +1319,18 @@ WHAT MUST BE IN THE IMMEDIATE ACTIONS (after-fix-1 — follow strictly):
   value, not only the name of the sheet or section that holds it.
 - If something must be finished before the machine restarts, say it plainly:
   "Do not restart until ...".
+- The numbered steps go in the correct sequence: safety first, then fix, then verify.
+- Always write the heading "- Immediate action:" exactly as in the format below, even
+  when the "Do NOT" lines come first under it.
+
+CODES IN PLAIN WORDS (step 3 — an operator must not need to look a code up):
+- The first time any code, part number or document number appears, put its plain
+  name next to it: "the lockout procedure (SAF-003)", "the seal-change work
+  instruction (WI-FL101-001)", "the seal kit (SEAL-FV-24)", "food-grade lubricant
+  (FGL-1)", "the machine's operating procedure (FL-101-SOP)".
+- Spell out LOTO once: "lock out and tag out (LOTO)".
+- In the steps, the plain name matters more than the code. If you do not know what
+  a code is, write what the operator must do instead of the code.
 
 Produce the report in exactly this format:
 
@@ -1343,7 +1355,7 @@ HOW CRITICAL IS IT:
 - One sentence justification
 
 HOW TO ADDRESS IT:
-- Immediate action (numbered steps in correct sequence — safety first, then fix, then verify)
+- Immediate action:
   Do NOT (read before starting):
   - one line per prohibition for this incident, from MANDATORY REQUIREMENTS and the documents
   Step 1: Safety — LOTO, stop production, isolate
