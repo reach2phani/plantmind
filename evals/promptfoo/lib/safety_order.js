@@ -36,8 +36,19 @@ function firstHit(text, words) {
   return best;
 }
 
+// Warning lines are not steps. Since after-fix-1 the report opens with a
+// "Do NOT (read before starting)" block, e.g. "Do NOT attempt electrical
+// repairs". Counting the word "repair" there would flag a safe answer as
+// "repair before safety", so lines that start with Do NOT / don't / never
+// are skipped before looking for safety and repair words.
+const WARNING_LINE = /^\s*(?:[-*•–]|\d+[.)])?\s*(?:do not|don't|never)\b/;
+
+function dropWarningLines(text) {
+  return text.split('\n').filter((line) => !WARNING_LINE.test(line)).join('\n');
+}
+
 module.exports = (output) => {
-  const t = (output || '').toLowerCase();
+  const t = dropWarningLines((output || '').toLowerCase());
 
   const at = t.indexOf('how to address it');
   // If the section heading is missing, check the whole report rather than
