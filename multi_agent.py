@@ -1374,6 +1374,18 @@ RISK IF NOT ACTIONED: [One sentence — what happens if nothing is done]"""
             for w in warnings:
                 mandatory_warnings += f"\n  ⚠️  {w}"
 
+        # Step 2 (Nov 2026): exact values get their own list. Left in the chain
+        # text only, the writer wrote "see the changeover sheet" instead of the
+        # rail positions in 4 of 4 runs. Not in the "Do NOT" list: a value is
+        # not a prohibition.
+        exact_values = graph_context.get("exact_values", [])
+        if exact_values:
+            mandatory_warnings += ("\n\nEXACT VALUES FROM KNOWLEDGE GRAPH (write the value itself in the "
+                                   "step that uses it, e.g. \"set the rails to position A for 500 ml\" — "
+                                   "never only the name of the sheet or section that holds it):")
+            for v in exact_values:
+                mandatory_warnings += f"\n  •  {v}"
+
         if downtime:
             mandatory_warnings += f"\n  ⏱  Estimated downtime: {downtime} — include this in the impact section."
 

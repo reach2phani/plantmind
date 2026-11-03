@@ -383,6 +383,7 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
 
     # Warnings derived from the notes themselves (see _derive_warnings).
     warnings.extend(_derive_warnings(relevant_nodes))
+    exact_values = _derive_exact_values(relevant_nodes)
 
     # Add pattern warnings
     on_a_fault_path = _relevant_ids(equip_tag, chain_nodes, chain_edges,
@@ -427,6 +428,7 @@ def get_fault_chain(equip_tag, fault_type=None, incident_text=""):
         "chain_edges": chain_edges,
         "chain_text":  chain_text,
         "warnings":    warnings,
+        "exact_values": exact_values,
         "downtime":    downtime,
         # What the AI was actually given facts about (Phase 2a). Used to scope
         # the orchestrator's graph rules, and later by the supervisor.
@@ -517,6 +519,34 @@ def _derive_warnings(nodes):
             seen.add(w)
             unique.append(w)
     return unique
+
+
+def _derive_exact_values(nodes):
+    """
+    The exact values (positions, settings, ranges) of the matched fault's
+    Parameter notes, one line per note, for the writer's EXACT VALUES list.
+
+    Step 2 (Nov 2026): the FL-101 rail setting ("500 ml = Rail position A,
+    330 ml = Rail position B") sat in the graph but reached the writer only
+    inside the long chain text, next to "Changeover sheet CS-FL101". The
+    writer wrote "check against the changeover sheet" in 4 of 4 runs, so the
+    operator never got the positions. Rule-type properties are left out: they
+    are already on the must-show list (_derive_warnings).
+    """
+    # Bookkeeping, not values: the source goes on the end, the rest is where the
+    # note lives (added by the loader in Neo4j, names starting "_" included).
+    skip = {"source", "reference", "line", "plant_site", "equip_tag", "site_name", "line_name"}
+    out = []
+    for n in nodes:
+        if n.get("type") != "Parameter":
+            continue
+        p = n.get("properties", {}) or {}
+        parts = [f'{k.replace("_", " ")} = {_clean(v)}' for k, v in p.items()
+                 if k not in skip and not k.startswith("_") and k != "rule"
+                 and not k.endswith("_rule") and v]
+        if parts:
+            out.append(f'{n.get("label", "")}: {"; ".join(parts)}{_src(p)}')
+    return out
 
 
 def _score_fault(fault, nodes, edges, incident_text):

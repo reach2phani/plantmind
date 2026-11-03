@@ -43,6 +43,18 @@ for t in cfg["tests"]:
           f"{g.get('match_confidence')}, source {g.get('source', 'neo4j')})")
     for w in warnings:
         print(f"   - {w[:130]}")
+    exact = g.get("exact_values") or []
+    print(f"   exact values ({len(exact)}):")
+    for v in exact:
+        print(f"   = {v[:160]}")
+    # Step 2: the TC2 rail positions must be on the exact-values list.
+    for metric, c in fmap["checks"].items():
+        if c.get("type") != "missing_exact_value" or f":{tc}-" not in metric:
+            continue
+        hit = any(re.search(p, v, re.I) for p in c.get("phrases", []) for v in exact)
+        if not hit:
+            ok_all = False
+        print(f"   [{'OK ' if hit else 'MISSING'}] {metric}: {c['fact']}")
     for metric, c in fmap["checks"].items():
         if c.get("type") != "missing_safety_warning" or f"-{tc}-" not in metric:
             continue
@@ -55,4 +67,5 @@ for t in cfg["tests"]:
               + ("  (not in the graph by design: only implied by the documents; the template rule covers it)"
                  if not hit and implied else ""))
 
-print("\nALL EXPECTED RULES ON THE MUST-SHOW LIST" if ok_all else "\nSOME EXPECTED RULES ARE MISSING - do not run the eval yet")
+print("\nALL EXPECTED RULES AND VALUES ON THE MUST-SHOW LISTS" if ok_all
+      else "\nSOME EXPECTED RULES OR VALUES ARE MISSING - do not run the eval yet")
