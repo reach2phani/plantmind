@@ -925,7 +925,17 @@ _TIP_STOPWORDS = {"after", "before", "which", "their", "there", "these", "those"
 
 
 def _criticality_floor(graph_context):
-    """A matched fault the graph marks CRITICAL sets a floor on the rating."""
+    """
+    The lowest rating a matched fault allows: CRITICAL from the graph's
+    criticality, or the level named in min_criticality (step 4, Nov 2026).
+
+    Step 4: the writer's rules already say a fault that stops production or
+    needs lockout is HIGH minimum, but in baseline-v1 r3 it rated underfill
+    and supply pressure too low, and code only enforced CRITICAL. Faults whose
+    documented response stops the machine now carry min_criticality (HIGH),
+    so code enforces it. It is a separate property from criticality on
+    purpose: criticality also goes on the writer's must-show list.
+    """
     if not graph_context or not graph_context.get("has_data"):
         return None, ""
     # Never from a guess (Phase 2a step A): a close call between "pressure
@@ -933,13 +943,24 @@ def _criticality_floor(graph_context):
     if graph_context.get("match_confidence") in ("unsure", "none"):
         return None, ""
     matched = set(graph_context.get("matched_faults") or [])
+    best, why = None, ""
     for n in graph_context.get("chain_nodes", []) or []:
         p = n.get("properties") or {}
+        if n.get("type") != "Fault" or n.get("label") not in matched:
+            continue
+        src = f" [source: {p['source']}]" if p.get("source") else ""
         crit = str(p.get("criticality", "")).strip()
-        if n.get("type") == "Fault" and n.get("label") in matched and crit.upper().startswith("CRITICAL"):
-            src = f" [source: {p['source']}]" if p.get("source") else ""
-            return "CRITICAL", f"{crit}{src}"
-    return None, ""
+        if crit.upper().startswith("CRITICAL"):
+            level, reason = "CRITICAL", crit
+        else:
+            reason = str(p.get("min_criticality", "")).strip()
+            m = re.match(r"(CRITICAL|HIGH|MEDIUM|LOW)\b", reason.upper())
+            if not m:
+                continue
+            level = m.group(1)
+        if best is None or _RANK[level] > _RANK[best]:
+            best, why = level, f"{reason}{src}"
+    return best, why
 
 
 def _tips_to_guard(graph_context, specialist_results):
@@ -989,8 +1010,9 @@ def check_report(report, graph_context, specialist_results):
     list of what fired (printed, traced in LangSmith, read by evals).
 
       1. Criticality floor: a matched fault the graph marks CRITICAL (e.g.
-         shielding gas low) cannot be rated lower. The rating is raised and
-         the report says so and why.
+         shielding gas low), or gives a min_criticality (e.g. HIGH for FL-101
+         underfill), cannot be rated lower. The rating is raised and the
+         report says so and why.
       2. Unreviewed tips: a step in HOW TO ADDRESS IT that repeats an
          unreviewed tip's values, or names its author, gets a visible warning.
          Same for a claim a reviewer rejected.

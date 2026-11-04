@@ -95,5 +95,5 @@ eval").
 
 | Run | Code | Date | TS | OQ | SR | GR | Notes |
 |---|---|---|---|---|---|---|---|
-| before | baseline-v1 code (commit ed17260) | | | | | | |
+| before | baseline-v1 code (commit ed17260, code_hash 7211bcfb13) | 2026-11-04 | 3/5 | 0/5 | 4/5 | (format 5/5) | label heldout-before-1104, 5 answers, 0 errors. Quick count from the promptfoo file; GR here is the format check only (grounding needs eval_summary). Answers NOT read. |
 | after | final code | | | | | | |

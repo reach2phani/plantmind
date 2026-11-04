@@ -45,6 +45,7 @@
         "correct_response": "Press STOP (normal stop, not the emergency stop unless someone is in danger). Dripping valve: call the maintenance technician to replace the seal kit using WI-FL101-001. No dripping: lock out the machine and clean that valve's nozzle. Then check the product supply pressure.",
         "wrong_response": "increase the fill time to make up for underfill. It hides worn seals and causes overflow and spillage (NCR-2026-012)",
         "systemic_rule": "Three or more underfill alarms in one shift means a systemic fault, usually several worn seals. Stop production, raise a maintenance work order and call the maintenance supervisor.",
+        "min_criticality": "HIGH — the SOP response stops production (Step 1: press STOP) and nozzle cleaning needs lockout",
         "early_warning": "If the checkweigher rejects more than 1 bottle in 100 over an hour, tell the shift lead. A rising reject count is often the first sign of worn seals.",
         "source": "FL-101-SOP Sections 11 and 12.1"
       }
@@ -71,6 +72,7 @@
         "first_check": "If a changeover happened this shift, check the changeover record first.",
         "safety_rule": "Never reach into the infeed or the star wheel while the machine is running. Stop the machine and lock it out before clearing any jam.",
         "if_a_bottle_breaks": "If a bottle breaks during a jam, stop and follow SOP Section 12.3.",
+        "min_criticality": "HIGH — the machine must be stopped and locked out before clearing the jam",
         "source": "FL-101-SOP Section 12.2"
       }
     },
@@ -96,6 +98,7 @@
         "alarm_message": "Product supply pressure low — below 1.3 bar",
         "effect": "Low supply pressure makes bottles underfill",
         "causes_in_order": "1. Supply filter blocked. 2. Air in the supply line. 3. Supply tank running low.",
+        "min_criticality": "HIGH — the SOP response stops production (Step 1: press STOP)",
         "source": "FL-101-SOP Section 12.4"
       }
     },
