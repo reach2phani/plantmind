@@ -55,6 +55,15 @@ for t in cfg["tests"]:
         if not hit:
             ok_all = False
         print(f"   [{'OK ' if hit else 'MISSING'}] {metric}: {c['fact']}")
+    # Step 5: who signs off must be on the must-show list (TC5 failed it 3 of 6 runs).
+    for metric in ("TS:TC5-signoff",):
+        c = fmap["checks"][metric]
+        if f":{tc}-" not in metric:
+            continue
+        hit = any(re.search(p, w, re.I) for p in c.get("phrases", []) for w in warnings)
+        if not hit:
+            ok_all = False
+        print(f"   [{'OK ' if hit else 'MISSING'}] {metric}: {c['fact']}")
     for metric, c in fmap["checks"].items():
         if c.get("type") != "missing_safety_warning" or f"-{tc}-" not in metric:
             continue

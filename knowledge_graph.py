@@ -9,6 +9,7 @@ Data:       loaded from wm101_graph.json on first run
 """
 
 import os
+import re
 import json
 import neo4j
 from pathlib import Path
@@ -486,7 +487,7 @@ def _derive_warnings(nodes):
     Procedure.cleanup_rule ("never use compressed air") and every Safety rule
     after the first (air_rule). Every rule-type property now counts, on any note.
     """
-    out = []
+    out, signoffs = [], []
     for n in nodes:
         p, label = n.get("properties", {}) or {}, n.get("label", "")
         rules = [k for k in p if k == "rule" or k.endswith("_rule")]
@@ -499,9 +500,27 @@ def _derive_warnings(nodes):
                 out.append(f'Do NOT: {_clean(p["wrong_response"])}{_src(p)}')
         elif n["type"] == "Procedure":
             if str(p.get("mandatory", "")).lower().startswith("true"):
-                out.append(f'{label} is MANDATORY — {_clean(p["mandatory"])}{_src(p)}')
+                # "true — never skip it" reads as "MANDATORY — true — never ..."
+                why = re.sub(r"^true\s*[—–-]?\s*", "", _clean(p["mandatory"]), flags=re.I)
+                out.append(f'{label} is MANDATORY{" — " + why if why else ""}{_src(p)}')
             if p.get("important_note"):
                 out.append(f'{_clean(p["important_note"])}{_src(p)}')
+        # Step 5 (Nov 2026): who signs off. "The shift supervisor signs off the
+        # first-bottle check" sat in the graph but not on this list, and TC5's
+        # writer wrote "notify the supervisor" in 3 of 6 runs. First sentence
+        # only: the record-keeping detail after it is not a must-show item.
+        for key in sorted(k for k in p if k.startswith(("signoff", "sign_off"))):
+            if p.get(key):
+                first = re.split(r"(?<=\.)\s", _clean(str(p[key])), maxsplit=1)[0]
+                # The same sign-off often sits on two notes (the seal change
+                # and the first-bottle check): keep one, the fuller wording.
+                core = first.rstrip(".").lower()
+                twin = next((i for i, (c, _) in enumerate(signoffs) if core in c or c in core), None)
+                line = f'{label} sign-off: {first}{_src(p)}'
+                if twin is None:
+                    signoffs.append((core, line))
+                elif len(core) > len(signoffs[twin][0]):
+                    signoffs[twin] = (core, line)
         used = None
         if n["type"] == "Safety":
             for key in ("rule", "action", "required_before"):
@@ -512,6 +531,7 @@ def _derive_warnings(nodes):
         for key in sorted(rules):
             if key != used and p.get(key):
                 out.append(f'{label}: {_clean(p[key])}{_src(p)}')
+    out.extend(line for _, line in signoffs)
     # De-duplicate while keeping the order.
     seen, unique = set(), []
     for w in out:
