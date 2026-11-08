@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracing Sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --brass:#C08A3E; --brass-soft:#F4E8D3; --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 40px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.top .note{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px 18px}
+.kick{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.title{font:500 clamp(1.3rem,2.5vw,1.7rem)/1.3 Fraunces,Georgia,serif;margin:4px 0 8px}
+.lead{max-width:76ch;color:var(--muted);margin:0 0 6px}
+.count{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);min-height:1.2em;text-align:right}
+.scroll{overflow-x:auto}
+.scroll svg{width:100%;min-width:860px;height:auto;display:block}
+.real{margin-top:10px;background:var(--sunk);border-radius:10px;padding:12px 14px;display:flex;gap:14px;opacity:0;transition:opacity .5s}
+.real.on{opacity:1}
+.real .n{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--pine);flex:none;width:104px;padding-top:3px}
+.real p{margin:0;font-size:.95rem}
+.real small{display:block;margin-top:4px;font:400 .72rem "IBM Plex Mono",monospace;color:var(--faint)}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+.dots{display:flex;gap:6px;margin-left:8px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer}
+.dots i.on{background:var(--ink)}
+svg .m{font:500 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--faint)}
+svg .mb{font:600 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--ink)}
+svg .s{font:400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .q{font:italic 400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .code{font:400 9.5px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+@media (prefers-reduced-motion:reduce){.real{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Scratch sketch · Tracing · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="panel">
+    <div class="kick" id="kick"></div>
+    <div class="title" id="title"></div>
+    <p class="lead" id="lead"></p>
+    <div class="count" id="count"></div>
+    <div class="scroll"><svg id="sv" viewBox="0 0 1000 480" role="img" aria-label="Tracing animation"></svg></div>
+    <div class="real" id="real"><div class="n">In PlantMind</div><p id="realt"></p></div>
+    <div class="ctrl"><button id="prev">←</button><button id="play">▶ Play</button><button id="next">→</button><div class="dots" id="dots"></div></div>
+  </div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=v=>Math.max(0,Math.min(1,v));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const seg=(t,a,b)=>ease(clamp((t-a)/(b-a)));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const set=(id,at)=>{const e=$(id);if(e)for(const k in at)e.setAttribute(k,at[k]);};
+const op=(id,v)=>set(id,{opacity:v});
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const CW=5.7, LH=17;   // monospace advance at 9.5px, line height
+const DEFS=`<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="context-stroke"/></marker>
+ <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="var(--line)" stroke-width="2"/></pattern></defs>`;
+const chip=(x,y,t,c='pine',fs=9.5)=>{const w=t.length*fs*.64+14;return `<rect x="${x}" y="${y-12}" width="${w}" height="17" rx="8.5" fill="var(--${c}-soft)" stroke="var(--${c})"/><text class="mb" x="${x+7}" y="${y}" style="fill:var(--${c});font-size:${fs}px">${esc(t)}</text>`;};
+
+/* ── the pipeline strip (same on every step) ── */
+const ST=[['CHUNKING','STORED DATA'],['EMBED & STORE','STORED DATA'],['SEARCH & RANK','IN THE TRACE'],['HANDED TO THE AI','IN THE TRACE'],['SYSTEM PROMPT','NOT IN THE TRACE'],['ANSWER','IN THE TRACE']];
+const SX=[95,235,420,575,730,885];
+const strip=(active,verdicts)=>`<g>
+ <text class="m" x="30" y="20">AT UPLOAD</text><text class="m" x="335" y="20">WHEN A QUESTION IS ASKED</text>
+ <line x1="318" y1="10" x2="318" y2="92" stroke="var(--line)" stroke-dasharray="3 4"/>
+ <line x1="${SX[0]}" y1="44" x2="${SX[1]}" y2="44" stroke="var(--line)" stroke-width="2"/>
+ <line x1="${SX[2]}" y1="44" x2="${SX[5]}" y2="44" stroke="var(--line)" stroke-width="2"/>
+ <path d="M${SX[1]+14},44 C290,44 350,44 ${SX[2]-14},44" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 4"/>
+ ${ST.map(([n,w],i)=>{const on=i===active,v=verdicts&&verdicts[i];const c=v==='ok'?'pine':v==='bad'?'rust':null;
+  const fill=c?`var(--${c})`:on?'var(--ink)':'var(--surface)',stroke=c?`var(--${c})`:on?'var(--ink)':'var(--line)';
+  const wc=w==='IN THE TRACE'?'var(--steel)':w==='NOT IN THE TRACE'?'var(--brass)':'var(--faint)';
+  return `<g id="sn${i}"><circle cx="${SX[i]}" cy="44" r="${on?9:7}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>${on?`<circle cx="${SX[i]}" cy="44" r="14" fill="none" stroke="var(--steel-soft)" stroke-width="5"/>`:''}
+  <text class="${on?'mb':'m'}" x="${SX[i]}" y="70" text-anchor="middle" style="${on?'':'fill:var(--muted)'}">${n}</text>
+  <text class="m" x="${SX[i]}" y="86" text-anchor="middle" style="font-size:8.5px;fill:${wc}">${w==='IN THE TRACE'?'◉ ':w==='NOT IN THE TRACE'?'○ ':''}${w}</text></g>`;}).join('')}</g>`;
+
+/* ── a text panel you can search: find bar, scan line, highlighted matches, counter ── */
+const P={};
+function panel(id,x,y,w,head,lines,term,o={}){
+  const top=y+(term?64:50),h=o.h||((term?74:60)+lines.length*LH),tx=x+14,re=term?new RegExp(term.replace(/[-]/g,'[-‑]'),'gi'):null,hits=[];
+  let body='';
+  lines.forEach((l,i)=>{const ly=top+i*LH;const faded=o.cutLine!=null&&(i>o.cutLine||(i===o.cutLine));
+    if(re){let m;re.lastIndex=0;while((m=re.exec(l))){const k=hits.length;hits.push({i,y:ly});
+      body+=`<rect id="${id}h${k}" x="${tx+m.index*CW-1}" y="${ly-11}" width="${m[0].length*CW+2}" height="14" rx="2" fill="var(--brass-soft)" stroke="var(--brass)" stroke-width=".8" opacity="0"/>`;}}
+    if(o.cutLine!=null&&i===o.cutLine){const a=l.slice(0,o.cutCol),b=l.slice(o.cutCol);
+      body+=`<text class="code" x="${tx}" y="${ly}" xml:space="preserve">${esc(a)}<tspan id="${id}fd${i}">${esc(b)}</tspan></text>`;}
+    else body+=`<text id="${id}l${i}" class="code" x="${tx}" y="${ly}" xml:space="preserve" style="${o.dim&&o.dim(i)?'fill:var(--muted)':''}">${esc(l)}</text>`;});
+  let cut='';
+  if(o.cutLine!=null){const cy=top+o.cutLine*LH,cx=tx+o.cutCol*CW;
+    cut=`<g id="${id}cut" opacity="0"><path d="M${x},${cy+4} H${cx} V${cy-12} H${x+w}" fill="none" stroke="var(--rust)" stroke-width="1.6" stroke-dasharray="5 3"/>
+     <text class="mb" x="${x+w-8}" y="${cy-16}" text-anchor="end" style="fill:var(--rust);font-size:9px">▲ CHARACTER 300 · THE AI GOT ONLY THIS PART</text></g>`;}
+  P[id]={top,bottom:top+(lines.length-1)*LH+6,hits,lines:lines.length,cutLine:o.cutLine};
+  return `<g id="${id}"><rect id="${id}bx" x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="var(--paper)" stroke="var(--line)" stroke-width="1.4"/>
+   <text class="mb" x="${x+14}" y="${y+20}" style="font-size:9.5px">${esc(head)}</text>
+   ${o.sub?`<text class="m" x="${x+14}" y="${y+34}" style="font-size:8.5px">${esc(o.sub)}</text>`:''}
+   ${term?`<g id="${id}fb"><rect x="${x+w-150}" y="${y+8}" width="138" height="22" rx="6" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.2"/>
+    <circle cx="${x+w-136}" cy="${y+18}" r="4.5" fill="none" stroke="var(--ink)" stroke-width="1.4"/><line x1="${x+w-133}" y1="${y+21}" x2="${x+w-129}" y2="${y+25}" stroke="var(--ink)" stroke-width="1.4"/>
+    <text id="${id}tm" class="code" x="${x+w-122}" y="${y+23}" style="font-size:10px"></text></g>
+    <text id="${id}ct" class="mb" x="${x+w-12}" y="${y+44}" text-anchor="end" style="font-size:9.5px"></text>`:''}
+   ${body}${cut}
+   <line id="${id}sc" x1="${x+6}" x2="${x+w-6}" y1="${top}" y2="${top}" stroke="var(--steel)" stroke-width="2" opacity="0"/></g>`;
+}
+// type the term (a), scan (b), show the count; returns number of hits revealed
+function scan(id,term,t,a,b,countText){
+  const p=P[id],tu=seg(t,a,a+.06),u=clamp((t-a-.06)/(b-a-.06));
+  $(id+'tm').textContent=term.slice(0,Math.round(term.length*tu));
+  const y=lerp(p.top-12,p.bottom,u);
+  set(id+'sc',{y1:y,y2:y,opacity:u>0&&u<1?.9:0});
+  let n=0;p.hits.forEach((h,k)=>{const on=u>0&&y>=h.y-11;op(id+'h'+k,on?1:0);if(on)n++;});
+  $(id+'ct').textContent=u>0?(countText?countText(n,u>=1):`${n} match${n===1?'':'es'}`):'';
+  return n;
+}
+const verdict=(id,good)=>set(id+'bx',{stroke:good==null?'var(--line)':good?'var(--pine)':'var(--rust)','stroke-width':good==null?1.4:2.2});
+
+/* ── the steps ── */
+const ANSWER=['Step 1: Safety — Press STOP (normal stop), then perform LOTO','        per SAF-003 before any inspection or repair.','Step 2: Diagnosis — Read the checkweigher report to identify','        which valve numbers are underfilling…','Step 3: Fix — If a valve drips, replace its seal kit (SEAL-FV-24)','        following WI-FL101-001 steps 1-10…','Step 4: Verify — Run the first-bottle check (20 bottles,','        495-505 ml)…','Step 5: Quality — Quarantine any bottles already rejected by','        the checkweigher; record seal replacement details…'];
+const S=[];
+
+/* 0 · the symptom */
+S.push({kick:'The symptom',title:'A required step is missing from the answer',
+ lead:'The operator asks the same question you saw in How it works. The answer looks complete, but the test’s answer key says one step is missing: the 10-minute sanitation rinse after a seal change. Before fixing anything, we need to know where it was lost.',
+ real:'Caught by the test’s answer key (evals). The app has no live check for missing steps. Question FL-01, saved run 3, 30 Sept 2026.',
+ src:'evals/graph_value/fl101_runs.jsonl · fl101_scorecard.md',dur:9000,
+ build:()=>`${strip(-1)}
+  <text class="m" x="40" y="120">OPERATOR’S QUESTION</text>
+  <g id="q0"><circle cx="58" cy="150" r="9" fill="var(--ink)"/><path d="M42,178 C42,162 74,162 74,178 Z" fill="var(--ink)"/>
+   <rect x="90" y="130" width="370" height="76" rx="12" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+   <text class="q" x="106" y="155">getting underfill alarms again for the third time</text><text class="q" x="106" y="174">tonight and checkweigher is rejecting them.</text><text class="q" x="106" y="193">what should i check?</text></g>
+  <g id="k0"><rect x="40" y="270" width="420" height="96" rx="10" fill="var(--surface)" stroke="var(--brass)" stroke-width="1.5"/>
+   <text class="mb" x="56" y="292" style="fill:var(--brass)">THE TEST’S ANSWER KEY SAYS</text>
+   <text class="s" x="56" y="318">Required: 10-minute sanitation rinse</text><text class="s" x="56" y="337">after the seal change.</text>
+   <text class="m" x="56" y="356" style="font-size:8.5px">checked in testing · no live check in the app</text></g>
+  <path id="ar0" d="M462,318 H492" stroke="var(--brass)" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+  ${panel('a0',500,112,470,'THE ANSWER · HOW TO ADDRESS IT',ANSWER,null,{sub:'shortened · saved run 3'})}
+  <g id="st0" transform="translate(735,388) rotate(-6)"><rect x="-108" y="-17" width="216" height="30" rx="5" fill="var(--rust-soft)" stroke="var(--rust)" stroke-width="2"/>
+   <text class="mb" x="0" y="3" text-anchor="middle" style="fill:var(--rust);font-size:12px">MISSING · 10-MIN RINSE</text></g>`,
+ render(t){op('q0',seg(t,0,.12));op('a0',seg(t,.14,.3));op('k0',seg(t,.42,.55));op('ar0',seg(t,.56,.64));op('st0',seg(t,.7,.8));verdict('a0',t>.75?false:null);}});
+
+/* 1 · chunking */
+const WI5=['Step 9 — SANITATION RINSE — MANDATORY','         Run the sanitation rinse for 10 minutes. This removes lubricant','         and any particles from the new seals. Never skip this step: the','         first bottles would carry lubricant into the product.','','Step 10 — FIRST-BOTTLE CHECK — MANDATORY','         Run at normal speed and weigh the first 20 bottles.','         All 20 must be between 495 and 505 ml.','…'];
+S.push({kick:'Stage 1 of 6 · Chunking · checked in the stored data',title:'Is the fact inside a stored chunk, in one piece?',
+ lead:'Start with the first question an engineer asks: was the fact ever in the system? Open the stored chunks of the work instruction and search for it. If a step were split across two chunks, search could find half of it and miss the rest.',
+ real:'The rinse is whole inside chunk 5 of the work instruction’s 8 chunks. In our tests, every lost fact we traced was still in the stored chunks, so chunking wasn’t where facts were lost. The trace doesn’t cover this stage: you check it by opening what was stored.',
+ src:'demo_data/fl101/FL-101-Work-Instruction.txt, split with the app’s own settings · evals/context/attribution.md',dur:10000,
+ build:()=>`${strip(0)}
+  <g id="d1"><rect x="40" y="118" width="110" height="160" rx="7" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.4"/>
+   <text class="mb" x="52" y="138" style="font-size:8.5px">WI-FL101-001</text>
+   ${[...Array(7)].map((_,k)=>`<rect x="52" y="${152+k*16}" width="${86-(k%3)*14}" height="5" rx="2.5" fill="var(--line)"/>`).join('')}</g>
+  <path id="ar1" d="M156,198 H190" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+  <text class="m" x="200" y="124">8 STORED CHUNKS</text>
+  ${[...Array(8)].map((_,k)=>{const x=200+(k%4)*62,y=134+Math.floor(k/4)*78,hl=k===4;return `<g id="c1${k}"><rect x="${x}" y="${y}" width="52" height="66" rx="5" fill="var(--paper)" stroke="${hl?'var(--steel)':'var(--faint)'}" stroke-width="${hl?2:1}"/>
+   ${[0,1,2,3].map(j=>`<rect x="${x+7}" y="${y+12+j*11}" width="${36-(j%2)*10}" height="3" rx="1.5" fill="var(--line)"/>`).join('')}
+   <text class="m" x="${x+26}" y="${y+60}" text-anchor="middle" style="font-size:8px;${hl?'fill:var(--steel);font-weight:600':''}">${k+1}</text></g>`;}).join('')}
+  <path id="lk1" d="M${200+62+52},${212+20} C400,${250} 430,${200} 480,${180}" fill="none" stroke="var(--steel)" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <g id="w1"><text class="m" x="40" y="330" style="fill:var(--brass)">WHAT CAN GO WRONG · ILLUSTRATIVE</text>
+   <rect x="40" y="340" width="190" height="56" rx="6" fill="var(--paper)" stroke="var(--faint)"/><text class="code" x="50" y="372" xml:space="preserve">…Step 9 — SANITATION</text>
+   <rect x="242" y="340" width="190" height="56" rx="6" fill="var(--paper)" stroke="var(--faint)"/><text class="code" x="252" y="372" xml:space="preserve">RINSE — Run the rinse…</text>
+   <line x1="236" y1="334" x2="236" y2="402" stroke="var(--rust)" stroke-width="2" stroke-dasharray="4 3"/>
+   <text class="s" x="40" y="424" style="font-size:12px;fill:var(--muted)">A step split across two chunks: search may find only half.</text></g>
+  ${panel('p1',480,112,490,'OPEN STORED CHUNK 5 OF 8',WI5,'rinse',{sub:'real text · work instruction'})}
+  <g id="v1">${chip(494,370,'✓ THE RINSE STEP IS WHOLE, INSIDE ONE CHUNK','pine')}</g>`,
+ render(t){op('d1',seg(t,0,.08));op('ar1',seg(t,.08,.12));for(let k=0;k<8;k++)op('c1'+k,seg(t,.1+k*.015,.16+k*.015));
+  op('lk1',seg(t,.28,.34));op('p1',seg(t,.3,.38));const n=scan('p1','rinse',t,.42,.72);op('v1',seg(t,.76,.82));verdict('p1',t>.76?true:null);op('w1',seg(t,.86,.94));}});
+
+/* 2 · embed & store */
+S.push({kick:'Stage 2 of 6 · Embed & store · checked in the stored data',title:'Was the chunk stored with the right tags?',
+ lead:'Each chunk is turned into numbers (an embedding) and stored with tags: machine, document type, revision. Search filters on those tags. If a chunk carries the wrong tag, it sits in the wrong drawer: a search for one machine returns another machine’s text, or finds nothing.',
+ real:'Before a fix, shift-log rows were batched in file order, so one chunk could hold the welder’s, the furnace’s and the press’s events under a single machine tag. A search for one machine returned another machine’s events. Found and fixed; not counted in our tests. Like chunking, you check this in the stored data, not in the trace.',
+ src:'embedder.py, chunk_csv (note on the shift-log fix)',dur:10000,
+ build:()=>`${strip(1)}
+  <g id="e1"><rect x="40" y="140" width="150" height="74" rx="6" fill="var(--paper)" stroke="var(--steel)" stroke-width="1.6"/>
+   <text class="mb" x="52" y="160" style="font-size:9px">CHUNK 5</text>${[0,1,2].map(j=>`<rect x="52" y="${172+j*11}" width="${118-(j%2)*30}" height="3.5" rx="1.75" fill="var(--line)"/>`).join('')}</g>
+  <g id="e2"><path d="M196,177 H262" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+   <text class="m" x="229" y="168" text-anchor="middle" style="font-size:8.5px">EMBEDDING</text><text class="m" x="229" y="196" text-anchor="middle" style="font-size:8.5px">1,024 NUMBERS</text></g>
+  <g id="e3"><rect x="270" y="120" width="190" height="200" rx="12" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.4"/>
+   <text class="mb" x="284" y="142">VECTOR STORE</text><text class="m" x="284" y="156" style="font-size:8.5px">PINECONE</text>
+   <rect x="284" y="168" width="162" height="138" rx="8" fill="var(--sunk)" stroke="var(--line)"/>
+   <text class="m" x="296" y="188" style="font-size:8.5px">STORED ENTRY · TAGS</text>
+   ${chip(296,212,'MACHINE: FL-101','pine',9)}${chip(296,238,'TYPE: WORK INSTRUCTION','steel',9)}${chip(296,264,'REVISION: 1.0','steel',9)}
+   <g id="e3c"><circle cx="430" cy="288" r="9" fill="var(--pine)"/><text class="mb" x="430" y="292" text-anchor="middle" style="fill:var(--surface)">✓</text></g></g>
+  <text id="e4" class="m" x="500" y="122" style="fill:var(--brass)">WHAT CAN GO WRONG · A REAL EXAMPLE, BEFORE A FIX</text>
+  <g id="e5"><rect x="500" y="134" width="470" height="118" rx="10" fill="var(--paper)" stroke="var(--rust)" stroke-width="1.6"/>
+   <text class="mb" x="516" y="156" style="font-size:9.5px">ONE SHIFT-LOG CHUNK · ONE MACHINE TAG</text>
+   ${['the welder · event','the furnace · event','the press · event'].map((r,j)=>`<text class="code" x="516" y="${180+j*17}" xml:space="preserve">${r}</text><rect x="640" y="${173+j*17}" width="${170-j*30}" height="4" rx="2" fill="var(--line)"/>`).join('')}
+   ${chip(840,190,'ONE TAG ✗','rust',9)}</g>
+  <g id="e6"><rect x="500" y="268" width="470" height="118" rx="10" fill="var(--paper)" stroke="var(--pine)" stroke-width="1.6"/>
+   <text class="mb" x="516" y="290" style="font-size:9.5px">AFTER THE FIX · ROWS GROUPED BY MACHINE</text>
+   ${['the welder','the furnace','the press'].map((r,j)=>`<rect x="${516+j*150}" y="302" width="138" height="66" rx="6" fill="var(--surface)" stroke="var(--line)"/>
+    <text class="code" x="${526+j*150}" y="322" xml:space="preserve">${r}</text><rect x="${526+j*150}" y="330" width="100" height="3.5" rx="1.75" fill="var(--line)"/>${chip(526+j*150,356,'OWN TAG ✓','pine',8.5)}`).join('')}</g>`,
+ render(t){op('e1',seg(t,0,.08));op('e2',seg(t,.1,.18));op('e3',seg(t,.2,.3));op('e3c',seg(t,.36,.42));
+  op('e4',seg(t,.5,.56));op('e5',seg(t,.54,.64));op('e6',seg(t,.72,.82));}});
+
+/* 3 · search & rank */
+const RANK=['#1','#2','#3','#4','#5','#6','#7  SOP 12.1 · Step 3 — Look at those valves.','    Dripping means a worn seal: call the…','#8','#9'];
+S.push({kick:'Stage 3 of 6 · Search & rank · in the trace',title:'Was the right chunk found, and ranked high enough to be used?',
+ lead:'Search compares the question’s numbers with every chunk’s numbers and ranks them by closeness. Only the top few go on to the AI. A chunk can be found and still lose out, if other chunks score a little higher. The search step in the trace lists every chunk it returned, in order, with its score.',
+ real:'1 Oct, before a reranker was added (6 Oct): for “Bottles aren’t full enough. What should I check?”, the SOP chunk saying a dripping valve means a worn seal came 7th. For a messier wording of the same question it came 10th. Only the top 4 went to the AI. (Other chunks are drawn as bars; only the 7th is real text.)',
+ src:'evals/fl101/results/teaching_step7a_components.md',dur:10000,
+ build:()=>`${strip(2)}
+  <text class="m" x="40" y="120">THE QUESTION</text>
+  <g id="r1"><rect x="40" y="132" width="380" height="58" rx="12" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.3"/>
+   <text class="q" x="56" y="157">Bottles aren’t full enough.</text><text class="q" x="56" y="176">What should I check?</text></g>
+  <g id="r2">${chip(40,222,'SEARCH: FL-101 · SOP','pine')}<text class="m" x="40" y="250" style="font-size:8.5px">THE SEARCH STEP RECORDS EACH CHUNK + ITS SCORE</text></g>
+  <g id="r3"><path d="M424,161 H462" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/></g>
+  ${panel('p3',470,112,500,'SEARCH STEP · CHUNKS IN RANK ORDER',RANK,'worn seal',{dim:i=>i!==6&&i!==7})}
+  <g id="bars3">${RANK.map((l,i)=>l.length<4?`<rect x="${484+4*CW}" y="${176+i*LH-8}" width="${[260,220,250,190,230,200,0,0,215,245][i]}" height="6" rx="3" fill="var(--line)"/>`:'').join('')}</g>
+  <g id="tl3"><line x1="470" y1="${176+3*LH+8}" x2="970" y2="${176+3*LH+8}" stroke="var(--rust)" stroke-width="1.8" stroke-dasharray="6 4"/>
+   <text class="mb" x="958" y="${176+3*LH+4}" text-anchor="end" style="fill:var(--rust);font-size:9px">▲ TOP 4 GO TO THE AI</text></g>
+  <g id="r4">${chip(470,430,'ANOTHER WORDING OF THE SAME QUESTION: 10TH','rust',9)}</g>`,
+ render(t){op('r1',seg(t,0,.1));op('r2',seg(t,.1,.18));op('r3',seg(t,.18,.22));op('p3',seg(t,.2,.28));op('bars3',seg(t,.2,.28));op('tl3',seg(t,.3,.36));
+  scan('p3','worn seal',t,.4,.72,(n,done)=>n?'found at #7 · below the line':'0 matches');verdict('p3',t>.74?false:null);op('r4',seg(t,.82,.9));}});
+
+/* 4 · handed to the AI */
+const GB=['If a bottle breaks during a jam, stop and follow Section 12.3.','','12.3 Glass Breakage','Alarm message: "Glass breakage detected in filler"','','CRITICAL — broken glass can end up inside filled bottles. This is a','product safety event. Follow GBP-001.','','Immediate action:','  Step 1 — Stop the line at once with the emergency stop.','  Step 2 — Do not open any guard until the machine has stopped and is','           locked out (Section 6.2).','  Step 3 — Put every bottle filled in the last 30 minutes on hold. …','  Step 4 — Clean up with the red glass kit only. Use a vacuum, …','  Step 6 — The quality lead must sign off before the line restarts.'];
+// character 300 of the chunk falls inside line 9, after "…at once with t"
+const CUT_COL=GB[9].indexOf('with t')+6;
+const NOTES=['Correct response procedure:','  1. Stop the line immediately.','  2. Follow the instructions in Section 12.3','     “Glass Breakage” of FL-101-SOP (see below).','','Data confidence: MEDIUM (the excerpt is','incomplete; full SOP would contain','additional details).'];
+S.push({kick:'Stage 4 of 6 · Handed to the AI · in the trace',title:'Did the whole chunk reach the AI?',
+ lead:'Finding the chunk isn’t the end. Before the AI reads it, the app decides how much of each chunk to pass on. Compare the chunk that was stored with what the AI was actually handed. If they differ, the fact can be lost between search and the AI, with no error anywhere.',
+ real:'30 Sept, question “glass smash!! … what’s the immediate shutdown step?”. Back then, each chunk was cut to its first 300 characters before the AI read it. The cut fell inside Step 1, at “…with t”. The AI wrote “Stop the line immediately” and noted the excerpt was incomplete. The emergency stop, the 30-minute hold and the quality sign-off were all below the cut. Fixed 1 Oct: chunks are now handed over whole.',
+ src:'chunk rebuilt from FL-101-SOP.txt with the app’s own settings · AI notes from the saved run (FL-04, run 2) · evals/context/attribution.md',dur:11000,
+ build:()=>`${strip(3)}
+  ${panel('p4',30,108,500,'STORED CHUNK · SOP 12.3',GB,'emergency stop',{sub:'real text · what search returned',cutLine:9,cutCol:CUT_COL})}
+  <g id="ar4"><path d="M534,250 H572" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/></g>
+  ${panel('q4',580,108,390,'THE AI’S NOTES',NOTES,'emergency stop',{sub:'saved on the day'})}`,
+ render(t){op('p4',seg(t,0,.1));op('p4cut',seg(t,.16,.24));
+  GB.forEach((_,i)=>{if(i>9)op('p4l'+i,lerp(1,.32,seg(t,.24,.32)));});op('p4fd9',lerp(1,.32,seg(t,.24,.32)));
+  op('ar4',seg(t,.3,.36));op('q4',seg(t,.34,.42));
+  scan('p4','emergency stop',t,.46,.62,(n)=>n?'1 match · below the cut':'0 matches');
+  scan('q4','emergency stop',t,.68,.84,()=>'0 matches');verdict('q4',t>.86?false:null);}});
+
+/* 5 · system prompt */
+const TPL=['HOW TO ADDRESS IT:','  Step 1: Safety — LOTO, stop production, isolate','  Step 2: Diagnosis — what to inspect','  Step 3: Fix — what to replace or repair','  Step 4: Verify — post-fix checks, burn-in if required','  Step 5: Quality — parts to quarantine or inspect'];
+const REP=['  Step 3: Fix — what to replace or repair','    1. If the guide rails are out of position, move','       them to position B and lock them…','  Step 4: Verify — post-fix checks, burn-in if required','    1. Remove LOTO lock only after the jam is cleared.','    2. Restart the machine at 60 bottles per minute…'];
+S.push({kick:'Stage 5 of 6 · System prompt · not in the trace',title:'Did the prompt add something that doesn’t belong?',
+ lead:'The AI writes inside a template from its system prompt. A word in the template can end up in every answer, whatever the documents say. Our trace records what the writer was given and what it wrote, but not the template itself, so this one you check by reading the prompt.',
+ real:'The report template said “burn-in if required”, a step that belongs to the welder. It turned up in 1 of 30 bottle-filler reports, in an infeed-jam answer. It came from the template, not from any document. Fixed 30 Sept: the line now asks for whatever check the procedure requires.',
+ src:'multi_agent.py report template (commit ed6e5c1) · evals/fl101/LEARNINGS.md · saved FL-03 run',dur:10000,
+ build:()=>`${strip(4)}
+  ${panel('p5',30,112,450,'REPORT TEMPLATE · IN THE SYSTEM PROMPT',TPL,'burn-in',{sub:'before 30 Sept · real line'})}
+  <g id="nt5"><rect x="30" y="${112+74+TPL.length*LH+10}" width="450" height="44" rx="8" fill="url(#hatch)" stroke="var(--brass)" stroke-dasharray="5 3"/>
+   <text class="mb" x="46" y="${112+74+TPL.length*LH+37}" style="fill:var(--brass)">○ NOT IN THE TRACE: OPEN THE PROMPT FILE</text></g>
+  <g id="ar5"><path d="M484,190 H514" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/></g>
+  ${panel('q5',520,112,450,'A BOTTLE-FILLER ANSWER · INFEED JAM',REP,'burn-in',{sub:'saved run · shortened'})}
+  <g id="v5">${chip(534,344,'A WELDING STEP IN A BOTTLING ANSWER','rust')}</g>`,
+ render(t){op('p5',seg(t,0,.1));op('nt5',seg(t,.12,.2));op('ar5',seg(t,.28,.34));op('q5',seg(t,.3,.38));
+  scan('q5','burn-in',t,.42,.58);verdict('q5',t>.6?false:null);op('v5',seg(t,.6,.66));
+  scan('p5','burn-in',t,.7,.86,(n)=>n?'1 match · the source':'0 matches');}});
+
+/* 6 · answer */
+const GIVEN=['…9. Sanitation rinse (mandatory). 10. First-bottle check','   (mandatory).','then required: Sanitation Rinse [WI-FL101-001 Step 9 …]','   method: Rinse the bowl, valves and nozzles with clean','   water for 10 minutes.','⚠ Sanitation Rinse is MANDATORY — never skip it after a','   seal change','Estimated downtime: about 1 hour including the rinse and','   the first-bottle check','…'];
+S.push({kick:'Stage 6 of 6 · Answer · in the trace',title:'Was the fact given to the writer, and still left out?',
+ lead:'Back to the rinse. If every earlier stage passed, the last place to look is the writer itself: open the writer step in the trace and search both sides. What it was given on the left, what it wrote on the right.',
+ real:'Question FL-01, saved run 3: “rinse” appears 7 times in what the writer was given, including “10 minutes” and “MANDATORY”. None of its five steps includes it; it only shows up as part of the downtime estimate. Runs 1 and 2 of the same question, given the same rinse facts, both wrote it as a step. The writer had everything it needed and left the step out.',
+ src:'evals/graph_value/fl101_runs.jsonl (FL-01, runs 1–3; the saved input also includes reviewed plant facts)',dur:11000,
+ build:()=>`${strip(5)}
+  ${panel('p6',30,108,470,'WRITER · WHAT IT WAS GIVEN',GIVEN,'rins',{sub:'shortened · saved run 3'})}
+  <g id="ar6"><path d="M504,220 H522" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/></g>
+  ${panel('q6',530,108,440,'WRITER · WHAT IT WROTE (THE STEPS)',ANSWER.map(l=>l.length>66?l.slice(0,64)+'…':l),'rins',{sub:'shortened · saved run 3'})}
+  <g id="o6"><text class="m" x="30" y="400" style="font-size:8.5px">SAME QUESTION · OTHER SAVED RUNS</text>
+   <rect x="30" y="410" width="460" height="30" rx="7" fill="var(--pine-soft)" stroke="var(--pine)"/><text class="code" x="42" y="429" xml:space="preserve">RUN 1 · Perform mandatory sanitation rinse (10 min clean water).</text>
+   <rect x="510" y="410" width="460" height="30" rx="7" fill="var(--pine-soft)" stroke="var(--pine)"/><text class="code" x="522" y="429" xml:space="preserve">RUN 2 · Perform mandatory sanitation rinse (10 min clean water).</text></g>`,
+ render(t){op('p6',seg(t,0,.1));op('ar6',seg(t,.12,.16));op('q6',seg(t,.14,.22));
+  scan('p6','rins',t,.26,.5,(n,done)=>done?'7 in the full input':`${n} match${n===1?'':'es'}`);verdict('p6',t>.52?true:null);
+  scan('q6','rins',t,.56,.74,()=>'0 in the steps');verdict('q6',t>.76?false:null);op('o6',seg(t,.84,.92));}});
+
+/* 7 · the map */
+const MAP=[['CHUNKING','STORED DATA','rinse whole in chunk 5','fact present','ok'],['EMBED & STORE','STORED DATA','one chunk, three machines','wrong tags · fixed','bad'],['SEARCH & RANK','TRACE','worn-seal chunk 7th','not in the top 4','bad'],['HANDED TO THE AI','TRACE','cut at “…with t”','cut · fixed 1 Oct','bad'],['SYSTEM PROMPT','PROMPT FILE','“burn-in if required”','wrong step added','bad'],['ANSWER','TRACE','rinse given 7×, written 0×','left out','bad']];
+S.push({kick:'Putting it together',title:'Work back from the answer, one stage at a time',
+ lead:'Each stage has its own way to lose a fact, and its own place to look. The trace covers everything that happens after the question is asked. The stages before it, and the prompt, you check by opening what was stored.',
+ real:'Every example on this page comes from a saved PlantMind run or a fix in the code. Three have since been fixed in the app: the tags, the 300-character cut and the template line. Ranking got a reranker on 6 Oct, not re-measured on this page. The writer leaving a fact out is still open.',
+ src:'evals/context/attribution.md · evals/fl101/LEARNINGS.md',dur:9000,
+ build:()=>`${strip(-1,MAP.map(m=>m[4]))}
+  ${MAP.map(([n,w,ex,v,s],i)=>{const x=30+i*160,c=s==='ok'?'pine':'rust',wc=w==='TRACE'?'steel':w==='PROMPT FILE'?'brass':'faint';return `<g id="m7${i}">
+   <rect x="${x}" y="130" width="148" height="190" rx="10" fill="var(--paper)" stroke="var(--${c})" stroke-width="1.6"/>
+   <text class="mb" x="${x+12}" y="152" style="font-size:9px">${n}</text>
+   <text class="m" x="${x+12}" y="170" style="font-size:8.5px;fill:var(--${wc==='faint'?'muted':wc})">LOOK IN: ${w}</text>
+   <line x1="${x+12}" y1="182" x2="${x+136}" y2="182" stroke="var(--line)"/>
+   ${wrap(ex,22).map((l,j)=>`<text class="s" x="${x+12}" y="${206+j*18}" style="font-size:12px">${esc(l)}</text>`).join('')}
+   <rect x="${x+12}" y="282" width="124" height="24" rx="12" fill="var(--${c}-soft)" stroke="var(--${c})"/>
+   <text class="mb" x="${x+74}" y="298" text-anchor="middle" style="fill:var(--${c});font-size:8.5px">${s==='ok'?'✓':'✗'} ${v.toUpperCase()}</text></g>`;}).join('')}
+  <path id="bk7" d="M955,350 H45" stroke="var(--ink)" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+  <text id="bt7" class="mb" x="500" y="372" text-anchor="middle">← THE INVESTIGATION STARTS AT THE ANSWER AND WORKS BACK</text>`,
+ render(t){for(let i=5;i>=0;i--)op('m7'+i,seg(t,.05+(5-i)*.1,.14+(5-i)*.1));op('bk7',seg(t,.7,.8));op('bt7',seg(t,.76,.86));}});
+function wrap(s,n){const w=s.split(' '),o=[];let l='';w.forEach(x=>{if((l+' '+x).trim().length>n){o.push(l.trim());l=x;}else l+=' '+x;});if(l.trim())o.push(l.trim());return o;}
+
+/* ── player: 7 s reading pause, then the animation, then hold ── */
+let cur=0,raf=0,t0=0,playing=false;const PAUSE=7000;
+function show(i){cancelAnimationFrame(raf);cur=(i+S.length)%S.length;const s=S[cur];
+  $('kick').textContent=s.kick;$('title').textContent=s.title;$('lead').textContent=s.lead;
+  $('realt').innerHTML=esc(s.real)+`<small>${esc(s.src)}</small>`;
+  for(const k in P)delete P[k];
+  $('sv').innerHTML=DEFS+s.build();s.render(0);$('real').classList.remove('on');
+  [...$('dots').children].forEach((d,k)=>d.classList.toggle('on',k===cur));
+  t0=performance.now();if(reduce){s.render(1);$('real').classList.add('on');$('count').textContent='';return;}
+  playing=true;$('play').textContent='❚❚ Pause';loop();}
+function loop(){const s=S[cur],e=performance.now()-t0;
+  if(e<PAUSE){$('count').textContent=`reading · ${Math.ceil((PAUSE-e)/1000)}`;s.render(0);}
+  else{$('count').textContent='';const t=clamp((e-PAUSE)/s.dur);s.render(t);if(t>=.9)$('real').classList.add('on');if(t>=1){playing=false;$('play').textContent='▶ Replay';return;}}
+  raf=requestAnimationFrame(loop);}
+S.forEach((_,k)=>{const d=document.createElement('i');d.title='Step '+k;d.onclick=()=>show(k);$('dots').appendChild(d);});
+$('prev').onclick=()=>show(cur-1);$('next').onclick=()=>show(cur+1);
+$('play').onclick=()=>{if(playing){cancelAnimationFrame(raf);playing=false;$('play').textContent='▶ Play';}else show(cur);};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+// for checking: ?step=n&t=1 jumps to the end state of a step
+const qs=new URLSearchParams(location.search);
+if(qs.has('step')){const k=+qs.get('step');show(k);if(qs.has('t')){cancelAnimationFrame(raf);playing=false;S[cur].render(+qs.get('t'));$('real').classList.add('on');$('count').textContent='';}}
+else show(0);
+window.__S=S;window.__show=show;
+})();
+</script>
+</body>
+</html>

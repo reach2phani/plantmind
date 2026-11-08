@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracing Check Sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --brass:#C08A3E; --brass-soft:#F4E8D3; --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 40px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.top .note{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px 18px}
+.kick{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.title{font:500 clamp(1.3rem,2.5vw,1.7rem)/1.3 Fraunces,Georgia,serif;margin:4px 0 4px}
+.count{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);min-height:1.2em;text-align:right}
+.scroll{overflow-x:auto}
+.scroll svg{width:100%;min-width:860px;height:auto;display:block}
+.cap{margin:10px 0 0;min-height:1.6em;font-size:1rem}
+.src{font:400 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin:4px 0 0}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+svg .m{font:500 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--faint)}
+svg .mb{font:600 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--ink)}
+svg .i{font:italic 400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .s{font:400 12.5px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .sb{font:600 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .code{font:400 10px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+svg .f{font:400 9.5px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Scratch sketch · Tracing, check every stage · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="panel">
+    <div class="kick">Tracing</div>
+    <div class="title">Check each stage, then decide where the answer was lost</div>
+    <div class="count" id="count"></div>
+    <div class="scroll"><svg id="sv" viewBox="0 0 1000 480" role="img" aria-label="The operator's question and answer on the left; on the right, each stage of the system checked for the three missing facts, ending with a conclusion"></svg></div>
+    <p class="cap" id="cap"></p>
+    <p class="src">Saved run, 3 Oct 2026 (teaching_c2_after_runs.jsonl, T-2 run 2; a test setup where the writer was also given the chunks) · answer key: TEACHING_SET.md · rank 8: teaching_step7a_components.md · chunks: FL-101-Work-Instruction.txt split with the app’s own settings · template: multi_agent.py</p>
+    <div class="ctrl"><button id="play">▶ Play</button></div>
+  </div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=v=>Math.max(0,Math.min(1,v));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const seg=(t,a,b)=>ease(clamp((t-a)/(b-a)));
+const set=(id,at)=>{const e=$(id);if(e)for(const k in at)e.setAttribute(k,at[k]);};
+const op=(id,v)=>set(id,{opacity:v});
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── LEFT · the operator and the answer (How it works bubble style) ── */
+const person=(x,y)=>`<g transform="translate(${x},${y}) scale(1.7)" style="fill:var(--muted)"><circle cx="0" cy="-5" r="4"/><path d="M-7,8 C-7,1 7,1 7,8 Z"/></g>`;
+const AL=[[150,'Step 1: Safety — Press STOP and apply LOTO to FL-101'],[176,'Step 2: Diagnosis — Identify the specific valve(s)'],[192,'        with underfill…'],
+          [244,'Step 3: Fix — Replace the seal kit on each affected'],[260,'        valve following WI-FL101-001 Steps 2-7…'],
+          [286,'Step 4: Verify — Run a test batch, check the'],[302,'        checkweigher for target volume…'],[384,'Step 5: Quality — Quarantine any bottles produced…']];
+// [id, y, text, label when concluded, colour]
+const SL=[['sd',204,'check the valves for drips','LOST IN THE WRITING'],['s4',314,'a good bottle is 495 to 505 ml','LOST AT SEARCH'],['s2',344,'weigh the first 20 bottles','LOST AT SEARCH']];
+const left=()=>`
+ <g id="ob">${person(48,52)}<rect x="74" y="26" width="366" height="56" rx="12" fill="var(--bg)" stroke="var(--line)"/>
+  <text class="m" x="88" y="46">OPERATOR · FILLING LINE 1</text><text class="i" x="88" y="68">“filler’s short again, what do i do”</text></g>
+ <g id="ab"><rect x="30" y="104" width="410" height="306" rx="12" fill="var(--bg)" stroke="var(--line)"/>
+  <text class="m" x="44" y="126">PLANTMIND · THE ANSWER, SHORTENED</text>
+  ${AL.map(([y,l])=>`<text class="code" x="44" y="${y}" xml:space="preserve">${esc(l)}</text>`).join('')}</g>
+ ${SL.map(([id,y,l,lab])=>`<g id="${id}"><rect id="${id}r" x="56" y="${y}" width="372" height="22" rx="6" fill="var(--surface)" stroke="var(--rust)" stroke-dasharray="4 3"/>
+  <text class="mb" x="70" y="${y+15}" style="fill:var(--rust)">?</text><text class="s" x="86" y="${y+15}" style="font-size:12px;fill:var(--muted)">${esc(l)}</text>
+  <text id="${id}l" class="mb" x="420" y="${y+15}" text-anchor="end" style="fill:var(--rust);font-size:9px" opacity="0">${lab}</text></g>`).join('')}
+ <g id="sc"><text class="mb" x="44" y="440" style="fill:var(--rust)">SCORE 2 OF 5</text><text class="m" x="150" y="440" style="font-size:9px">THREE THINGS THE ANSWER KEY ASKS FOR ARE MISSING</text></g>`;
+
+/* ── RIGHT · every stage, checked for the three facts ── */
+const RX=470,RW=500,RH=44,R0=44;
+const CX=[846,898,948];   // chip columns: drips · 495–505 · first 20
+// [stage, where you look, finding (2 lines), [drips, 495, 20]]  p=present x=missing n=not the cause/not applicable
+const ST=[['Chunks','stored data',['drips: chunk 2 · 495–505 and','first 20: chunk 5, whole'],'ppp'],
+          ['Embedding & storing','stored data',['8 chunks, tagged FL-101 ·','work instruction'],'ppp'],
+          ['Search & ranking','in the trace',['top 4 kept · chunk 5 ranked 8th ·','the SOP was not searched'],'pxx'],
+          ['Tokens / context size','in the trace',['7 of 8 chunks fit the size','limit · each passed on whole'],'pnn'],
+          ['Chunks the AI received','in the trace',['“A valve drips between fills” ✓','no 495–505, no 20-bottle step'],'pxx'],
+          ['System prompt','prompt file',['the template asks for a Verify','step: it shaped Step 4 only'],'nnn'],
+          ['Generated answer','in the trace',['no drip check, no 495–505,','no 20-bottle check'],'xxx']];
+const ry=i=>R0+i*(RH+4);
+const C={p:['pine','✓'],x:['rust','✗'],n:['faint','·']};
+const right=()=>`
+ <text class="m" x="${RX}" y="22">CHECK EACH STAGE FOR THE THREE MISSING FACTS</text>
+ <text class="m" x="${CX[0]}" y="36" text-anchor="middle" style="font-size:8.5px">DRIPS</text>
+ <text class="m" x="${CX[1]}" y="36" text-anchor="middle" style="font-size:8.5px">495–505</text>
+ <text class="m" x="${CX[2]}" y="36" text-anchor="middle" style="font-size:8.5px">FIRST 20</text>
+ ${ST.map(([n,w,f,v],i)=>{const y=ry(i),wc=w==='in the trace'?'steel':w==='prompt file'?'brass':'faint';return `<g id="r${i}">
+  <rect id="r${i}b" x="${RX}" y="${y}" width="${RW}" height="${RH}" rx="8" fill="var(--paper)" stroke="var(--line)"/>
+  <text class="sb" x="${RX+12}" y="${y+19}" style="font-size:12px">${esc(n)}</text>
+  <text class="m" x="${RX+12}" y="${y+34}" style="font-size:8.5px;fill:var(--${wc==='faint'?'muted':wc})">${w==='in the trace'?'◉ ':''}${w.toUpperCase()}</text>
+  <text class="f" x="${RX+160}" y="${y+18}" xml:space="preserve">${esc(f[0])}</text>
+  <text class="f" x="${RX+160}" y="${y+32}" xml:space="preserve" style="fill:var(--muted)">${esc(f[1])}</text>
+  ${[...v].map((k,j)=>{const [c,g]=C[k];return `<g id="c${i}_${j}" opacity="0"><circle cx="${CX[j]}" cy="${y+RH/2}" r="11" fill="${k==='n'?'var(--surface)':`var(--${c}-soft)`}" stroke="var(--${c})"/><text class="mb" x="${CX[j]}" y="${y+RH/2+4}" text-anchor="middle" style="fill:var(--${c})">${g}</text></g>`;}).join('')}</g>`;}).join('')}
+ <g id="cc"><rect x="${RX}" y="${ry(ST.length)+6}" width="${RW}" height="${480-ry(ST.length)-12}" rx="10" fill="var(--sunk)" stroke="var(--ink)" stroke-width="1.3"/>
+  <text class="mb" x="${RX+14}" y="${ry(ST.length)+26}">CONCLUSION</text>
+  <text class="s" x="${RX+14}" y="${ry(ST.length)+46}"><tspan style="font-weight:600">Drips:</tspan> reached the AI, left out → lost in the writing.</text>
+  <text class="s" x="${RX+14}" y="${ry(ST.length)+64}"><tspan style="font-weight:600">495–505 and first 20:</tspan> never reached the AI → lost at search.</text></g>`;
+
+/* ── timing: one stage every few seconds, then the conclusion ── */
+const RA=i=>.12+i*.1;   // when stage i is checked
+const CAPS=[[0,'The answer is missing three things. Check each stage of the system for them.'],
+ [RA(0),'Chunks: all three facts are in the stored documents.'],
+ [RA(1),'Embedding and storing: the chunks are there, tagged to the right machine and document type.'],
+ [RA(2),'Search: the drip chunk made the top 4. The chunk with the other two came 8th, and the SOP wasn’t searched.'],
+ [RA(3),'Context size: 7 of the 8 chunks found fit the size limit, each whole. The one left out was a troubleshooting table, not one of these facts.'],
+ [RA(4),'What the AI received: the drip check is there. The other two are not (only past readings like “First 20 bottles 499-502 ml”).'],
+ [RA(5),'System prompt: the template made a Verify step appear. It didn’t remove anything. Our reading.'],
+ [RA(6),'The answer: none of the three made it.'],
+ [.86,'Two facts were lost at search, one in the writing. Each needs a different fix.']];
+function render(t){
+ op('ob',seg(t,0,.03));op('ab',seg(t,.02,.06));SL.forEach(([id],i)=>op(id,seg(t,.06+i*.015,.09+i*.015)));op('sc',seg(t,.1,.12));
+ ST.forEach((s,i)=>{const a=RA(i);op('r'+i,seg(t,.04+i*.008,.08+i*.008));
+  const on=t>=a&&t<a+.1;set('r'+i+'b',{stroke:on?'var(--ink)':'var(--line)','stroke-width':on?1.8:1,fill:on?'var(--surface)':'var(--paper)'});
+  [...s[3]].forEach((_,j)=>op('c'+i+'_'+j,seg(t,a+.02+j*.015,a+.04+j*.015)));});
+ // the left slots get their verdicts as the evidence arrives
+ op('s4l',seg(t,RA(2)+.05,RA(2)+.08));op('s2l',seg(t,RA(2)+.06,RA(2)+.09));op('sdl',seg(t,RA(6)+.05,RA(6)+.08));
+ op('cc',seg(t,.86,.92));
+ const c=CAPS.filter(([a])=>t>=a).pop();if($('cap').dataset.k!==String(c[0])){$('cap').dataset.k=c[0];$('cap').textContent=c[1];}
+}
+
+/* ── player: 7 s reading pause, then one play-through ── */
+const DUR=44000,PAUSE=7000;let raf=0,t0=0,playing=false;
+function start(){cancelAnimationFrame(raf);$('sv').innerHTML=left()+right();render(0);
+ t0=performance.now();if(reduce){render(1);$('count').textContent='';return;}
+ playing=true;$('play').textContent='❚❚ Pause';loop();}
+function loop(){const e=performance.now()-t0;
+ if(e<PAUSE){$('count').textContent=`reading · ${Math.ceil((PAUSE-e)/1000)}`;render(0);}
+ else{$('count').textContent='';const t=clamp((e-PAUSE)/DUR);render(t);if(t>=1){playing=false;$('play').textContent='▶ Replay';return;}}
+ raf=requestAnimationFrame(loop);}
+$('play').onclick=()=>{if(playing){cancelAnimationFrame(raf);playing=false;$('play').textContent='▶ Play';}else start();};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const qs=new URLSearchParams(location.search);
+start();
+if(qs.has('t')){cancelAnimationFrame(raf);playing=false;render(+qs.get('t'));$('count').textContent='';$('play').textContent='▶ Play';}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asking the Real Trace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; --mark:#F3DE8A; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; --mark:#6B5A22; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; --mark:#6B5A22; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 16px 36px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.note{font:500 .7rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+button{font:inherit;color:inherit;cursor:pointer}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:4px 10px;font-size:.8rem}
+.case{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;margin-bottom:14px}
+.case h1{font:500 1.5rem/1.25 Fraunces,Georgia,serif;margin:0}
+.case p{margin:0;color:var(--muted);font-style:italic}
+.grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,5fr);gap:20px;align-items:stretch}
+.trace{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 10px}
+.lbl{font:500 .68rem "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.trace>.lbl{padding:0 8px}
+.r{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;font:500 .8rem "IBM Plex Mono",monospace;margin-top:2px;min-height:32px;transition:background .3s,box-shadow .3s,opacity .3s}
+.r .nm{flex:1;min-width:0;overflow-wrap:anywhere}
+.d1{margin-left:16px}.d2{margin-left:32px}
+.r .mk{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:.8rem;opacity:0;transform:scale(.5);transition:opacity .3s,transform .3s}
+.r.look{background:var(--steel-soft);box-shadow:inset 3px 0 0 var(--steel)}
+.r.ok .mk{opacity:1;transform:none;background:var(--pine);color:var(--surface)}
+.r.bad{background:var(--rust-soft)}
+.r.bad .mk{opacity:1;transform:none;background:var(--rust);color:var(--surface)}
+.r.off .mk{opacity:1;transform:none;background:var(--sunk);color:var(--muted)}
+.stored{border:1px dashed var(--faint);margin:8px 8px 10px;color:var(--muted)}
+.stored small{display:block;font:400 .68rem "IBM Plex Sans",sans-serif;color:var(--faint)}
+.ask{display:flex;flex-direction:column;gap:10px;min-height:440px}
+.done{display:flex;gap:10px;align-items:center;padding:7px 12px;border-radius:9px;background:var(--surface);border:1px solid var(--line);font-size:.92rem;animation:shrink .4s ease-out}
+.done .ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:.8rem;color:var(--surface);background:var(--pine)}
+.done.bad .ic{background:var(--rust)}
+.done.bad{border-color:var(--rust)}
+.card{background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:18px 20px;animation:pop .45s cubic-bezier(.2,1.2,.4,1)}
+.card h2{font:500 1.5rem/1.3 Fraunces,Georgia,serif;margin:0}
+.card .ev{margin:12px 0 0;font:400 .92rem/1.5 "IBM Plex Mono",monospace;opacity:0;transition:opacity .4s}
+.card .why{margin:8px 0 0;font-size:.9rem;color:var(--muted);opacity:0;transition:opacity .4s}
+.card.ans .ev,.card.ans .why{opacity:1}
+.card .verdict{display:inline-flex;gap:8px;align-items:center;margin-top:12px;font-weight:600;opacity:0;transition:opacity .3s}
+.card.ans .verdict{opacity:1}
+.card .verdict i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--surface);background:var(--pine)}
+.card.no{border-color:var(--rust);background:var(--rust-soft)}
+.card.no .verdict i{background:var(--rust)}.card.no .verdict{color:var(--rust)}
+.card.end{border-color:var(--ink);background:var(--sunk)}
+mark{background:var(--mark);color:#252826;border-radius:2px;padding:0 2px}
+.src{margin:14px 2px 0;font:400 .7rem/1.5 "IBM Plex Mono",monospace;color:var(--faint)}
+.ctrl{display:flex;gap:10px;align-items:center;margin-top:10px}
+.ctrl button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 12px;font-size:.85rem}
+.count{font:500 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin-left:auto}
+@keyframes pop{0%{opacity:0;transform:translateY(14px) scale(.97)}100%{opacity:1;transform:none}}
+@keyframes shrink{0%{opacity:.4;transform:translateY(6px)}100%{opacity:1;transform:none}}
+@media (max-width:760px){.grid{grid-template-columns:1fr}.ask{min-height:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.meta{display:flex;flex-wrap:wrap;gap:5px;padding:6px 8px 0;font:500 .66rem "IBM Plex Mono",monospace}
+.meta span{background:var(--sunk);color:var(--muted);border-radius:5px;padding:2px 6px}
+.r .sec{flex:none;font:400 .7rem "IBM Plex Mono",monospace;color:var(--faint)}
+.ty{font:600 .56rem "IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;border-radius:4px;padding:0 4px;margin-left:6px;background:var(--steel-soft);color:var(--steel)}
+.ty.llm{background:var(--sunk);color:var(--muted)}
+.kid{display:none}.kid.open{display:flex}
+.shot{margin:10px 8px 0}.shot img{width:100%;display:block;border:1px solid var(--line);border-radius:6px}.shot figcaption{font-size:.72rem;color:var(--faint);margin-top:3px}
+.term{font:500 .66rem "IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.card .term{display:block;margin-bottom:4px}
+.done .dt{flex:1;min-width:0}.done .term{flex:none}
+.card.big{flex:1;display:flex;flex-direction:column}
+.card.big .verdict{align-self:flex-start;transition-delay:1.5s}
+.doc{flex:1;font:400 .88rem/1.5 "IBM Plex Sans",sans-serif;background:#FFFFFF;color:#252826;border:1px solid var(--line);border-radius:4px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.doc p{margin:10px 0 0}
+.pg-head{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:.74rem;color:#68706B;border-bottom:1px solid #D9D6CC;padding-bottom:7px}
+.pg-head b{flex-basis:100%;color:#252826;letter-spacing:.05em}
+.pg-title{font-weight:600;margin-top:9px}
+.pg-sec{font-size:.76rem;font-weight:600;color:#68706B;margin-top:7px}
+.pg-dim{color:#979B94}
+.pg-now{border-left:3px solid #C9A63C;padding-left:10px}
+.pg-foot{font:400 .66rem "IBM Plex Mono",monospace;color:#979B94;margin-top:12px}
+.loop{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:.9rem}
+.loop b{font-weight:600;color:var(--pine)}.loop span{color:var(--muted)}.loop i{font-style:normal;color:var(--faint)}
+.st-tx{margin:0 0 10px;font:400 .95rem/1.5 "IBM Plex Sans",sans-serif;color:var(--ink)}
+.st{background:#FFFFFF;color:#252826;border:1px solid var(--line);border-radius:4px;padding:8px 12px;margin-top:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);font-size:.86rem}
+.st-l{display:block;font:400 .68rem "IBM Plex Sans",sans-serif;color:#68706B;margin-bottom:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Sketch · tracing, the real trace · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="case">
+    <h1>The answer tells the operator to rinse, but doesn’t say for how long.</h1>
+    <p>“Maintenance has just changed a fill valve seal on FL-101. I’m seeing a few bottles overfill, and I’m not sure if that’s normal. What should I watch for, and what needs checking before we go back to full production?”</p>
+  </div>
+  <div class="grid">
+    <div class="trace" id="tr">
+      <span class="lbl">Real trace · LangSmith export</span>
+      <div class="meta"><span>final-1106-r2-TC5</span><span>22 steps</span><span>69.6 s</span><span>16,487 tokens</span></div>
+      <div class="r stored" id="sto"><span class="nm">stored documents<small>not in the trace: checked separately</small></span><span class="mk"></span></div>
+<div class="r d0" id="root"><span class="nm">investigation</span><span class="sec">69.6 s</span><span class="mk"></span></div>
+<div class="r d1" id="gra"><span class="nm">knowledge_graph_lookup</span><span class="sec">1.83 s</span><span class="mk"></span></div>
+<div class="r d1" id="sup"><span class="nm">supervisor</span><span class="sec">0.89 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="sup_llm"><span class="nm">groq_call<span class="ty llm">llm</span></span><span class="sec">0.88 s</span><span class="mk"></span></div>
+<div class="r d1" id="ala"><span class="nm">alarm_agent</span><span class="sec">2.19 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="ala_ret"><span class="nm">search_documents<span class="ty retriever">retriever</span></span><span class="sec">0.56 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="ala_llm"><span class="nm">groq_call<span class="ty llm">llm</span></span><span class="sec">1.62 s</span><span class="mk"></span></div>
+<div class="r d1" id="fix"><span class="nm">expert_fix_agent</span><span class="sec">2.19 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="fix_ret"><span class="nm">search_expert_fixes<span class="ty retriever">retriever</span></span><span class="sec">0.51 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="fix_llm"><span class="nm">groq_call<span class="ty llm">llm</span></span><span class="sec">1.67 s</span><span class="mk"></span></div>
+<div class="r d1" id="mai"><span class="nm">maintenance_agent</span><span class="sec">1.52 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="mai_ret"><span class="nm">search_documents<span class="ty retriever">retriever</span></span><span class="sec">0.52 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="mai_llm"><span class="nm">groq_call<span class="ty llm">llm</span></span><span class="sec">0.98 s</span><span class="mk"></span></div>
+<div class="r d1" id="sop"><span class="nm">sop_agent</span><span class="sec">58.93 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="sop_ret"><span class="nm">search_documents<span class="ty retriever">retriever</span></span><span class="sec">0.88 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="sop_llm"><span class="nm">groq_call<span class="ty llm">llm</span></span><span class="sec">58.04 s</span><span class="mk"></span></div>
+<div class="r d1" id="ncr"><span class="nm">ncr_agent</span><span class="sec">48.6 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="ncr_ret"><span class="nm">search_documents<span class="ty retriever">retriever</span></span><span class="sec">0.54 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="ncr_llm"><span class="nm">groq_call<span class="ty llm">llm</span></span><span class="sec">48.06 s</span><span class="mk"></span></div>
+<div class="r d1" id="wri"><span class="nm">orchestrator</span><span class="sec">5.42 s</span><span class="mk"></span></div>
+<div class="r d2 kid" id="wri_llm"><span class="nm">groq_call<span class="ty llm">llm</span></span><span class="sec">5.42 s</span><span class="mk"></span></div>
+<div class="r d1" id="chk"><span class="nm">report_guardrails</span><span class="sec">0 s</span><span class="mk"></span></div>
+      <figure class="shot" id="shot"><img src="../docs/img/trace-langsmith.png" alt="The same run in LangSmith" onerror="document.getElementById('shot').hidden=true"><figcaption>The same run in LangSmith</figcaption></figure>
+    </div>
+    <div class="ask" id="ask" aria-live="polite"></div>
+  </div>
+  
+  <div class="ctrl"><button id="play">▶ Play</button><span class="count" id="count"></span></div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ALL=["sto", "root", "gra", "sup", "sup_llm", "ala", "ala_ret", "ala_llm", "fix", "fix_ret", "fix_llm", "mai", "mai_ret", "mai_llm", "sop", "sop_ret", "sop_llm", "ncr", "ncr_ret", "ncr_llm", "wri", "wri_llm", "chk"];
+const Q=[{"q": "Was it in the machine manual?", "term": "Source documents", "look": ["sto"], "ok": ["sto"], "doc": "<div class=\"pg-head\"><b>WORK INSTRUCTION</b><span>Equipment: FL-101 Bottle Filler</span><span>Reference: WI-FL101-001</span></div>\n<div class=\"pg-title\">FILL VALVE SEAL REPLACEMENT</div>\n<div class=\"pg-sec\">8. PROCEDURE</div>\n<p class=\"pg-dim\">Step 8 — Count the tools and parts on the tray. Remove the lock and refill the bowl.</p>\n<p class=\"pg-now\"><b>Step 9 — SANITATION RINSE — MANDATORY</b><br>Run the sanitation rinse for <mark>10 minutes</mark>. This removes lubricant and any particles from the new seals. Never skip this step: the first bottles would carry lubricant into the product.</p>\n<p class=\"pg-dim\"><b>Step 10 — FIRST-BOTTLE CHECK — MANDATORY</b><br>Run at normal speed and weigh the first 20 bottles. All 20 must be between 495 and 505 ml. If any bottle is outside this range, stop and check the valve again.</p>\n<div class=\"pg-foot\">Text from the work instruction file · demo data</div>", "ev": "", "why": "", "v": "Yes, it’s in the manual.", "short": "Yes, it’s in the manual."}, {"q": "Did PlantMind find the rinse time?", "term": "Retrieval", "open": ["ala_ret", "mai_ret"], "look": ["ala_ret", "mai_ret"], "ok": ["ala_ret", "mai_ret"], "strips": "<p class=\"st-tx\">Yes. It found the rinse time in two places: the work instructions and the shift log.</p>\n<div class=\"st\"><span class=\"st-l\">Work instruction search</span>“Run the sanitation rinse for <mark>10 minutes</mark>.”</div>\n<div class=\"st\"><span class=\"st-l\">Shift log search</span>“Sanitation rinse <mark>10 min</mark>”</div>", "ev": "", "why": "", "v": "Yes, it found it.", "short": "Yes, it found it."}, {"q": "Was the rinse time passed to the AI?", "term": "Context", "look": ["fix", "ala", "mai", "sop", "ncr", "gra", "wri"], "ok": ["gra", "wri"], "off": ["fix", "ala", "mai", "sop", "ncr"], "ev": "“Rinse the bowl, valves and nozzles with clean water for <mark>10 minutes</mark>.”", "why": "The five earlier AI steps each prepared a summary, but none mentioned the 10-minute rinse. However, PlantMind also pulled information from its knowledge graph, where machine details are stored. That information included the 10-minute rinse and was passed to the step that prepares the final answer.", "v": "Yes, it reached the final answer step.", "short": "Yes, it reached the final answer step."}, {"q": "Did the final answer mention the 10-minute rinse?", "term": "Generation", "open": ["wri_llm"], "look": ["wri_llm"], "bad": ["wri_llm"], "ev": "“Perform the first-bottle check and sanitation rinse, and do not restart…”", "why": "The answer tells the operator to perform the rinse but doesn’t say to run it for 10 minutes.", "v": "No, the rinse time was left out.", "no": true, "short": "No, the rinse time was left out."}];
+const END="<h2>Likely missed while writing the answer</h2><p class=\"why\" style=\"opacity:1;margin-top:10px\">PlantMind found the 10-minute rinse instruction, and it appears to have reached the AI writing the final answer. But the answer left out the rinse time.</p><p class=\"why\" style=\"opacity:1\">A trace only tells us what happened in one run. Before deciding where to make changes, we need to repeat the same test several times to see whether the rinse time keeps getting missed.</p><p class=\"why\" style=\"opacity:1\">If the problem continues, the next step is to improve how the AI writes the answer, rather than changing how PlantMind searches for information.</p><p class=\"loop\"><b>✓ Test</b><i>→</i><b>✓ Trace</b><i>→</i><span>Repeat</span><i>→</i><span>Fix</span><i>→</i><span>Test again</span></p>";
+let timers=[],running=false;
+const at=(ms,fn)=>{timers.push(setTimeout(fn,ms));};
+function clearAll(){timers.forEach(clearTimeout);timers=[];}
+function reset(){ALL.forEach(id=>{$(id).classList.remove('look','ok','bad','off','open');$(id).querySelector('.mk').textContent='';});$('ask').innerHTML='';}
+function unfold(q){(q.open||[]).forEach(id=>$(id).classList.add('open'));}
+function mark(q){unfold(q);(q.ok||[]).forEach(id=>{$(id).classList.add('ok');$(id).querySelector('.mk').textContent='✓';});
+ (q.off||[]).forEach(id=>{$(id).classList.add('off');$(id).querySelector('.mk').textContent='–';});
+ (q.bad||[]).forEach(id=>{$(id).classList.add('bad');$(id).querySelector('.mk').textContent='✗';});}
+const look=(ids,on)=>ids.forEach(id=>$(id).classList.toggle('look',on));
+function cardHTML(q){return `<span class="term">${q.term}</span><h2>${q.q}</h2>${q.doc?`<div class="ev doc">${q.doc}</div>`:q.strips?`<div class="ev">${q.strips}</div>`:`<p class="ev">${q.ev}</p>`}${q.why?`<p class="why">${q.why}</p>`:''}<div class="verdict"><i>${q.no?'✗':'✓'}</i>${q.v}</div>${q.after?`<p class="why">${q.after}</p>`:''}`;}
+function collapse(q){const c=$('ask').querySelector('.card');if(c)c.remove();const d=document.createElement('div');d.className='done'+(q.no?' bad':'');d.innerHTML=`<span class="ic">${q.no?'✗':'✓'}</span><span class="dt">${q.short}</span><span class="term">${q.term}</span>`;$('ask').appendChild(d);}
+function pop(q){const c=document.createElement('div');c.className='card'+(q.doc?' big':'');c.innerHTML=cardHTML(q);$('ask').appendChild(c);return c;}
+function step(i){if(i>=Q.length){const c=document.createElement('div');c.className='card end';c.innerHTML=END;$('ask').appendChild(c);running=false;$('play').textContent='▶ Replay';$('count').textContent='';return;}
+ const q=Q[i],c=pop(q);
+ at(1300,()=>unfold(q));
+ at(1800,()=>look(q.look,true));
+ at(3400,()=>{look(q.look,false);mark(q);c.classList.add('ans');if(q.no)c.classList.add('no');});
+ at(q.doc?11000:q.why&&q.why.length>200?15000:q.strips?10000:q.why&&q.why.length>60?9500:7500,()=>{collapse(q);step(i+1);});}
+function play(){clearAll();reset();running=true;$('play').textContent='❚❚ Stop';
+ const c=document.createElement('div');c.className='card';c.innerHTML='<h2>Where did it get missed?</h2><p class="why" style="opacity:1;margin-top:10px">The answer should tell the operator to rinse for 10 minutes, but it doesn’t. Let’s follow the steps to see where that detail was missed.</p>';$('ask').appendChild(c);
+ let left=7;$('count').textContent='reading · '+left;
+ const tick=()=>{left--;if(left>0){$('count').textContent='reading · '+left;at(1000,tick);}else{$('count').textContent='';c.remove();step(0);}};at(1000,tick);}
+function endState(n){reset();Q.slice(0,n).forEach(q=>{mark(q);collapse(q);});}
+$('play').onclick=()=>{if(running){clearAll();running=false;$('play').textContent='▶ Play';$('count').textContent='';}else play();};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const qp=new URLSearchParams(location.search);
+function still(n){endState(n);if(n<Q.length){const q=Q[n];look(q.look,false);mark(q);const c=pop(q);c.classList.add('ans');if(q.no)c.classList.add('no');}else{const c=document.createElement('div');c.className='card end';c.innerHTML=END;$('ask').appendChild(c);$('play').textContent='▶ Replay';}}
+if(qp.has('s'))still(+qp.get('s'));
+else if(reduce)still(Q.length);
+else play();
+})();
+</script>
+</body>
+</html>

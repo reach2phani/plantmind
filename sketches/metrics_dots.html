@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metrics as Dots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F2EA;--surface:#FBF9F4;--sunk:#ECE8DE;--ink:#252826;--muted:#68706B;--faint:#979B94;--line:#D9D6CC;
+  --pine:#557A68;--pine-soft:#E3EAE4;--rust:#B85C50;--rust-soft:#F4E0DB;--brass:#C08A3E;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1C1E1C;--surface:#232623;--sunk:#181A18;--ink:#EAE7DE;--muted:#A5AAA3;--faint:#7D827C;--line:#383B35;--pine:#8DAE9C;--pine-soft:#27312B;--rust:#D78A7E;--rust-soft:#3A2622;--brass:#D4A664;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1C1E1C;--surface:#232623;--sunk:#181A18;--ink:#EAE7DE;--muted:#A5AAA3;--faint:#7D827C;--line:#383B35;--pine:#8DAE9C;--pine-soft:#27312B;--rust:#D78A7E;--rust-soft:#3A2622;--brass:#D4A664;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+.top{display:flex;align-items:center;gap:12px}
+.note{font:500 .7rem "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:4px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+h1{font:500 1.6rem/1.25 Fraunces,Georgia,serif;margin:12px 0 4px}
+.lead{color:var(--muted);margin:0 0 18px;max-width:70ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tabs button{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:20px;padding:5px 12px;cursor:pointer}
+.tabs button.on{background:var(--pine-soft);border-color:var(--pine);color:var(--ink);font-weight:600}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.kick{font:600 .7rem "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--pine)}
+.panel h2{font:500 1.35rem/1.3 Fraunces,Georgia,serif;margin:2px 0 14px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:0 22px;align-items:center}
+.hd{font:500 .66rem "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding-bottom:6px;border-bottom:1px solid var(--line)}
+.q{padding:9px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.q.seal{font-weight:600}
+.q small{display:block;color:var(--faint);font-size:.72rem;font-weight:400}
+.dots{display:flex;gap:7px;padding:9px 0;border-bottom:1px solid var(--line);justify-content:center}
+.d{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.68rem;font-weight:700;color:var(--surface)}
+.d.y{background:var(--pine)}.d.n{background:var(--rust)}
+.d.wait{background:none;border:1.5px dashed var(--faint)}
+.tot{display:flex;gap:16px;align-items:baseline;margin-top:14px;flex-wrap:wrap}
+.tot b{font:500 1.6rem Fraunces,Georgia,serif}
+.tot span{color:var(--muted);font-size:.92rem}
+.say{margin:12px 0 0;color:var(--pine);font-weight:500}
+.ax{width:100%;height:auto;display:block}
+.leg{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:8px}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.src{font:400 .7rem/1.5 "IBM Plex Mono",monospace;color:var(--faint);margin:14px 2px 0}
+@media (max-width:600px){.grid{gap:0 10px}.d{width:16px;height:16px;font-size:.6rem}.dots{gap:4px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Sketch · metrics as dots · baseline only</span><button class="tbtn" id="theme">Theme</button></div>
+  <h1>One dot is one answer.</h1>
+  <p class="lead">5 test questions, each asked 3 times: 15 answers. The “after” column fills in once final r3 has run.</p>
+  <div class="tabs" id="tabs"></div>
+  <div class="panel" id="panel"></div>
+  <p class="src">From evals/baselines/fl101_eval/baseline-v1/summary.md (runs 29 Oct – 1 Nov 2026). 5 demo questions we wrote, not real use. Cost is what the tokens would cost at paid prices; the free tier costs $0.</p>
+</div>
+<script>
+const D=[ // per question: completeness, grounded, working s, waiting s, cost $ — 3 runs each
+ {q:'Underfill alarm',ts:[1,1,1],gr:[1,1,0],w:[14.2,15.0,11.0],q2:[54.6,55.5,58.1],c:[.003817,.004162,.003785]},
+ {q:'Infeed jam',ts:[0,0,0],gr:[1,1,0],w:[10.3,11.1,7.5],q2:[48.6,47.5,51.3],c:[.003032,.003051,.003003]},
+ {q:'Low supply pressure',ts:[1,1,1],gr:[1,1,0],w:[9.0,10.0,8.8],q2:[51.3,49.7,50.9],c:[.00289,.003035,.00294]},
+ {q:'Glass breakage',ts:[1,0,1],gr:[1,1,1],w:[11.9,12.2,7.6],q2:[46.5,46.3,52.5],c:[.003069,.002947,.003152]},
+ {q:'After a valve seal change',seal:1,ts:[0,0,0],gr:[0,0,0],w:[10.2,14.0,8.7],q2:[60.2,56.3,58.3],c:[.003734,.003682,.003554]}];
+const sum=k=>D.reduce((a,r)=>a+r[k].reduce((x,y)=>x+y,0),0);
+const label=r=>`<div class="q${r.seal?' seal':''}">${r.q}${r.seal?'<small>the Tracing example</small>':''}</div>`;
+function passFail(k,kick,title,good,say){
+  const rows=D.map(r=>label(r)+`<div class="dots">${r[k].map(v=>`<span class="d ${v?'y':'n'}">${v?'✓':'✗'}</span>`).join('')}</div><div class="dots">${[0,1,2].map(()=>'<span class="d wait"></span>').join('')}</div>`).join('');
+  const n=sum(k);
+  return `<div class="kick">${kick}</div><h2>${title}</h2>
+  <div class="grid"><div class="hd">Question</div><div class="hd" style="text-align:center">Before</div><div class="hd" style="text-align:center">After</div>${rows}</div>
+  <div class="tot"><b>${n} of 15</b><span>${good}</span></div><p class="say">${say}</p>`;}
+function axis(kick,title,vals,max,fmt,ticks,say,legend){
+  const W=900,top=10,rowH=40,H=top+D.length*rowH+30,x0=200,x=v=>x0+(W-x0-20)*v/max;
+  let s=ticks.map(t=>`<line x1="${x(t)}" y1="${top}" x2="${x(t)}" y2="${H-26}" stroke="var(--line)"/><text x="${x(t)}" y="${H-8}" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="var(--faint)">${fmt(t)}</text>`).join('');
+  D.forEach((r,i)=>{const y=top+i*rowH+rowH/2;
+    s+=`<text x="0" y="${y+5}" font-size="14" ${r.seal?'font-weight="600"':''} fill="var(--ink)">${r.q}</text>`+vals(r,y,x);});
+  return `<div class="kick">${kick}</div><h2>${title}</h2><svg class="ax" viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}">${s}</svg>${legend||''}<p class="say">${say}</p>`;}
+const STEPS=[
+ ['Completeness',()=>passFail('ts','Answer completeness','Does PlantMind include the required instructions?','answers had every required instruction','The seal-change answers missed something every time, including the 10-minute rinse.')],
+ ['Groundedness',()=>passFail('gr','Groundedness','Are its claims supported by plant documents?','answers passed the grounding checks','Every seal-change answer had steps the documents didn’t back up.')],
+ ['Response time',()=>axis('Response time','How long do operators wait for an answer?',(r,y,x)=>r.w.map((w,j)=>{const t=w+r.q2[j],yy=y-8+j*8;
+    return `<line x1="${x(0)}" y1="${yy}" x2="${x(t)}" y2="${yy}" stroke="var(--line)" stroke-width="2"/><circle cx="${x(w)}" cy="${yy}" r="5" fill="var(--pine)"/><circle cx="${x(t)}" cy="${yy}" r="5" fill="none" stroke="var(--muted)" stroke-width="1.5"/>`;}).join(''),
+    80,t=>t+' s',[0,20,40,60,80],'PlantMind worked for 7.5–15 s. The rest, about 46–60 s, was waiting for the free tier’s limits.',
+    '<div class="leg"><span><i style="background:var(--pine)"></i>PlantMind working</span><span><i style="border:1.5px solid var(--muted)"></i>answer ready (incl. waiting)</span></div>')],
+ ['Cost',()=>axis('Cost per answer','How expensive is each question to process?',(r,y,x)=>r.c.map((c,j)=>`<circle cx="${x(c*100)}" cy="${y-8+j*8}" r="5" fill="var(--brass)"/>`).join(''),
+    0.5,t=>t+'¢',[0,0.1,0.2,0.3,0.4,0.5],'Every answer cost about a third of a cent. 1,000 answers ≈ $3–4, so cost isn’t the problem.')],
+];
+let cur=0;
+function show(i){cur=i;document.getElementById('panel').innerHTML=STEPS[i][1]();
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.classList.toggle('on',j===i));}
+document.getElementById('tabs').innerHTML=STEPS.map((s,i)=>`<button data-i="${i}">${s[0]}</button>`).join('');
+document.getElementById('tabs').onclick=e=>{const b=e.target.closest('button');if(b)show(+b.dataset.i);};
+document.getElementById('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const s=+(new URLSearchParams(location.search).get('s')||0);show(s);
+</script>
+</body>
+</html>

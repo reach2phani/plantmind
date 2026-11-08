@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracing sketch 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F2EA;--surface:#FBF9F4;--sunk:#ECE8DE;--ink:#252826;--muted:#68706B;--faint:#979B94;--line:#D9D6CC;
+--pine:#557A68;--steel:#6D8490;--steel-soft:#E3E9EC;--brass:#C08A3E;--brass-soft:#F3E7D3;--rust:#B85C50;--rust-soft:#F2DEDA;--hl:#F4E29A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",sans-serif;padding:24px 16px}
+.wrap{max-width:1080px;margin:0 auto}
+.note{font:12px "IBM Plex Mono",monospace;color:var(--rust);border:1px dashed var(--rust);padding:6px 10px;display:inline-block;margin-bottom:12px}
+h1{font:500 28px Fraunces,serif;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 16px}
+.panel{background:var(--surface);border:1px solid var(--line);overflow-x:auto}
+svg{display:block;width:100%;min-width:800px;height:auto}
+text{font-family:"IBM Plex Sans",sans-serif;fill:var(--ink)}
+.lbl{font:500 10.5px "IBM Plex Mono",monospace;letter-spacing:.07em;fill:var(--muted)}
+.cap{min-height:52px;margin:12px 0;font-size:16px}
+.ctrl{display:flex;gap:8px;align-items:center}
+button{font:13px "IBM Plex Mono",monospace;background:var(--surface);border:1px solid var(--line);padding:6px 12px;cursor:pointer;color:var(--ink)}
+.bar{display:flex;gap:4px;flex:1}.bar i{flex:1;height:4px;background:var(--line)}.bar i.on{background:var(--ink)}
+[data-b]{transition:opacity .6s, transform .7s}
+.hide{opacity:0}
+.slide.hide{transform:translateX(24px)}
+.draw{stroke-dasharray:1;stroke-dashoffset:0;transition:stroke-dashoffset 1.3s ease-in-out}
+.draw.hide{stroke-dashoffset:1;opacity:1}
+.hl{transform-box:fill-box;transform-origin:left;transition:transform .7s ease-out}
+.hl.hide{transform:scaleX(0);opacity:1}
+@keyframes pulse{0%{r:6;opacity:.9}100%{r:22;opacity:0}}
+.ping{animation:pulse 1.2s ease-out 3 forwards}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="note">SCRATCH SKETCH 4 · real FR-01 run (6 Oct 2026, graph ON) · one row per answer line</div>
+  <h1>Tracing</h1>
+  <p class="sub">When an answer is wrong, tracing shows which step went wrong.</p>
+  <div class="panel"><svg id="s" viewBox="0 0 1000 600"></svg></div>
+  <div class="cap" id="cap"></div>
+  <div class="ctrl"><button id="prev">←</button><button id="play">❚❚</button><button id="next">→</button><div class="bar" id="bar"></div></div>
+</div>
+<script>
+const NS='http://www.w3.org/2000/svg',S=document.getElementById('s');
+function el(tag,a,p,t){p=p||S;const e=document.createElementNS(NS,tag);for(const k in a)if(a[k]!=null)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;p.appendChild(e);return e}
+function B(b,d=0,h=null,cls=''){return{'data-b':b,'data-d':d,'data-h':h,class:cls}}
+function lines(p,x,y,arr,a={}){const{lh=14,...rest}=a;const t=el('text',{x,y,...rest},p);arr.forEach((s,i)=>el('tspan',{x,dy:i?lh:0},t,s));return t}
+const BACK=el('g',{}),MID=el('g',{}),FRONT=el('g',{});
+
+/* columns */
+const CARD={x:16,w:304}, WX=372, GX=482, SX=598, QX=690, QW=296;
+
+/* rows: real wording from the FR-01 report (graph ON, 6 Oct 2026) */
+const ROWS=[
+ {k:'issue',y:112,t:['What is the issue — Current idle condition differs','from prior underfill alarm events on 2026‑09‑10…'],
+  graph:null, search:['shift logs','var(--steel)'], src:{title:'SHIFT LOG · 10 SEPT, NIGHT',q:['Third underfill alarm this shift. Valves 9, 15','and now 3 underfilling.']},
+  pill:['traced to shift log, 10 Sept','var(--steel)'], col:'var(--steel)'},
+ {k:'s1',y:170,t:['Step 1: Safety — Verify that any LOTO devices','placed during the Friday shutdown have been removed…'],
+  graph:'safety rules', search:null, src:{title:'SOP 6.2',q:['Lockout / tagout (LOTO) … Follow SAF-003']},
+  pill:['SOP 6.2 · partly','var(--brass)'], col:'var(--brass)'},
+ {k:'s2',y:228,t:['Step 2: Safety — Don required PPE as per','FL‑101 SOP Section 6.1…'],
+  graph:'safety rules', search:null, src:{title:'SOP 6.1',q:['PPE required on Filling Line 1 · Safety glasses','at all times · Hearing protection · Safety shoes']},
+  pill:['SOP 6.1 ✓','var(--pine)'], col:'var(--brass)'},
+ {k:'s3',y:286,t:['Step 3: Safety — Confirm all guard doors are closed…','do not bypass or tape over any guard switch'],
+  graph:'safety rules', search:null, src:{title:'SOP 6.3',q:['Never bypass or tape over a guard switch.']},
+  pill:['SOP 6.3 ✓','var(--pine)'], col:'var(--brass)'},
+ {k:'s5',y:356,t:['Step 5: Fix — If any wear or damage is observed,','replace the affected part per the standard','maintenance work instruction (not provided here)…'],
+  broken:'work instruction', src:{title:'WORK INSTRUCTION',q:['never opened in this run']},
+  pill:['✕ never opened','var(--rust)']},
+ {k:'s6',y:446,t:['Step 6: Verify — Start the machine in test mode,','observe for any alarms for at least 5 minutes…'],
+  broken:'SOP start-up', src:{title:'SOP 9 · START-UP SEQUENCE',q:['3. Run the sanitation rinse (10 minutes) if the','   machine has been stopped for more than 4 hours.','4. Start at 60 bottles per minute.','5. Weigh the first 20 bottles. All must be 495 to 505 ml.']},
+  pill:['✕ never searched','var(--rust)']},
+];
+ROWS.forEach(r=>{r.mid=r.y-4+(r.t.length-1)*7});
+
+/* ── beat 0: question + answer ── */
+const card=el('g',B(0),FRONT);
+el('text',{x:16,y:28,class:'lbl'},card,'THE OPERATOR ASKED');
+lines(card,16,46,['“Line’s been sitting since Friday night. Anything','special before we start filling again?”'],{'font-size':12.5,'font-style':'italic',lh:16});
+el('rect',{x:CARD.x,y:76,width:CARD.w,height:426,rx:4,fill:'var(--surface)',stroke:'var(--ink)'},card);
+el('text',{x:30,y:96,class:'lbl'},card,'THE ANSWER · 6 OF ITS LINES');
+ROWS.forEach(r=>{r.txt=lines(card,30,r.y,r.t,{'font-size':11.2})});
+el('text',{x:30,y:494,'font-size':10,fill:'var(--faint)'},card,'Real report · restart question FR-01 · graph ON · 6 Oct 2026');
+// the writer's own words, highlighted in beat 2
+const own=el('rect',{height:15,fill:'var(--rust-soft)',...B(2,0.6,null,'hl')});
+card.insertBefore(own,ROWS[4].txt);
+
+/* ── column headers + rails (beat 1) ── */
+const hdr=el('g',B(1),BACK);
+[[WX,'WRITER','writes the line'],[GX,'GRAPH','reviewed facts'],[SX,'SEARCH','opens documents']].forEach(([x,n,s])=>{
+  el('text',{x,y:68,'text-anchor':'middle',class:'lbl'},hdr,n);
+  el('text',{x,y:82,'text-anchor':'middle','font-size':9.5,fill:'var(--faint)'},hdr,s);
+  el('line',{x1:x,y1:92,x2:x,y2:500,stroke:'var(--line)','stroke-dasharray':'2 4'},hdr);
+});
+el('text',{x:QX,y:68,class:'lbl'},hdr,'WHERE IT CAME FROM');
+el('text',{x:QX,y:82,'font-size':9.5,fill:'var(--faint)'},hdr,'the plant’s own documents');
+
+/* ── trails ── */
+function dot(x,y,col,b,d,r=4.5){return el('circle',{cx:x,cy:y,r,fill:col,...B(b,d)},MID)}
+function tag(x,y,txt,col,b,d){return el('text',{x,y:y-9,'text-anchor':'middle','font-size':9.5,fill:col,...B(b,d)},MID,txt)}
+function srcCard(r,b,d,ghost){
+  const g=el('g',B(b,d,null,'slide'),MID), n=r.src.q.length, h=20+n*13, y=r.mid-h/2;
+  el('rect',{x:QX,y,width:QW,height:h,rx:3,fill:ghost?'var(--surface)':'#fff',stroke:ghost?'var(--rust)':'var(--line)','stroke-dasharray':ghost?'4 3':null},g);
+  if(!ghost||r.k==='s6')el('rect',{x:QX+6,y:y+17,width:QW-12,height:n*13+0,fill:'var(--hl)',...B(b,d+0.7,null,'hl')},g);
+  el('text',{x:QX+10,y:y+13,'font-size':9,class:'lbl',fill:ghost?'var(--rust)':'var(--muted)'},g,r.src.title);
+  lines(g,QX+10,y+27,r.src.q,{'font-size':10,lh:13,fill:ghost&&r.k==='s5'?'var(--rust)':'var(--ink)','font-style':ghost&&r.k==='s5'?'italic':null});
+  return g;
+}
+ROWS.forEach((r,i)=>{
+  const y=r.mid;
+  if(!r.broken){
+    const d=0.8+i*0.7;
+    el('path',{d:`M${CARD.x+CARD.w} ${y} H${QX}`,pathLength:1,fill:'none',stroke:r.col,'stroke-width':1.6,...B(1,d,null,'draw')},BACK);
+    dot(WX,y,'var(--ink)',1,d+0.2);
+    if(r.graph){dot(GX,y,'var(--brass)',1,d+0.45);tag(GX,y,r.graph,'var(--brass)',1,d+0.5)}
+    if(r.search){dot(SX,y,'var(--steel)',1,d+0.7);tag(SX,y,r.search[0],'var(--steel)',1,d+0.75)}
+    srcCard(r,1,d+0.9);
+  }else{
+    const d=r.k==='s5'?0.3:5.2;
+    el('path',{d:`M${CARD.x+CARD.w} ${y} H${SX}`,pathLength:1,fill:'none',stroke:'var(--rust)','stroke-width':1.6,...B(2,d,null,'draw')},BACK);
+    dot(WX,y,'var(--ink)',2,d+0.3);
+    dot(GX,y,'var(--brass)',2,d+0.7);tag(GX,y,'“no fault”','var(--brass)',2,d+0.8);
+    // the stop
+    const st=el('g',B(2,d+1.6),MID);
+    el('rect',{x:SX-80,y:y-11,width:160,height:22,rx:11,fill:'var(--rust-soft)',stroke:'var(--rust)','stroke-dasharray':'4 3'},st);
+    el('text',{x:SX,y:y+4,'text-anchor':'middle','font-size':10,fill:'var(--rust)'},st,'✕ '+r.broken+': not sent');
+    r.ping=el('circle',{cx:SX-68,cy:y,r:6,fill:'none',stroke:'var(--rust)','stroke-width':2,opacity:0,...B(2,d+1.6,3)},MID);
+    r.pingAt=(d+1.8)*1000;
+    // the unreached source
+    el('path',{d:`M${SX+80} ${y} H${QX}`,fill:'none',stroke:'var(--rust)','stroke-dasharray':'2 5',...B(2,d+2.8)},BACK);
+    srcCard(r,2,d+3,true);
+  }
+});
+
+/* ── beat 3: overview ── */
+const ov=el('g',B(3,0.2),FRONT);
+ROWS.forEach(r=>{const [txt,col]=r.pill,w=txt.length*5.5+16,x=CARD.x+CARD.w-8-w,y=r.y+(r.t.length-1)*14+17;
+  el('rect',{x,y:y-11,width:w,height:16,rx:8,fill:'var(--surface)',stroke:col},ov);
+  el('text',{x:x+w/2,y:y+1,'text-anchor':'middle','font-size':9.5,fill:col},ov,txt)});
+const take=el('g',B(3,1.2,4),FRONT);
+el('rect',{x:16,y:522,width:970,height:30,fill:'var(--sunk)'},take);
+el('text',{x:28,y:542,'font-size':13},take,'Four lines lead back to the plant’s documents. Two stop at the search: the pages that held the answer were never opened.');
+el('text',{x:16,y:580,'font-size':10,fill:'var(--faint)'},take,'From the run’s saved record. ✓ / partly come from a check that runs in testing, not in the app.');
+
+
+/* ── beats 4–5: what the trace taught us (LEARNINGS #14–15, evals/search_results) ── */
+const R6=ROWS[5], y6=R6.mid;
+el('rect',{x:16,y:92,width:974,height:332,fill:'var(--surface)',opacity:.86,...B(4,0)},FRONT);
+const fx=el('g',{},FRONT);
+// fix 1: the SOP search is now sent
+const f1=el('g',B(4,0.6),fx);
+el('rect',{x:SX-82,y:y6-13,width:164,height:26,fill:'var(--surface)'},f1);
+el('rect',{x:SX-80,y:y6-11,width:160,height:22,rx:11,fill:'#E4ECE7',stroke:'var(--pine)'},f1);
+el('text',{x:SX,y:y6+4,'text-anchor':'middle','font-size':10,fill:'var(--pine)'},f1,'✓ SOP search: sent');
+el('text',{x:SX,y:y6+26,'text-anchor':'middle','font-size':9.5,fill:'var(--pine)'},f1,'fix 1: no fault → always search SOP + WI');
+// the second break: what the specialist reads
+const BX=470,BY=262,BW=212;
+const box=el('g',B(4,1.8),fx);
+el('line',{x1:SX,y1:y6-13,x2:SX,y2:BY+150,stroke:'var(--line)'},box);
+el('rect',{x:BX,y:BY,width:BW,height:150,rx:4,fill:'#fff',stroke:'var(--ink)'},box);
+el('text',{x:BX+12,y:BY+18,class:'lbl'},box,'WHAT THE SPECIALIST READS');
+el('text',{x:BX+12,y:BY+32,'font-size':9.5,fill:'var(--faint)'},box,'only the top 4 pieces the search finds');
+[0,1,2].forEach(i=>el('rect',{x:BX+12,y:BY+42+i*16,width:BW-24,height:11,rx:2,fill:'var(--sunk)'},box));
+const slot4=el('rect',{x:BX+12,y:BY+90,width:BW-24,height:11,rx:2,fill:'var(--sunk)',...B(4,0,5)},box);
+el('line',{x1:BX+8,y1:BY+110,x2:BX+BW-8,y2:BY+110,stroke:'var(--rust)','stroke-dasharray':'4 3'},box);
+const miss=el('g',B(4,2.8,5),box);
+el('text',{x:BX+12,y:BY+128,'font-size':10,fill:'var(--rust)'},miss,'↓ SOP 9 start-up: 15th');
+el('text',{x:BX+12,y:BY+142,'font-size':9.5,fill:'var(--muted)'},miss,'searched, but never read');
+// fix 2: reranker lifts it into the top 4
+const f2=el('g',B(5,0.8),fx);
+el('rect',{x:BX+12,y:BY+90,width:BW-24,height:11,rx:2,fill:'var(--pine)'},f2);
+el('text',{x:BX+16,y:BY+99,'font-size':8.5,fill:'#fff'},f2,'SOP 9 start-up');
+el('text',{x:BX+12,y:BY+128,'font-size':10,fill:'var(--pine)'},f2,'fix 2: operator’s words + a reranker');
+el('text',{x:BX+12,y:BY+142,'font-size':9.5,fill:'var(--muted)'},f2,'reads the closest 15, keeps the best 4');
+// the trail now reaches the SOP
+el('path',{d:`M${SX+80} ${y6} H${QX}`,pathLength:1,fill:'none',stroke:'var(--pine)','stroke-width':1.8,...B(5,2,null,'draw')},fx);
+const sc=el('g',B(5,3),fx);
+el('text',{x:QX,y:y6+48,'font-size':10.5,fill:'var(--pine)'},sc,'Start-up facts reaching the specialist: 0 of 5 → 4 of 5');
+el('text',{x:QX,y:y6+62,'font-size':9.5,fill:'var(--muted)'},sc,'still missed: test bottles 490 / 510 ml (20th)');
+// the answer itself: not re-run yet
+const pend=el('g',B(5,4),FRONT);
+{const t='answer re-run: pending',w=t.length*5.5+16,x=CARD.x+CARD.w-8-w,y=R6.y+14+17;
+ el('rect',{x:x-40,y:y-13,width:w+42,height:20,fill:'var(--surface)'},pend);
+ el('rect',{x,y:y-11,width:w,height:16,rx:8,fill:'var(--surface)',stroke:'var(--brass)','stroke-dasharray':'3 2'},pend);
+ el('text',{x:x+w/2,y:y+1,'text-anchor':'middle','font-size':9.5,fill:'var(--brass)'},pend,t);}
+const lesson=el('g',B(5,5),FRONT);
+el('rect',{x:16,y:522,width:970,height:30,fill:'var(--sunk)'},lesson);
+el('text',{x:28,y:542,'font-size':13},lesson,'Each fix went to the station the trace pointed at, and fixing one break showed the next.');
+el('text',{x:16,y:580,'font-size':10,fill:'var(--faint)'},lesson,'Start-up facts: search check, 6 Oct (evals/search_results). The full answer hasn’t been re-run since both fixes.');
+
+/* ── beats ── */
+const BEATS=[
+ {cap:'Before a restart, an operator asked a routine question. Here are six lines from the answer.',ms:6000},
+ {cap:'Follow each line back to where it came from. The past alarms came from the 10 Sept shift log. The safety steps came through the graph, from the SOP.',ms:7500},
+ {cap:'Steps 5 and 6 lead nowhere. The graph found no fault, and the search never opened the work instruction or the SOP’s start-up steps. The writer even says “not provided here”. With nothing to go on, it wrote “test mode, 5 minutes”.',ms:15000},
+ {cap:'Each line now shows where it came from, and where the trail broke.',ms:8000},
+ {cap:'The trace pointed at the search step. Fix 1: when no fault is reported, always search the SOP and the work instruction. The SOP was now searched, and the trace showed a second break: the start-up section came 15th, and the specialist only reads the top 4.',ms:14000},
+ {cap:'Fix 2: search with the operator’s own words, then let a reranker read the 15 closest pieces and keep the best 4. Four of the five start-up facts now reach the specialist. Whether the final answer gets them right is still to be re-run.',ms:14000},
+];
+const bar=document.getElementById('bar');BEATS.forEach(()=>bar.appendChild(document.createElement('i')));
+let cur=0,playing=true,auto=null,timers=[];
+function show(i){
+  clearTimeout(auto);timers.forEach(clearTimeout);timers=[];cur=i;
+  S.querySelectorAll('[data-b]').forEach(e=>{
+    const b=+e.dataset.b,h=(e.dataset.h==null||e.dataset.h==='null')?99:+e.dataset.h,vis=i>=b&&i<h;
+    e.style.transitionDelay=(vis&&b===i?(+e.dataset.d||0):0)+'s';
+    e.classList.toggle('hide',!vis);
+  });
+  ROWS.forEach(r=>{if(r.ping){r.ping.classList.remove('ping');if(i===2)timers.push(setTimeout(()=>r.ping.classList.add('ping'),r.pingAt))}});
+  document.getElementById('cap').textContent=BEATS[i].cap;
+  [...bar.children].forEach((b,k)=>b.classList.toggle('on',k<=i));
+  if(playing&&i<BEATS.length-1)auto=setTimeout(()=>show(i+1),BEATS[i].ms);
+  if(i===BEATS.length-1){playing=false;P.textContent='▶'}
+}
+const P=document.getElementById('play');
+document.getElementById('next').onclick=()=>{playing=false;P.textContent='▶';show(Math.min(cur+1,BEATS.length-1))};
+document.getElementById('prev').onclick=()=>{playing=false;P.textContent='▶';show(Math.max(cur-1,0))};
+P.onclick=()=>{playing=!playing;P.textContent=playing?'❚❚':'▶';if(playing)show(cur===BEATS.length-1?0:cur)};
+// place "(not provided here)" highlight from the real text width
+document.fonts.ready.then(()=>{const ts=ROWS[4].txt.children[2],s=ts.textContent,i=s.indexOf('(not provided here)');
+  own.setAttribute('x',30+ts.getSubStringLength(0,i)-2);own.setAttribute('width',ts.getSubStringLength(i,19)+4);own.setAttribute('y',ROWS[4].y+28-11)});
+show(0);
+</script>
+</body>
+</html>

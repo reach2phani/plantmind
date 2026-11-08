@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracing Questions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; --mark:#F3DE8A; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; --mark:#6B5A22; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; --mark:#6B5A22; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:22px 16px 36px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.note{font:500 .7rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+button{font:inherit;color:inherit;cursor:pointer}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:4px 10px;font-size:.8rem}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:18px;align-items:start}
+.bubble{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.lbl{font:500 .68rem "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.bubble p{margin:6px 0 0;font-style:italic;font-size:.95rem}
+.qs{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.q{all:unset;box-sizing:border-box;display:flex;gap:12px;align-items:center;width:100%;padding:13px 14px;border-radius:10px;background:var(--surface);border:1.5px solid var(--line);cursor:pointer;font-size:1.05rem;font-weight:500;transition:border-color .3s,background .3s,opacity .3s}
+.q:focus-visible{outline:2px solid var(--steel);outline-offset:2px}
+.q .ic{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-weight:600;font-size:.95rem;transition:all .3s}
+.q.on{border-color:var(--ink);background:var(--paper)}
+.q.ok .ic{background:var(--pine);border-color:var(--pine);color:var(--surface)}
+.q.bad{border-color:var(--rust);background:var(--rust-soft)}
+.q.bad .ic{background:var(--rust);border-color:var(--rust);color:var(--surface)}
+.q.bad .t{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--rust)}
+.trace{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px 16px}
+.trace h2{font:500 1.15rem/1.35 Fraunces,Georgia,serif;margin:4px 0 12px;min-height:1.5em}
+.rows{position:relative;display:grid;gap:10px}
+.spine{position:absolute;left:15px;top:20px;bottom:40px;width:2px;background:var(--line)}
+.row{position:relative;display:flex;gap:14px;padding:10px 12px 10px 0;border-radius:10px;min-height:82px;transition:background .3s,opacity .3s}
+.row .dot{position:relative;flex:none;margin-left:2px;width:28px;height:28px;border-radius:50%;background:var(--surface);border:1.5px solid var(--line);display:grid;place-items:center;font-weight:600;font-size:.95rem;transition:all .3s;z-index:1}
+.row.sk .dot{border-style:dashed}
+.row.ok .dot{background:var(--pine);border-color:var(--pine);color:var(--surface)}
+.row.bad{background:var(--rust-soft)}
+.row.bad .dot{background:var(--rust);border-color:var(--rust);color:var(--surface)}
+.row.cur .dot{box-shadow:0 0 0 5px var(--steel-soft)}
+.row h3{margin:0;font-size:1rem;font-weight:600}
+.row small{font:500 .66rem "IBM Plex Mono",monospace;color:var(--faint);margin-left:6px}
+.row .ev{margin:3px 0 0;font:400 .84rem/1.45 "IBM Plex Mono",monospace;min-height:1.45em;opacity:0;transition:opacity .4s}
+.row .ev.sh{opacity:1}
+.row.sk .ev{color:var(--faint);font-family:"IBM Plex Sans",sans-serif;font-style:italic}
+mark{background:var(--mark);color:#252826;border-radius:2px;padding:0 2px}
+.cap{margin:16px 2px 0;min-height:2.2em;font-size:1.08rem}
+.src{margin:6px 2px 0;font:400 .7rem/1.5 "IBM Plex Mono",monospace;color:var(--faint)}
+.ctrl{display:flex;gap:10px;align-items:center;margin-top:10px}
+.ctrl button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 12px;font-size:.85rem}
+.count{font:500 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin-left:auto}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Sketch · tracing, one question at a time · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="grid">
+    <div>
+      <div class="bubble"><span class="lbl">The operator asked</span>
+        <p>“Maintenance has just changed a fill valve seal on FL-101. I’m seeing a few bottles overfill… what needs checking before we go back to full production?”</p></div>
+      <span class="lbl">What the answer needs to tell them</span>
+      <ul class="qs" id="qs"></ul>
+    </div>
+    <div class="trace">
+      <span class="lbl">Trace · one saved run</span>
+      <h2 id="fol"></h2>
+      <div class="rows"><div class="spine"></div><div id="rows"></div></div>
+    </div>
+  </div>
+  <p class="cap" id="cap" aria-live="polite"></p>
+  <p class="src">One saved test run (6 Nov 2026, not the final scores). The four questions are our plain wording of the test’s checks. Only the rinse has been followed step by step, so the other three skip the middle rows; its search rank comes from the run’s trace notes. The exact prompt isn’t saved.</p>
+  <div class="ctrl"><button id="play">▶ Play</button><span class="count" id="count"></span></div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ROWS=[['On file','stored documents · not in the trace'],['Found by search','search_documents'],['Given to the writer','orchestrator · input'],['Written in the answer','orchestrator · output']];
+// each question: evidence per row; null = not followed for this question
+const Q=[
+ {t:'Is this overfill normal?',ev:['“This is <mark>EXPECTED BEHAVIOUR</mark> — not a fault.”',null,null,'“…the <mark>normal settling behavior</mark> of new seals for the first 2-3 minutes…”'],res:'ok',cap:'Is it normal? On file, and in the answer. Tick.'},
+ {t:'How many bottles do I check?',ev:['“…<mark>weigh the first 20 bottles</mark>.”',null,null,'“<mark>weigh the first 20 bottles</mark>; all must be between 495 ml and 505 ml.”'],res:'ok',cap:'How many bottles? On file, and in the answer. Tick.'},
+ {t:'Does someone sign off?',ev:['“…must <mark>sign off</mark> the first-bottle check…”',null,null,'“…<mark>sign-off</mark> on the first-bottle check.”'],res:'ok',cap:'A sign-off? On file, and in the answer. Tick.'},
+ {t:'How long is the rinse?',ev:['“Run the sanitation rinse for <mark>10 minutes</mark>.”','Work instruction search: the piece with <mark>10 minutes</mark> came 3rd, and was kept.','“…with clean water for <mark>10 minutes</mark>.”','“Perform the first-bottle check and sanitation rinse, and do not restart…” No duration.'],res:'bad',lost:3,
+  caps:['How long is the rinse? It’s on file: 10 minutes.','Search found it.','The writer was given it.','The answer mentions the rinse, but not how long. Lost here, while writing.']}];
+$('qs').innerHTML=Q.map((q,i)=>`<li><button class="q" id="q${i}" data-i="${i}"><span class="ic" id="qi${i}"></span><span class="t">${q.t}</span></button></li>`).join('');
+$('rows').innerHTML=ROWS.map(([a,b],i)=>`<div class="row" id="r${i}"><span class="dot" id="d${i}"></span><div><h3>${a}<small>${b}</small></h3><p class="ev" id="e${i}"></p></div></div>`).join('');
+
+const done={};let timers=[];
+function clearT(){timers.forEach(clearTimeout);timers=[];}
+function at(ms,fn){if(reduce)fn();else timers.push(setTimeout(fn,ms));}
+function resetRows(){ROWS.forEach((_,i)=>{$('r'+i).className='row';$('d'+i).textContent='';$('e'+i).textContent='';$('e'+i).className='ev';});}
+function paintQ(){Q.forEach((q,i)=>{const r=done[i];$('q'+i).className='q'+(r?' '+r:'');$('qi'+i).textContent=r==='ok'?'✓':r==='bad'?'✗':'';});}
+function setRow(i,q){const e=q.ev[i],el=$('r'+i);
+ document.querySelectorAll('.row.cur').forEach(x=>x.classList.remove('cur'));
+ if(e===null){el.className='row sk cur';$('e'+i).textContent='not followed for this one';$('e'+i).classList.add('sh');return;}
+ const bad=q.res==='bad'&&q.lost===i;el.className='row cur '+(bad?'bad':'ok');$('d'+i).textContent=bad?'✗':'✓';$('e'+i).innerHTML=e;$('e'+i).classList.add('sh');}
+// walk one question down the trace; then(ms) is called when it ends
+function walk(k,then){const q=Q[k],slow=q.res==='bad',gap=slow?3800:1300;
+ resetRows();paintQ();$('q'+k).classList.add('on');$('fol').textContent='Following: '+q.t;
+ $('cap').textContent=slow?q.caps[0]:'';
+ ROWS.forEach((_,i)=>at(500+i*gap,()=>{setRow(i,q);if(slow)$('cap').textContent=q.caps[i];}));
+ at(500+ROWS.length*gap-(slow?1200:300),()=>{done[k]=q.res;paintQ();if(q.res==='bad')$('q'+k).classList.add('on');if(!slow)$('cap').textContent=q.cap;});
+ at(500+ROWS.length*gap+(slow?2000:1100),then);}
+let running=false;
+function finish(){running=false;$('play').textContent='▶ Replay';$('count').textContent='';
+ $('cap').textContent='Three answered, one lost, and the trace shows exactly where: the writer had “10 minutes” and didn’t write it.';}
+function play(){clearT();for(const k in done)delete done[k];running=true;$('play').textContent='❚❚ Stop';
+ if(reduce){Q.forEach((_,k)=>{done[k]=Q[k].res;});resetRows();ROWS.forEach((_,i)=>setRow(i,Q[3]));paintQ();$('fol').textContent='Following: '+Q[3].t;finish();return;}
+ resetRows();paintQ();$('fol').textContent='';$('cap').textContent='Four things the answer needs to tell the operator. Check each one against the trace.';
+ let left=7;$('count').textContent='reading · '+left;
+ const tick=()=>{left--;if(left>0){$('count').textContent='reading · '+left;timers.push(setTimeout(tick,1000));}else{$('count').textContent='';seq(0);}};
+ timers.push(setTimeout(tick,1000));}
+function seq(k){if(k>=Q.length){finish();return;}walk(k,()=>seq(k+1));}
+$('play').onclick=()=>{if(running){clearT();running=false;$('play').textContent='▶ Play';$('count').textContent='';}else play();};
+$('qs').onclick=e=>{const b=e.target.closest('.q');if(!b)return;clearT();running=false;$('play').textContent='▶ Replay';$('count').textContent='';const k=+b.dataset.i;Q.forEach((_,i)=>{if(!(i in done))done[i]=Q[i].res;});
+ walk(k,()=>{});};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const qp=new URLSearchParams(location.search);
+if(qp.has('end')){Q.forEach((_,k)=>{done[k]=Q[k].res;});resetRows();ROWS.forEach((_,i)=>setRow(i,Q[3]));document.querySelectorAll('.row.cur').forEach(x=>x.classList.remove('cur'));paintQ();$('q3').classList.add('on');$('fol').textContent='Following: '+Q[3].t;finish();}
+else if(qp.has('q')){const k=+qp.get('q');Q.forEach((_,i)=>{if(i<k)done[i]=Q[i].res;});resetRows();ROWS.forEach((_,i)=>setRow(i,Q[k]));done[k]=Q[k].res;paintQ();$('q'+k).classList.add('on');$('fol').textContent='Following: '+Q[k].t;$('cap').textContent=Q[k].cap||'';}
+else play();
+})();
+</script>
+</body>
+</html>

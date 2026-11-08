@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning to Trace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --brass:#C08A3E; --brass-soft:#F4E8D3; --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; --mark:#F3DE8A; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; --mark:#6B5A22; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; --mark:#6B5A22; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 36px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.note{font:500 .7rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+button{font:inherit;color:inherit;cursor:pointer}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:4px 10px;font-size:.8rem}
+.teach{display:flex;gap:14px;align-items:flex-start;background:var(--ink);color:var(--surface);border-radius:12px;padding:12px 16px;margin-bottom:10px;min-height:76px}
+.teach .tm{font:600 .95rem "IBM Plex Mono",monospace;white-space:nowrap;background:var(--mark);color:#252826;border-radius:6px;padding:2px 9px}
+.teach p{margin:0;font-size:1rem}
+.tool{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:box-shadow .3s}
+.tool.ring,.ring{box-shadow:0 0 0 3px var(--brass)}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.bar h1{font:500 1.05rem Fraunces,Georgia,serif;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;font:500 .7rem "IBM Plex Mono",monospace;margin-left:auto}
+.chips span{background:var(--sunk);border-radius:6px;padding:3px 8px;color:var(--muted)}
+.chips .bad{background:var(--rust-soft);color:var(--rust);font-weight:600}
+.panes{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);height:520px}
+.tree{border-right:1px solid var(--line);overflow-y:auto;padding:6px}
+.rown{all:unset;box-sizing:border-box;display:block;width:100%;padding:3px 8px;border-radius:7px;cursor:pointer;border-left:3px solid transparent}
+.rown:hover{background:var(--sunk)}
+.rown:focus-visible{outline:2px solid var(--pine)}
+.rown.on{background:var(--steel-soft);border-left-color:var(--steel)}
+.rown .nm{font:500 .76rem "IBM Plex Mono",monospace}
+.rown .pl{display:block;font-size:.72rem;color:var(--muted)}
+.rown .mt{float:right;font:500 .68rem "IBM Plex Mono",monospace;color:var(--muted)}
+.rown .k{font:600 .58rem "IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;border-radius:4px;padding:0 4px;margin-left:5px;background:var(--sunk);color:var(--muted)}
+.rown .k.retriever{background:var(--steel-soft);color:var(--steel)}
+.rown .k.llm{background:var(--brass-soft);color:var(--brass)}
+.rown .fl{display:none;font:600 .66rem "IBM Plex Mono",monospace;margin-top:1px}
+.rown.lost{background:var(--rust-soft)}.rown.lost .fl{display:block;color:var(--rust)}
+.rown.found .fl{display:block;color:var(--pine)}
+.d1{margin-left:14px;width:calc(100% - 14px)}.d2{margin-left:28px;width:calc(100% - 28px)}
+.det{display:flex;flex-direction:column;min-width:0;min-height:0}
+.find{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--line)}
+.find .lbl{font:500 .66rem "IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.find button{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:2px 10px;font-size:.76rem}
+.find button.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.spanname{padding:7px 12px 0;font:600 .8rem "IBM Plex Mono",monospace}
+.io{flex:1;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:7px 12px 12px}
+.box{display:flex;flex-direction:column;min-height:0;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.box.out{background:color-mix(in srgb,var(--pine-soft) 40%,var(--paper))}
+.box header{display:flex;justify-content:space-between;padding:4px 10px;font:600 .68rem "IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+.box .n.zero{color:var(--rust)}.box .n.some{color:var(--pine)}
+.box pre{margin:0;padding:7px 10px;overflow:auto;flex:1;font:400 .73rem/1.45 "IBM Plex Mono",monospace;white-space:pre-wrap;word-break:break-word}
+.ph{color:var(--faint);font-style:italic}
+mark{background:var(--mark);color:#252826;border-radius:2px;padding:0 1px}
+.gloss{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;min-height:28px}
+.gloss .lbl{font:500 .68rem "IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.gloss button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 10px;font:500 .74rem "IBM Plex Mono",monospace}
+.gloss button:hover,.gloss button:focus-visible{background:var(--sunk)}
+.src{margin:8px 2px 0;font:400 .7rem "IBM Plex Mono",monospace;color:var(--faint)}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:10px}
+.ctrl button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 12px;font-size:.85rem}
+.count{font:500 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin-left:auto}
+@media (max-width:760px){.panes{grid-template-columns:1fr;height:auto}.tree{border-right:0;border-bottom:1px solid var(--line);max-height:300px}.io{height:440px}.chips{margin-left:0}.teach{flex-direction:column;gap:6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Sketch for deciding · grey text is a placeholder until the trace is exported · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="teach" aria-live="polite"><span class="tm" id="tm"></span><p id="tx"></p></div>
+  <div class="tool" id="tool">
+    <div class="bar" id="topbar">
+      <h1>Trace</h1>
+      <div class="chips"><span id="cid">trace ID 01a1b1d4…</span><span>run final-1106-r2-TC5</span><span id="clat">69.6 s</span><span id="ctok">16,487 tokens</span><span class="bad" id="cscore">test: rinse check failed</span></div>
+    </div>
+    <div class="panes">
+      <div class="tree" id="tree"></div>
+      <div class="det">
+        <div class="find"><span class="lbl">Find in this span</span><button data-f="ten">10 minutes</button><button data-f="">Clear</button></div>
+        <div class="spanname" id="sn"></div>
+        <div class="io">
+          <section class="box" id="bi"><header><span>Input</span><span class="n" id="ni"></span></header><pre id="pi" tabindex="0"></pre></section>
+          <section class="box out" id="bo"><header><span>Output</span><span class="n" id="no"></span></header><pre id="po" tabindex="0"></pre></section>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="gloss" id="gloss"><span class="lbl">Words so far</span></div>
+  <p class="src">Real: the answer, the document text, the run labels. From the run’s notes, not yet exported: the rank, tokens and times. The trace shows inputs and outputs, not why the writer skipped the fact.</p>
+  <div class="ctrl"><button id="prev">←</button><button id="play">▶ Play</button><button id="next">→</button><span class="count" id="count"></span></div>
+</div>
+<script>
+(function(){
+const SPANS=[{"id": "root", "d": 0, "name": "investigation", "kind": "chain", "plain": "the whole question → answer", "ms": "69.6 s", "inp": "question: Maintenance has just changed a fill valve seal on FL-101. I'm seeing a few bottles overfill, and I'm not sure if that's normal. What should I watch for, and what needs checking before we go back to full production?", "out": "═══════════════════════════════════════\nINVESTIGATION REPORT - TECHNICAL\n═══════════════════════════════════════\n\nREPORT CONFIDENCE:\n- Level: HIGH (worked out by code from the evidence, not by the AI)\n- Why: fault identified (Overfill), knowledge graph available, evidence from Alarm, Maintenance, NCR, SOP\n- Engineer review: not needed\n\n\nSOURCE DATA:\n- DemoBottling-Shift-Log-2026-09-10-Night.csv (underfill alarm event) - timestamp 2026-09-10\n- FL-101-Work-Instruction.txt (WI-FL101-001, Revision 1.0, February 2026) - accessed 2026-11-06\n- FL-101-SOP.txt (Revision 1.0) - accessed 2026-11-06\n- FL-101-NCR.txt (NCR-2026-012, closed 18 Jan 2026) - accessed 2026-11-06\n- Knowledge-graph entries for FL-101 (verified) - accessed 2026-11-06\n\nWHAT IS THE ISSUE:\n- No fault reported - overfill observed immediately after a seal replacement is an expected condition described in WI-FL101-001.\n- The current overfill differs from the only historic alarm (underfill on 10 Sep 2026) and matches the \"new seals settling\" behavior, not a repeat fault.\n\nWHAT IS THE IMPACT:\n- Production impact: line can resume normal speed after mandatory checks; brief temporary degradation while first-bottle check is performed.\n- Safety risk: LOW (no hazardous condition identified).\n- Financial impact: negligible; no scrap beyond expected checkweigher rejects for the first 2-3 minutes.\n\nHOW CRITICAL IS IT:\n- LOW - the event is an expected post-maintenance condition and does not require a production stop beyond the standard first-bottle check.\n\nHOW TO ADDRESS IT:\n- Immediate action:\n  Do NOT:\n  - Do NOT raise the fill time to fix overfill.\n  - Do NOT change the fill time; any change requires written engineering approval.\n  - Do NOT restart the line until the first-bottle check is completed and signed off by the shift supervisor.\n  - Do NOT skip the sanitation rinse after a seal change.\n  - Do NOT reach into the machine or perform maintenance without applying lock out and tag out (LOTO) as required by SAF-003.\n  - Do NOT remove a lock unless you are the person who applied it.\n  - Do NOT clear a jam while the machine is running.\n  - Do NOT reach past a guard or bypass/tape over a guard switch.\n  - Do NOT use compressed air near open bottles or broken glass.\n  Step 1: Safety - apply lock out and tag out (LOTO) per SAF-003 before any inspection or adjustment.\n  Step 2: Diagnosis - run the line at normal speed and perform the first-bottle check: weigh the first 20 bottles; all must be between 495 ml and 505 ml.\n  Step 3: Fix - if any bottle is out of range after 5 minutes, refit the fill valve (quarter turn right until it clicks) while LOTO is in place; do not adjust fill time.\n  Step 4: Verify - confirm fill volume is within 495-505 ml, verify fill time remains at 3.2 seconds, and obtain shift-supervisor sign-off on the first-bottle check.\n  Step 5: Quality - None required by the documents for this expected condition.\n- Root cause fix:\n  - No permanent fix needed; overfill is the normal settling behavior of new seals for the first 2-3 minutes after replacement.\n- Preventive action:\n  - Continue to perform the mandatory first-bottle check and sanitation rinse after every seal change.\n  - Reinforce training that operators must never adjust fill time; any deviation requires engineering approval.\n- Who to notify:\n  - Shift supervisor\n  - Maintenance supervisor\n  - Quality lead\n\n═══════════════════════════════════════\nPLANT MANAGER SUMMARY\n═══════════════════════════════════════\n\nSITUATION: Overfill observed right after a fill-valve seal change on FL-101.\nROOT CAUSE: New seals are settling; this temporary overfill is expected for the first 2-3 minutes.\nSTATUS: Line is stopped for the mandatory first-bottle check; production will resume once the check is signed off.\nACTION REQUIRED: Perform the first-bottle check and sanitation rinse, and do not restart until the supervisor signs off.\nRISK IF NOT ACTIONED: Unchecked overfill could lead to out-of-spec bottles reaching customers, causing quality rejects and potential rework."}, {"id": "graph", "d": 1, "name": "knowledge_graph_lookup", "kind": "chain", "plain": "looks up the reviewed facts", "inp": "machine: FL-101\n[placeholder: comes from the trace export]", "out": "fault matched: Overfill (sure)\n…\nRinse the bowl, valves and nozzles with clean water for 10 minutes.\n…\n[placeholder: comes from the trace export]"}, {"id": "sup", "d": 1, "name": "supervisor", "kind": "chain", "plain": "chooses the searches", "inp": "[placeholder: comes from the trace export]", "out": "[placeholder: comes from the trace export]"}, {"id": "sop", "d": 1, "name": "sop_agent", "kind": "chain", "plain": "reads the SOP", "ms": "58.9 s", "inp": "[placeholder: comes from the trace export]", "out": "[placeholder: comes from the trace export]"}, {"id": "ncr", "d": 1, "name": "ncr_agent", "kind": "chain", "plain": "reads the quality reports", "ms": "48.6 s", "inp": "[placeholder: comes from the trace export]", "out": "[placeholder: comes from the trace export]"}, {"id": "ala", "d": 1, "name": "alarm_agent", "kind": "chain", "plain": "reads the shift logs", "inp": "[placeholder: comes from the trace export]", "out": "[placeholder: comes from the trace export]"}, {"id": "mai", "d": 1, "name": "maintenance_agent", "kind": "chain", "plain": "reads the work instruction", "inp": "[placeholder: comes from the trace export]", "out": "[placeholder: comes from the trace export]"}, {"id": "wis", "d": 2, "name": "search_documents", "kind": "retriever", "plain": "work instruction · top 4", "inp": "looks in: work instruction, FL-101\n[placeholder: comes from the trace export]", "out": "[rank 3, from the run’s notes; text from the document]\nStep 9 — SANITATION RINSE — MANDATORY\n           Run the sanitation rinse for 10 minutes. This removes lubricant\n           and any particles from the new seals. Never skip this step: the\n           first bottles would carry lubricant into the product.\n\n  Step 10 — FIRST-BOTTLE CHECK — MANDATORY\n           Run at normal speed and weigh the first 20 bottles.\n           All 20 must be between 495 and 505 ml.\n           If any bottle is outside this range, stop and check the valve again.\n\nIMPORTANT: For the first 2 to 3 minutes after a seal change, bottles may be\nslightly overfilled (up to 510 ml) while the new seals settle. This is\nEXPECTED BEHAVIOUR — not a fault. Do not change any settings. The\ncheckweigher rejects these bottles automatically.\n\n9. INSPECTING THE OLD SEALS"}, {"id": "wri", "d": 1, "name": "orchestrator", "kind": "chain", "plain": "the writer", "ms": "5.4 s", "inp": "The exact prompt is not saved. Part of what it receives (the graph text):\n…\nRinse the bowl, valves and nozzles with clean water for 10 minutes.\n…\n[placeholder: comes from the trace export]", "out": "═══════════════════════════════════════\nINVESTIGATION REPORT - TECHNICAL\n═══════════════════════════════════════\n\nREPORT CONFIDENCE:\n- Level: HIGH (worked out by code from the evidence, not by the AI)\n- Why: fault identified (Overfill), knowledge graph available, evidence from Alarm, Maintenance, NCR, SOP\n- Engineer review: not needed\n\n\nSOURCE DATA:\n- DemoBottling-Shift-Log-2026-09-10-Night.csv (underfill alarm event) - timestamp 2026-09-10\n- FL-101-Work-Instruction.txt (WI-FL101-001, Revision 1.0, February 2026) - accessed 2026-11-06\n- FL-101-SOP.txt (Revision 1.0) - accessed 2026-11-06\n- FL-101-NCR.txt (NCR-2026-012, closed 18 Jan 2026) - accessed 2026-11-06\n- Knowledge-graph entries for FL-101 (verified) - accessed 2026-11-06\n\nWHAT IS THE ISSUE:\n- No fault reported - overfill observed immediately after a seal replacement is an expected condition described in WI-FL101-001.\n- The current overfill differs from the only historic alarm (underfill on 10 Sep 2026) and matches the \"new seals settling\" behavior, not a repeat fault.\n\nWHAT IS THE IMPACT:\n- Production impact: line can resume normal speed after mandatory checks; brief temporary degradation while first-bottle check is performed.\n- Safety risk: LOW (no hazardous condition identified).\n- Financial impact: negligible; no scrap beyond expected checkweigher rejects for the first 2-3 minutes.\n\nHOW CRITICAL IS IT:\n- LOW - the event is an expected post-maintenance condition and does not require a production stop beyond the standard first-bottle check.\n\nHOW TO ADDRESS IT:\n- Immediate action:\n  Do NOT:\n  - Do NOT raise the fill time to fix overfill.\n  - Do NOT change the fill time; any change requires written engineering approval.\n  - Do NOT restart the line until the first-bottle check is completed and signed off by the shift supervisor.\n  - Do NOT skip the sanitation rinse after a seal change.\n  - Do NOT reach into the machine or perform maintenance without applying lock out and tag out (LOTO) as required by SAF-003.\n  - Do NOT remove a lock unless you are the person who applied it.\n  - Do NOT clear a jam while the machine is running.\n  - Do NOT reach past a guard or bypass/tape over a guard switch.\n  - Do NOT use compressed air near open bottles or broken glass.\n  Step 1: Safety - apply lock out and tag out (LOTO) per SAF-003 before any inspection or adjustment.\n  Step 2: Diagnosis - run the line at normal speed and perform the first-bottle check: weigh the first 20 bottles; all must be between 495 ml and 505 ml.\n  Step 3: Fix - if any bottle is out of range after 5 minutes, refit the fill valve (quarter turn right until it clicks) while LOTO is in place; do not adjust fill time.\n  Step 4: Verify - confirm fill volume is within 495-505 ml, verify fill time remains at 3.2 seconds, and obtain shift-supervisor sign-off on the first-bottle check.\n  Step 5: Quality - None required by the documents for this expected condition.\n- Root cause fix:\n  - No permanent fix needed; overfill is the normal settling behavior of new seals for the first 2-3 minutes after replacement.\n- Preventive action:\n  - Continue to perform the mandatory first-bottle check and sanitation rinse after every seal change.\n  - Reinforce training that operators must never adjust fill time; any deviation requires engineering approval.\n- Who to notify:\n  - Shift supervisor\n  - Maintenance supervisor\n  - Quality lead\n\n═══════════════════════════════════════\nPLANT MANAGER SUMMARY\n═══════════════════════════════════════\n\nSITUATION: Overfill observed right after a fill-valve seal change on FL-101.\nROOT CAUSE: New seals are settling; this temporary overfill is expected for the first 2-3 minutes.\nSTATUS: Line is stopped for the mandatory first-bottle check; production will resume once the check is signed off.\nACTION REQUIRED: Perform the first-bottle check and sanitation rinse, and do not restart until the supervisor signs off.\nRISK IF NOT ACTIONED: Unchecked overfill could lead to out-of-spec bottles reaching customers, causing quality rejects and potential rework."}, {"id": "llm", "d": 2, "name": "groq_call", "kind": "llm", "plain": "the AI call inside the writer", "meta": "7,717 tokens", "inp": "call type: orchestrator\nmodel: openai/gpt-oss-120b\n\n(our trace records these labels, not the prompt)", "out": "═══════════════════════════════════════\nINVESTIGATION REPORT - TECHNICAL\n═══════════════════════════════════════\n\nREPORT CONFIDENCE:\n- Level: HIGH (worked out by code from the evidence, not by the AI)\n- Why: fault identified (Overfill), knowledge graph available, evidence from Alarm, Maintenance, NCR, SOP\n- Engineer review: not needed\n\n\nSOURCE DATA:\n- DemoBottling-Shift-Log-2026-09-10-Night.csv (underfill alarm event) - timestamp 2026-09-10\n- FL-101-Work-Instruction.txt (WI-FL101-001, Revision 1.0, February 2026) - accessed 2026-11-06\n- FL-101-SOP.txt (Revision 1.0) - accessed 2026-11-06\n- FL-101-NCR.txt (NCR-2026-012, closed 18 Jan 2026) - accessed 2026-11-06\n- Knowledge-graph entries for FL-101 (verified) - accessed 2026-11-06\n\nWHAT IS THE ISSUE:\n- No fault reported - overfill observed immediately after a seal replacement is an expected condition described in WI-FL101-001.\n- The current overfill differs from the only historic alarm (underfill on 10 Sep 2026) and matches the \"new seals settling\" behavior, not a repeat fault.\n\nWHAT IS THE IMPACT:\n- Production impact: line can resume normal speed after mandatory checks; brief temporary degradation while first-bottle check is performed.\n- Safety risk: LOW (no hazardous condition identified).\n- Financial impact: negligible; no scrap beyond expected checkweigher rejects for the first 2-3 minutes.\n\nHOW CRITICAL IS IT:\n- LOW - the event is an expected post-maintenance condition and does not require a production stop beyond the standard first-bottle check.\n\nHOW TO ADDRESS IT:\n- Immediate action:\n  Do NOT:\n  - Do NOT raise the fill time to fix overfill.\n  - Do NOT change the fill time; any change requires written engineering approval.\n  - Do NOT restart the line until the first-bottle check is completed and signed off by the shift supervisor.\n  - Do NOT skip the sanitation rinse after a seal change.\n  - Do NOT reach into the machine or perform maintenance without applying lock out and tag out (LOTO) as required by SAF-003.\n  - Do NOT remove a lock unless you are the person who applied it.\n  - Do NOT clear a jam while the machine is running.\n  - Do NOT reach past a guard or bypass/tape over a guard switch.\n  - Do NOT use compressed air near open bottles or broken glass.\n  Step 1: Safety - apply lock out and tag out (LOTO) per SAF-003 before any inspection or adjustment.\n  Step 2: Diagnosis - run the line at normal speed and perform the first-bottle check: weigh the first 20 bottles; all must be between 495 ml and 505 ml.\n  Step 3: Fix - if any bottle is out of range after 5 minutes, refit the fill valve (quarter turn right until it clicks) while LOTO is in place; do not adjust fill time.\n  Step 4: Verify - confirm fill volume is within 495-505 ml, verify fill time remains at 3.2 seconds, and obtain shift-supervisor sign-off on the first-bottle check.\n  Step 5: Quality - None required by the documents for this expected condition.\n- Root cause fix:\n  - No permanent fix needed; overfill is the normal settling behavior of new seals for the first 2-3 minutes after replacement.\n- Preventive action:\n  - Continue to perform the mandatory first-bottle check and sanitation rinse after every seal change.\n  - Reinforce training that operators must never adjust fill time; any deviation requires engineering approval.\n- Who to notify:\n  - Shift supervisor\n  - Maintenance supervisor\n  - Quality lead\n\n═══════════════════════════════════════\nPLANT MANAGER SUMMARY\n═══════════════════════════════════════\n\nSITUATION: Overfill observed right after a fill-valve seal change on FL-101.\nROOT CAUSE: New seals are settling; this temporary overfill is expected for the first 2-3 minutes.\nSTATUS: Line is stopped for the mandatory first-bottle check; production will resume once the check is signed off.\nACTION REQUIRED: Perform the first-bottle check and sanitation rinse, and do not restart until the supervisor signs off.\nRISK IF NOT ACTIONED: Unchecked overfill could lead to out-of-spec bottles reaching customers, causing quality rejects and potential rework."}, {"id": "chk", "d": 1, "name": "report_guardrails", "kind": "chain", "plain": "code checks on the answer", "inp": "[placeholder: comes from the trace export]", "out": "[placeholder: comes from the trace export]"}];
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TEN=/10 minutes|10-minute/gi, PH='[placeholder: comes from the trace export]';
+let cur='root',term='';const FLAGS={};
+
+$('tree').innerHTML=SPANS.map(s=>`<button class="rown d${s.d}" id="r_${s.id}" data-id="${s.id}">
+ ${s.ms||s.meta?`<span class="mt">${s.ms||s.meta}</span>`:''}<span class="nm">${esc(s.name)}</span>${s.kind!=='chain'?`<span class="k ${s.kind}">${s.kind}</span>`:''}<span class="pl">${esc(s.plain)}</span><span class="fl" id="f_${s.id}"></span></button>`).join('');
+function fill(pre,cnt,text){const re=term?TEN:null;let n=0,html='';
+ if(re){re.lastIndex=0;let last=0,m;while((m=re.exec(text))){html+=esc(text.slice(last,m.index))+'<mark>'+esc(m[0])+'</mark>';last=m.index+m[0].length;n++;}html+=esc(text.slice(last));}else html=esc(text);
+ pre.innerHTML=html.split(esc(PH)).join(`<span class="ph">${esc(PH)}</span>`);pre.scrollTop=0;
+ const mk=pre.querySelector('mark');if(mk)pre.scrollTop=Math.max(0,mk.offsetTop-pre.offsetTop-30);
+ cnt.textContent=re?(n?`${n} found`:'0 found'):'';cnt.className='n '+(re?(n?'some':'zero'):'');}
+function view(){const s=SPANS.find(x=>x.id===cur);
+ document.querySelectorAll('.rown').forEach(b=>b.classList.toggle('on',b.dataset.id===cur));
+ $('sn').textContent=s.name;fill($('pi'),$('ni'),s.inp);fill($('po'),$('no'),s.out);
+ document.querySelectorAll('.find button').forEach(b=>b.classList.toggle('on',!!term&&b.dataset.f===term));
+ SPANS.forEach(x=>{const el=$('r_'+x.id),fl=FLAGS[x.id];el.classList.toggle('lost',!!fl&&fl[0]==='lost');el.classList.toggle('found',!!fl&&fl[0]==='found');$('f_'+x.id).textContent=fl?fl[1]:'';});}
+function pick(id,t){cur=id;term=t;view();}
+
+/* one new word per stop, always on the real example */
+const STEPS=[
+ {s:'root',f:'',ring:'tool',w:'Trace',m:'The full record of one answer, from the question to the reply. This one is a seal-change question, and a test found the answer left out how long the rinse lasts.'},
+ {s:'root',f:'',ring:'tree',w:'Span',m:'One recorded step. Each row on the left is a span. (LangSmith calls them “runs”.)'},
+ {s:'root',f:'',ring:'r_root',w:'Root span',m:'The top step that holds all the others. Here, the whole investigation.'},
+ {s:'mai',f:'',ring:'r_mai',w:'Parent and child',m:'A step and the smaller steps inside it. The specialist is the parent; its search is the child, indented under it.'},
+ {s:'root',f:'',ring:'bi',w:'Input and output',m:'What a step received, and what it passed on. Reading these two boxes is most of tracing. Start with the final answer.'},
+ {s:'root',f:'ten',ring:'cscore',w:'Evaluation score',m:'A test’s verdict on the answer. “10 minutes” isn’t in the output, so the rinse check failed. Our tests run separately, in promptfoo.'},
+ {s:'wri',f:'ten',ring:'r_wri',w:'Follow the fact',m:'Walk back one step. The writer’s input has “10 minutes”. Its output doesn’t. So it was lost here, while writing.',flag:['wri','lost','✗ 10 minutes: given, not written']},
+ {s:'llm',f:'',ring:'r_llm',w:'LLM span',m:'A step where the AI itself writes. This is the call inside the writer, and it’s where tokens are counted.'},
+ {s:'llm',f:'',ring:'ctok',w:'Tokens',m:'How much text the AI handled. This whole run used 16,487; the writer’s call used 7,717 of them.'},
+ {s:'wri',f:'',ring:'clat',w:'Latency',m:'How long a step took. The run took 69.6 s and the writer only 5.4 s, so the writer wasn’t what made it slow.'},
+ {s:'wis',f:'ten',ring:'r_wis',w:'Retriever span',m:'A step that searches. It found the rinse line, so search wasn’t the problem. That’s why the search fix wouldn’t help here.',flag:['wis','found','✓ 10 minutes: found (rank 3)']},
+ {s:'root',f:'',ring:'cid',w:'Trace ID',m:'The label that finds this exact record again, so anyone can open the same run and check it.'}];
+const USED=new Set();let ix=-1,timer=0,playing=false;
+function clearRing(){document.querySelectorAll('.ring').forEach(e=>e.classList.remove('ring'));}
+function apply(i){ix=i;const st=STEPS[i];
+ for(const k in FLAGS)delete FLAGS[k];STEPS.slice(0,i+1).forEach(x=>{if(x.flag)FLAGS[x.flag[0]]=[x.flag[1],x.flag[2]];});
+ pick(st.s,st.f);$('tm').textContent=st.w;$('tx').textContent=st.m;
+ clearRing();const r=$(st.ring);if(r)r.classList.add('ring');
+ const g=$('gloss');g.querySelectorAll('button').forEach(b=>b.remove());STEPS.slice(0,i+1).forEach((x,k)=>{const b=document.createElement('button');b.textContent=x.w;b.title=x.m;b.onclick=()=>{stop();apply(k);};g.appendChild(b);});
+ $('count').textContent=`${i+1} of ${STEPS.length}`;}
+function stop(){clearTimeout(timer);playing=false;$('play').textContent='▶ Play';}
+function run(){if(ix>=STEPS.length-1){stop();$('play').textContent='▶ Replay';return;}timer=setTimeout(()=>{apply(ix+1);run();},7000);}
+$('play').onclick=()=>{if(playing){stop();return;}if(ix>=STEPS.length-1)apply(0);playing=true;$('play').textContent='❚❚ Pause';if(!reduce)run();};
+$('next').onclick=()=>{stop();apply(Math.min(ix+1,STEPS.length-1));};
+$('prev').onclick=()=>{stop();apply(Math.max(ix-1,0));};
+$('tree').onclick=e=>{const b=e.target.closest('.rown');if(!b)return;stop();clearRing();pick(b.dataset.id,term);};
+document.querySelector('.find').onclick=e=>{const b=e.target.closest('button');if(!b)return;stop();clearRing();pick(cur,b.dataset.f);};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const qs=new URLSearchParams(location.search);apply(qs.has('step')?+qs.get('step'):0);
+if(!qs.has('step')&&!reduce){playing=true;$('play').textContent='❚❚ Pause';run();}
+})();
+</script>
+</body>
+</html>

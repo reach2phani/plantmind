@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asking the Trace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; --mark:#F3DE8A; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; --mark:#6B5A22; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; --mark:#6B5A22; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 16px 36px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.note{font:500 .7rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+button{font:inherit;color:inherit;cursor:pointer}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:4px 10px;font-size:.8rem}
+.case{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;margin-bottom:14px}
+.case h1{font:500 1.5rem/1.25 Fraunces,Georgia,serif;margin:0}
+.case p{margin:0;color:var(--muted);font-style:italic}
+.grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,5fr);gap:20px;align-items:stretch}
+.trace{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 10px}
+.lbl{font:500 .68rem "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.trace>.lbl{padding:0 8px}
+.r{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;font:500 .8rem "IBM Plex Mono",monospace;margin-top:2px;min-height:32px;transition:background .3s,box-shadow .3s,opacity .3s}
+.r .nm{flex:1;min-width:0;overflow-wrap:anywhere}
+.d1{margin-left:16px}.d2{margin-left:32px}
+.r .mk{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:.8rem;opacity:0;transform:scale(.5);transition:opacity .3s,transform .3s}
+.r.look{background:var(--steel-soft);box-shadow:inset 3px 0 0 var(--steel)}
+.r.ok .mk{opacity:1;transform:none;background:var(--pine);color:var(--surface)}
+.r.bad{background:var(--rust-soft)}
+.r.bad .mk{opacity:1;transform:none;background:var(--rust);color:var(--surface)}
+.r.off .mk{opacity:1;transform:none;background:var(--sunk);color:var(--muted)}
+.stored{border:1px dashed var(--faint);margin:8px 8px 10px;color:var(--muted)}
+.stored small{display:block;font:400 .68rem "IBM Plex Sans",sans-serif;color:var(--faint)}
+.ask{display:flex;flex-direction:column;gap:10px;min-height:440px}
+.done{display:flex;gap:10px;align-items:center;padding:7px 12px;border-radius:9px;background:var(--surface);border:1px solid var(--line);font-size:.92rem;animation:shrink .4s ease-out}
+.done .ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:.8rem;color:var(--surface);background:var(--pine)}
+.done.bad .ic{background:var(--rust)}
+.done.bad{border-color:var(--rust)}
+.card{background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:18px 20px;animation:pop .45s cubic-bezier(.2,1.2,.4,1)}
+.card h2{font:500 1.5rem/1.3 Fraunces,Georgia,serif;margin:0}
+.card .ev{margin:12px 0 0;font:400 .92rem/1.5 "IBM Plex Mono",monospace;opacity:0;transition:opacity .4s}
+.card .why{margin:8px 0 0;font-size:.9rem;color:var(--muted);opacity:0;transition:opacity .4s}
+.card.ans .ev,.card.ans .why{opacity:1}
+.card .verdict{display:inline-flex;gap:8px;align-items:center;margin-top:12px;font-weight:600;opacity:0;transition:opacity .3s}
+.card.ans .verdict{opacity:1}
+.card .verdict i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--surface);background:var(--pine)}
+.card.no{border-color:var(--rust);background:var(--rust-soft)}
+.card.no .verdict i{background:var(--rust)}.card.no .verdict{color:var(--rust)}
+.card.end{border-color:var(--ink);background:var(--sunk)}
+mark{background:var(--mark);color:#252826;border-radius:2px;padding:0 2px}
+.src{margin:14px 2px 0;font:400 .7rem/1.5 "IBM Plex Mono",monospace;color:var(--faint)}
+.ctrl{display:flex;gap:10px;align-items:center;margin-top:10px}
+.ctrl button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 12px;font-size:.85rem}
+.count{font:500 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin-left:auto}
+@keyframes pop{0%{opacity:0;transform:translateY(14px) scale(.97)}100%{opacity:1;transform:none}}
+@keyframes shrink{0%{opacity:.4;transform:translateY(6px)}100%{opacity:1;transform:none}}
+@media (max-width:760px){.grid{grid-template-columns:1fr}.ask{min-height:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Sketch · tracing, asking the trace · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="case">
+    <h1>The answer never says how long the rinse lasts.</h1>
+    <p>“Maintenance has just changed a fill valve seal… what needs checking before we go back to full production?”</p>
+  </div>
+  <div class="grid">
+    <div class="trace" id="tr">
+      <span class="lbl">Trace of that answer</span>
+      <div class="r stored" id="sto"><span class="nm">stored documents<small>not in the trace: checked separately</small></span><span class="mk"></span></div>
+      <div class="r" id="root"><span class="nm">investigation</span><span class="mk"></span></div>
+      <div class="r d1" id="gra"><span class="nm">knowledge_graph_lookup</span><span class="mk"></span></div>
+      <div class="r d1" id="sup"><span class="nm">supervisor</span><span class="mk"></span></div>
+      <div class="r d1" id="fix"><span class="nm">expert_fix_agent</span><span class="mk"></span></div>
+      <div class="r d1" id="ala"><span class="nm">alarm_agent</span><span class="mk"></span></div>
+      <div class="r d2" id="als"><span class="nm">search_documents</span><span class="mk"></span></div>
+      <div class="r d1" id="mai"><span class="nm">maintenance_agent</span><span class="mk"></span></div>
+      <div class="r d2" id="wis"><span class="nm">search_documents</span><span class="mk"></span></div>
+      <div class="r d1" id="sop"><span class="nm">sop_agent</span><span class="mk"></span></div>
+      <div class="r d1" id="ncr"><span class="nm">ncr_agent</span><span class="mk"></span></div>
+      <div class="r d1" id="wri"><span class="nm">orchestrator (the writer)</span><span class="mk"></span></div>
+      <div class="r d1" id="chk"><span class="nm">report_guardrails</span><span class="mk"></span></div>
+    </div>
+    <div class="ask" id="ask" aria-live="polite"></div>
+  </div>
+  <p class="src">One saved test run (6 Nov 2026, not the final scores). Quotes are real; the search ranks and the writer’s input come from the run’s trace notes. Some smaller steps are left out of the list. The trace shows inputs and outputs, not why the writer skipped the fact.</p>
+  <div class="ctrl"><button id="play">▶ Play</button><span class="count" id="count"></span></div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ALL=['sto','root','gra','sup','fix','ala','als','mai','wis','sop','ncr','wri','chk'];
+const Q=[
+ {q:'Is it on file?',look:['sto'],ok:['sto'],ev:'“Run the sanitation rinse for <mark>10 minutes</mark>.”',why:'Work instruction, Step 9.',v:'Yes',short:'On file'},
+ {q:'Did search find it?',look:['als','wis'],ok:['als','wis'],ev:'Found in 2 pieces out of 16. It came <mark>3rd</mark> in the work-instruction search and <mark>1st</mark> in the shift-log search.',why:'',v:'Yes',short:'Found by search'},
+ {q:'Did it reach the writer?',look:['fix','ala','mai','sop','ncr','gra','wri'],ok:['gra','wri'],off:['fix','ala','mai','sop','ncr'],ev:'“…with clean water for <mark>10 minutes</mark>.”',why:'All 5 specialist summaries left it out, but the graph text carried it. The exact prompt isn’t saved: this comes from that text and how the code builds the prompt.',v:'Yes',short:'Reached the writer'},
+ {q:'Is it in the answer?',look:['wri'],bad:['wri'],ev:'“Perform the first-bottle check and sanitation rinse, and do not restart…”',why:'The rinse is there. The 10 minutes isn’t.',v:'No',no:true,short:'Not in the answer'}];
+const END='<h2>Lost while writing.</h2><p class="why" style="opacity:1;margin-top:10px">The writer had “10 minutes” and left it out. On the same code, 1 run of 3 included it. Search isn’t the problem here, so a search fix wouldn’t help.</p>';
+let timers=[],running=false;
+const at=(ms,fn)=>{timers.push(setTimeout(fn,ms));};
+function clearAll(){timers.forEach(clearTimeout);timers=[];}
+function reset(){ALL.forEach(id=>{$(id).classList.remove('look','ok','bad','off');$(id).querySelector('.mk').textContent='';});$('ask').innerHTML='';}
+function mark(q){(q.ok||[]).forEach(id=>{$(id).classList.add('ok');$(id).querySelector('.mk').textContent='✓';});
+ (q.off||[]).forEach(id=>{$(id).classList.add('off');$(id).querySelector('.mk').textContent='–';});
+ (q.bad||[]).forEach(id=>{$(id).classList.add('bad');$(id).querySelector('.mk').textContent='✗';});}
+const look=(ids,on)=>ids.forEach(id=>$(id).classList.toggle('look',on));
+function cardHTML(q){return `<h2>${q.q}</h2><p class="ev">${q.ev}</p>${q.why?`<p class="why">${q.why}</p>`:''}<div class="verdict"><i>${q.no?'✗':'✓'}</i>${q.v}</div>`;}
+function collapse(q){const c=$('ask').querySelector('.card');if(c)c.remove();const d=document.createElement('div');d.className='done'+(q.no?' bad':'');d.innerHTML=`<span class="ic">${q.no?'✗':'✓'}</span><span>${q.short}</span>`;$('ask').appendChild(d);}
+function pop(q){const c=document.createElement('div');c.className='card';c.innerHTML=cardHTML(q);$('ask').appendChild(c);return c;}
+function step(i){if(i>=Q.length){const c=document.createElement('div');c.className='card end';c.innerHTML=END;$('ask').appendChild(c);running=false;$('play').textContent='▶ Replay';$('count').textContent='';return;}
+ const q=Q[i],c=pop(q);
+ at(1800,()=>look(q.look,true));
+ at(3400,()=>{look(q.look,false);mark(q);c.classList.add('ans');if(q.no)c.classList.add('no');});
+ at(q.why&&q.why.length>60?9500:7500,()=>{collapse(q);step(i+1);});}
+function play(){clearAll();reset();running=true;$('play').textContent='❚❚ Stop';
+ const c=document.createElement('div');c.className='card';c.innerHTML='<h2>Where did it go?</h2><p class="why" style="opacity:1;margin-top:10px">Every step of this answer was recorded. Ask the trace, one question at a time.</p>';$('ask').appendChild(c);
+ let left=7;$('count').textContent='reading · '+left;
+ const tick=()=>{left--;if(left>0){$('count').textContent='reading · '+left;at(1000,tick);}else{$('count').textContent='';c.remove();step(0);}};at(1000,tick);}
+function endState(n){reset();Q.slice(0,n).forEach(q=>{mark(q);collapse(q);});}
+$('play').onclick=()=>{if(running){clearAll();running=false;$('play').textContent='▶ Play';$('count').textContent='';}else play();};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const qp=new URLSearchParams(location.search);
+function still(n){endState(n);if(n<Q.length){const q=Q[n];look(q.look,false);mark(q);const c=pop(q);c.classList.add('ans');if(q.no)c.classList.add('no');}else{const c=document.createElement('div');c.className='card end';c.innerHTML=END;$('ask').appendChild(c);$('play').textContent='▶ Replay';}}
+if(qp.has('s'))still(+qp.get('s'));
+else if(reduce)still(Q.length);
+else play();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Follow the Details</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --brass:#C08A3E; --brass-soft:#F4E8D3; --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 40px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.top .note{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px 18px}
+.kick{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.title{font:500 clamp(1.3rem,2.5vw,1.7rem)/1.3 Fraunces,Georgia,serif;margin:4px 0 4px}
+.count{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);min-height:1.2em;text-align:right}
+.scroll{overflow-x:auto}
+.scroll svg{width:100%;min-width:860px;height:auto;display:block}
+.cap{margin:10px 0 0;min-height:1.6em;font-size:1.02rem}
+.src{font:400 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin:4px 0 0}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+.ctrl .lbl{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-left:14px}
+.ctrl .f{display:none}
+.ctrl.done .f{display:inline-block}
+.ctrl .f.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+svg .m{font:500 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--faint)}
+svg .mb{font:600 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--ink)}
+svg .i{font:italic 400 13.5px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .s{font:400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .sb{font:600 13.5px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .q{font:italic 400 12px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Scratch sketch · Tracing, follow the missing details · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="panel">
+    <div class="kick">Tracing</div>
+    <div class="title">Follow the missing details</div>
+    <div class="count" id="count"></div>
+    <div class="scroll"><svg id="sv" viewBox="0 0 1000 480" role="img" aria-label="Three details missing from PlantMind's answer, followed through four stations: on file, picked up, handed to PlantMind, in the answer"></svg></div>
+    <p class="cap" id="cap"></p>
+    <p class="src">A saved test run, 3 Oct 2026 · work instruction WI-FL101-001 · the answer’s check list: Evals lesson</p>
+    <div class="ctrl" id="ctrl"><button id="play">▶ Play</button><span class="lbl f">Follow one detail:</span>
+      <button class="f" data-k="0">Drip check</button><button class="f" data-k="1">Fill range</button><button class="f" data-k="2">First 20 bottles</button></div>
+  </div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=v=>Math.max(0,Math.min(1,v));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const seg=(t,a,b)=>ease(clamp((t-a)/(b-a)));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const set=(id,at)=>{const e=$(id);if(e)for(const k in at)e.setAttribute(k,at[k]);};
+const op=(id,v)=>set(id,{opacity:v});
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── the four stations along the line ── */
+const SX=[280,470,660,850];
+const STN=[['ON FILE','the plant’s manuals'],['PICKED UP','the 4 best matches'],['HANDED TO PLANTMIND','what it reads'],['IN THE ANSWER','what the operator sees']];
+/* ── the three missing details: [name, last station reached (0-3), fails at, note at the failure] ── */
+const D=[['Check valves for drips',2,3,'left out'],['Fill range 495–505 ml',0,1,'came 8th'],['Weigh first 20 bottles',0,1,'came 8th']];
+const LY=[236,286,336];
+/* real evidence for "follow one detail": what each station shows for that detail */
+const EV=[
+ [['pine','“Replace the seal kit when: A valve drips between fills”'],['pine','its section was picked (top 4)'],['pine','“A valve drips between fills”'],['rust','Step 2 says “identify the valve(s)” · no drip check']],
+ [['pine','“All 20 must be between 495 and 505 ml.”'],['rust','its section came 8th · only 4 picked up'],['faint','never arrived'],['faint','not in the answer']],
+ [['pine','“Run at normal speed and weigh the first 20 bottles.”'],['rust','same section · came 8th'],['faint','never arrived'],['faint','not in the answer']]];
+
+const person=(x,y)=>`<g transform="translate(${x},${y}) scale(1.7)" style="fill:var(--muted)"><circle cx="0" cy="-5" r="4"/><path d="M-7,8 C-7,1 7,1 7,8 Z"/></g>`;
+const build=()=>`
+ <g id="ob">${person(48,46)}<rect x="74" y="16" width="366" height="64" rx="12" fill="var(--bg)" stroke="var(--line)"/>
+  <text class="m" x="88" y="38">OPERATOR · FILLING LINE 1</text><text class="i" x="88" y="62">“Filler’s short again, what do I do?”</text></g>
+ <g id="pa"><rect x="470" y="16" width="500" height="112" rx="12" fill="var(--bg)" stroke="var(--line)"/>
+  <text class="m" x="486" y="38">PLANTMIND’S ANSWER</text>
+  <text class="mb" x="954" y="38" text-anchor="end" style="fill:var(--rust)">3 DETAILS MISSING</text>
+  <text class="s" x="486" y="60" style="fill:var(--muted)">Safety, diagnosis, repair and verify steps are there. These are not:</text>
+  ${D.map(([n],i)=>`<g id="pm${i}"><rect x="${486+i*160}" y="76" width="150" height="34" rx="8" fill="var(--surface)" stroke="var(--rust)" stroke-dasharray="4 3"/>
+   <text class="mb" x="${498+i*160}" y="97" style="fill:var(--rust)">?</text><text class="q" x="${512+i*160}" y="97">${esc(n.replace('Check valves for drips','Valve drip check').replace('Fill range 495–505 ml','495–505 ml range').replace('Weigh first 20 bottles','Weigh first 20'))}</text></g>`).join('')}</g>
+ <g id="line">
+  <text class="m" x="30" y="166">FOLLOW EACH DETAIL THROUGH PLANTMIND →</text>
+  ${STN.map(([a,b],i)=>`<g id="st${i}"><rect x="${SX[i]-82}" y="176" width="164" height="38" rx="8" fill="var(--surface)" stroke="var(--line)"/>
+   <text class="mb" x="${SX[i]}" y="192" text-anchor="middle" style="font-size:9.5px">${a}</text><text class="m" x="${SX[i]}" y="206" text-anchor="middle" style="font-size:8.5px">${b}</text></g>`).join('')}
+  ${D.map(([n],i)=>`<g id="ln${i}"><text class="s" x="30" y="${LY[i]+5}" style="font-weight:500">${esc(n)}</text>
+   <line x1="${SX[0]}" y1="${LY[i]}" x2="${SX[3]}" y2="${LY[i]}" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 5"/>
+   <line id="tr${i}" x1="${SX[0]}" y1="${LY[i]}" x2="${SX[0]}" y2="${LY[i]}" stroke="var(--pine)" stroke-width="3" stroke-linecap="round"/>
+   ${SX.map((x,j)=>`<g id="mk${i}_${j}" opacity="0"><circle cx="${x}" cy="${LY[i]}" r="10" fill="var(--pine-soft)" stroke="var(--pine)" stroke-width="1.5"/><text class="mb" x="${x}" y="${LY[i]+4}" text-anchor="middle" style="fill:var(--pine)">✓</text></g>`).join('')}
+   <g id="x${i}" opacity="0"><circle cx="${SX[D[i][2]]}" cy="${LY[i]}" r="12" fill="var(--rust-soft)" stroke="var(--rust)" stroke-width="2"/><text class="mb" x="${SX[D[i][2]]}" y="${LY[i]+4}" text-anchor="middle" style="fill:var(--rust);font-size:12px">✗</text>
+    <text class="mb" x="${SX[D[i][2]]+18}" y="${LY[i]+4}" style="fill:var(--rust);font-size:9px">${D[i][3].toUpperCase()}</text></g>
+   <circle id="tk${i}" cx="${SX[0]}" cy="${LY[i]}" r="7" fill="var(--ink)" opacity="0"/></g>`).join('')}</g>
+ <g id="pr">
+  <g id="p1"><rect x="30" y="374" width="460" height="96" rx="12" fill="var(--rust-soft)" stroke="var(--rust)" stroke-width="1.5"/>
+   <text class="mb" x="48" y="398" style="fill:var(--rust)">PROBLEM 1 · LEFT ON FILE</text>
+   <text class="s" x="48" y="422">The fill range and the 20-bottle check were in the work</text>
+   <text class="s" x="48" y="441">instruction, but that section came 8th. Only the best 4</text>
+   <text class="s" x="48" y="460">get picked up.</text></g>
+  <g id="p2"><rect x="510" y="374" width="460" height="96" rx="12" fill="var(--rust-soft)" stroke="var(--rust)" stroke-width="1.5"/>
+   <text class="mb" x="528" y="398" style="fill:var(--rust)">PROBLEM 2 · HAD IT, DIDN’T USE IT</text>
+   <text class="s" x="528" y="422">The drip check reached PlantMind, but the answer never</text>
+   <text class="s" x="528" y="441">tells the operator to look for drips.</text></g></g>
+ <g id="evg" opacity="0">${SX.map((x,j)=>`<g><rect id="evb${j}" x="${x-88}" y="374" width="176" height="96" rx="10" fill="var(--paper)" stroke="var(--line)"/>
+   <foreignObject x="${x-80}" y="382" width="160" height="82"><div xmlns="http://www.w3.org/1999/xhtml" id="evt${j}" style="font:400 11.5px/1.35 'IBM Plex Sans',sans-serif;color:var(--ink)"></div></foreignObject></g>`).join('')}</g>`;
+
+/* ── play: problem → the line → each detail travels → the two problems ── */
+const CAPS=[[0,'The answer is missing three details. Follow each one through PlantMind to see where it stopped.'],
+ [.2,'All three start on file, in the plant’s work instruction.'],
+ [.36,'Two of them never get picked up: their section came 8th, and only the best 4 are used.'],
+ [.56,'The drip check makes it all the way to PlantMind, and still isn’t in the answer.'],
+ [.8,'Two problems in two different places. Tracing shows whether the information was never picked up, or picked up and left out.']];
+// token path per detail: [start t, end t]
+const TT=[[.5,.74],[.26,.36],[.3,.4]];
+function lane(i,t){const [last,fail]=[D[i][1],D[i][2]];const [a,b]=TT[i];const stops=fail+1;   // stations visited incl. the failing one
+ const u=seg(t,a,b);const pos=u*(stops-1);const x=lerp(SX[0],SX[Math.min(stops-1,3)],u);
+ op('tk'+i,t>=a-.02&&u<1?1:0);set('tk'+i,{cx:x});
+ set('tr'+i,{x2:lerp(SX[0],SX[last],clamp(pos/Math.max(last,.0001)))});if(last===0)set('tr'+i,{x2:SX[0]});
+ for(let j=0;j<=last;j++)op('mk'+i+'_'+j,u>0&&pos>=j-.05?1:0);
+ op('x'+i,u>=1?1:0);}
+function render(t){
+ op('ob',seg(t,0,.04));op('pa',seg(t,.03,.08));D.forEach((_,i)=>op('pm'+i,seg(t,.06+i*.02,.1+i*.02)));
+ op('line',seg(t,.15,.2));STN.forEach((_,i)=>op('st'+i,seg(t,.16+i*.015,.2+i*.015)));
+ D.forEach((_,i)=>{op('ln'+i,1);lane(i,t);});
+ op('pr',1);op('p1',seg(t,.42,.48));op('p2',seg(t,.76,.82));op('evg',0);
+ const c=CAPS.filter(([a])=>t>=a).pop();if($('cap').dataset.k!==String(c[0])){$('cap').dataset.k=c[0];$('cap').textContent=c[1];}}
+/* follow one detail: everything at its end state, only that lane lit, the real evidence under each station */
+function follow(k){cancelAnimationFrame(raf);playing=false;$('play').textContent='▶ Replay';$('count').textContent='';
+ render(1);D.forEach((_,i)=>op('ln'+i,i===k?1:.18));op('pr',0);op('evg',1);
+ EV[k].forEach(([c,txt],j)=>{set('evb'+j,{stroke:`var(--${c==='faint'?'line':c})`,fill:c==='faint'?'var(--paper)':`var(--${c}-soft)`});
+  $('evt'+j).innerHTML=`<b style="font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:var(--${c==='faint'?'faint':c})">${c==='pine'?'✓ ':c==='rust'?'✗ ':''}${STN[j][0]}</b><br>${esc(txt)}`;});
+ $('cap').dataset.k='f';$('cap').textContent=[ 'The drip check was on file, picked up and handed to PlantMind. It stopped at the last step: the answer left it out.',
+  'The fill range was on file, but its section came 8th. It was never picked up, so PlantMind never saw it.',
+  'The 20-bottle check sits in the same section as the fill range. It stopped at the same place.'][k];
+ document.querySelectorAll('.f[data-k]').forEach(b=>b.classList.toggle('on',+b.dataset.k===k));}
+
+/* ── player: 7 s reading pause, then one play-through ── */
+const DUR=36000,PAUSE=7000;let raf=0,t0=0,playing=false;
+function start(){cancelAnimationFrame(raf);$('sv').innerHTML=build();render(0);$('ctrl').classList.remove('done');
+ document.querySelectorAll('.f[data-k]').forEach(b=>b.classList.remove('on'));
+ t0=performance.now();if(reduce){render(1);done();return;}
+ playing=true;$('play').textContent='❚❚ Pause';loop();}
+function done(){playing=false;$('play').textContent='▶ Replay';$('count').textContent='';$('ctrl').classList.add('done');}
+function loop(){const e=performance.now()-t0;
+ if(e<PAUSE){$('count').textContent=`reading · ${Math.ceil((PAUSE-e)/1000)}`;render(0);}
+ else{$('count').textContent='';const t=clamp((e-PAUSE)/DUR);render(t);if(t>=1){done();return;}}
+ raf=requestAnimationFrame(loop);}
+$('play').onclick=()=>{if(playing){cancelAnimationFrame(raf);playing=false;$('play').textContent='▶ Play';}else start();};
+document.querySelectorAll('.f[data-k]').forEach(b=>b.onclick=()=>follow(+b.dataset.k));
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const qs=new URLSearchParams(location.search);
+start();
+if(qs.has('t')){cancelAnimationFrame(raf);render(+qs.get('t'));done();}
+if(qs.has('f')){follow(+qs.get('f'));$('ctrl').classList.add('done');}
+})();
+</script>
+</body>
+</html>

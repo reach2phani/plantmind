@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracing Path Sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --brass:#C08A3E; --brass-soft:#F4E8D3; --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 40px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.top .note{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px 18px}
+.kick{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.title{font:500 clamp(1.3rem,2.5vw,1.7rem)/1.3 Fraunces,Georgia,serif;margin:4px 0 4px}
+.count{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);min-height:1.2em;text-align:right}
+.scroll{overflow-x:auto}
+.scroll svg{width:100%;min-width:860px;height:auto;display:block}
+.cap{margin:10px 0 0;min-height:3.2em;opacity:0;transition:opacity .5s}
+.cap.on{opacity:1}
+.cap small{display:block;font:400 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin-top:2px}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+.dots{display:flex;gap:6px;margin-left:8px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer}
+.dots i.on{background:var(--ink)}
+svg .m{font:500 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--faint)}
+svg .mb{font:600 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--ink)}
+svg .s{font:400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .sb{font:600 13.5px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .q{font:italic 400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .code{font:400 9.5px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+@media (prefers-reduced-motion:reduce){.cap{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Scratch sketch · Tracing, decision path · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="panel">
+    <div class="kick" id="kick"></div>
+    <div class="title" id="title"></div>
+    <div class="count" id="count"></div>
+    <div class="scroll"><svg id="sv" viewBox="0 0 1000 480" role="img" aria-label="Tracing one answer"></svg></div>
+    <p class="cap" id="cap"></p>
+    <div class="ctrl"><button id="prev">←</button><button id="play">▶ Play</button><button id="next">→</button><div class="dots" id="dots"></div></div>
+  </div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=v=>Math.max(0,Math.min(1,v));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const seg=(t,a,b)=>ease(clamp((t-a)/(b-a)));
+const set=(id,at)=>{const e=$(id);if(e)for(const k in at)e.setAttribute(k,at[k]);};
+const op=(id,v)=>set(id,{opacity:v});
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── the real answer (saved run, shortened) ── */
+const ANS=['Step 1: Safety — Press STOP and apply LOTO to FL-101','        (per WI-FL101-001 Step 1).','Step 2: Diagnosis — Identify the specific valve(s) with','        underfill (review alarm log; likely valves 9, 15, 3).','Step 3: Fix — Replace the seal kit on each affected','        valve following WI-FL101-001 Steps 2-7…','Step 4: Verify — Run a test batch, check checkweigher for','        target volume, confirm no further underfill alarms.','Step 5: Quality — Quarantine any bottles produced during','        the underfill period…'];
+// the four required facts (answer key) and their colours as the path decides them
+const F=[['MAKE SAFE FIRST'],['CHECK FOR DRIPS'],['495–505 ML'],['WEIGH FIRST 20']];
+
+const answerCard=()=>`
+ <text class="m" x="30" y="22">THE QUESTION</text>
+ <rect x="30" y="30" width="400" height="40" rx="10" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.2"/>
+ <text class="q" x="46" y="55">“filler’s short again, what do i do”</text>
+ <text class="m" x="30" y="98">THE ANSWER · SHORTENED</text>
+ <rect x="30" y="106" width="400" height="${30+ANS.length*19}" rx="10" fill="var(--paper)" stroke="var(--line)" stroke-width="1.3"/>
+ ${ANS.map((l,i)=>`<rect id="hl${i}" x="38" y="${121+i*19}" width="384" height="17" rx="3" fill="var(--sunk)" opacity="0"/><text class="code" x="44" y="${133+i*19}" xml:space="preserve">${esc(l)}</text>`).join('')}
+ <text class="m" x="30" y="${150+ANS.length*19}" style="font-size:8.5px">SAVED RUN · 3 OCT 2026</text><text class="m" x="30" y="${163+ANS.length*19}" style="font-size:8.5px">TEST SETUP: THE WRITER WAS ALSO GIVEN THE CHUNKS</text>`;
+// light a pair of answer lines (a step) in a colour
+const lightStep=(a,c,v)=>{[a,a+1].forEach(i=>set('hl'+i,{fill:`var(--${c}-soft)`,opacity:v}));};
+
+/* ── one question node on the right ── */
+const NX=470,NW=500;
+const node=(id,y,n,q,chips,quote,h=74)=>`<g id="${id}">
+ <rect id="${id}b" x="${NX}" y="${y}" width="${NW}" height="${h}" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="1.3"/>
+ <text class="sb" x="${NX+16}" y="${y+24}">${n} · ${esc(q)}</text>
+ ${chips.map(([t,c],k)=>{const x=NX+14+k*121;return `<g id="${id}c${k}"><rect x="${x}" y="${y+34}" width="117" height="18" rx="9" fill="var(--${c}-soft)" stroke="var(--${c})"/>
+  <text class="mb" x="${x+58.5}" y="${y+47}" text-anchor="middle" style="fill:var(--${c});font-size:8.5px">${c==='pine'?'✓':'✗'} ${t}</text></g>`;}).join('')}
+ ${quote?`<text class="m" x="${NX+16}" y="${y+h-8}" style="font-size:9px;fill:var(--muted)">${esc(quote)}</text>`:''}</g>`;
+const N=[
+ ['n1',38,'1','Did the AI get the chunks it needed?',[[F[0][0],'pine'],[F[1][0],'pine'],[F[2][0],'rust'],[F[3][0],'rust']],'Given: “Step 1 — Press STOP and lock out…” · “A valve drips between fills”'],
+ ['n2',124,'2','Did it use what it got?',[[F[0][0],'pine'],[F[1][0],'rust']],'Step 2 says “identify the valve(s)”, never “look for drips”'],
+ ['n3',210,'3','Did the prompt shape it?',[],'Template: “Step 4: Verify — … any first-product check the procedure requires”'],
+ ['n4',318,'4','Was it searched for, and ranked high enough?',[[F[2][0],'rust'],[F[3][0],'rust']],'SOP: not searched · work instruction chunk: ranked 8th, top 4 used'],
+ ['n5',404,'5','Is it stored, in one piece?',[[F[2][0],'pine'],[F[3][0],'pine']],'Chunk 5 of 8 holds Step 10 whole: “weigh the first 20 … 495 and 505 ml”']];
+const spine=()=>`<line id="sp1" x1="${NX-14}" y1="${N[0][1]+20}" x2="${NX-14}" y2="${N[2][1]+40}" stroke="var(--line)" stroke-width="2"/>
+ ${N.slice(0,3).map(([id,y])=>`<circle id="${id}d" cx="${NX-14}" cy="${y+20}" r="4.5" fill="var(--surface)" stroke="var(--faint)" stroke-width="1.5"/>`).join('')}
+ <g id="bk"><path d="M${NX-14},${N[0][1]+44} C${NX-30},${N[0][1]+80} ${NX-30},${N[3][1]-20} ${NX-14},${N[3][1]+20}" fill="none" stroke="var(--rust)" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line x1="${NX-14}" y1="${N[3][1]+20}" x2="${NX-14}" y2="${N[4][1]+20}" stroke="var(--rust)" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <text class="mb" x="${NX}" y="${N[3][1]-10}" style="fill:var(--rust);font-size:9px">NOT GIVEN TO THE AI → GO BACKWARDS</text></g>
+ ${N.slice(3).map(([id,y])=>`<circle id="${id}d" cx="${NX-14}" cy="${y+20}" r="4.5" fill="var(--surface)" stroke="var(--rust)" stroke-width="1.5"/>`).join('')}`;
+const allNodes=()=>N.map(a=>node(...a)).join('');
+// show nodes up to k (k is the one being asked now); earlier ones stay, dimmed slightly
+function nodes(k,t){N.forEach(([id],i)=>{op(id,i<k?.55:i===k?seg(t,0,.12):0);set(id+'b',{stroke:i===k?'var(--ink)':'var(--line)'});op(id+'d',i<=k?1:0);});
+ op('sp1',k>=0?1:0);op('bk',k>=3?1:0);}
+const chipsIn=(id,n,t,a,gap=.08)=>{for(let c=0;c<n;c++)op(id+'c'+c,seg(t,a+c*gap,a+c*gap+.06));};
+
+const S=[
+ {kick:'Take any answer',title:'Start with what should be in it',
+  cap:'The answer key from Evals lists four facts this answer needs. Tracing checks, for each one, whether it got there.',
+  src:'evals/fl101/TEACHING_SET.md (answer key) · evals/fl101/results/teaching_c2_after_runs.jsonl (T-2, run 2)',dur:7000,
+  build:()=>`${answerCard()}<g id="key"><text class="m" x="${NX}" y="98">WHAT SHOULD BE IN IT · ANSWER KEY</text>
+   ${['Make it safe before touching it','Check the valves for drips (a drip means a worn seal)','A good bottle is 495 to 505 ml','After the fix, weigh the first 20 bottles'].map((l,i)=>`<g id="k${i}"><rect x="${NX}" y="${110+i*46}" width="${NW}" height="36" rx="8" fill="var(--surface)" stroke="var(--line)"/>
+    <text class="mb" x="${NX+14}" y="${132+i*46}" style="font-size:9px;fill:var(--muted)">${F[i][0]}</text><text class="s" x="${NX+140}" y="${133+i*46}">${l}</text></g>`).join('')}</g>`,
+  render(t){op('key',1);for(let i=0;i<4;i++)op('k'+i,seg(t,.1+i*.15,.22+i*.15));}},
+ {kick:'Question 1 · in the trace',title:'Did the AI get the chunks it needed?',
+  cap:'Open what the AI was given and search it for each fact. Two are there. 495–505 ml and the 20-bottle check are not in anything it received.',
+  src:'teaching_c2_after_runs.jsonl · the chunks given to the writer, saved on the day',dur:8000,
+  build:()=>`${answerCard()}${spine()}${allNodes()}`,
+  render(t){nodes(0,t);chipsIn('n1',4,t,.2,.12);}},
+ {kick:'Question 2 · in the trace',title:'Did it use what it got?',
+  cap:'Making it safe went straight into Step 1. The drip check was in its input, and the answer never tells the operator to look for drips. That one was lost in the writing.',
+  src:'teaching_c2_after_runs.jsonl (report) · evals/context/attribution.md',dur:8000,
+  build:()=>`${answerCard()}${spine()}${allNodes()}`,
+  render(t){nodes(1,t);chipsIn('n1',4,1);chipsIn('n2',2,t,.2,.25);lightStep(0,'pine',seg(t,.25,.35));lightStep(2,'rust',seg(t,.5,.6));}},
+ {kick:'Question 3 · outside the trace',title:'Did the prompt shape it?',
+  cap:'The report template asks for a Verify step with “any first-product check the procedure requires”. The AI didn’t have that procedure, so it wrote a vague one: “run a test batch”. Our reading: the template made the step exist, the missing chunk left it empty.',
+  src:'multi_agent.py report template (since 30 Sept) · the trace records what the AI was given, not the template',dur:8000,
+  build:()=>`${answerCard()}${spine()}${allNodes()}`,
+  render(t){nodes(2,t);chipsIn('n1',4,1);chipsIn('n2',2,1);lightStep(0,'pine',1);lightStep(2,'rust',1);lightStep(6,'brass',seg(t,.35,.45));}},
+ {kick:'Question 4 · going backwards · in the trace',title:'Was it searched for, and ranked high enough?',
+  cap:'The two missing facts were never given, so go back to search. The SOP, which has both, was never searched for this answer. The work-instruction chunk that has both came 8th, and only the top 4 were used.',
+  src:'teaching_c2_after_runs.jsonl (searches run) · teaching_step7a_components.md (rank 8 for this wording, 1 Oct)',dur:8000,
+  build:()=>`${answerCard()}${spine()}${allNodes()}`,
+  render(t){nodes(3,t);chipsIn('n1',4,1);chipsIn('n2',2,1);lightStep(0,'pine',1);lightStep(2,'rust',1);lightStep(6,'brass',1);chipsIn('n4',2,t,.25,.12);}},
+ {kick:'Question 5 · going backwards · stored data',title:'Is it stored, in one piece?',
+  cap:'The chunk is there and whole. So nothing was lost at upload: these two facts were lost at search, and the drip check in the writing.',
+  src:'FL-101-Work-Instruction.txt split with the app’s own settings (8 chunks)',dur:8000,
+  build:()=>`${answerCard()}${spine()}${allNodes()}`,
+  render(t){nodes(4,t);chipsIn('n1',4,1);chipsIn('n2',2,1);lightStep(0,'pine',1);lightStep(2,'rust',1);lightStep(6,'brass',1);chipsIn('n4',2,1);chipsIn('n5',2,t,.25,.12);}}
+];
+
+/* ── player: 7 s reading pause, then the animation, then hold ── */
+let cur=0,raf=0,t0=0,playing=false;const PAUSE=7000;
+function show(i){cancelAnimationFrame(raf);cur=(i+S.length)%S.length;const s=S[cur];
+  $('kick').textContent=s.kick;$('title').textContent=s.title;
+  $('cap').innerHTML=esc(s.cap)+`<small>${esc(s.src)}</small>`;$('cap').classList.remove('on');
+  $('sv').innerHTML=`<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="context-stroke"/></marker></defs>`+s.build();s.render(0);
+  [...$('dots').children].forEach((d,k)=>d.classList.toggle('on',k===cur));
+  t0=performance.now();if(reduce){s.render(1);$('cap').classList.add('on');$('count').textContent='';return;}
+  playing=true;$('play').textContent='❚❚ Pause';loop();}
+function loop(){const s=S[cur],e=performance.now()-t0;
+  if(e<PAUSE){$('count').textContent=`reading · ${Math.ceil((PAUSE-e)/1000)}`;s.render(0);}
+  else{$('count').textContent='';const t=clamp((e-PAUSE)/s.dur);s.render(t);if(t>=.85)$('cap').classList.add('on');if(t>=1){playing=false;$('play').textContent='▶ Replay';return;}}
+  raf=requestAnimationFrame(loop);}
+S.forEach((_,k)=>{const d=document.createElement('i');d.title='Step '+k;d.onclick=()=>show(k);$('dots').appendChild(d);});
+$('prev').onclick=()=>show(cur-1);$('next').onclick=()=>show(cur+1);
+$('play').onclick=()=>{if(playing){cancelAnimationFrame(raf);playing=false;$('play').textContent='▶ Play';}else show(cur);};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const qs=new URLSearchParams(location.search);
+if(qs.has('step')){show(+qs.get('step'));if(qs.has('t')){cancelAnimationFrame(raf);playing=false;S[cur].render(+qs.get('t'));$('cap').classList.add('on');$('count').textContent='';$('play').textContent='▶ Play';}}
+else show(0);
+window.__S=S;window.__show=show;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evidence Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --brass:#C08A3E; --brass-soft:#F4E8D3; --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8;
+  --plum:#8A6F8E; --plum-soft:#EFE7F0; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928;
+  --plum:#B49BB8; --plum-soft:#30283A; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928;
+  --plum:#B49BB8; --plum-soft:#30283A; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 40px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.top .note{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px 18px}
+.count{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);min-height:1.2em;text-align:right}
+.scroll{overflow-x:auto}
+.scroll svg{width:100%;min-width:860px;height:auto;display:block}
+.cap{margin:10px 0 0;min-height:1.6em;font-size:1.02rem}
+.src{font:400 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin:4px 0 0}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+svg .m{font:500 9.5px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--faint)}
+svg .mb{font:600 9.5px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--ink)}
+svg .t{font:600 13.5px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .s{font:400 12.5px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .sm{font:400 11.5px "IBM Plex Sans",system-ui,sans-serif;fill:var(--muted)}
+svg .i{font:italic 400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .h1{font:500 21px Fraunces,Georgia,serif;fill:var(--ink)}
+svg .c{font:400 8.5px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Scratch sketch · Tracing, evidence journey · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="panel">
+    <div class="count" id="count"></div>
+    <div class="scroll"><svg id="sv" viewBox="0 0 1000 664" role="img" aria-label="Two checks missing from PlantMind's answer, followed through seven stages"></svg></div>
+    <p class="cap" id="cap"></p>
+    <p class="src">One real saved test run (3 Oct 2026), text shortened · “what the procedure requires” is the answer key from the Evals lesson · the ranking (8th) comes from a separate check of the same question</p>
+    <div class="ctrl"><button id="play">▶ Play</button></div>
+  </div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=v=>Math.max(0,Math.min(1,v));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const seg=(t,a,b)=>ease(clamp((t-a)/(b-a)));
+const set=(id,at)=>{const e=$(id);if(e)for(const k in at)e.setAttribute(k,at[k]);};
+const op=(id,v)=>set(id,{opacity:v});
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── the two checks, each with its own colour all the way through ── */
+const DV='steel', F20='plum';   // Dripping valves · First 20 bottles
+const DVQ='“A valve drips between fills”', F20Q='“weigh the first 20 … 495–505 ml”';
+const quote=(x,y,txt,c)=>`<rect x="${x}" y="${y-11}" width="${txt.length*5.1+12}" height="15" rx="3" fill="var(--${c}-soft)"/><rect x="${x}" y="${y-11}" width="3" height="15" fill="var(--${c})"/><text class="c" x="${x+7}" y="${y}">${esc(txt)}</text>`;
+const gap=(x,y,txt)=>`<rect x="${x}" y="${y-11}" width="196" height="15" rx="3" fill="none" stroke="var(--rust)" stroke-dasharray="3 2"/><text class="c" x="${x+6}" y="${y}" style="fill:var(--rust)">${esc(txt)}</text>`;
+const tile=(x,y,w,h,c,strong)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="var(--paper)" stroke="${c?`var(--${c})`:'var(--faint)'}" stroke-width="${strong?1.6:1}"/>${[0,1,2].map(j=>`<rect x="${x+4}" y="${y+5+j*6}" width="${w-8-(j%2)*6}" height="2.5" rx="1" fill="${c&&j===1?`var(--${c})`:'var(--line)'}"/>`).join('')}`;
+
+/* ── the cards: [question, technical label, source, one-line summary, picture] ── */
+const CARDS=[
+ ['What was recorded?','CHUNKING','Stored record','Work instruction in 8 chunks',(x,y)=>`
+   ${[...Array(8)].map((_,k)=>tile(x+(k%4)*49,y+2+Math.floor(k/4)*30,42,24,k===1?DV:k===4?F20:null,k===1||k===4)).join('')}
+   ${quote(x,y+78,DVQ,DV)}
+   ${quote(x,y+98,F20Q,F20)}`],
+ ['How was it saved?','EMBEDDING + METADATA','Stored record','Filed under the right machine',(x,y)=>`
+   <rect x="${x}" y="${y}" width="196" height="78" rx="7" fill="var(--sunk)" stroke="var(--line)"/>
+   <text class="m" x="${x+10}" y="${y+16}">FILED UNDER</text>
+   <rect x="${x+10}" y="${y+24}" width="54" height="16" rx="8" fill="var(--pine-soft)" stroke="var(--pine)"/><text class="mb" x="${x+37}" y="${y+35}" text-anchor="middle" style="fill:var(--pine);font-size:8.5px">FL-101</text>
+   <rect x="${x+70}" y="${y+24}" width="118" height="16" rx="8" fill="var(--pine-soft)" stroke="var(--pine)"/><text class="mb" x="${x+129}" y="${y+35}" text-anchor="middle" style="fill:var(--pine);font-size:8.5px">WORK INSTRUCTION</text>
+   ${[...Array(8)].map((_,k)=>tile(x+10+k*23,y+48,19,22,k===1?DV:k===4?F20:null,k===1||k===4)).join('')}
+   <text class="sm" x="${x}" y="${y+100}">Both chunks are on file and</text><text class="sm" x="${x}" y="${y+115}">can be found for this machine.</text>`],
+ ['What did search find?','RETRIEVAL + RANKING','Runtime trace','Best 4 of each search go on',(x,y)=>{
+   const col=(cx,head,rows,hl)=>`<text class="m" x="${cx}" y="${y+8}" style="font-size:8px">${head}</text>${rows.map((r,i)=>`${hl[i]?`<rect x="${cx-2}" y="${y+15+i*14}" width="94" height="13" rx="2" fill="var(--${hl[i]}-soft)"/><rect x="${cx-2}" y="${y+15+i*14}" width="3" height="13" fill="var(--${hl[i]})"/>`:''}<text class="c" x="${cx+4}" y="${y+25+i*14}" style="font-size:8px">${esc(r)}</text>`).join('')}`;
+   return `${col(x,'SHIFT LOGS',['#1 10 Sept night','#2 17 Sept day','#3 1 Sept day','#4 21 Sept night'],[DV])}
+    ${col(x+102,'WORK INSTRUCTION',['#1 header','#2 when to replace','#3 troubleshooting','#4 steps 1–8'],[null,DV])}
+    <line x1="${x}" x2="${x+196}" y1="${y+75}" y2="${y+75}" stroke="var(--ink)" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <text class="m" x="${x+196}" y="${y+86}" text-anchor="end" style="font-size:7.5px;fill:var(--ink)">▲ ONLY THE BEST 4 GO ON</text>
+    <text class="c" x="${x+106}" y="${y+98}" style="fill:var(--faint);font-size:8px">#5–7 …</text>
+    <rect x="${x+100}" y="${y+103}" width="96" height="14" rx="3" fill="var(--plum-soft)" stroke="var(--rust)"/><text class="c" x="${x+106}" y="${y+113}" style="font-size:8px">#8 steps 9–10</text>`;}],
+ ['What was put together?','CONTEXT + PROMPT','Runtime trace','7 of 8 chunks fit + instructions',(x,y)=>`
+   <rect x="${x}" y="${y}" width="150" height="70" rx="7" fill="none" stroke="var(--ink)" stroke-width="1.3"/>
+   <text class="m" x="${x+8}" y="${y+12}" style="font-size:7.5px">SIZE LIMIT</text>
+   ${[...Array(7)].map((_,k)=>tile(x+8+(k%4)*34,y+17+Math.floor(k/4)*26,28,21,k===5?DV:null,k===5)).join('')}
+   ${tile(x+160,y+38,30,21,null)}<text class="m" x="${x+175}" y="${y+70}" text-anchor="middle" style="font-size:7px">LEFT OUT</text>
+   <rect x="${x}" y="${y+80}" width="196" height="38" rx="6" fill="var(--brass-soft)" stroke="var(--brass)"/>
+   <text class="m" x="${x+8}" y="${y+93}" style="font-size:7.5px;fill:var(--brass)">+ INSTRUCTIONS · REPORT TEMPLATE</text>
+   <text class="c" x="${x+8}" y="${y+108}" style="font-size:8px">Step 4: Verify — … procedure requires</text>`],
+ ['What did the AI receive?','MODEL INPUT','Runtime trace','The 7 chunks PlantMind read',(x,y)=>`
+   ${[...Array(7)].map((_,k)=>tile(x+(k%4)*49,y+2+Math.floor(k/4)*30,42,24,k===0||k===5?DV:null,k===0||k===5)).join('')}
+   ${quote(x,y+78,DVQ,DV)}${gap(x,y+98,'no 495–505, no first-20 step')}`],
+ ['What did the AI write?','GENERATION','Runtime trace','The answer the operator got',(x,y)=>`
+   <text class="m" x="${x}" y="${y+6}" style="font-size:8px">GIVEN</text>${quote(x,y+22,DVQ,DV)}
+   <text class="m" x="${x}" y="${y+44}" style="font-size:8px">WROTE</text>
+   ${['Step 1: Stop, apply LOTO','Step 2: Identify the valve(s)…'].map((l,i)=>`<text class="c" x="${x+4}" y="${y+58+i*13}">${l}</text>`).join('')}
+   ${gap(x,y+90,'no “look for dripping valves” step')}<text class="c" x="${x+4}" y="${y+110}">Step 3 … Step 5</text>`]];
+const CW=220,CH=246,GX=26,R1=134,R2=R1+CH+28;
+// snake: 1–4 along the top, 5–6 back along the bottom, then the finding (two slots wide)
+const POS=[[20,R1],[266,R1],[512,R1],[758,R1],[758,R2],[512,R2]];
+const SRC={'Stored record':'faint','Runtime trace':'steel','Runtime trace · Prompt version':'steel'};
+const card=([q,tech,src,sum,pic],i)=>{const [x,y]=POS[i],lost=i===2||i===5;
+ return `<g id="c${i}"><rect x="${x}" y="${y}" width="${CW}" height="${CH}" rx="12" fill="var(--paper)" stroke="${lost?'var(--rust)':'var(--line)'}" stroke-width="${lost?2:1.2}"/>
+  <circle cx="${x+15}" cy="${y+15}" r="3" fill="var(--${SRC[src]})"/><text class="m" x="${x+23}" y="${y+18}" style="font-size:7.5px">${src.toUpperCase()}</text>
+  <circle cx="${x+22}" cy="${y+40}" r="10" fill="${lost?'var(--rust)':'var(--ink)'}"/><text class="mb" x="${x+22}" y="${y+44}" text-anchor="middle" style="fill:var(--surface);font-size:10px">${i+1}</text>
+  <text class="t" x="${x+38}" y="${y+45}">${esc(q)}</text>
+  <text class="sm" x="${x+12}" y="${y+66}">${esc(sum)}</text>
+  ${pic(x+12,y+80)}</g>`;};
+// small technical badge, top right (drawn separately so it can sit on its own line for the long one)
+const badge=(i)=>{const [x,y]=POS[i],t=CARDS[i][1];const w=t.length*5.3+12;return `<g id="b${i}"><rect x="${x+CW-8-w}" y="${y+8}" width="${w}" height="14" rx="7" fill="var(--sunk)"/><text class="m" x="${x+CW-8-w/2}" y="${y+18}" text-anchor="middle" style="font-size:7.5px;fill:var(--muted)">${t}</text></g>`;};
+// the finding, two slots wide
+const finding=()=>{const x=20,y=R2,w=466;return `<g id="c6"><rect x="${x}" y="${y}" width="${w}" height="${CH}" rx="12" fill="var(--sunk)" stroke="var(--ink)" stroke-width="2"/>
+ <circle cx="${x+22}" cy="${y+26}" r="10" fill="var(--ink)"/><text class="mb" x="${x+22}" y="${y+30}" text-anchor="middle" style="fill:var(--surface);font-size:10px">7</text>
+ <text class="t" x="${x+38}" y="${y+31}">Where was it missed?</text>
+ <rect x="${x+w-112}" y="${y+14}" width="100" height="14" rx="7" fill="var(--surface)"/><text class="m" x="${x+w-62}" y="${y+24}" text-anchor="middle" style="font-size:7.5px;fill:var(--muted)">TRACE EVALUATION</text>
+ ${[[F20,'First 20 bottles','Lost at 3 · search','Its chunk came 8th. Only the','best 4 of each search go on.','Look next at: how search ranks chunks.'],
+    [DV,'Dripping valves','Lost at 6 · writing','PlantMind was given the line','and didn’t write it.','Look next at: how the answer is written.']].map(([c,n,where,a,b,next],k)=>{const cx=x+18+k*226;return `
+   <rect x="${cx}" y="${y+50}" width="210" height="180" rx="10" fill="var(--paper)" stroke="var(--${c})" stroke-width="1.6"/>
+   <rect x="${cx}" y="${y+50}" width="6" height="180" rx="3" fill="var(--${c})"/>
+   <text class="t" x="${cx+18}" y="${y+76}" style="font-size:14px">${n}</text>
+   <text class="mb" x="${cx+18}" y="${y+98}" style="fill:var(--rust)">${where.toUpperCase()}</text>
+   <text class="s" x="${cx+18}" y="${y+124}" style="font-size:12px">${esc(a)}</text><text class="s" x="${cx+18}" y="${y+141}" style="font-size:12px">${esc(b)}</text>
+   <line x1="${cx+18}" x2="${cx+196}" y1="${y+160}" y2="${y+160}" stroke="var(--line)"/>
+   <text class="sm" x="${cx+18}" y="${y+182}" style="font-size:11px">${esc(next.split(': ')[0])}:</text>
+   <text class="s" x="${cx+18}" y="${y+200}" style="font-size:12px;font-weight:500">${esc(next.split(': ')[1])}</text>`;}).join('')}</g>`;};
+
+/* ── the two coloured paths, drawn card by card; each stops where its check was lost ── */
+const LY={[DV]:CH-28,[F20]:CH-14};
+const stopX=512+CW/2;
+const SEGS={   // [card index it belongs to, path]
+ [DV]:[[0,`M32,${R1+LY[DV]} H266`],[1,`M266,${R1+LY[DV]} H512`],[2,`M512,${R1+LY[DV]} H758`],[3,`M758,${R1+LY[DV]} H988 V${R2+LY[DV]} H978`],[4,`M978,${R2+LY[DV]} H732`],[5,`M732,${R2+LY[DV]} H${stopX}`]],
+ [F20]:[[0,`M32,${R1+LY[F20]} H266`],[1,`M266,${R1+LY[F20]} H512`],[2,`M512,${R1+LY[F20]} H${stopX}`]]};
+const paths=()=>Object.entries(SEGS).map(([c,ss])=>ss.map(([i,d],k)=>`<path id="p_${c}_${k}" d="${d}" fill="none" stroke="var(--${c})" stroke-width="3.5" stroke-linecap="round" opacity="0"/>`).join('')).join('')
+ +`<g id="x2" opacity="0"><circle cx="${stopX}" cy="${R1+LY[F20]}" r="7.5" fill="var(--rust)"/><text class="mb" x="${stopX}" y="${R1+LY[F20]+3.5}" text-anchor="middle" style="fill:var(--surface);font-size:9px">✗</text>
+   <text class="mb" x="${stopX+14}" y="${R1+LY[F20]+3.5}" style="fill:var(--rust);font-size:8.5px">CAME 8TH</text></g>
+  <g id="x5" opacity="0"><circle cx="${stopX}" cy="${R2+LY[DV]}" r="7.5" fill="var(--rust)"/><text class="mb" x="${stopX}" y="${R2+LY[DV]+3.5}" text-anchor="middle" style="fill:var(--surface);font-size:9px">✗</text>
+   <text class="mb" x="${stopX+14}" y="${R2+LY[DV]+18}" style="fill:var(--rust);font-size:8.5px">NOT WRITTEN</text></g>`;
+
+/* ── header: asked · answered · what the procedure requires ── */
+const person=(x,y)=>`<g transform="translate(${x},${y}) scale(1.5)" style="fill:var(--muted)"><circle cx="0" cy="-5" r="4"/><path d="M-7,8 C-7,1 7,1 7,8 Z"/></g>`;
+const header=()=>`<g id="hd">
+ <text class="h1" x="20" y="28">PlantMind missed 2 checks</text>
+ <text class="m" x="980" y="24" text-anchor="end" style="font-size:8.5px">FL-101 · EVIDENCE JOURNEY · EXAMPLE TRACE</text>
+ <rect x="20" y="44" width="296" height="78" rx="10" fill="var(--bg)" stroke="var(--line)"/>
+ <text class="m" x="34" y="62" style="font-size:8.5px">THE OPERATOR ASKED</text>${person(44,96)}
+ <text class="i" x="64" y="96">“filler’s short again, what do i do”</text>
+ <rect x="328" y="44" width="320" height="78" rx="10" fill="var(--bg)" stroke="var(--line)"/>
+ <text class="m" x="342" y="62" style="font-size:8.5px">PLANTMIND ANSWERED · SHORTENED</text>
+ <text class="c" x="342" y="80" style="font-size:9px">1 Stop and lock out    2 Find the valve(s)</text>
+ <text class="c" x="342" y="95" style="font-size:9px">3 Replace the seal kit 4 Run a test batch</text>
+ <text class="c" x="342" y="110" style="font-size:9px">5 Quarantine the bottles</text>
+ <rect x="660" y="44" width="320" height="78" rx="10" fill="var(--bg)" stroke="var(--rust)" stroke-dasharray="5 3"/>
+ <text class="m" x="674" y="62" style="font-size:8.5px;fill:var(--rust)">THE PROCEDURE ALSO REQUIRES</text>
+ <rect x="674" y="72" width="12" height="12" rx="3" fill="var(--steel)"/><text class="s" x="694" y="83" style="font-size:12px"><tspan style="font-weight:600">Dripping valves</tspan> · look for valves that drip</text>
+ <rect x="674" y="96" width="12" height="12" rx="3" fill="var(--plum)"/><text class="s" x="694" y="107" style="font-size:12px"><tspan style="font-weight:600">First 20 bottles</tspan> · weigh them: 495–505 ml</text></g>`;
+const arrows=()=>[[0,1],[1,2],[2,3]].map(([a,b])=>`<path id="a${a}" d="M${POS[a][0]+CW+3},${R1+70} H${POS[b][0]-4}" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>`).join('')
+ +`<path id="a3" d="M${758+CW/2},${R1+CH+3} V${R2-4}" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>`
+ +`<path id="a4" d="M${758-3},${R2+70} H${732+4}" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>`
+ +`<path id="a5" d="M${512-3},${R2+70} H${486+4}" stroke="var(--faint)" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>`;
+const build=()=>`<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="context-stroke"/></marker></defs>
+ ${header()}${arrows()}${CARDS.map(card).join('')}${CARDS.map((_,i)=>badge(i)).join('')}${finding()}${paths()}`;
+
+const CAPS=['PlantMind’s answer missed two checks the procedure requires. Follow both through PlantMind.',
+ 'What was recorded? Both lines are in the work instruction, each inside one chunk.',
+ 'How was it saved? Filed under the right machine and document type, so search can find them.',
+ 'What did search find? Two searches, the best 4 of each. The first-20-bottles chunk came 8th, so it stops here.',
+ 'What was put together? 7 of the 8 chunks fit, plus the instructions for writing the report. Dripping valves is still in.',
+ 'What did the AI receive? It read the dripping-valves line, twice. The first-20-bottles step never arrived.',
+ 'What did the AI write? It had the dripping-valves line, and didn’t write it.',
+ 'Where was it missed? Two checks, lost in two different places. Each points to a different fix.'];
+const A=i=>.1+i*.115;   // when card i appears
+function render(t){op('hd',seg(t,0,.06));
+ for(let i=0;i<7;i++){op('c'+i,seg(t,A(i),A(i)+.04));if(i<6){op('b'+i,seg(t,A(i),A(i)+.04));op('a'+i,seg(t,A(i)+.06,A(i)+.09));}}
+ Object.entries(SEGS).forEach(([c,ss])=>ss.forEach(([i],k)=>op(`p_${c}_${k}`,seg(t,A(i)+.03,A(i)+.07))));
+ op('x2',seg(t,A(2)+.07,A(2)+.09));op('x5',seg(t,A(5)+.07,A(5)+.09));
+ const k=t<A(0)?0:Math.min(7,1+Math.floor((t-A(0))/.115));const c=CAPS[k];if($('cap').textContent!==c)$('cap').textContent=c;}
+
+const DUR=36000,PAUSE=7000;let raf=0,t0=0,playing=false;
+function start(){cancelAnimationFrame(raf);$('sv').innerHTML=build();render(0);t0=performance.now();
+ if(reduce){render(1);return;}playing=true;$('play').textContent='❚❚ Pause';loop();}
+function loop(){const e=performance.now()-t0;
+ if(e<PAUSE){$('count').textContent=`reading · ${Math.ceil((PAUSE-e)/1000)}`;render(0);}
+ else{$('count').textContent='';const t=clamp((e-PAUSE)/DUR);render(t);if(t>=1){playing=false;$('play').textContent='▶ Replay';return;}}
+ raf=requestAnimationFrame(loop);}
+$('play').onclick=()=>{if(playing){cancelAnimationFrame(raf);playing=false;$('play').textContent='▶ Play';}else start();};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const qs=new URLSearchParams(location.search);start();
+if(qs.has('t')){cancelAnimationFrame(raf);render(+qs.get('t'));$('count').textContent='';$('play').textContent='▶ Replay';}
+})();
+</script>
+</body>
+</html>

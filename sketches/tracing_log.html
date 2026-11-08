@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracing Log Sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --brass:#C08A3E; --brass-soft:#F4E8D3; --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 40px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.top .note{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px 18px}
+.kick{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.title{font:500 clamp(1.3rem,2.5vw,1.7rem)/1.3 Fraunces,Georgia,serif;margin:4px 0 4px}
+.count{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);min-height:1.2em;text-align:right}
+.scroll{overflow-x:auto}
+.scroll svg{width:100%;min-width:860px;height:auto;display:block}
+.cap{margin:10px 0 0;min-height:3.2em;opacity:0;transition:opacity .5s}
+.cap.on{opacity:1}
+.cap small{display:block;font:400 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin-top:2px}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+.dots{display:flex;gap:6px;margin-left:8px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer}
+.dots i.on{background:var(--ink)}
+svg .m{font:500 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--faint)}
+svg .mb{font:600 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--ink)}
+svg .s{font:400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .sb{font:600 14px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .q{font:italic 400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .code{font:400 10.5px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+svg .codeb{font:600 10.5px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+@media (prefers-reduced-motion:reduce){.cap{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Scratch sketch · Tracing, the trace log · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="panel">
+    <div class="kick" id="kick"></div>
+    <div class="title" id="title"></div>
+    <div class="count" id="count"></div>
+    <div class="scroll"><svg id="sv" viewBox="0 0 1000 480" role="img" aria-label="Reading one answer's trace"></svg></div>
+    <p class="cap" id="cap"></p>
+    <div class="ctrl"><button id="prev">←</button><button id="play">▶ Play</button><button id="next">→</button><div class="dots" id="dots"></div></div>
+  </div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=v=>Math.max(0,Math.min(1,v));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const seg=(t,a,b)=>ease(clamp((t-a)/(b-a)));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const set=(id,at)=>{const e=$(id);if(e)for(const k in at)e.setAttribute(k,at[k]);};
+const op=(id,v)=>set(id,{opacity:v});
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const tick=c=>c==='pine'?'✓':c==='rust'?'✗':'·';
+
+/* ── step 1 · the answer and its score ── */
+const ANS=['Step 1: Safety — Press STOP and apply LOTO to FL-101','        (per WI-FL101-001 Step 1).','Step 2: Diagnosis — Identify the specific valve(s) with','        underfill (review alarm log; likely valves 9, 15, 3).','Step 3: Fix — Replace the seal kit on each affected','        valve following WI-FL101-001 Steps 2-7…','Step 4: Verify — Run a test batch, check checkweigher for','        target volume, confirm no further underfill alarms.','Step 5: Quality — Quarantine any bottles produced during','        the underfill period…'];
+const KEY=[['Check the valves for drips (a drip means a worn seal)',0],['A good bottle is 495 to 505 ml',0],['Stop the machine and make it safe before touching it',1],['After the fix, weigh the first 20 bottles',0],['Does NOT tell the operator to turn up the fill time',1]];
+const s1=()=>`
+ <text class="m" x="30" y="22">THE QUESTION</text>
+ <rect x="30" y="30" width="410" height="40" rx="10" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.2"/>
+ <text class="q" x="46" y="55">“filler’s short again, what do i do”</text>
+ <text class="m" x="30" y="98">THE ANSWER · SHORTENED</text>
+ <rect x="30" y="106" width="410" height="${30+ANS.length*19}" rx="10" fill="var(--paper)" stroke="var(--line)" stroke-width="1.3"/>
+ ${ANS.map((l,i)=>`<text class="code" x="44" y="${133+i*19}" xml:space="preserve" style="font-size:9.5px">${esc(l)}</text>`).join('')}
+ <text class="m" x="30" y="${150+ANS.length*19}" style="font-size:8.5px">SAVED RUN · 3 OCT 2026 · TEST SETUP: THE WRITER ALSO GOT THE CHUNKS</text>
+ <text class="m" x="480" y="98">THE TEST’S ANSWER KEY</text>
+ ${KEY.map(([l,ok],i)=>`<g id="k${i}"><rect x="480" y="${106+i*46}" width="490" height="36" rx="8" fill="var(--surface)" stroke="var(--line)"/>
+  <circle cx="500" cy="${124+i*46}" r="9" fill="var(--${ok?'pine':'rust'}-soft)" stroke="var(--${ok?'pine':'rust'})"/>
+  <text class="mb" x="500" y="${128+i*46}" text-anchor="middle" style="fill:var(--${ok?'pine':'rust'})">${ok?'✓':'✗'}</text>
+  <text class="s" x="520" y="${129+i*46}">${esc(l)}</text></g>`).join('')}
+ <g id="sc"><rect x="480" y="352" width="490" height="54" rx="10" fill="var(--rust-soft)" stroke="var(--rust)" stroke-width="1.5"/>
+  <text class="sb" x="500" y="384" style="fill:var(--rust)">Score: 2 of 5</text>
+  <text class="s" x="610" y="384" style="fill:var(--ink)">The test says something is wrong. Not what, or where.</text></g>`;
+
+/* ── the trace log (steps 2 and 3) ── */
+const LX=30,LW=940,R0=74,RH=44;
+const ROWS=[
+ ['question','“filler’s short again, what do i do”'],
+ ['machine','FL-101 bottle filler'],
+ ['router','searches chosen: shift logs · work instruction · operator fixes'],
+ ['search · shift logs','4 chunks returned'],
+ ['search · work instruction','4 chunks: header · when to replace · troubleshooting · steps 1–8'],
+ ['handed to the AI','notes from 3 searches + 7 chunks (6,014 characters)'],
+ ['answer','5 steps · confidence LOW · engineer review needed']];
+const FX=[['DRIPS'],['495–505 ML'],['FIRST 20']];
+const CX=[735,815,895];   // chip column centres
+// per row, per fact: [colour, note]   (rows checked going back; '' = not checked)
+const CHK={6:['rust','rust','rust'],5:['pine','rust','rust'],4:['','rust','rust'],2:['','rust','rust']};
+const ry=i=>R0+i*RH;
+const log=()=>`
+ <rect x="${LX}" y="22" width="${LW}" height="${R0-22+ROWS.length*RH+8}" rx="12" fill="var(--paper)" stroke="var(--line)" stroke-width="1.3"/>
+ <text class="mb" x="${LX+18}" y="44">TRACE · ONE ANSWER, IN THE ORDER IT RAN</text>
+ <g id="fh">${FX.map(([n],k)=>`<text class="m" x="${CX[k]}" y="44" text-anchor="middle" style="font-size:9px">${n}</text>`).join('')}</g>
+ ${ROWS.map(([a,b],i)=>`<g id="r${i}"><rect id="rb${i}" x="${LX+8}" y="${ry(i)-6}" width="${LW-16}" height="${RH-4}" rx="6" fill="${i%2?'var(--surface)':'var(--paper)'}" stroke="none"/>
+  <text class="m" x="${LX+18}" y="${ry(i)+16}" style="fill:var(--faint)">&gt;</text>
+  <text class="codeb" x="${LX+34}" y="${ry(i)+16}" xml:space="preserve">${esc(a)}</text>
+  <text id="rt${i}" class="code" x="${LX+232}" y="${ry(i)+16}" xml:space="preserve"></text>
+  ${FX.map((_,k)=>`<g id="c${i}_${k}" opacity="0"><rect x="${CX[k]-34}" y="${ry(i)+2}" width="68" height="20" rx="10" fill="var(--sunk)" stroke="var(--line)"/><text id="ct${i}_${k}" class="mb" x="${CX[k]}" y="${ry(i)+16}" text-anchor="middle"></text></g>`).join('')}</g>`).join('')}
+ <g id="cur" opacity="0"><path d="M0,-7 L10,0 L0,7 Z" fill="var(--ink)"/></g>`;
+function typeRows(t,a,b){const per=(b-a)/ROWS.length;ROWS.forEach(([,txt],i)=>{const u=clamp((t-a-i*per)/(per*.85));op('r'+i,u>0?1:0);$('rt'+i).textContent=txt.slice(0,Math.round(txt.length*u));});}
+function chipSet(i,k,c){const g='c'+i+'_'+k;if(!$(g))return;
+ const fill=c?`var(--${c}-soft)`:'var(--sunk)',st=c?`var(--${c})`:'var(--line)';
+ const r=$(g).querySelector('rect');r.setAttribute('fill',fill);r.setAttribute('stroke',st);
+ const tx=$('ct'+i+'_'+k);tx.textContent=tick(c);tx.style.fill=c?`var(--${c})`:'var(--faint)';}
+
+/* step 3 extras: the stored-data line, and where each fact was lost */
+const ST_Y=ry(ROWS.length)+28;
+const extras=()=>`
+ <g id="stl"><rect x="${LX}" y="${ST_Y}" width="${LW}" height="40" rx="10" fill="none" stroke="var(--faint)" stroke-dasharray="5 4"/>
+  <text class="m" x="${LX+18}" y="${ST_Y+25}" style="fill:var(--muted)">NOT IN THE TRACE ·</text>
+  <text class="codeb" x="${LX+164}" y="${ST_Y+25}" xml:space="preserve">stored chunks</text>
+  <text class="code" x="${LX+262}" y="${ST_Y+25}" xml:space="preserve">chunk 5 of 8 holds Step 10 whole: “weigh the first 20 … 495–505 ml”</text>
+  ${[1,2].map(k=>`<g id="sc_${k}" opacity="0"><rect x="${CX[k]-34}" y="${ST_Y+10}" width="68" height="20" rx="10" fill="var(--pine-soft)" stroke="var(--pine)"/><text class="mb" x="${CX[k]}" y="${ST_Y+24}" text-anchor="middle" style="fill:var(--pine)">✓</text></g>`).join('')}</g>
+ <g id="tw" opacity="0"><line x1="${LX+224}" x2="${LX+LW-8}" y1="${ry(6)-8}" y2="${ry(6)-8}" stroke="var(--rust)" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <rect x="${LX+8}" y="${ry(6)-18}" width="216" height="20" rx="10" fill="var(--rust-soft)" stroke="var(--rust)"/>
+  <text class="mb" x="${LX+116}" y="${ry(6)-4}" text-anchor="middle" style="fill:var(--rust);font-size:9px">DRIP CHECK · LOST IN THE WRITING</text></g>
+ <g id="ts" opacity="0"><line x1="${LX+224}" x2="${LX+LW-8}" y1="${ry(5)-8}" y2="${ry(5)-8}" stroke="var(--rust)" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <rect x="${LX+8}" y="${ry(5)-18}" width="216" height="20" rx="10" fill="var(--rust-soft)" stroke="var(--rust)"/>
+  <text class="mb" x="${LX+116}" y="${ry(5)-4}" text-anchor="middle" style="fill:var(--rust);font-size:9px">495–505 & FIRST 20 · LOST AT SEARCH</text></g>
+ <g id="nt4" opacity="0"><text class="m" x="${LX+232}" y="${ry(4)+31}" style="fill:var(--rust);font-size:8.5px">Step 10’s chunk ranked 8th · only the top 4 are used</text></g>
+ <g id="nt2" opacity="0"><text class="m" x="${LX+232}" y="${ry(2)+31}" style="fill:var(--rust);font-size:8.5px">the SOP, which also has both facts, was never searched</text></g>
+ <g id="nt5" opacity="0"><text class="m" x="${LX+232}" y="${ry(5)+31}" style="fill:var(--pine);font-size:8.5px">given: “A valve drips between fills” · stop here for this fact</text></g>`;
+
+/* ── the steps ── */
+const S=[
+ {kick:'1 · The answer',title:'The test says the answer is incomplete',
+  cap:'The answer key lists five things this answer should do. It does two. A score tells you something went wrong, but not which part of the system to fix.',
+  src:'evals/fl101/TEACHING_SET.md (answer key) · evals/fl101/results/teaching_c2_after_runs.jsonl (T-2, run 2)',dur:7000,
+  build:s1,
+  render(t){KEY.forEach((_,i)=>op('k'+i,seg(t,.05+i*.12,.15+i*.12)));op('sc',seg(t,.72,.84));}},
+ {kick:'2 · The trace',title:'Every step of that answer was recorded',
+  cap:'The trace lists each step in the order it ran: what it was given and what it passed on. It doesn’t say what went wrong. You have to read it.',
+  src:'teaching_c2_after_runs.jsonl: searches, chunks and notes saved on the day',dur:8000,
+  build:()=>log(),
+  render(t){op('fh',0);typeRows(t,.02,.92);}},
+ {kick:'3 · Reading it backwards',title:'Start at the answer and walk up until the fact appears',
+  cap:'The drip check reached the AI and was left out, so it was lost in the writing. The other two never arrived: the work-instruction chunk that has them ranked 8th, and the SOP wasn’t searched. Both are stored, whole. They were lost at search.',
+  src:'teaching_c2_after_runs.jsonl · teaching_step7a_components.md (rank 8 for this wording) · FL-101-Work-Instruction.txt',dur:12000,
+  build:()=>log()+extras(),
+  render(t){typeRows(1,0,1);op('fh',seg(t,0,.06));
+   // the cursor walks up: answer → handed → WI search → router → stored
+   const stops=[[6,.06],[5,.24],[4,.46],[2,.6],[ROWS.length+.7,.74]];
+   let y=ry(6)+12,on=0;stops.forEach(([r,a],j)=>{if(t>=a){on=1;const nx=stops[j+1];const u=nx?seg(t,nx[1]-.06,nx[1]):0;y=lerp(ry(r)+12,nx?ry(nx[0])+12:ry(r)+12,u);}});
+   set('cur',{transform:`translate(${LX-6},${y})`,opacity:on&&t<.86?1:0});
+   for(const r in CHK)CHK[r].forEach((c,k)=>{const a={6:.1,5:.28,4:.5,2:.64}[r]+k*.03;op('c'+r+'_'+k,c&&t>a?1:0);chipSet(r,k,c);});
+   ['rb6','rb5','rb4','rb2'].forEach((id,j)=>set(id,{fill:t>[.08,.26,.48,.62][j]&&t<.9?'var(--steel-soft)':(+id.slice(2))%2?'var(--surface)':'var(--paper)'}));
+   op('nt5',seg(t,.32,.38));op('tw',seg(t,.36,.42));op('nt4',seg(t,.54,.6));op('nt2',seg(t,.66,.72));
+   op('stl',seg(t,.72,.78));[1,2].forEach(k=>op('sc_'+k,seg(t,.8,.84)));op('ts',seg(t,.86,.92));}},
+ {kick:'4 · Two leaks, two fixes',title:'One score, two different problems',
+  cap:'Without the trace, the obvious move is to change the prompt. That would only touch one of the two problems. Measuring each step first is what tells you which fix to make.',
+  src:'evals/context/attribution.md · evals/fl101/LEARNINGS.md (#12, C2) · reranker in the app since 6 Oct',dur:8000,
+  build:()=>`
+   ${[[30,'IN THE WRITING','The drip check','It was in what the AI was given. The answer left it out.','Fix: change how the writer is instructed, or check the answer against its input.','Still open','brass'],
+      [510,'AT SEARCH','495–505 ml · the first 20 bottles','They never reached the AI: ranked 8th, and the SOP wasn’t searched.','Fix: better ranking. A reranker now re-orders the top results before 4 are kept.','Added 6 Oct · not re-measured here','pine']].map(([x,where,what,why,fix,stat,c],i)=>`<g id="f${i}">
+    <rect x="${x}" y="40" width="460" height="300" rx="14" fill="var(--paper)" stroke="var(--rust)" stroke-width="1.6"/>
+    <text class="m" x="${x+22}" y="70" style="fill:var(--rust)">LOST ${where}</text>
+    <text class="sb" x="${x+22}" y="98" style="font-size:17px">${esc(what)}</text>
+    ${wrap(why,52).map((l,j)=>`<text class="s" x="${x+22}" y="${132+j*20}">${esc(l)}</text>`).join('')}
+    <line x1="${x+22}" y1="190" x2="${x+438}" y2="190" stroke="var(--line)"/>
+    ${wrap(fix,52).map((l,j)=>`<text class="s" x="${x+22}" y="${220+j*20}">${esc(l)}</text>`).join('')}
+    <rect x="${x+22}" y="290" width="${stat.length*6.6+28}" height="24" rx="12" fill="var(--${c}-soft)" stroke="var(--${c})"/>
+    <text class="mb" x="${x+36}" y="306" style="fill:var(--${c})">${esc(stat.toUpperCase())}</text></g>`).join('')}
+   <g id="fl"><text class="sb" x="500" y="395" text-anchor="middle" style="font-size:16px">A prompt change alone would have fixed one of the two.</text></g>`,
+  render(t){op('f0',seg(t,.05,.2));op('f1',seg(t,.3,.45));op('fl',seg(t,.65,.8));}}
+];
+function wrap(s,n){const w=s.split(' '),o=[];let l='';w.forEach(x=>{if((l+' '+x).trim().length>n){o.push(l.trim());l=x;}else l+=' '+x;});if(l.trim())o.push(l.trim());return o;}
+
+/* ── player: 7 s reading pause, then the animation, then hold ── */
+let cur=0,raf=0,t0=0,playing=false;const PAUSE=7000;
+function show(i){cancelAnimationFrame(raf);cur=(i+S.length)%S.length;const s=S[cur];
+  $('kick').textContent=s.kick;$('title').textContent=s.title;
+  $('cap').innerHTML=esc(s.cap)+`<small>${esc(s.src)}</small>`;$('cap').classList.remove('on');
+  $('sv').innerHTML=s.build();s.render(0);
+  [...$('dots').children].forEach((d,k)=>d.classList.toggle('on',k===cur));
+  t0=performance.now();if(reduce){s.render(1);$('cap').classList.add('on');$('count').textContent='';return;}
+  playing=true;$('play').textContent='❚❚ Pause';loop();}
+function loop(){const s=S[cur],e=performance.now()-t0;
+  if(e<PAUSE){$('count').textContent=`reading · ${Math.ceil((PAUSE-e)/1000)}`;s.render(0);}
+  else{$('count').textContent='';const t=clamp((e-PAUSE)/s.dur);s.render(t);if(t>=.85)$('cap').classList.add('on');if(t>=1){playing=false;$('play').textContent='▶ Replay';return;}}
+  raf=requestAnimationFrame(loop);}
+S.forEach((_,k)=>{const d=document.createElement('i');d.title='Step '+(k+1);d.onclick=()=>show(k);$('dots').appendChild(d);});
+$('prev').onclick=()=>show(cur-1);$('next').onclick=()=>show(cur+1);
+$('play').onclick=()=>{if(playing){cancelAnimationFrame(raf);playing=false;$('play').textContent='▶ Play';}else show(cur);};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+const qs=new URLSearchParams(location.search);
+if(qs.has('step')){show(+qs.get('step'));if(qs.has('t')){cancelAnimationFrame(raf);playing=false;S[cur].render(+qs.get('t'));$('cap').classList.add('on');$('count').textContent='';$('play').textContent='▶ Play';}}
+else show(0);
+window.__S=S;window.__show=show;
+})();
+</script>
+</body>
+</html>

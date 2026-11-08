@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Follow the Details</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EA; --surface:#FBF9F4; --sunk:#ECE8DE; --ink:#252826; --muted:#68706B; --faint:#979B94;
+  --line:#D9D6CC; --pine:#557A68; --pine-soft:#E3EAE4; --steel:#6D8490; --steel-soft:#E3E8EA;
+  --brass:#C08A3E; --brass-soft:#F4E8D3; --rust:#B85C50; --rust-soft:#F4E0DB; --paper:#FFFDF8; color-scheme:light;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1C1E1C; --surface:#232623; --sunk:#181A18; --ink:#EAE7DE; --muted:#A5AAA3; --faint:#7D827C;
+  --line:#383B35; --pine:#8DAE9C; --pine-soft:#27312B; --steel:#9CAFB8; --steel-soft:#252C30;
+  --brass:#D4A664; --brass-soft:#352C1E; --rust:#D78A7E; --rust-soft:#3A2622; --paper:#262928; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 40px}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.top .note{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+.tbtn{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px 18px}
+.kick{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.title{font:500 clamp(1.3rem,2.5vw,1.7rem)/1.3 Fraunces,Georgia,serif;margin:4px 0 4px}
+.count{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;color:var(--faint);min-height:1.2em;text-align:right}
+.scroll{overflow-x:auto}
+.scroll svg{width:100%;min-width:860px;height:auto;display:block}
+.cap{margin:10px 0 0;min-height:3.2em;font-size:1.02rem}
+.src{font:400 .72rem "IBM Plex Mono",monospace;color:var(--faint);margin:4px 0 0}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.ctrl button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+.ctrl .lbl{font:500 .72rem "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-left:14px}
+.ctrl .f{display:none}
+.ctrl.done .f{display:inline-block}
+.ctrl .f.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+svg .m{font:500 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--faint)}
+svg .mb{font:600 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;fill:var(--ink)}
+svg .i{font:italic 400 13.5px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .s{font:400 13px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .q{font:italic 400 12px "IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .doc{font:400 11px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+svg .docb{font:600 11px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+svg .sm{font:400 9.5px "IBM Plex Mono",ui-monospace,monospace;fill:var(--ink);white-space:pre}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="note">Scratch sketch · Tracing, follow the details into the documents · not part of the site</span><button class="tbtn" id="theme">Theme</button></div>
+  <div class="panel">
+    <div class="kick">Tracing</div>
+    <div class="title">Follow the missing details</div>
+    <div class="count" id="count"></div>
+    <div class="scroll"><svg id="sv" viewBox="0 0 1000 480" role="img" aria-label="Three details missing from PlantMind's answer, followed through four stations, zooming into the real text at each one"></svg></div>
+    <p class="cap" id="cap"></p>
+    <p class="src">A saved test run, 3 Oct 2026 · work instruction WI-FL101-001 · the answer’s check list: Evals lesson · rank 8: a separate check on the same question</p>
+    <div class="ctrl" id="ctrl"><button id="play">▶ Play</button><span class="lbl f">Follow one detail:</span>
+      <button class="f" data-k="0">Drip check</button><button class="f" data-k="1">Fill range</button><button class="f" data-k="2">First 20 bottles</button></div>
+  </div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=v=>Math.max(0,Math.min(1,v));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const seg=(t,a,b)=>ease(clamp((t-a)/(b-a)));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const set=(id,at)=>{const e=$(id);if(e)for(const k in at)e.setAttribute(k,at[k]);};
+const op=(id,v)=>set(id,{opacity:v});
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const CW=6.6;   // monospace advance at 11px
+
+/* ── stations and details ── */
+const SX=[280,470,660,850];
+const STN=[['ON FILE','the plant’s manuals'],['PICKED UP','the 4 best matches'],['HANDED TO PLANTMIND','what it reads'],['IN THE ANSWER','what the operator sees']];
+const D=[['Check valves for drips',2,3,'left out'],['Fill range 495–505 ml',0,1,'came 8th'],['Weigh first 20 bottles',0,1,'came 8th']];
+const LY=[236,286,336];
+const UP=150;   // how far the line moves up when we zoom in
+
+const person=(x,y)=>`<g transform="translate(${x},${y}) scale(1.7)" style="fill:var(--muted)"><circle cx="0" cy="-5" r="4"/><path d="M-7,8 C-7,1 7,1 7,8 Z"/></g>`;
+// a text line with highlighted words: parts = [[text, detail|null], ...]
+function hline(id,x,y,parts,cls='doc'){let cx=x,out='',hl='';parts.forEach(([s,d],k)=>{const w=s.length*CW;
+  if(d!=null)hl+=`<rect id="${id}h${k}" data-d="${d}" x="${cx-2}" y="${y-12}" width="${w+4}" height="16" rx="3" fill="var(--brass-soft)" stroke="var(--brass)" stroke-width=".8" opacity="0"/>`;
+  out+=`<tspan>${esc(s)}</tspan>`;cx+=w;});
+  return hl+`<text id="${id}" class="${cls}" x="${x}" y="${y}" xml:space="preserve">${out}</text>`;}
+const magnifier=(x,y,s=1)=>`<g transform="translate(${x},${y}) scale(${s})"><circle cx="0" cy="0" r="7" fill="none" stroke="var(--ink)" stroke-width="1.8"/><line x1="5" y1="5" x2="11" y2="11" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/></g>`;
+
+/* ── zoom 1 · ON FILE: the work instruction itself ── */
+const Z1L=[['3. WHEN TO REPLACE THE SEALS'],['Replace the seal kit when:'],['  - ',null,'A valve drips between fills',0],['  - The checkweigher shows the same valve underfilling again and again'],['…'],
+ ['Step 10 — FIRST-BOTTLE CHECK — MANDATORY'],['         Run at normal speed and ',null,'weigh the first 20 bottles',2,'.'],['         All 20 must be ',null,'between 495 and 505 ml',1,'.']];
+const toParts=a=>{const p=[];for(let i=0;i<a.length;i+=2)p.push([a[i],a[i+1]==null?null:a[i+1]]);return p.filter(x=>x[0]!==undefined);};
+const zoom1=()=>`<g id="z1">
+ <rect x="50" y="244" width="112" height="212" rx="6" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.2"/>
+ <text class="mb" x="60" y="260" style="font-size:8px">WI-FL101-001</text>
+ ${[...Array(26)].map((_,k)=>`<rect x="60" y="${270+k*7}" width="${92-(k%4)*12}" height="3" rx="1.5" fill="${k===6||k===7||k===19||k===20?'var(--steel)':'var(--line)'}"/>`).join('')}
+ <rect id="z1lens" x="54" y="${266+6*7}" width="104" height="18" rx="3" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+ <path id="z1link" d="M162,${275+6*7} L198,262" stroke="var(--faint)" stroke-dasharray="3 3" fill="none"/>
+ <rect x="200" y="236" width="760" height="226" rx="10" fill="var(--paper)" stroke="var(--line)"/>
+ ${Z1L.map((a,i)=>{const y=262+i*24;const parts=a.length===1?[[a[0],null]]:(()=>{const p=[];if(a[0])p.push([a[0],null]);if(a[2])p.push([a[2],a[3]]);if(a[4])p.push([a[4],null]);return p;})();
+   return `<g id="z1r${i}">${hline('z1t'+i,216,y,parts,i===0||i===5?'docb':'doc')}</g>`;}).join('')}
+ <g id="z1c2"><rect x="866" y="250" width="80" height="18" rx="9" fill="var(--steel-soft)" stroke="var(--steel)"/><text class="mb" x="906" y="263" text-anchor="middle" style="fill:var(--steel);font-size:9px">CHUNK 2</text></g>
+ <g id="z1c5"><rect x="866" y="370" width="80" height="18" rx="9" fill="var(--steel-soft)" stroke="var(--steel)"/><text class="mb" x="906" y="383" text-anchor="middle" style="fill:var(--steel);font-size:9px">CHUNK 5</text></g></g>`;
+
+/* ── zoom 2 · PICKED UP: the work-instruction search, in rank order ── */
+const RK=[['#1','0.86','Header · purpose · scope',null,''],['#2','0.85','Scope · when to replace the seals',0,'“A valve drips between fills”'],['#3','0.83','Troubleshooting after the job',null,''],['#4','0.82','Procedure, steps 1–8',null,'']];
+const zoom2=()=>`<g id="z2">
+ ${magnifier(66,262,1.1)}<text class="mb" x="84" y="266" style="font-size:9.5px">SEARCH</text>
+ <text class="m" x="50" y="290" style="font-size:9px">work instruction,</text><text class="m" x="50" y="304" style="font-size:9px">closest first</text>
+ <rect x="200" y="236" width="760" height="226" rx="10" fill="var(--paper)" stroke="var(--line)"/>
+ ${RK.map(([r,s,t,d,q],i)=>{const y=262+i*26;return `<g id="z2r${i}">${d!=null?`<rect data-d="${d}" id="z2h${i}" x="208" y="${y-15}" width="744" height="22" rx="5" fill="var(--pine-soft)" stroke="var(--pine)" opacity="0"/>`:''}
+   <text class="docb" x="220" y="${y}">${r}</text><text class="doc" x="256" y="${y}" style="fill:var(--muted)">${s}</text><text class="doc" x="310" y="${y}">${esc(t)}</text>
+   ${q?`<text data-d="${d}" id="z2q${i}" class="doc" x="940" y="${y}" text-anchor="end" style="fill:var(--pine)" opacity="0">${esc(q)}</text>`:''}</g>`;}).join('')}
+ <g id="z2cut"><line x1="208" x2="952" y1="${262+3*26+14}" y2="${262+3*26+14}" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text class="mb" x="944" y="${262+3*26+30}" text-anchor="end" style="font-size:9px">▲ THE BEST 4 ARE PICKED UP</text></g>
+ <g id="z2r4"><text class="docb" x="220" y="${262+5*26}" style="fill:var(--faint)">#5–7</text><text class="doc" x="310" y="${262+5*26}" style="fill:var(--faint)">other chunks</text></g>
+ <g id="z2r5"><rect data-d="1 2" id="z2h5" x="208" y="${262+6*26-15}" width="744" height="22" rx="5" fill="var(--rust-soft)" stroke="var(--rust)" opacity="0"/>
+  <text class="docb" x="220" y="${262+6*26}">#8</text><text class="doc" x="310" y="${262+6*26}">Steps 9–10 · rinse, first-bottle check</text>
+  <text data-d="1 2" id="z2q5" class="doc" x="940" y="${262+6*26}" text-anchor="end" style="fill:var(--rust)" opacity="0">495–505 ml · weigh the first 20</text></g>
+ <text id="z2n" class="m" x="216" y="452" style="font-size:9px">The SOP, which also has both, was not searched for this answer.</text></g>`;
+
+/* ── zoom 3 · HANDED TO PLANTMIND: the 7 chunks it read ── */
+const CARDS=[['SHIFT LOG · 10 SEPT NIGHT','…dripping between fills.',0],['SHIFT LOG · 17 SEPT DAY','',null],['SHIFT LOG · 1 SEPT DAY','First 20 bottles 499-502 ml.','r'],
+ ['SHIFT LOG · 21 SEPT NIGHT','First 20 bottles 498-502 ml.','r'],['WORK INSTR. · HEADER','',null],['WORK INSTR. · SECTIONS 2–3','A valve drips between fills',0],['WORK INSTR. · STEPS 1–8','',null]];
+const cardXY=i=>[200+(i%3)*166,240+Math.floor(i/3)*74];
+const zoom3=()=>`<g id="z3">
+ <text class="mb" x="50" y="262" style="font-size:9.5px">7 CHUNKS</text><text class="m" x="50" y="278" style="font-size:9px">what PlantMind</text><text class="m" x="50" y="292" style="font-size:9px">read before</text><text class="m" x="50" y="306" style="font-size:9px">answering</text>
+ ${CARDS.map(([lab,q,d],i)=>{const [x,y]=cardXY(i);const tone=d===0?'pine':d==='r'?'brass':null;return `<g id="z3c${i}">
+  <rect id="z3b${i}" x="${x}" y="${y}" width="156" height="64" rx="6" fill="var(--paper)" stroke="var(--line)"/>
+  <text class="mb" x="${x+8}" y="${y+16}" style="font-size:8px">${esc(lab)}</text>
+  ${[0,1].map(j=>`<rect x="${x+8}" y="${y+26+j*9}" width="${130-j*34}" height="3" rx="1.5" fill="var(--line)"/>`).join('')}
+  ${q?`<g id="z3q${i}" ${d===0?'data-d="0"':'data-d="2"'} opacity="0"><rect x="${x+4}" y="${y+42}" width="148" height="17" rx="3" fill="var(--${tone}-soft)" stroke="var(--${tone})" stroke-width=".8"/><text class="sm" x="${x+8}" y="${y+54}" style="font-size:8.5px">${esc(q)}</text></g>`:''}</g>`;}).join('')}
+ <rect id="z3lens" x="196" y="236" width="164" height="72" rx="8" fill="none" stroke="var(--ink)" stroke-width="2" opacity="0"/>
+ <g id="z3k" transform="translate(712,240)">
+  <rect x="0" y="0" width="248" height="216" rx="10" fill="var(--paper)" stroke="var(--line)"/>
+  <text class="mb" x="14" y="22" style="font-size:9.5px">SEARCHED FOR</text>
+  <g data-d="0" id="z3k0"><text class="s" x="14" y="52" style="font-weight:500">Drip check</text><text id="z3n0" class="mb" x="234" y="52" text-anchor="end" style="fill:var(--pine)">2 FOUND ✓</text></g>
+  <g data-d="1" id="z3k1"><text class="s" x="14" y="92" style="font-weight:500">495–505 ml</text><text id="z3n1" class="mb" x="234" y="92" text-anchor="end" style="fill:var(--rust)">0 ✗</text></g>
+  <g data-d="2" id="z3k2"><text class="s" x="14" y="132" style="font-weight:500">Weigh first 20</text><text id="z3n2" class="mb" x="234" y="132" text-anchor="end" style="fill:var(--rust)">0 ✗</text>
+   <text class="m" x="14" y="154" style="font-size:8.5px;fill:var(--brass)">only past readings, like</text><text class="m" x="14" y="168" style="font-size:8.5px;fill:var(--brass)">“First 20 bottles 499-502 ml”,</text><text class="m" x="14" y="182" style="font-size:8.5px;fill:var(--brass)">not the instruction</text></g></g></g>`;
+
+/* ── zoom 4 · IN THE ANSWER ── */
+const zoom4=()=>`<g id="z4">
+ <text class="mb" x="50" y="262" style="font-size:9.5px">THE ANSWER</text><text class="m" x="50" y="278" style="font-size:9px">shortened</text>
+ <rect x="200" y="236" width="760" height="226" rx="10" fill="var(--paper)" stroke="var(--line)"/>
+ ${[[262,'Step 1: Safety — Press STOP and apply LOTO to FL-101'],[284,'Step 2: Diagnosis — Identify the specific valve(s) with underfill…'],[346,'Step 3: Fix — Replace the seal kit on each affected valve…'],[368,'Step 4: Verify — Run a test batch, check the checkweigher…'],[440,'Step 5: Quality — Quarantine any bottles produced…']].map(([y,l],i)=>`<text id="z4l${i}" class="doc" x="216" y="${y}">${esc(l)}</text>`).join('')}
+ <g id="z4g0" data-d="0"><rect x="240" y="296" width="560" height="28" rx="6" fill="var(--rust-soft)" stroke="var(--rust)" stroke-dasharray="4 3"/>
+  <text class="doc" x="256" y="315" style="fill:var(--rust)">look for drips — should be here, isn’t</text></g>
+ <g id="z4g1" data-d="1 2"><rect x="240" y="380" width="560" height="28" rx="6" fill="var(--rust-soft)" stroke="var(--rust)" stroke-dasharray="4 3"/>
+  <text class="doc" x="256" y="399" style="fill:var(--rust)">495–505 ml · weigh the first 20 — should be here, aren’t</text></g>
+ <line id="z4scan" x1="208" x2="952" y1="250" y2="250" stroke="var(--steel)" stroke-width="2" opacity="0"/></g>`;
+
+const build=()=>`
+ <g id="ob">${person(48,46)}<rect x="74" y="16" width="366" height="64" rx="12" fill="var(--bg)" stroke="var(--line)"/>
+  <text class="m" x="88" y="38">OPERATOR · FILLING LINE 1</text><text class="i" x="88" y="62">“Filler’s short again, what do I do?”</text></g>
+ <g id="pa"><rect x="470" y="16" width="500" height="112" rx="12" fill="var(--bg)" stroke="var(--line)"/>
+  <text class="m" x="486" y="38">PLANTMIND’S ANSWER</text>
+  <text class="mb" x="954" y="38" text-anchor="end" style="fill:var(--rust)">3 DETAILS MISSING</text>
+  <text class="s" x="486" y="60" style="fill:var(--muted)">Safety, diagnosis, repair and verify steps are there. These are not:</text>
+  ${['Valve drip check','495–505 ml range','Weigh first 20'].map((n,i)=>`<g id="pm${i}"><rect x="${486+i*160}" y="76" width="150" height="34" rx="8" fill="var(--surface)" stroke="var(--rust)" stroke-dasharray="4 3"/>
+   <text class="mb" x="${498+i*160}" y="97" style="fill:var(--rust)">?</text><text class="q" x="${512+i*160}" y="97">${n}</text></g>`).join('')}</g>
+ <g id="line">
+  <text id="lnhd" class="m" x="30" y="166">FOLLOW EACH DETAIL THROUGH PLANTMIND →</text>
+  ${STN.map(([a,b],i)=>`<g id="st${i}"><rect id="stb${i}" x="${SX[i]-82}" y="176" width="164" height="38" rx="8" fill="var(--surface)" stroke="var(--line)"/>
+   <text class="mb" x="${SX[i]}" y="192" text-anchor="middle" style="font-size:9.5px">${a}</text><text class="m" x="${SX[i]}" y="206" text-anchor="middle" style="font-size:8.5px">${b}</text>
+   <g id="stm${i}" opacity="0">${magnifier(SX[i]+68,184,.8)}</g></g>`).join('')}
+  ${D.map(([n],i)=>`<g id="ln${i}" data-d="${i}"><text class="s" x="30" y="${LY[i]+5}" style="font-weight:500">${esc(n)}</text>
+   <line x1="${SX[0]}" y1="${LY[i]}" x2="${SX[3]}" y2="${LY[i]}" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 5"/>
+   <line id="tr${i}" x1="${SX[0]}" y1="${LY[i]}" x2="${SX[0]}" y2="${LY[i]}" stroke="var(--pine)" stroke-width="3" stroke-linecap="round"/>
+   ${SX.map((x,j)=>`<g id="mk${i}_${j}" opacity="0"><circle cx="${x}" cy="${LY[i]}" r="10" fill="var(--pine-soft)" stroke="var(--pine)" stroke-width="1.5"/><text class="mb" x="${x}" y="${LY[i]+4}" text-anchor="middle" style="fill:var(--pine)">✓</text></g>`).join('')}
+   <g id="x${i}" opacity="0"><circle cx="${SX[D[i][2]]}" cy="${LY[i]}" r="12" fill="var(--rust-soft)" stroke="var(--rust)" stroke-width="2"/><text class="mb" x="${SX[D[i][2]]}" y="${LY[i]+4}" text-anchor="middle" style="fill:var(--rust);font-size:12px">✗</text>
+    <text class="mb" x="${SX[D[i][2]]+18}" y="${LY[i]+4}" style="fill:var(--rust);font-size:9px">${D[i][3].toUpperCase()}</text></g>
+   <circle id="tk${i}" cx="${SX[0]}" cy="${LY[i]}" r="7" fill="var(--ink)" opacity="0"/></g>`).join('')}</g>
+ <g id="zp"><rect x="30" y="226" width="940" height="244" rx="12" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.2"/>
+  <text id="zph" class="mb" x="30" y="218" style="font-size:9.5px"></text></g>
+ ${zoom1()}${zoom2()}${zoom3()}${zoom4()}
+ <g id="pr">
+  <g id="p1"><rect x="30" y="374" width="460" height="96" rx="12" fill="var(--rust-soft)" stroke="var(--rust)" stroke-width="1.5"/>
+   <text class="mb" x="48" y="398" style="fill:var(--rust)">PROBLEM 1 · LEFT ON FILE</text>
+   <text class="s" x="48" y="422">The fill range and the 20-bottle check were in the work</text>
+   <text class="s" x="48" y="441">instruction, but that chunk came 8th. Only the best 4</text>
+   <text class="s" x="48" y="460">get picked up.</text></g>
+  <g id="p2"><rect x="510" y="374" width="460" height="96" rx="12" fill="var(--rust-soft)" stroke="var(--rust)" stroke-width="1.5"/>
+   <text class="mb" x="528" y="398" style="fill:var(--rust)">PROBLEM 2 · HAD IT, DIDN’T USE IT</text>
+   <text class="s" x="528" y="422">The drip check reached PlantMind, but the answer never</text>
+   <text class="s" x="528" y="441">tells the operator to look for drips.</text></g></g>`;
+
+/* ── timeline ── */
+// A: problem + lanes (0–.28) · B: line moves up, zoom into each station (.3–.88) · C: the two problems (.9–1)
+const ZS=[[.33,.46],[.47,.6],[.61,.74],[.75,.88]];
+const TT=[[.12,.26],[.12,.18],[.14,.2]];
+function lane(i,t){const [last,fail]=[D[i][1],D[i][2]];const [a,b]=TT[i];const stops=fail+1;
+ const u=seg(t,a,b);const pos=u*(stops-1);const x=lerp(SX[0],SX[Math.min(stops-1,3)],u);
+ op('tk'+i,t>=a-.01&&u<1?1:0);set('tk'+i,{cx:x});
+ set('tr'+i,{x2:last?lerp(SX[0],SX[last],clamp(pos/last)):SX[0]});
+ for(let j=0;j<=last;j++)op('mk'+i+'_'+j,u>0&&pos>=j-.05?1:0);
+ op('x'+i,u>=1?1:0);}
+let F=null,FT=null;   // follow mode: the detail being followed
+const CAPS=[[0,'The answer is missing three details. Follow each one through PlantMind to see where it stopped.'],
+ [.12,'Two details stop at the second station. One goes all the way and still stops at the last.'],
+ [ZS[0][0],'Zoom in. On file: all three are in the work instruction. The drip line is in one chunk; the 20 bottles and 495–505 ml sit together in another.'],
+ [ZS[1][0],'Picked up: search keeps the 4 closest chunks. The drip line’s chunk came 2nd. The chunk with the other two came 8th.'],
+ [ZS[2][0],'Handed to PlantMind: it read 7 chunks. The drip check is there twice. 495–505 ml and the 20-bottle check are not.'],
+ [ZS[3][0],'In the answer: the drip check was in what PlantMind read, and still isn’t here. The other two never arrived.'],
+ [.9,'Two problems in two different places. Tracing shows whether the information was never picked up, or picked up and left out.']];
+const FCAPS=[['The drip check is on file, in chunk 2.','Its chunk came 2nd, so it was picked up.','PlantMind read it twice: in the work instruction and in a shift log.','It isn’t in the answer. It was lost in the writing.'],
+ ['The fill range is on file, in chunk 5.','Chunk 5 came 8th. Only the best 4 are picked up.','So PlantMind never read it.','And the answer doesn’t have it. It was lost at search.'],
+ ['The 20-bottle check is on file, in chunk 5, next to the fill range.','Same chunk, same place: 8th.','PlantMind only read past readings like “First 20 bottles 499-502 ml”, not the instruction.','Not in the answer. Lost at search.']];
+function render(t){
+ const B=seg(t,.29,.33),C=seg(t,.89,.93);
+ op('ob',seg(t,0,.04)*(1-B));op('pa',seg(t,.03,.08)*(1-B));[0,1,2].forEach(i=>op('pm'+i,seg(t,.05+i*.02,.09+i*.02)));
+ set('line',{transform:`translate(0,${-UP*B})`});op('line',seg(t,.09,.12));op('lnhd',1-B);
+ D.forEach((_,i)=>lane(i,t));
+ // zoom panel and the station being zoomed
+ const zi=ZS.findIndex(([a,b])=>t>=a-.01&&t<b+.005);
+ op('zp',B*(1-C));
+ STN.forEach((_,j)=>{const on=j===zi;set('stb'+j,{stroke:on?'var(--ink)':'var(--line)','stroke-width':on?2:1,fill:on?'var(--sunk)':'var(--surface)'});op('stm'+j,on?1:0);});
+ $('zph').textContent=zi>=0?`ZOOM · ${STN[zi][0]}`:'';
+ ['z1','z2','z3','z4'].forEach((id,j)=>op(id,zi===j?seg(t,ZS[j][0],ZS[j][0]+.02)*(1-seg(t,ZS[j][1]-.01,ZS[j][1])):0));
+ // z1: lens moves from the drip line to Step 10; highlights land
+ {const [a,b]=ZS[0],u=seg(t,a+.04,a+.08);set('z1lens',{y:lerp(266+6*7,266+19*7,u)});set('z1link',{d:`M162,${lerp(275+6*7,275+19*7,u)} L198,${lerp(262,382,u)}`});
+  Z1L.forEach((_,i)=>op('z1r'+i,seg(t,a+.01+i*.004,a+.03+i*.004)));
+  op('z1t2h1',seg(t,a+.03,a+.05));op('z1t6h1',seg(t,a+.07,a+.09));op('z1t7h1',seg(t,a+.08,a+.1));op('z1c2',seg(t,a+.04,a+.06));op('z1c5',seg(t,a+.09,a+.11));}
+ // z2: ranks appear, the line, #8
+ {const [a]=ZS[1];RK.forEach((_,i)=>op('z2r'+i,seg(t,a+.01+i*.01,a+.03+i*.01)));op('z2h1',seg(t,a+.05,a+.07));op('z2q1',seg(t,a+.05,a+.07));
+  op('z2cut',seg(t,a+.06,a+.08));op('z2r4',seg(t,a+.08,a+.09));op('z2r5',seg(t,a+.09,a+.1));op('z2h5',seg(t,a+.1,a+.11));op('z2q5',seg(t,a+.1,a+.11));op('z2n',seg(t,a+.11,a+.12));}
+ // z3: the lens sweeps the 7 chunks, matches light up, counts appear
+ {const [a]=ZS[2];CARDS.forEach((_,i)=>op('z3c'+i,seg(t,a+.005+i*.004,a+.02+i*.004)));
+  const sw=clamp((t-a-.03)/.07),k=Math.min(6,Math.floor(sw*7));const [x,y]=cardXY(k);set('z3lens',{x:x-4,y:y-4,opacity:sw>0&&sw<1?1:0});
+  CARDS.forEach((c,i)=>{const seen=sw>0&&(i<k||(i===k&&sw>=1)||(sw>=1));op('z3q'+i,c[1]&&(i<k||sw>=1)?1:0);
+   set('z3b'+i,{stroke:c[2]===0&&(i<k||sw>=1)?'var(--pine)':c[2]==='r'&&(i<k||sw>=1)?'var(--brass)':'var(--line)'});});
+  op('z3k',seg(t,a+.04,a+.06));[0,1,2].forEach(j=>op('z3k'+j,seg(t,a+.1+j*.006,a+.11+j*.006)));}
+ // z4: scan the answer; the gaps show where the details should be
+ {const [a]=ZS[3];const u=clamp((t-a-.02)/.06);set('z4scan',{y1:lerp(250,450,u),y2:lerp(250,450,u),opacity:u>0&&u<1?.9:0});
+  op('z4g0',seg(t,a+.04,a+.06));op('z4g1',seg(t,a+.07,a+.09));}
+ op('pr',1);set('pr',{transform:`translate(0,${-104*C})`});op('p1',C);op('p2',seg(t,.92,.96));
+ // follow mode: dim everything that isn't the chosen detail
+ if(F!=null)document.querySelectorAll('#sv [data-d]').forEach(el=>{if(el.dataset.d.split(' ').includes(String(F)))return;
+  // undo last frame's dimming for elements this frame didn't touch, then dim
+  if(el.dataset.dim===el.getAttribute('opacity'))el.setAttribute('opacity',el.dataset.base);
+  const o=+(el.getAttribute('opacity')??1);el.dataset.base=String(o);el.setAttribute('opacity',String(o*.12));el.dataset.dim=el.getAttribute('opacity');});
+ let c;if(F==null)c=CAPS.filter(([a])=>t>=a).pop()[1];else c=zi>=0?FCAPS[F][zi]:(t<.33?`Follow: ${D[F][0].toLowerCase()}.`:FCAPS[F][3]);
+ if($('cap').textContent!==c)$('cap').textContent=c;}
+
+/* ── player: 7 s reading pause, then one play-through; follow mode replays the zoom part for one detail ── */
+let DUR=62000,PAUSE=7000,T0=0,raf=0,t0=0,playing=false;
+function start(f=null){cancelAnimationFrame(raf);F=f;$('sv').innerHTML=build();
+ document.querySelectorAll('.f[data-k]').forEach(b=>b.classList.toggle('on',f!=null&&+b.dataset.k===f));
+ if(f==null){$('ctrl').classList.remove('done');DUR=62000;PAUSE=7000;T0=0;}else{DUR=34000;PAUSE=0;T0=.29;}
+ render(T0);t0=performance.now();if(reduce){render(1);done();return;}
+ playing=true;$('play').textContent='❚❚ Pause';loop();}
+function done(){playing=false;$('play').textContent='▶ Replay';$('count').textContent='';$('ctrl').classList.add('done');}
+function loop(){const e=performance.now()-t0;
+ if(e<PAUSE){$('count').textContent=`reading · ${Math.ceil((PAUSE-e)/1000)}`;render(T0);}
+ else{$('count').textContent='';const t=lerp(T0,1,clamp((e-PAUSE)/DUR));render(t);if(t>=1){done();return;}}
+ raf=requestAnimationFrame(loop);}
+$('play').onclick=()=>{if(playing){cancelAnimationFrame(raf);playing=false;$('play').textContent='▶ Play';}else start(null);};
+document.querySelectorAll('.f[data-k]').forEach(b=>b.onclick=()=>start(+b.dataset.k));
+$('theme').onclick=()=>{const r=document.documentElement,d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');};
+// for checking: ?t=0.4 freezes the main play at that moment; ?f=1&t=0.5 does the same in follow mode
+const qs=new URLSearchParams(location.search);
+start(qs.has('f')?+qs.get('f'):null);
+if(qs.has('t')){cancelAnimationFrame(raf);render(+qs.get('t'));done();}
+})();
+</script>
+</body>
+</html>

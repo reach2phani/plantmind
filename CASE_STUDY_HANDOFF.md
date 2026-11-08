@@ -1,5 +1,7 @@
 # PlantMind case-study page: handoff (updated 19 Oct 2026 · Evals + Knowledge graph + Trust done · next: Tracing · parallel: Architecture rework)
 
+> **Update 8 Nov 2026:** the page is now **`docs/index.html`** (renamed from `docs/preview.html` for GitHub Pages; every "preview.html" below means this file). Old drafts moved to `archive/` (`old_index.html`, `old_draft.html`); `docs/tracing_build.html` moved to `sketches/`. Hosting: GitHub Pages, branch `main`, folder `/docs` → https://reach2phani.github.io/plantmind/ (`docs/.nojekyll` added). Still to fix: the two Trust screenshots (`docs/img/trust-restart-high.png`, `trust-restart-after-fix.png`) show "Screenshot to add" until added.
+
 Paste this into a new chat to continue. This chat is **only** for the interview case-study page.
 App/eval work (FL-101, Phase 2a+) happens in the main build chat. Don't mix them.
 
