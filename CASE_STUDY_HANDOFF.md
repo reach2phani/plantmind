@@ -171,7 +171,17 @@ Block 1 also has a screenshot slot `docs/img/trust-restart-after-fix.png`. Both 
 - Removed by the user: grade chips ("Tested · not good enough yet"), the caption box, inner/outer layer drawing (confusing).
 - Rejected along the way (don't re-propose without a new reason): stamps/lightbox, Swiss-cheese slices, wheel/petals, seal ring, andon light, filter/funnel, autopsy, 2×2 sure/right grid with dots, timeline "when was that", report card, left/centre/right spine, agents→shield→operator player, Cesium (geospatial, too heavy, breaks the self-contained page).
 
-## NEXT: Page 5 "Tracing" — new approach agreed 20 Oct 2026 (start here in the new chat)
+## Lesson "Tracing" (MERGED into `docs/preview.html`, 6 Nov 2026 · lesson 6, after Trust)
+
+**What it is:** the real LangSmith trace of one saved run on the left; one question at a time on the right, marking the trace as it goes. Example: the fill-valve seal question (TC5), run `final-1106-r2`. The answer says to rinse but leaves out the 10 minutes. Six player steps: opening · 4 questions (Source documents, Retrieval, Context, Generation) · ending with the loop line (Test and Trace ticked; Repeat, Fix and Test again not).
+
+**How it is built:** closure `TF` above `const L = [`, styles scoped under `.tf`, player hook `onStep` (+ `onLeave`). Trace data comes from `evals/fl101/results/trace_final-1106-r2-TC5.json` (made by `evals/export_trace.py`, read-only, names removed). `sketches/tracing_real.html` is the earlier sketch; preview.html is the source of truth.
+
+**Wording is the user's**, including "machine manual" above a page headed WORK INSTRUCTION (kept by choice). The user removed the bottom source note and the "exact message wasn't saved" note; "likely" and "appears" carry the doubt.
+
+**Check after final r3:** the ending says the test still needs repeating. Saved runs on the same code so far: the 10 minutes appeared in 1 of 3. Update the wording and tick Repeat if the user wants.
+
+## OLD PLAN: Page 5 "Tracing" — approach agreed 20 Oct 2026 (superseded by the lesson above)
 
 **Working method (keep):** agree the one sentence first, then the story, then sketch on a scratch page, then merge
 into `preview.html` as a lesson (see how "From Document to Answer" was merged: a closure + optional player hooks).
