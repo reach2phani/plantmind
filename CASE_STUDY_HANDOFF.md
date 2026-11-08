@@ -181,6 +181,18 @@ Block 1 also has a screenshot slot `docs/img/trust-restart-after-fix.png`. Both 
 
 **Check after final r3:** the ending says the test still needs repeating. Saved runs on the same code so far: the 10 minutes appeared in 1 of 3. Update the wording and tick Repeat if the user wants.
 
+## Lesson "Metrics" (MERGED into `docs/preview.html`, 8 Nov 2026 · lesson 7, last) — replaces "People in the loop"
+
+**Decision:** "People in the loop" was dropped (thin evidence; Evals/Trust/Tracing already show people's roles). Metrics took its place.
+
+**What it is:** one still screen (no animation; the player shows one step). Title "What did the tests reveal?". Six cards in plain language on the final runs, each with a small bar chart and a "Baseline: n" line: Task success 13/15 (8), Safety 14/15 (7), Grounding 7/15 measured (9), Output quality 13/15 (8), Consistency 5/5 questions same rating (3), Speed and cost (~10 s working, ~53 s waiting for the free tier in test runs). Order: Task success, Safety / Grounding, Output quality / full-width "When the checker got it wrong" / Consistency, Speed and cost.
+
+**The learning point:** 5 of the 8 grounding failures were checker mistakes (fact is in the documents: min stock 10 kits SOP 8.1, >1 in 100 over an hour SOP l.238, rail positions A/B, "quarter turn right until it clicks" WI step 7, "QA-HOLD" hyphen in the code check). Card says "After reviewing those failures, 12 of 15 answers were considered grounded" — a hand review, NOT a re-run; the checker in `evals/eval_summary.py` is not fixed. Evidence panel quotes the report line and SOP 8.1 word for word.
+
+**Sources:** `evals/baselines/fl101_eval/final-v1/summary.md` (final-1106-r1, final-1106-r2, final-1107-r3) and `baseline-v1/summary.md`. Built as closure `MB` above `const L = [`, styles scoped under `.mb` (`.scene .mb svg{min-width:0}` overrides the page's phone min-width). Sketch: `sketches/metrics_board.html` (superseded; preview.html is the source of truth). Wording is the user's.
+
+**Open:** the last card is still labelled "Speed and cost" with no cost figure (user removed the cost lines). Final r3 included the 10-minute rinse (1 of 3 final runs); Tracing's ending says the test still needs repeating — the user may now tick Repeat.
+
 ## OLD PLAN: Page 5 "Tracing" — approach agreed 20 Oct 2026 (superseded by the lesson above)
 
 **Working method (keep):** agree the one sentence first, then the story, then sketch on a scratch page, then merge

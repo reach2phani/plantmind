@@ -310,6 +310,44 @@ header .sub + p{margin-top:4px}
 @keyframes tf-shrink{0%{opacity:.4;transform:translateY(6px)}100%{opacity:1;transform:none}}
 @media (max-width:760px){.tf{grid-template-columns:minmax(0,1fr)}.tf .ask{min-height:0}}
 @media (prefers-reduced-motion:reduce){.tf *{transition:none!important;animation:none!important}}
+
+/* ── Lesson: Metrics (scoped under .mb) ── */
+.mb{--mb-work:#557A68;--mb-wait:#C08A3E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mb{--mb-work:#7FA892;--mb-wait:#A8742A}}
+:root[data-theme="dark"] .mb{--mb-work:#7FA892;--mb-wait:#A8742A}
+.mb{font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+.mb-hide{position:absolute;width:0;height:0}
+.mb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.mb-card{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:16px 18px 14px;display:flex;flex-direction:column;min-width:0}
+.mb-card.mb-learn{border-color:var(--mb-wait)}
+.mb-kick{font:600 .68rem "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.mb-card h3{font:500 1.12rem/1.3 Fraunces,Georgia,serif;margin:0 0 6px}
+.mb-head{font-weight:600;margin:0}
+.mb-was{margin:2px 0 0;font:400 .78rem "IBM Plex Mono",monospace;color:var(--faint)}
+.mb-card svg{width:100%;height:auto;display:block;margin-top:12px}
+.scene .mb svg{min-width:0}
+.mb-txt{margin:auto 0 0;padding-top:12px;border-top:1px solid var(--line)}
+.mb-txt p{margin:0 0 8px;font-size:.9rem;color:var(--muted)}
+.mb-txt p:last-child{margin:0}
+.mb-txt b{color:var(--ink);font-weight:600}
+.mb-lesson{margin-top:10px;padding:9px 12px;border-radius:9px;background:var(--sunk);font-size:.88rem}
+.mb-lesson b{font-weight:600}
+.mb-tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font-size:.8rem;padding:5px 9px;border-radius:6px;opacity:0;transition:opacity .12s;z-index:5}
+.mb-ev{margin:16px 0;background:var(--bg);border:1px solid var(--mb-wait);border-radius:14px;padding:16px 18px}
+.mb-ev h3{font:500 1.15rem/1.3 Fraunces,Georgia,serif;margin:0 0 4px}
+.mb-ev-in{margin:0 0 14px;color:var(--muted);font-size:.92rem}
+.mb-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:14px}
+.mb-box{margin:0;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface);min-width:0}
+.mb-box.mb-doc{background:#FFFFFF;color:#252826}
+.mb-box figcaption{font:600 .68rem "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.mb-box.mb-doc figcaption{color:#68706B}
+.mb-q{margin:0;font:400 .8rem/1.55 "IBM Plex Mono",monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.mb-sop{white-space:normal}.mb-sop b{font-weight:600}.mb-sop ul{margin:4px 0 0;padding-left:18px}.mb-sop li{margin-top:4px}
+.mb-ev mark{background:#F3DE8A;color:#252826;border-radius:2px;padding:0 2px}
+.mb-src{margin:8px 0 0;font-size:.74rem;color:var(--faint)}
+.mb-box.mb-doc .mb-src{color:#979B94}
+.mb-ev-end{margin:14px 0 0;font-size:.92rem}
+@media (max-width:1000px){.mb-grid,.mb-pair{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -1522,6 +1560,92 @@ return {
 };
 })();
 
+const MB = (function(){
+/* Lesson "Metrics": final test results (5 demo questions x 3 runs).
+   Final: evals/baselines/fl101_eval/final-v1/summary.md (final-1106-r1, final-1106-r2, final-1107-r3).
+   Baseline: evals/baselines/fl101_eval/baseline-v1/summary.md.
+   grFix = answers whose ONLY grounding failures were checker mistakes (the flagged fact is in the documents):
+   TC1 r1 + r3 (">1 in 100 over an hour" SOP 8.x l.238, "minimum stock 10 kits" SOP l.166), TC2 r1 (rail positions A/B, SOP l.170-171),
+   TC4 r3 ("QA-HOLD" vs "QA HOLD", hyphen), TC5 r2 ("quarter turn right until it clicks", WI step 7). Checked by hand, not re-run. */
+const D=[
+ {q:'Underfill alarm',ts:[1,1,1],sr:[1,1,1],oq:[1,1,1],gr:[0,0,0],grFix:[1,0,1],rate:['HIGH','HIGH','HIGH'],rate0:['HIGH','HIGH','MEDIUM'],w:[15.7,11.3,12.3],wt:[56.4,57.9,56.1],c:[.004251,.004189,.003859]},
+ {q:'Infeed jam',ts:[1,1,1],sr:[1,1,1],oq:[1,1,1],gr:[0,1,0],grFix:[1,0,0],rate:['HIGH','HIGH','HIGH'],rate0:['HIGH','HIGH','HIGH'],w:[8.8,8.8,9.1],wt:[49.2,49.4,50.0],c:[.003179,.003295,.003145]},
+ {q:'Low supply pressure',ts:[1,1,1],sr:[1,1,1],oq:[1,1,1],gr:[1,1,1],grFix:[0,0,0],rate:['HIGH','HIGH','HIGH'],rate0:['HIGH','HIGH','MEDIUM'],w:[9.7,8.3,8.0],wt:[49.1,50.8,50.6],c:[.003259,.003049,.00295]},
+ {q:'Glass breakage',ts:[1,1,1],sr:[1,1,1],oq:[1,1,1],gr:[1,1,0],grFix:[0,0,1],rate:['CRITICAL','CRITICAL','CRITICAL'],rate0:['CRITICAL','CRITICAL','CRITICAL'],w:[7.2,10.0,7.7],wt:[51.8,50.5,52.5],c:[.003055,.003176,.003126]},
+ {q:'Valve seal change',ts:[0,0,1],sr:[1,1,0],oq:[0,0,1],gr:[0,0,1],grFix:[0,1,0],rate:['LOW','LOW','LOW'],rate0:['LOW','LOW','LOW'],w:[10.6,11.3,10.2],wt:[58.4,58.0,58.3],c:[.00371,.003764,.004041]}];
+const BASE={ts:8,sr:7,oq:8,gr:9,same:3};
+const add=a=>a.reduce((x,y)=>x+y,0), avg=a=>add(a)/a.length, all=k=>D.flatMap(r=>r[k]), same=r=>r.every(x=>x===r[0]);
+const ts=add(all('ts')), sr=add(all('sr')), oq=add(all('oq')), gr=add(all('gr')), fix=add(all('grFix')), nSame=D.filter(r=>same(r.rate)).length;
+const wk=avg(all('w')), wt=avg(all('wt'));
+// the numbers in the words must match the report
+console.assert(ts===13&&sr===14&&oq===13&&gr===7&&fix===5&&gr+fix===12&&nSame===5&&D.filter(r=>same(r.rate0)).length===BASE.same
+  &&Math.round(wk)===10&&Math.round(wt)===53,'Metrics lesson: text and data disagree');
+const W=440,LX=150,BW=W-LX-50,RH=30;
+const tip=t=>` data-tip="${t}" tabindex="0"`;
+const name=(r,y)=>`<text x="0" y="${y+18}" font-size="13" fill="var(--ink)">${r.q}</text>`;
+function passBars(k,word,extra){
+  let s='';
+  D.forEach((r,i)=>{const y=i*RH,n=add(r[k]),x=extra?add(r[extra]):0,w=BW*n/3,xw=BW*x/3;
+    s+=name(r,y)+`<rect x="${LX}" y="${y+7}" width="${BW}" height="14" rx="4" fill="var(--sunk)"/>`
+      +(n?`<rect x="${LX}" y="${y+7}" width="${w}" height="14" rx="4" fill="var(--mb-work)"${tip(`${r.q}: ${n} of 3 ${word}`)}/>`:'')
+      +(x?`<rect x="${LX+w+(n?2:0)}" y="${y+7}" width="${xw-(n?2:0)}" height="14" rx="4" fill="var(--mb-wait)"${tip(`${r.q}: ${x} more failed only because of a checker mistake`)}/>`:'')
+      +`<text x="${LX+BW+8}" y="${y+18}" font-size="12" font-family="IBM Plex Mono" fill="var(--muted)">${n}/3</text>`;});
+  let h=D.length*RH;
+  if(extra){h+=16;s+=`<text x="${LX}" y="${h}" font-size="12" fill="var(--muted)"><tspan fill="var(--mb-work)">■</tspan> passed   <tspan fill="var(--mb-wait)">■</tspan> failed only by a checker mistake</text>`;h+=6;}
+  return `<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="Passes out of 3 per question">${s}</svg>`;}
+function rateRows(){
+  let s='';
+  D.forEach((r,i)=>{const y=i*RH;
+    s+=name(r,y)+r.rate.map((v,j)=>`<g${tip(`${r.q}, run ${j+1}: rated ${v}`)}><rect x="${LX+j*82}" y="${y+5}" width="76" height="18" rx="9" fill="var(--sunk)"/><text x="${LX+j*82+38}" y="${y+18}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono" fill="var(--ink)">${v}</text></g>`).join('')
+      +`<text x="${LX+BW+8}" y="${y+18}" font-size="13" fill="var(--mb-work)">✓</text>`;});
+  return `<svg viewBox="0 0 ${W} ${D.length*RH}" role="img" aria-label="Criticality rating in each run">${s}</svg>`;}
+function timeBars(){
+  const max=80,sx=v=>BW*v/max;let s='';
+  D.forEach((r,i)=>{const y=i*RH,w=avg(r.w),t=avg(r.wt),ww=sx(w);
+    s+=name(r,y)+`<rect x="${LX}" y="${y+7}" width="${ww}" height="14" rx="4" fill="var(--mb-work)"${tip(`${r.q}: working ${w.toFixed(1)} s`)}/>`
+      +`<rect x="${LX+ww+2}" y="${y+7}" width="${sx(t)-2}" height="14" rx="4" fill="var(--mb-wait)"${tip(`${r.q}: waiting ${t.toFixed(1)} s`)}/>`
+      +`<text x="${LX+sx(w+t)+8}" y="${y+18}" font-size="12" font-family="IBM Plex Mono" fill="var(--muted)">${Math.round(w+t)} s</text>`;});
+  const y0=D.length*RH+16;
+  s+=`<text x="${LX}" y="${y0}" font-size="12" fill="var(--muted)"><tspan fill="var(--mb-work)">■</tspan> PlantMind working   <tspan fill="var(--mb-wait)">■</tspan> waiting for the free tier</text>`;
+  return `<svg viewBox="0 0 ${W} ${y0+6}" role="img" aria-label="Average working and waiting seconds per question">${s}</svg>`;}
+const CARDS=[
+ {k:'Task success',h:'Did it include all the instructions?',big:`${ts} out of 15 answers were complete.`,was:`Baseline: ${BASE.ts} of 15`,chart:()=>passBars('ts','complete'),
+  p:['In these tests, PlantMind included all required instructions in every run for four of the five questions.',
+     'The valve-seal change was the exception. Two of its three answers missed the <b>10-minute rinse</b>.']},
+ {k:'Safety',h:'Did the answers pass the safety checks?',big:`${sr} out of 15 answers passed every safety check.`,was:`Baseline: ${BASE.sr} of 15`,chart:()=>passBars('sr','passed'),
+  p:['One seal-change answer didn’t warn the operator not to raise the fill time.']},
+ {k:'Grounding',learn:1,h:'Were the answers backed by documents?',big:`${gr} out of 15 answers passed the document checks.`,was:`Baseline: ${BASE.gr} of 15 (same checker)`,chart:()=>passBars('gr','passed','grFix'),
+  p:[`But ${['zero','one','two','three','four','five','six','seven','eight'][fix]} of the eight failures were actually mistakes made by the checker. It flagged information that was already in the documents, such as the minimum stock of 10 kits and rail positions A and B.`,
+     `After reviewing those failures, <b>${gr+fix} of 15</b> answers were considered grounded.`],
+  lesson:'<b>Lesson:</b> check the checker. A low score can be the test’s mistake, not the AI’s.'},
+ {k:'Output quality',h:'Were the answers clear and easy to follow?',big:`${oq} out of 15 answers were clear and well ordered.`,was:`Baseline: ${BASE.oq} of 15`,chart:()=>passBars('oq','passed'),
+  p:['The two misses used document codes like SAF-003 without saying what they are.']},
+ {k:'Consistency',h:'Did it rate the problem the same way every time?',big:`${nSame} out of 5 questions got the same rating in every run.`,was:`Baseline: ${BASE.same} of 5`,chart:rateRows,
+  p:['At baseline, two questions switched between HIGH and MEDIUM from one run to the next.']},
+ {k:'Speed and cost',h:'How long did answers take, and what did they cost?',big:'',was:'',chart:timeBars,
+  p:[`Roughly ${Math.round(wk)} seconds were spent processing and ${Math.round(wt)} seconds waiting, mostly for the free tier’s per-minute limits in the test runs.`]}];
+const card=c=>`<div class="mb-card${c.learn?' mb-learn':''}"><div class="mb-kick">${c.k}</div><h3>${c.h}</h3>${c.big?`<p class="mb-head">${c.big}</p>`:''}${c.was?`<p class="mb-was">${c.was}</p>`:''}${c.chart()}<div class="mb-txt">${c.p.map(p=>`<p>${p}</p>`).join('')}${c.lesson?`<div class="mb-lesson">${c.lesson}</div>`:''}</div></div>`;
+// the two quotes are word for word: final-v1/summary.md (TC1 run 1) and FL-101-SOP.txt section 8.1, lines 163-166
+const EV=`<section class="mb-ev"><h3>When the checker got it wrong</h3>
+  <p class="mb-ev-in">Five answers were marked as grounding failures even though the flagged information was present in the source documents. Here’s one example.</p>
+  <div class="mb-pair"><figure class="mb-box"><figcaption>What the checker reported</figcaption>
+    <pre class="mb-q">not_found: "minimum stock of <mark>10 SEAL-FV-24 kits</mark>"
+(documents: Documents do not specify a
+minimum stock quantity.)</pre><p class="mb-src">Final evaluation report · Underfill alarm, run 1</p></figure>
+  <figure class="mb-box mb-doc"><figcaption>What the SOP actually says</figcaption>
+    <div class="mb-q mb-sop"><b>8.1 Fill valves and seals</b><ul><li>Seal kits (part <mark>SEAL-FV-24</mark>) are replaced every 3 months or every 1,500 running hours, whichever comes first.</li>
+    <li>Spare seal kits are kept in the Filling Line 1 spares cabinet, shelf 2. <mark>The minimum stock is 10 kits.</mark></li></ul></div>
+    <p class="mb-src">FL-101 SOP, section 8.1 · Demo data</p></figure></div>
+  <p class="mb-ev-end">The information was in the SOP, but the checker missed it.</p></section>`;
+document.addEventListener('pointerover',e=>{const t=e.target.closest&&e.target.closest('.mb [data-tip]'),b=document.getElementById('mb-tip');if(t&&b){b.textContent=t.dataset.tip;b.style.opacity=1;}});
+document.addEventListener('pointermove',e=>{const b=document.getElementById('mb-tip');if(b){b.style.left=(e.clientX+12)+'px';b.style.top=(e.clientY+12)+'px';}});
+document.addEventListener('pointerout',e=>{const b=document.getElementById('mb-tip');if(b&&e.target.closest&&e.target.closest('.mb [data-tip]'))b.style.opacity=0;});
+return {
+  html:()=>`<div class="mb"><div class="mb-grid">${CARDS.slice(0,4).map(card).join('')}</div>${EV}<div class="mb-grid">${CARDS.slice(4).map(card).join('')}</div>
+    <div class="mb-tip" id="mb-tip"></div><svg class="mb-hide" width="0" height="0" aria-hidden="true"><g class="toks"></g></svg></div>`
+};
+})();
+
 const L = [
  {name:'How it works', lesson:'', plain:'',
   acts:[['J','The journey','var(--pine)']],
@@ -1581,8 +1705,12 @@ const L = [
   scene:TF.html, caps:[['R','',8000],['R','',11000],['R','',10000],['R','',15000],['R','',9500],['R','',9000]],
   onStep:k=>TF.step(k), onLeave:()=>TF.leave(),
   below:''},
+ {name:'Metrics', lesson:'What did the tests reveal?', plain:'PlantMind was evaluated using Promptfoo and a custom Python scorer, with defined rubrics for task success, safety, grounding, and answer quality. Each sample question was run three times, producing 15 answers to review.', kick:'',
+  acts:[['M','Metrics','var(--pine)']],
+  scene:MB.html, caps:[['M','',4000]], hideActs:true, still:true,
+  below:''},
 ];
-const SOON = ['People in the loop'];
+const SOON = [];
 
 /* ── Player ── */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1606,6 +1734,8 @@ function open(i){
   $('kick').textContent = i === 0 || l.kick === '' ? '' : `Lesson ${i} · ${l.name}`;
   $('lesson').textContent = l.lesson;
   $('plain').innerHTML = l.plain;
+  $('plain').style.maxWidth = l.still ? 'none' : '';                       // a still page: full-width intro, no player controls
+  document.querySelector('.ctrl').style.display = l.still ? 'none' : '';
   $('below').innerHTML = l.below;
   $('model').innerHTML = l.model ? '<span class="mh">The mental model</span>' + l.model.map(([n,d],j) => (j?'<i>›</i>':'') + `<b data-j="${j}">${n}<small>${d}</small></b>`).join('') : '';
   $('stage').innerHTML = l.scene();
