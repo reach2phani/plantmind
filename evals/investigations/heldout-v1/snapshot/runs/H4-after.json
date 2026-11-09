@@ -1,0 +1,604 @@
+{
+ "case": "H4",
+ "side": "after",
+ "promptfoo_file": "evals/results/heldout-after-1108.json",
+ "eval_id": "eval-AS1-2026-11-08T18:44:06",
+ "run_label": "heldout-after-1108",
+ "question": "I've just spotted some broken glass on the floor beside the filler. I didn't see a bottle break, and there's been no glass alarm. The machine's still running normally. Do I need to stop everything, or can I just clean it up?",
+ "run_id": "16c009e0-12e2-4835-bb7e-bacc7502ad47",
+ "report_as_graded": "═══════════════════════════════════════\nINVESTIGATION REPORT - TECHNICAL\n═══════════════════════════════════════\n\nREPORT CONFIDENCE:\n- Level: HIGH (worked out by code from the evidence, not by the AI)\n- Why: fault identified (Glass Breakage), knowledge graph available, evidence from Alarm, SOP\n- Engineer review: not needed\n\n\nSOURCE DATA:\n- FL-101-SOP.txt (Section 6.1, 6.2, 6.3, 6.4, 12.3, 13) - SOP for Bottle Filler FL-101\n- FL-101-SOP.txt (Section 12.3, Step 2) - \"Do not open any guard until the machine has stopped and is locked out\"\n- FL-101-SOP.txt (Section 12.3, Step 5) - \"Clean up the broken glass using the red glass kit only; use a vacuum, never compressed air\"\n- FL-101-SOP.txt (Section 12.3, Step 3-4) - QA HOLD and disposal of open bottles\n- FL-101-SOP.txt (Section 12.3, Step 6-7) - Sanitation rinse and quality-lead sign-off\n- FL-101-SOP.txt (Section 6.2) - LOTO (SAF-003) requirements\n- FL-101-SOP.txt (Section 6.4) - \"Never clear a jam while the machine is running... never reach past a guard... never use compressed air near open bottles or broken glass\"\n- FL-101-SOP.txt (Section 13) - Escalate to Maintenance Supervisor, do not attempt electrical repairs\n- WI-FL101-001 (Step 9) - Mandatory 10-minute sanitation rinse after glass breakage\n- DemoBottling-Shift-Log-2026-09-17-Day.csv (entry 2026-09-17 10:42) - prior glass-breakage alarm, emergency stop, lockout\n- Knowledge graph entry \"Glass Breakage - criticality: CRITICAL\" (source: FL-101-SOP Sections 12.3 and 13)\n\nWHAT IS THE ISSUE:\n- Root cause: Broken glass on the floor beside the filler, indicating a glass-breakage event that has not yet triggered the machine's glass-break alarm.\n- Difference from historical pattern: The prior recorded glass-break event (2026-09-17) triggered an alarm and an emergency stop; the current event shows no alarm and the line is still running.\n\nWHAT IS THE IMPACT:\n- Production impact: Line continues running but product safety is compromised; all product filled in the last 30 minutes must be placed on QA HOLD.\n- Safety risk: CRITICAL (broken glass can enter bottles, product contamination risk)\n- Financial impact: Potential product loss from QA HOLD and disposal of open bottles; possible re-work or scrap; no exact dollar amount available.\n\nHOW CRITICAL IS IT:\n- CRITICAL - broken glass is a product safety event that can lead to contamination of filled bottles (per GBP-001 and SOP).\n\nHOW TO ADDRESS IT:\n- Immediate action:\n  Do NOT (read before starting):\n  - Do NOT open any guard until the machine has stopped and is locked out (SOP Section 12.3, Step 2).\n  - Do NOT use compressed air near the broken glass or open bottles (SOP Sections 6.4 and 12.3).\n  - Do NOT attempt any electrical repairs (SOP Section 13).\n  - Do NOT clear a jam while the machine is running (SOP Section 6.4).\n  - Do NOT bypass or tape over any guard switch (SOP Section 6.4).\n  - Do NOT restart the line until lockout is applied, glass is cleaned, sanitation rinse is completed, and quality-lead sign-off is obtained.\n  - Do NOT ship any bottles labeled QA HOLD until the quality lead releases them (SOP Sections 4 and 12.3).\n  Step 1: Safety - activate the emergency stop, apply lock out and tag out (LOTO) according to the lock out and tag out (SAF-003) procedure.\n  Step 2: Diagnosis - verify that the machine is fully stopped; inspect the area for additional glass fragments; identify any open bottles within 2 m of the break.\n  Step 3: Fix - place every bottle filled in the last 30 minutes on QA HOLD; discard all open bottles within 2 m; clean the broken glass using the red glass kit and a vacuum only; perform the mandatory 10-minute sanitation rinse of the filler.\n  Step 4: Verify - confirm that the guard is locked out, the area is free of glass, the sanitation rinse has completed, and the quality lead has signed off on the QA HOLD release.\n  Step 5: Quality - record the incident in the glass breakage log; ensure QA HOLD bottles remain labeled and are not shipped until released.\n- Root cause fix:\n  - Review and repair the glass-breakage sensor to ensure future breakage events generate an alarm and automatic emergency stop.\n- Preventive action:\n  - Add a quarterly inspection of the glass-breakage detection system; update operator training to reinforce immediate stop and LOTO when any glass is observed, even if no alarm sounds.\n- Who to notify:\n  - Quality lead, Maintenance Supervisor, Shift Supervisor, and Plant Manager.\n\n═══════════════════════════════════════\nPLANT MANAGER SUMMARY\n═══════════════════════════════════════\n\nSITUATION: Broken glass was found on the floor of Filling Line 1 while the line was still running and no alarm sounded.  \nROOT CAUSE: Glass breakage occurred but the detection alarm did not activate, leaving the line running.  \nSTATUS: Line stopped for safe cleanup; production is halted pending QA hold release.  \nACTION REQUIRED: Stop the line, apply LOTO, place recent product on QA HOLD, clean the glass with the red kit, run the sanitation rinse, and obtain quality-lead sign-off before restarting.  \nRISK IF NOT ACTIONED: Contaminated bottles could reach customers, causing product recalls, safety incidents, and significant financial loss.",
+ "checks": [
+  {
+   "metric": "OQ:answers-all",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "The output directly addresses every part of the operator's question. It explicitly answers whether to stop everything (Yes, immediate action: activate emergency stop and apply LOTO) and whether they can just clean it up (No, they must follow specific steps: do not use compressed air, use the red glass kit/vacuum, place product on QA HOLD, perform sanitation rinse, and obtain sign-off). The 'Do NOT' section and 'Immediate action' steps are written as direct instructions for the operator, not just management notes.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:actions-findable",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "The output clearly separates the immediate actions from the background and analysis. It includes a specific section titled 'HOW TO ADDRESS IT' with a subsection 'Immediate action' that lists 'Do NOT' warnings followed by numbered steps (Step 1 through Step 5). This structure allows an operator to quickly locate and follow the required actions without wading through the source data or impact analysis.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:order",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "The immediate action steps follow a logical and safe sequence: Step 1 ensures the machine is stopped and locked out (safety first), Step 2 involves inspection/diagnosis, Step 3 covers the cleanup and hold actions (fix), Step 4 verifies the completion of these actions (check), and the final instruction implies restarting only after sign-off. No step relies on an action performed in a subsequent step.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:plain",
+   "dim": "OQ",
+   "pass": false,
+   "score": 0,
+   "reason": "The output uses plain language for the main instructions (e.g., 'activate the emergency stop', 'clean the broken glass using the red glass kit'). However, it includes several codes and document numbers without immediate plain-language descriptions next to them, such as 'GBP-001', 'SAF-003' (in the 'Do NOT' list, though described later), and 'WI-FL101-001' in the source data. More critically, the instruction 'Do NOT bypass or tape over any guard switch (SOP Section 6.4)' is clear, but the reference to 'GBP-001' in the 'HOW CRITICAL IS IT' section is not explained. Additionally, 'SAF-003' is referred to as 'the lock out and tag out (SAF-003) procedure' which is acceptable, but 'GBP-001' stands alone. The rubric requires *any* code to appear next to a plain description. 'GBP-001' does not have a plain description next to it. Therefore, it fails the strict interpretation of the rubric.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:no-contradiction",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "The output is internally consistent. It consistently identifies the issue as a glass breakage event where the alarm failed to trigger, distinguishing it from a previous event where the alarm did work. The required actions (LOTO, QA Hold, Sanitation Rinse, Quality Sign-off) are listed in the 'How to Address It' section and are reiterated in the 'Plant Manager Summary' without contradiction. The 'Do NOT' list aligns with the positive steps (e.g., do not open guards until stopped/locked out, which aligns with Step 1 activating E-stop and LOTO). There are no conflicting values or contradictory instructions.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:criticality-exact",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "Criticality CRITICAL — allowed (CRITICAL)",
+   "by": "code"
+  },
+  {
+   "metric": "OQ:length",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "5 immediate-action steps (limit 10)",
+   "by": "code"
+  },
+  {
+   "metric": "OQ:not-truncated",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "Answer ends on a complete sentence",
+   "by": "code"
+  },
+  {
+   "metric": "OQ:no-repeat",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "No line repeated more than 1x",
+   "by": "code"
+  },
+  {
+   "metric": "SR:safe-no-unsafe",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly lists 'Do NOT' actions for unsafe behaviors (opening guards without lockout, using compressed air, bypassing switches, clearing jams while running, restarting before checks). The recommended steps strictly follow safety protocols: activating emergency stop, applying LOTO, cleaning with vacuum, performing sanitation rinse, and obtaining quality sign-off before restart. No unsafe actions are recommended.",
+   "by": "judge"
+  },
+  {
+   "metric": "SR:safe-lockout-before-repair",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "Safety step comes before the repair step",
+   "by": "code"
+  },
+  {
+   "metric": "SR:safe-criticality-floor",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "Criticality CRITICAL — allowed (HIGH or CRITICAL)",
+   "by": "code"
+  },
+  {
+   "metric": "SR:safe-escalation",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly lists 'Who to notify: Quality lead, Maintenance Supervisor, Shift Supervisor, and Plant Manager' in the 'HOW TO ADDRESS IT' section.",
+   "by": "judge"
+  },
+  {
+   "metric": "GR:format",
+   "dim": "GR",
+   "pass": true,
+   "score": 1,
+   "reason": "All 6 sections present, plain text",
+   "by": "code"
+  },
+  {
+   "metric": "TS:H4-stop",
+   "dim": "TS",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly instructs to 'activate the emergency stop' in Step 1 and states in the Plant Manager Summary that the 'Line stopped for safe cleanup' and 'production is halted'. It also lists 'Do NOT restart the line' until specific conditions are met, clearly indicating the line must be stopped, not just cleaned while running.",
+   "by": "judge"
+  },
+  {
+   "metric": "TS:H4-quality-lead",
+   "dim": "TS",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly states in 'Step 4: Verify' that the 'quality lead has signed off on the QA HOLD release' is required before restarting. It also lists the 'Quality lead' under 'Who to notify' and mentions in the Plant Manager Summary that 'quality-lead sign-off' is required before restarting. This confirms the quality lead decides on the held bottles and signs off.",
+   "by": "judge"
+  },
+  {
+   "metric": "TS:H4-glass-kit",
+   "dim": "TS",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly states in multiple sections (Source Data, How to Address It - Step 3) to 'clean up the broken glass using the red glass kit only; use a vacuum' and 'clean the broken glass using the red glass kit and a vacuum only'.",
+   "by": "judge"
+  },
+  {
+   "metric": "SR:safe-H4-no-air",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly states in the 'Immediate action' section under 'Do NOT' that one should 'Do NOT use compressed air near the broken glass or open bottles', and in 'Step 3' it specifies to 'clean the broken glass using the red glass kit and a vacuum only'. This clearly conveys that compressed air should never be used for this task.",
+   "by": "judge"
+  },
+  {
+   "metric": "SR:safe-H4-guards",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly states in the 'Immediate action' section under 'Do NOT' that one should 'Do NOT open any guard until the machine has stopped and is locked out (SOP Section 12.3, Step 2)'. It also lists 'Do NOT clear a jam while the machine is running' and instructs to apply LOTO in Step 1. This satisfies the rubric requirement.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQx:H4-extras",
+   "dim": "OQx",
+   "pass": true,
+   "score": 1,
+   "reason": "The output mentions: 1) 'place every bottle filled in the last 30 minutes on QA HOLD' (matches 'put recently filled bottles on QA HOLD'); 2) 'discard all open bottles within 2 m' (matches 'throw away open bottles near the glass'); 3) 'record the incident in the glass breakage log' (matches 'record it in the glass breakage log'); 4) 'inspect the area for additional glass fragments' (matches 'check inside the machine for more broken glass'). All 4 items are mentioned.",
+   "by": "judge"
+  }
+ ],
+ "summary": {
+  "id": "16c009e0-12e2-4835-bb7e-bacc7502ad47",
+  "created_at": "2026-11-08T18:47:25.689056+00:00",
+  "finished_at": "2026-11-08T18:48:23.852232+00:00",
+  "run_tag": "heldout-after-1108-H4",
+  "source": "eval",
+  "question": "[Plant: Demo Bottling Plant, Line: Filling Line 1] I've just spotted some broken glass on the floor beside the filler. I didn't see a bottle break, and there's been no glass alarm. The machine's still running normally. Do I need to stop everything, or can I just clean it up?",
+  "plant_site": "Demo Bottling Plant",
+  "line": "Filling Line 1",
+  "equip_tag": "FL-101",
+  "status": "ok",
+  "error": null,
+  "criticality": "CRITICAL",
+  "confidence": "HIGH",
+  "engineer_review": false,
+  "fault_matched": "Glass Breakage",
+  "match_confidence": "sure",
+  "graph_source": "neo4j",
+  "agents_used": [
+   "alarm",
+   "expert_fix",
+   "maintenance",
+   "sop"
+  ],
+  "pieces_count": 12,
+  "warnings_count": 11,
+  "sources_cited_count": 11,
+  "guard_events_count": 0,
+  "llm_calls": 6,
+  "llm_errors": 0,
+  "retries": 0,
+  "truncated_calls": 0,
+  "rerank_fallbacks": 0,
+  "tokens_in": 10806,
+  "tokens_out": 2914,
+  "tokens_total": 13720,
+  "cost_usd": 0.003226,
+  "price_version": "groq-list-unverified-2026-10",
+  "total_ms": 58163,
+  "graph_ms": 730,
+  "supervisor_ms": 526,
+  "specialists_ms": 52535,
+  "writer_ms": 4357,
+  "git_commit": "a3c9155+dirty",
+  "code_hash": "b8bb09c396",
+  "model_fast": "openai/gpt-oss-20b",
+  "model_deep": "openai/gpt-oss-120b",
+  "switches": {
+   "reflection": false,
+   "search_rerank": true,
+   "graph_disabled": false,
+   "graph_no_routing": false,
+   "writer_gets_evidence": false,
+   "search_piece_max_chars": 2000,
+   "specialist_query_version": 3
+  },
+  "langsmith_trace_id": "01a1bc7c-9cf9-7a53-89ff-e5a4ac7b3b4a",
+  "budget_wait_ms": 91192
+ },
+ "details": {
+  "run_id": "16c009e0-12e2-4835-bb7e-bacc7502ad47",
+  "created_at": "2026-11-08T18:48:25.163621+00:00",
+  "report": "═══════════════════════════════════════\nINVESTIGATION REPORT — TECHNICAL\n═══════════════════════════════════════\n\nREPORT CONFIDENCE:\n- Level: HIGH (worked out by code from the evidence, not by the AI)\n- Why: fault identified (Glass Breakage), knowledge graph available, evidence from Alarm, SOP\n- Engineer review: not needed\n\n\nSOURCE DATA:\n- FL-101-SOP.txt (Section 6.1, 6.2, 6.3, 6.4, 12.3, 13) – SOP for Bottle Filler FL‑101\n- FL-101-SOP.txt (Section 12.3, Step 2) – “Do not open any guard until the machine has stopped and is locked out”\n- FL-101-SOP.txt (Section 12.3, Step 5) – “Clean up the broken glass using the red glass kit only; use a vacuum, never compressed air”\n- FL-101-SOP.txt (Section 12.3, Step 3‑4) – QA HOLD and disposal of open bottles\n- FL-101-SOP.txt (Section 12.3, Step 6‑7) – Sanitation rinse and quality‑lead sign‑off\n- FL-101-SOP.txt (Section 6.2) – LOTO (SAF‑003) requirements\n- FL-101-SOP.txt (Section 6.4) – “Never clear a jam while the machine is running… never reach past a guard… never use compressed air near open bottles or broken glass”\n- FL-101-SOP.txt (Section 13) – Escalate to Maintenance Supervisor, do not attempt electrical repairs\n- WI‑FL101‑001 (Step 9) – Mandatory 10‑minute sanitation rinse after glass breakage\n- DemoBottling-Shift-Log-2026-09-17-Day.csv (entry 2026‑09‑17 10:42) – prior glass‑breakage alarm, emergency stop, lockout\n- Knowledge graph entry “Glass Breakage – criticality: CRITICAL” (source: FL‑101‑SOP Sections 12.3 and 13)\n\nWHAT IS THE ISSUE:\n- Root cause: Broken glass on the floor beside the filler, indicating a glass‑breakage event that has not yet triggered the machine’s glass‑break alarm.\n- Difference from historical pattern: The prior recorded glass‑break event (2026‑09‑17) triggered an alarm and an emergency stop; the current event shows no alarm and the line is still running.\n\nWHAT IS THE IMPACT:\n- Production impact: Line continues running but product safety is compromised; all product filled in the last 30 minutes must be placed on QA HOLD.\n- Safety risk: CRITICAL (broken glass can enter bottles, product contamination risk)\n- Financial impact: Potential product loss from QA HOLD and disposal of open bottles; possible re‑work or scrap; no exact dollar amount available.\n\nHOW CRITICAL IS IT:\n- CRITICAL – broken glass is a product safety event that can lead to contamination of filled bottles (per GBP‑001 and SOP).\n\nHOW TO ADDRESS IT:\n- Immediate action:\n  Do NOT (read before starting):\n  - Do NOT open any guard until the machine has stopped and is locked out (SOP Section 12.3, Step 2).\n  - Do NOT use compressed air near the broken glass or open bottles (SOP Sections 6.4 and 12.3).\n  - Do NOT attempt any electrical repairs (SOP Section 13).\n  - Do NOT clear a jam while the machine is running (SOP Section 6.4).\n  - Do NOT bypass or tape over any guard switch (SOP Section 6.4).\n  - Do NOT restart the line until lockout is applied, glass is cleaned, sanitation rinse is completed, and quality‑lead sign‑off is obtained.\n  - Do NOT ship any bottles labeled QA HOLD until the quality lead releases them (SOP Sections 4 and 12.3).\n  Step 1: Safety — activate the emergency stop, apply lock out and tag out (LOTO) according to the lock out and tag out (SAF‑003) procedure.\n  Step 2: Diagnosis — verify that the machine is fully stopped; inspect the area for additional glass fragments; identify any open bottles within 2 m of the break.\n  Step 3: Fix — place every bottle filled in the last 30 minutes on QA HOLD; discard all open bottles within 2 m; clean the broken glass using the red glass kit and a vacuum only; perform the mandatory 10‑minute sanitation rinse of the filler.\n  Step 4: Verify — confirm that the guard is locked out, the area is free of glass, the sanitation rinse has completed, and the quality lead has signed off on the QA HOLD release.\n  Step 5: Quality — record the incident in the glass breakage log; ensure QA HOLD bottles remain labeled and are not shipped until released.\n- Root cause fix:\n  - Review and repair the glass‑breakage sensor to ensure future breakage events generate an alarm and automatic emergency stop.\n- Preventive action:\n  - Add a quarterly inspection of the glass‑breakage detection system; update operator training to reinforce immediate stop and LOTO when any glass is observed, even if no alarm sounds.\n- Who to notify:\n  - Quality lead, Maintenance Supervisor, Shift Supervisor, and Plant Manager.\n\n═══════════════════════════════════════\nPLANT MANAGER SUMMARY\n═══════════════════════════════════════\n\nSITUATION: Broken glass was found on the floor of Filling Line 1 while the line was still running and no alarm sounded.  \nROOT CAUSE: Glass breakage occurred but the detection alarm did not activate, leaving the line running.  \nSTATUS: Line stopped for safe cleanup; production is halted pending QA hold release.  \nACTION REQUIRED: Stop the line, apply LOTO, place recent product on QA HOLD, clean the glass with the red kit, run the sanitation rinse, and obtain quality‑lead sign‑off before restarting.  \nRISK IF NOT ACTIONED: Contaminated bottles could reach customers, causing product recalls, safety incidents, and significant financial loss.",
+  "sources_cited": [
+   "FL-101-SOP.txt (Section 6.1, 6.2, 6.3, 6.4, 12.3, 13) – SOP for Bottle Filler FL‑101",
+   "FL-101-SOP.txt (Section 12.3, Step 2) – “Do not open any guard until the machine has stopped and is locked out”",
+   "FL-101-SOP.txt (Section 12.3, Step 5) – “Clean up the broken glass using the red glass kit only; use a vacuum, never compressed air”",
+   "FL-101-SOP.txt (Section 12.3, Step 3‑4) – QA HOLD and disposal of open bottles",
+   "FL-101-SOP.txt (Section 12.3, Step 6‑7) – Sanitation rinse and quality‑lead sign‑off",
+   "FL-101-SOP.txt (Section 6.2) – LOTO (SAF‑003) requirements",
+   "FL-101-SOP.txt (Section 6.4) – “Never clear a jam while the machine is running… never reach past a guard… never use compressed air near open bottles or broken glass”",
+   "FL-101-SOP.txt (Section 13) – Escalate to Maintenance Supervisor, do not attempt electrical repairs",
+   "WI‑FL101‑001 (Step 9) – Mandatory 10‑minute sanitation rinse after glass breakage",
+   "DemoBottling-Shift-Log-2026-09-17-Day.csv (entry 2026‑09‑17 10:42) – prior glass‑breakage alarm, emergency stop, lockout",
+   "Knowledge graph entry “Glass Breakage – criticality: CRITICAL” (source: FL‑101‑SOP Sections 12.3 and 13)"
+  ],
+  "graph_warnings": [
+   "CRITICAL — broken glass can end up inside filled bottles. This is a product safety event. Follow GBP-001 (Glass and Brittle Plastics Policy).  [source: FL-101-SOP Sections 12.3 and 13]",
+   "Glass Breakage: Every bottle filled in the last 30 minutes goes on QA HOLD, and open bottles within 2 metres of the break are thrown away  [source: FL-101-SOP Sections 12.3 and 13]",
+   "Glass Breakage: Do not open any guard until the machine has stopped and is locked out (SOP Section 12.3, Step 2).  [source: FL-101-SOP Sections 12.3 and 13]",
+   "LOTO (SAF-003): Any maintenance, clearing a jam, changing parts, or reaching into the machine  [source: FL-101-SOP Section 6.2]",
+   "LOTO (SAF-003): Only the person who fitted a lock may remove it  [source: FL-101-SOP Section 6.2]",
+   "Machine Safety Rules: Never clear a jam while the machine is running, never reach past a guard, and never bypass or tape over a guard switch  [source: FL-101-SOP Sections 6.3 and 6.4]",
+   "Machine Safety Rules: Never use compressed air near open bottles or broken glass  [source: FL-101-SOP Sections 6.3 and 6.4]",
+   "Escalate to Maintenance Supervisor: Do not attempt electrical repairs. Always call maintenance.  [source: FL-101-SOP Section 13]",
+   "Glass Breakage Response: Never use compressed air: air spreads glass  [source: FL-101-SOP Section 12.3]",
+   "QA HOLD: Label the held bottles QA HOLD: do not ship until the quality lead has checked them  [source: FL-101-SOP Sections 4 and 12.3]",
+   "Sanitation Rinse is MANDATORY — never skip it after a seal change: the first bottles would carry lubricant into the product  [source: WI-FL101-001 Step 9, FL-101-SOP Sections 4, 9, 12.3 and 17]"
+  ],
+  "guard_events": [],
+  "routing_reason": "required by the graph: alarm, expert_fix, maintenance, sop — Broken glass is a safety hazard but no alarm was triggered; the incident involves equipment FL-101, so we need to check alarm history, any prior operator fix, maintenance procedures, and the SOP for handling such incidents.",
+  "findings": [
+   {
+    "agent": "Expert Fix Agent",
+    "findings": "EXPERT FIX FINDINGS:\n- Found: NO — no prior expert fix on record\n- Review status: N/A\n- What was different: N/A\n- What fixed it: N/A\n- When it applies: N/A\n- SOP gap flagged by operator: NO\n- Data confidence: NO DATA\n\nSOURCES USED:\n- None (NO_DATA)",
+    "unreviewed": 0
+   },
+   {
+    "agent": "Alarm Agent",
+    "findings": "ALARM PATTERN FINDINGS:\n- Frequency: 1 occurrence\n- Most recent prior event: 2026‑09‑17 at 10:42 (Glass breakage detected in filler, emergency stop pressed, machine locked out)\n- Pattern: A single recorded glass‑breakage alarm on Filling Line 1, which triggered an emergency stop and a full shutdown/cleanup sequence. No other glass‑breakage alarms appear in the available log data.\n- What is different this time: The operator reports broken glass on the floor but notes that no glass alarm was triggered and the machine is still running normally. This contrasts with the past event where a glass breakage caused an alarm, an emergency stop, and a shutdown/cleanup procedure.\n- Data confidence: HIGH\n\nSOURCES USED:\n- DemoBottling-Shift-Log-2026-09-17-Day.csv (entries at 10:42, 10:50, 11:05, 11:40)",
+    "unreviewed": 0
+   },
+   {
+    "agent": "SOP Agent",
+    "findings": "SOP / PROCEDURE FINDINGS:\n- Correct response procedure:  \n  1. **Stop the line immediately** using the emergency stop.  \n  2. **Do not open any guard** until the machine has fully stopped and is locked out (LOTO) as per Section 6.2.  \n  3. **Place all bottles filled in the last 30 minutes on QA HOLD** and label them accordingly.  \n  4. **Dispose of any open bottles within 2 m of the broken glass**.  \n  5. **Clean up the broken glass** using the red glass kit only; use a vacuum, never compressed air.  \n  6. **Perform a sanitation rinse of the filler** (10 min).  \n  7. **Obtain sign‑off from the quality lead** before restarting the line.  \n  8. **Record the event** in the glass breakage log.  \n- Key specifications:  \n  - None of the SOP excerpts provide numeric temperature, pressure, torque, or clearance tolerances relevant to this incident.  \n- Safety requirements:  \n  - PPE: safety glasses, cut‑resistant gloves, hearing protection, safety shoes (Section 6.1).  \n  - LOTO procedure before any maintenance or clearing a jam (Section 6.2).  \n  - Never clear a jam while the machine is running (Section 6.4).  \n  - Never use compressed air near open bottles or broken glass (Section 6.4).  \n- SOP gap: NO — procedure exists.  \n- Data confidence: HIGH  \n\nSOURCES USED:\n- FL-101-SOP.txt (Revision 1.0) – Sections 6.1, 6.2, 6.4, 12.3.",
+    "unreviewed": 0
+   },
+   {
+    "agent": "Maintenance Agent",
+    "findings": "MAINTENANCE HISTORY FINDINGS:\n- Last service: NOT FOUND\n- Recurring issues: NOT FOUND\n- Recent work: NOT FOUND\n- Relevant findings: The only available document is a work instruction (WI‑FL101‑001) detailing procedures for seal replacement on the FL‑101 Bottle Filler. It does not contain any actual maintenance logs or records of work performed.\n- Data confidence: NO DATA\n\nSOURCES USED:\n- FL-101-Work-Instruction.txt",
+    "unreviewed": 0
+   }
+  ],
+  "pieces": [
+   {
+    "rank": 1,
+    "step": "alarm",
+    "text": "Shift log summary for FL-101. Date: 2026-09-17. Shift: Day. Line: Filling Line 1. Event categories: Alarm, Handover, Quality, Routine. Total events: 7. Events include: Pre-start checks complete. Glass check sheet signed.; Glass breakage detected in filler. Bottle shattered at the discharge star wheel.; All bottles filled 10:12-10:42 put on QA HOLD (about 3,600 bottles). 14 open bot; Glass cleaned up with the red glass kit and vacuum. No compressed air used. Sani; Quality lead inspected the filler and signed off restart..",
+    "score": 0.8799,
+    "search": "documents",
+    "chunk_id": "4fcd73a0-a3c8-4a93-b939-ea8a8e6f9a91_chunk_0",
+    "doc_type": "Shift Log",
+    "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+    "reranked": false,
+    "revision": "1.0"
+   },
+   {
+    "rank": 2,
+    "step": "alarm",
+    "text": "2026-09-17 — Day shift — Filling Line 1 — at 06:05 — [Routine] — Equipment: FL-101 — Pre-start checks complete. Glass check sheet signed. — Action: Checklist signed. — Operator: [name removed] — Status: OK\n2026-09-17 — Day shift — Filling Line 1 — at 10:42 — [Alarm] — Equipment: FL-101 — Glass breakage detected in filler. Bottle shattered at the discharge star wheel. — Action: Emergency stop pressed. Machine locked out before any guard was opened. Quality lead called. — Operator: [name removed] — Status: Emergency stop\n2026-09-17 — Day shift — Filling Line 1 — at 10:50 — [Quality] — Equipment: FL-101 — All bottles filled 10:12-10:42 put on QA HOLD (about 3,600 bottles). 14 open bottles within 2 metres of the break thrown away. — Action: QA HOLD labels fitted to 4 pallets. — Operator: [name removed] — Status: In Progress\n2026-09-17 — Day shift — Filling Line 1 — at 11:05 — [Quality] — Equipment: FL-101 — Glass cleaned up with the red glass kit and vacuum. No compressed air used. Sanitation rinse 10 minutes done. — Action: Glass breakage log completed. — Operator: [name removed] — Status: Complete\n2026-09-17 — Day shift — Filling Line 1 — at 11:40 — [Quality] — Equipment: FL-101 — Quality lead inspected the filler and signed off restart. — Action: Line restarted. — Operator: [name removed] — Status: Resolved",
+    "score": 0.8705,
+    "search": "documents",
+    "chunk_id": "4fcd73a0-a3c8-4a93-b939-ea8a8e6f9a91_chunk_1",
+    "doc_type": "Shift Log",
+    "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+    "reranked": false,
+    "revision": "1.0"
+   },
+   {
+    "rank": 3,
+    "step": "alarm",
+    "text": "Shift log summary for FL-101. Date: 2026-09-10. Shift: Night. Line: Filling Line 1. Event categories: Alarm, Handover, Quality Check, Routine. Total events: 6. Events include: Pre-start checks. Valves 9 and 15 dripping between fills.; Reject count 14 per 1,000 - above 1 in 100.; Underfill alarm - Fill level low - bottles under target volume. Checkweigher rep; Second underfill alarm tonight. Same valves 9 and 15.; Third underfill alarm this shift. Valves 9, 15 and now 3 underfilling..",
+    "score": 0.87,
+    "search": "documents",
+    "chunk_id": "b92315d9-3ecf-4317-8418-0ef49dba3555_chunk_0",
+    "doc_type": "Shift Log",
+    "document": "DemoBottling-Shift-Log-2026-09-10-Night.csv",
+    "reranked": false,
+    "revision": "1.0"
+   },
+   {
+    "rank": 4,
+    "step": "alarm",
+    "text": "2026-09-17 — Day shift — Filling Line 1 — at 13:30 — [Quality] — Equipment: FL-101 — Held bottles inspected. 3,580 released, 20 rejected. Broken bottle came from a chipped batch from the bottle supplier. — Action: Supplier complaint raised for the chipped batch. — Operator: [name removed] — Status: Complete\n2026-09-17 — Day shift — Filling Line 1 — at 13:50 — [Handover] — Equipment: FL-101 — One glass breakage handled by the book. About 1 hour lost. — Action: Watch for chipped bottles from the same supplier batch. — Operator: [name removed] — Status: Handover complete",
+    "score": 0.8656,
+    "search": "documents",
+    "chunk_id": "4fcd73a0-a3c8-4a93-b939-ea8a8e6f9a91_chunk_2",
+    "doc_type": "Shift Log",
+    "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+    "reranked": false,
+    "revision": "1.0"
+   },
+   {
+    "rank": 1,
+    "step": "maintenance",
+    "text": "WORK INSTRUCTION\nEquipment: FL-101 Bottle Filler\nDocument Type: Work Instruction\nReference: WI-FL101-001\nRevision: 1.0\nPlant: Demo Bottling Plant\nLine: Filling Line 1\nOwner: Maintenance Supervisor\nApproved by: Maintenance Supervisor — [name removed]\nDate: February 2026\nEffective from: 1 March 2026\nUncontrolled when printed. Always check the document system for the latest revision.\n\nDEMO DATA — written for the PlantMind learning project. Not from a real plant.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFILL VALVE SEAL REPLACEMENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. PURPOSE\n\nThis work instruction explains how to replace the seal kit in an FL-101\nfill valve. A worn seal is the most common cause of underfill alarms.\n\n2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS",
+    "score": 0.8139,
+    "search": "documents",
+    "chunk_id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+    "doc_type": "Work Instruction",
+    "document": "FL-101-Work-Instruction.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 2,
+    "step": "maintenance",
+    "text": "2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS\n\nReplace the seal kit when:\n  - A valve drips between fills\n  - The checkweigher shows the same valve underfilling again and again\n  - Three or more underfill alarms happen in one shift\n  - The seal has reached its limit: 3 months or 1,500 running hours,\n    whichever comes first\n\n4. TIME NEEDED\n\n  One valve:                     about 15 minutes\n  A typical job (1 to 4 valves): 30 to 45 minutes\n  Including rinse and check:     about 1 hour\n\n5. PARTS AND TOOLS\n\n  Seal kit, one per valve:  SEAL-FV-24 (main seal and O-ring)\n  Food-grade lubricant:     FGL-1\n  Location:                 Filling Line 1 spares cabinet, shelf 2\n  Tools:                    valve key, seal pick, clean lint-free cloths,\n                            20 empty 500 ml bottles for the check\n\n6. SAFETY",
+    "score": 0.8089,
+    "search": "documents",
+    "chunk_id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+    "doc_type": "Work Instruction",
+    "document": "FL-101-Work-Instruction.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 3,
+    "step": "maintenance",
+    "text": "Record what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB\n\n  What you see                        Check                     Action\n  ─────────────────────────────────────────────────────────────────────────\n  Valve still drips                   Seal seated correctly?    Refit the seal\n  Valve still underfills, no drip     Nozzle blocked?           Clean the nozzle\n  All valves underfill                Supply pressure?          SOP Section 12.4\n  Overfill for 2 to 3 minutes only    Normal settling           No action\n  Overfill after 5 minutes            Valve fully clicked in?   Refit the valve\n  Leak at the valve body              O-ring missing?           Fit a new O-ring\n\n11. SIGN-OFF",
+    "score": 0.8117,
+    "search": "documents",
+    "chunk_id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+    "doc_type": "Work Instruction",
+    "document": "FL-101-Work-Instruction.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 4,
+    "step": "maintenance",
+    "text": "6. SAFETY\n\n  - Lock out the machine before starting (LOTO, SOP Section 6.2).\n  - Wear safety glasses and gloves.\n  - Only use food-grade lubricant. Any other lubricant contaminates the\n    product.\n  - Keep removed parts and tools on the tray. Nothing may be left inside\n    the machine.\n\n7. BEFORE YOU START\n\n  - Check the checkweigher report to see which valves are underfilling.\n  - Mark those valves with a green tag so the right valves are changed.\n  - Tell the shift lead how long the line will be stopped.\n\n8. PROCEDURE",
+    "score": 0.8459,
+    "search": "documents",
+    "chunk_id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+    "doc_type": "Work Instruction",
+    "document": "FL-101-Work-Instruction.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 1,
+    "step": "sop",
+    "text": "STANDARD OPERATING PROCEDURE\nEquipment: FL-101 Bottle Filler\nDocument Type: SOP\nReference: FL-101-SOP\nRevision: 1.0\nPlant: Demo Bottling Plant\nLine: Filling Line 1\nOwner: Production Manager\nApproved by: Plant Manager — [name removed]\nDate: February 2026\nEffective from: 1 March 2026\nNext review: March 2027\nUncontrolled when printed. Always check the document system for the latest revision.\n\nDEMO DATA — written for the PlantMind learning project. Not from a real plant.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n1. PURPOSE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nThis SOP explains how to run the FL-101 Bottle Filler safely and correctly.\nIt covers the checks before starting, the start-up sequence, the normal\nsettings, the checks during the shift, what to do for each alarm, bottle\nsize changeovers, cleaning, records and shutdown.",
+    "score": 0.8241,
+    "search": "documents",
+    "chunk_id": "13da9b82-317c-4b6e-8118-f45ceb0256bf_chunk_0",
+    "doc_type": "SOP",
+    "document": "FL-101-SOP.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 2,
+    "step": "sop",
+    "text": "6.1 PPE required on Filling Line 1\n  - Safety glasses at all times\n  - Cut-resistant gloves when handling glass or change parts\n  - Hearing protection\n  - Safety shoes\n\n6.2 Lockout / tagout (LOTO)\nLOTO is required before any maintenance, clearing a jam, changing parts, or\nreaching into the machine. Follow SAF-003:\n  1. Switch off power at the main isolator.\n  2. Lock the isolator with your personal padlock.\n  3. Tag it with your name and the date.\n  4. Try to start the machine to prove it cannot run.\nOnly the person who fitted a lock may remove it.\n\n6.3 Guards\nAll guard doors have safety switches. The machine stops if a guard door is\nopened. Never bypass or tape over a guard switch.\n\n6.4 Main safety rules\n  - Never clear a jam while the machine is running.\n  - Never reach past a guard.\n  - Never use compressed air near open bottles or broken glass.\n  - Keep the floor dry. Report leaks and spills straight away.",
+    "score": 0.848,
+    "search": "documents",
+    "chunk_id": "13da9b82-317c-4b6e-8118-f45ceb0256bf_chunk_6",
+    "doc_type": "SOP",
+    "document": "FL-101-SOP.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 3,
+    "step": "sop",
+    "text": "Following this SOP keeps people safe, keeps every bottle within the\ndeclared fill amount, and keeps glass and other foreign objects out of the\nproduct.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n2. SCOPE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nThis SOP applies to:\n  - The FL-101 Bottle Filler on Filling Line 1\n  - 500 ml and 330 ml glass bottles\n  - Still water only\n\nThis SOP does not cover the capper (CP-102) or the labeller (LB-103). They\nhave their own SOPs. It does not cover repairs: repairs follow the work\ninstructions listed in Section 5.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n3. RESPONSIBILITIES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nFiller operator\n  - Runs the machine as described in this SOP\n  - Completes the pre-start checks and the checks during the shift\n  - Responds to alarms and records them in the shift log\n  - Stops the machine if anything looks unsafe",
+    "score": 0.8356,
+    "search": "documents",
+    "chunk_id": "13da9b82-317c-4b6e-8118-f45ceb0256bf_chunk_1",
+    "doc_type": "SOP",
+    "document": "FL-101-SOP.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 4,
+    "step": "sop",
+    "text": "If a bottle breaks during a jam, stop and follow Section 12.3.\n\n12.3 Glass Breakage\nAlarm message: \"Glass breakage detected in filler\"\n\nCRITICAL — broken glass can end up inside filled bottles. This is a\nproduct safety event. Follow GBP-001.\n\nImmediate action:\n  Step 1 — Stop the line at once with the emergency stop.\n  Step 2 — Do not open any guard until the machine has stopped and is\n           locked out (Section 6.2).\n  Step 3 — Put every bottle filled in the last 30 minutes on hold. Label\n           them QA HOLD. Throw away any open bottles within 2 metres of\n           the break.\n  Step 4 — Clean up with the red glass kit only. Use a vacuum, never\n           compressed air (air spreads glass).\n  Step 5 — Rinse the filler (sanitation rinse, 10 minutes).\n  Step 6 — The quality lead must sign off before the line restarts.\n  Step 7 — Record the event in the glass breakage log.\n\nBottles on QA HOLD may only be released after the quality lead has\ninspected them.",
+    "score": 0.8812,
+    "search": "documents",
+    "chunk_id": "13da9b82-317c-4b6e-8118-f45ceb0256bf_chunk_16",
+    "doc_type": "SOP",
+    "document": "FL-101-SOP.txt",
+    "reranked": true,
+    "revision": "1.0"
+   }
+  ],
+  "events": [
+   {
+    "ms": 513,
+    "kind": "llm_call",
+    "step": "supervisor",
+    "t_ms": 1255,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "supervisor",
+    "tokens_in": 1055,
+    "tokens_out": 205,
+    "finish_reason": "stop"
+   },
+   {
+    "kind": "search",
+    "step": "expert_fix",
+    "t_ms": 1678,
+    "query": "fix for FL-101 [Plant: Demo Bottling Plant, Line: Filling Line 1] I've just spotted some broken glass on the floor ",
+    "pieces": 0,
+    "search": "expert_fixes",
+    "outcome": "no_data",
+    "doc_type": "Expert Fix",
+    "reranked": null
+   },
+   {
+    "kind": "search",
+    "step": "alarm",
+    "t_ms": 1769,
+    "query": "alarm history incidents for FL-101 [Plant: Demo Bottling Plant, Line: Filling Line 1] I've just spotted some broken glass on the floor ",
+    "pieces": 4,
+    "search": "documents",
+    "outcome": "ok",
+    "doc_type": "Shift Log",
+    "reranked": false
+   },
+   {
+    "ms": 558,
+    "kind": "llm_call",
+    "step": "expert_fix",
+    "t_ms": 2242,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "specialist",
+    "tokens_in": 677,
+    "tokens_out": 136,
+    "finish_reason": "stop"
+   },
+   {
+    "kind": "budget_wait",
+    "step": "alarm",
+    "t_ms": 2246,
+    "model": "openai/gpt-oss-20b",
+    "waited_s": 0.5,
+    "call_type": "specialist",
+    "needed_tokens": 1811,
+    "used_this_minute": 5745,
+    "budget_per_minute": 7600
+   },
+   {
+    "kind": "search",
+    "step": "maintenance",
+    "t_ms": 2645,
+    "query": "[Plant: Demo Bottling Plant, Line: Filling Line 1] I've just spotted some broken glass on the floor beside the filler. I didn't see a bottle break, and there's been no glass alarm. The machine's still running normally. Do I need to stop everything, or can I just clean it up?",
+    "pieces": 4,
+    "search": "documents",
+    "outcome": "ok",
+    "doc_type": "Work Instruction",
+    "reranked": true
+   },
+   {
+    "ms": 812,
+    "kind": "llm_call",
+    "step": "alarm",
+    "t_ms": 3062,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "specialist",
+    "tokens_in": 1517,
+    "tokens_out": 285,
+    "finish_reason": "stop"
+   },
+   {
+    "kind": "search",
+    "step": "sop",
+    "t_ms": 4082,
+    "query": "[Plant: Demo Bottling Plant, Line: Filling Line 1] I've just spotted some broken glass on the floor beside the filler. I didn't see a bottle break, and there's been no glass alarm. The machine's still running normally. Do I need to stop everything, or can I just clean it up?",
+    "pieces": 4,
+    "search": "documents",
+    "outcome": "ok",
+    "doc_type": "SOP",
+    "reranked": true
+   },
+   {
+    "kind": "budget_wait",
+    "step": "sop",
+    "t_ms": 44161,
+    "model": "openai/gpt-oss-20b",
+    "waited_s": 40.1,
+    "call_type": "specialist",
+    "needed_tokens": 1838,
+    "used_this_minute": 5729,
+    "budget_per_minute": 7600
+   },
+   {
+    "ms": 928,
+    "kind": "llm_call",
+    "step": "sop",
+    "t_ms": 45093,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "specialist",
+    "tokens_in": 1401,
+    "tokens_out": 387,
+    "finish_reason": "stop"
+   },
+   {
+    "kind": "budget_wait",
+    "step": "maintenance",
+    "t_ms": 53076,
+    "model": "openai/gpt-oss-20b",
+    "waited_s": 50.4,
+    "call_type": "specialist",
+    "needed_tokens": 1723,
+    "used_this_minute": 5663,
+    "budget_per_minute": 7600
+   },
+   {
+    "ms": 713,
+    "kind": "llm_call",
+    "step": "maintenance",
+    "t_ms": 53792,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "specialist",
+    "tokens_in": 1285,
+    "tokens_out": 122,
+    "finish_reason": "stop"
+   },
+   {
+    "kind": "budget_wait",
+    "step": "writer",
+    "t_ms": 54016,
+    "model": "openai/gpt-oss-120b",
+    "waited_s": 0.2,
+    "call_type": "orchestrator",
+    "needed_tokens": 6090,
+    "used_this_minute": 0,
+    "budget_per_minute": 7600
+   },
+   {
+    "ms": 4132,
+    "kind": "llm_call",
+    "step": "writer",
+    "t_ms": 58152,
+    "error": null,
+    "model": "openai/gpt-oss-120b",
+    "call_type": "orchestrator",
+    "tokens_in": 4871,
+    "tokens_out": 1779,
+    "finish_reason": "stop"
+   }
+  ],
+  "tokens_by_model": {
+   "openai/gpt-oss-20b": {
+    "in": 5935,
+    "out": 1135
+   },
+   "openai/gpt-oss-120b": {
+    "in": 4871,
+    "out": 1779
+   }
+  }
+ }
+}

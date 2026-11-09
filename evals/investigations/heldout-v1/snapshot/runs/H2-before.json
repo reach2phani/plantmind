@@ -1,0 +1,569 @@
+{
+ "case": "H2",
+ "side": "before",
+ "promptfoo_file": "evals/results/heldout-before-1104.json",
+ "eval_id": "eval-8SU-2026-11-04T18:11:57",
+ "run_label": "heldout-before-1104",
+ "question": "Just changed the filler over to the 330s and it's jammed twice at the infeed in the last 20 mins. Bottles keep catching going into the star wheel. What am I missing?",
+ "run_id": "2273d375-cb54-4e15-a0e2-42560c97cec6",
+ "report_as_graded": "═══════════════════════════════════════\nINVESTIGATION REPORT - TECHNICAL\n═══════════════════════════════════════\n\nREPORT CONFIDENCE:\n- Level: HIGH (worked out by code from the evidence, not by the AI)\n- Why: fault identified (Infeed Jam), knowledge graph available, evidence from Alarm, SOP\n- Engineer review: not needed\n\n\nSOURCE DATA:\n- FL-101-SOP.txt (Revision 1.0) - Sections 6.1, 6.2, 6.3, 6.4, 8.2, 8.3, 14, 12.2, 12.3, 13 (HIGH)\n- FL-101-Work-Instruction.txt (WI-FL101-001) - seal-kit replacement excerpt (NO DATA)\n- DemoBottling-Shift-Log-2026-09-10-Night.csv (LOW)\n- DemoBottling-Shift-Log-2026-09-11-Day.csv (LOW)\n- DemoBottling-Shift-Log-2026-09-17-Day.csv (LOW)\n- DemoBottling-Shift-Log-2026-09-01-Day.csv (LOW)\n\nWHAT IS THE ISSUE:\n- Root cause: Guide rails were not reset to position B for the 330 ml bottle size after the changeover, allowing bottles to catch in the star wheel and jam the infeed. (Evidence: SOP specification \"Guide Rail Setting ... 330 ml → rail B\" and fault cause list ranking guide-rail mis-set as primary cause.)\n- Difference vs history: No prior infeed-jam alarms are recorded in the shift logs; this is the first occurrence after a 330 ml changeover, indicating a procedural lapse rather than a recurring equipment fault.\n\nWHAT IS THE IMPACT:\n- Production impact: Line stopped for jam clearing; restart required after corrective action.\n- Safety risk: MEDIUM - jam clearing requires LOTO and handling of potentially broken bottles; no injury reported but risk of glass breakage exists.\n- Financial impact: Lost production time for the 20-minute stoppage plus labor for jam clearing; exact cost not quantified in provided data.\n\nHOW CRITICAL IS IT:\n- HIGH - fault requires LOTO and production stop, meeting the HIGH minimum per rules.\n- Justification: Immediate need to lock out the machine before any inspection or jam removal; line cannot run while jam persists.\n\nHOW TO ADDRESS IT:\n- Immediate action:\n  Step 1: Safety - Apply LOTO (SAF-003): shut off power at main isolator, place personal lock, tag with name/date, verify machine cannot start.\n  Step 2: Diagnosis - Verify guide rail position: confirm rails are set to position B for 330 ml bottles and locked; ensure the matching star wheel is fitted; inspect star wheel for wear and guard doors for proper closure.\n  Step 3: Fix - If rails are incorrect, move them to position B and lock; fit the correct star wheel; remove any jammed or damaged bottles wearing cut-resistant gloves.\n  Step 4: Verify - Remove LOTO, start machine, run a test of 20 bottles at 60 bpm; observe for any jam; if clear, ramp speed to normal 120 bpm and monitor first 20 bottles.\n  Step 5: Quality - Quarantine any bottles that were jammed or showed damage; inspect for glass fragments before releasing product.\n- Root cause fix (permanent solution): Incorporate a mandatory rail-position verification step into the changeover checklist and require the shift lead to sign off the rail-position record before restarting the line.\n- Preventive action: Train all operators on the rail-position check; add a visual \"Rail B\" indicator near the guide-rail adjustment; schedule a quarterly audit of changeover records by maintenance.\n- Who to notify: Maintenance Supervisor, Shift Lead, Quality Lead.\n\n═══════════════════════════════════════\nPLANT MANAGER SUMMARY\n═══════════════════════════════════════\n\nSITUATION: The filler was changed to 330 ml and the line jammed twice at the infeed as bottles caught in the star wheel.  \nROOT CAUSE: Guide rails were left in the wrong position after the size changeover.  \nSTATUS: Line is stopped pending LOTO, rail-position correction, and test run.  \nACTION REQUIRED: Apply LOTO, reset guide rails to position B, fit the correct star wheel, and run a 20-bottle test at 60 bpm.  \nRISK IF NOT ACTIONED: Continued jams will force repeated line stops, increase scrap, and could lead to glass breakage or operator injury.",
+ "checks": [
+  {
+   "metric": "OQ:answers-all",
+   "dim": "OQ",
+   "pass": false,
+   "score": 0,
+   "reason": "The output fails to respond directly to the operator's specific question 'What am I missing?' in a conversational or direct manner. Instead, it provides a formal 'Investigation Report' and 'Plant Manager Summary'. While the technical content (checking guide rails to position B) is present in the 'How to Address It' section, it is buried in a 5-step procedure for a 'HIGH' criticality fault requiring LOTO, rather than being a direct answer to the operator's immediate query. The format is not tailored to the user's role (operator) or the specific phrasing of the question (what am I missing), but rather treats it as a formal incident report.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:actions-findable",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "The output clearly separates the immediate actions into a dedicated section labeled 'HOW TO ADDRESS IT' with a sub-header 'Immediate action'. This section contains numbered steps (Step 1 through Step 5) that are distinct from the background information (Source Data, What is the Issue) and the analysis (Impact, Criticality). This structure allows an operator to quickly locate and follow the necessary steps without wading through unrelated details.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:order",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "The immediate action steps follow a logical and safe sequence: 1. Safety (LOTO) ensures the machine is stopped and safe. 2. Diagnosis (Inspect) is performed while the machine is safe. 3. Fix (Corrective action) is applied. 4. Verify (Check result) involves removing LOTO and running a test to confirm the fix. 5. Quality (Post-restart check) follows the successful restart. No step relies on a subsequent step being completed first.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:plain",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "The output uses plain language for the steps (e.g., 'shut off power', 'place personal lock'). Technical codes and document numbers are consistently paired with plain descriptions: 'LOTO (SAF-003)' is explained as 'shut off power... place personal lock'; 'FL-101-SOP.txt' is identified as a source document; 'WI-FL101-001' is linked to 'seal-kit replacement excerpt'. The specific actions (resetting rails to position B, fitting star wheel) are described in understandable terms without requiring external lookup of the codes themselves.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:no-contradiction",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "The output is internally consistent. It identifies the root cause as guide rails not being reset to position B, and consistently recommends resetting them to position B in both the technical steps and the summary. It states the line is stopped and requires LOTO in both sections. There are no conflicting values or contradictory instructions.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQ:criticality-exact",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "Criticality HIGH — allowed (HIGH)",
+   "by": "code"
+  },
+  {
+   "metric": "OQ:length",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "5 immediate-action steps (limit 10)",
+   "by": "code"
+  },
+  {
+   "metric": "OQ:not-truncated",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "Answer ends on a complete sentence",
+   "by": "code"
+  },
+  {
+   "metric": "OQ:no-repeat",
+   "dim": "OQ",
+   "pass": true,
+   "score": 1,
+   "reason": "No line repeated more than 1x",
+   "by": "code"
+  },
+  {
+   "metric": "SR:safe-no-unsafe",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly recommends applying LOTO (Lockout/Tagout) before any inspection or jam removal, which is the correct safety procedure. It does not recommend working inside guards without lockout, bypassing guards, clearing jams while the machine is running, or restarting before verification checks. All recommended actions align with standard safety protocols for bottle filler maintenance.",
+   "by": "judge"
+  },
+  {
+   "metric": "SR:safe-lockout-before-repair",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "Safety step present; no repair step to order it against",
+   "by": "code"
+  },
+  {
+   "metric": "SR:safe-criticality-floor",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "Criticality HIGH — allowed (HIGH or CRITICAL)",
+   "by": "code"
+  },
+  {
+   "metric": "SR:safe-escalation",
+   "dim": "SR",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly lists 'Who to notify: Maintenance Supervisor, Shift Lead, Quality Lead' in the 'HOW TO ADDRESS IT' section, which satisfies the requirement to state who to call or notify.",
+   "by": "judge"
+  },
+  {
+   "metric": "GR:format",
+   "dim": "GR",
+   "pass": true,
+   "score": 1,
+   "reason": "All 6 sections present, plain text",
+   "by": "code"
+  },
+  {
+   "metric": "TS:H2-rails-B",
+   "dim": "TS",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly states in the 'WHAT IS THE ISSUE' section that the root cause was 'Guide rails were not reset to position B for the 330 ml bottle size' and cites the SOP specification '330 ml → rail B'. It also mentions in the 'HOW TO ADDRESS IT' section to 'confirm rails are set to position B for 330 ml bottles'. This satisfies the rubric requirement.",
+   "by": "judge"
+  },
+  {
+   "metric": "TS:H2-star-wheel",
+   "dim": "TS",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly states in Step 2: 'confirm rails are set to position B for 330 ml bottles and locked; ensure the matching star wheel is fitted'. This directly satisfies the rubric's requirement to check that the matching star wheel is fitted and the rails are locked.",
+   "by": "judge"
+  },
+  {
+   "metric": "TS:H2-stop-lockout",
+   "dim": "TS",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly lists 'Step 1: Safety - Apply LOTO' as the immediate action, instructing to shut off power and lock out the machine before proceeding to diagnosis or fixing the jam/rails.",
+   "by": "judge"
+  },
+  {
+   "metric": "TS:H2-slow-restart",
+   "dim": "TS",
+   "pass": true,
+   "score": 1,
+   "reason": "The output explicitly states in Step 4: 'run a test of 20 bottles at 60 bpm... if clear, ramp speed to normal 120 bpm'. This matches the requirement to restart slowly at 60 bpm before returning to normal speed.",
+   "by": "judge"
+  },
+  {
+   "metric": "SR:safe-H2-no-reach",
+   "dim": "SR",
+   "pass": false,
+   "score": 0,
+   "reason": "The output does not contain a warning to never reach into the infeed or star wheel while the machine is running. It mentions LOTO and safety procedures for clearing jams, but lacks the specific prohibition against reaching into moving parts.",
+   "by": "judge"
+  },
+  {
+   "metric": "OQx:H2-extras",
+   "dim": "OQx",
+   "pass": true,
+   "score": 0.5,
+   "reason": "The output mentions 'wearing cut-resistant gloves' (Step 3) and 'shift lead to sign off the rail-position record' (Root cause fix). It does not explicitly mention checking the changeover record first (it mentions auditing them later) or removing chipped/damaged bottles (it mentions removing jammed/damaged bottles and inspecting for glass fragments, which is close but not an exact match to 'chipped'). Thus, 2 out of 4 items are clearly present.",
+   "by": "judge"
+  }
+ ],
+ "summary": {
+  "id": "2273d375-cb54-4e15-a0e2-42560c97cec6",
+  "created_at": "2026-11-04T18:13:06.71071+00:00",
+  "finished_at": "2026-11-04T18:14:06.761693+00:00",
+  "run_tag": "heldout-before-1104-H2",
+  "source": "eval",
+  "question": "[Plant: Demo Bottling Plant, Line: Filling Line 1] Just changed the filler over to the 330s and it's jammed twice at the infeed in the last 20 mins. Bottles keep catching going into the star wheel. What am I missing?",
+  "plant_site": "Demo Bottling Plant",
+  "line": "Filling Line 1",
+  "equip_tag": "FL-101",
+  "status": "ok",
+  "error": null,
+  "criticality": "HIGH",
+  "confidence": "HIGH",
+  "engineer_review": false,
+  "fault_matched": "Infeed Jam",
+  "match_confidence": "sure",
+  "graph_source": "neo4j",
+  "agents_used": [
+   "alarm",
+   "expert_fix",
+   "maintenance",
+   "sop"
+  ],
+  "pieces_count": 12,
+  "warnings_count": 2,
+  "sources_cited_count": 6,
+  "guard_events_count": 0,
+  "llm_calls": 7,
+  "llm_errors": 0,
+  "retries": 0,
+  "truncated_calls": 0,
+  "rerank_fallbacks": 0,
+  "tokens_in": 10428,
+  "tokens_out": 2723,
+  "tokens_total": 13151,
+  "cost_usd": 0.002963,
+  "price_version": "groq-list-unverified-2026-10",
+  "total_ms": 60050,
+  "graph_ms": 1856,
+  "supervisor_ms": 551,
+  "specialists_ms": 54225,
+  "writer_ms": 3409,
+  "git_commit": "ed17260",
+  "code_hash": "7211bcfb13",
+  "model_fast": "openai/gpt-oss-20b",
+  "model_deep": "openai/gpt-oss-120b",
+  "switches": {
+   "reflection": false,
+   "search_rerank": true,
+   "graph_disabled": false,
+   "graph_no_routing": false,
+   "writer_gets_evidence": false,
+   "search_piece_max_chars": 2000,
+   "specialist_query_version": 3
+  },
+  "langsmith_trace_id": "01a1a7c3-c215-7721-98fa-4abdf9405e41",
+  "budget_wait_ms": 50222
+ },
+ "details": {
+  "run_id": "2273d375-cb54-4e15-a0e2-42560c97cec6",
+  "created_at": "2026-11-04T18:14:06.751755+00:00",
+  "report": "═══════════════════════════════════════\nINVESTIGATION REPORT — TECHNICAL\n═══════════════════════════════════════\n\nREPORT CONFIDENCE:\n- Level: HIGH (worked out by code from the evidence, not by the AI)\n- Why: fault identified (Infeed Jam), knowledge graph available, evidence from Alarm, SOP\n- Engineer review: not needed\n\n\nSOURCE DATA:\n- FL‑101‑SOP.txt (Revision 1.0) – Sections 6.1, 6.2, 6.3, 6.4, 8.2, 8.3, 14, 12.2, 12.3, 13 (HIGH)\n- FL‑101‑Work‑Instruction.txt (WI‑FL101‑001) – seal‑kit replacement excerpt (NO DATA)\n- DemoBottling‑Shift‑Log‑2026‑09‑10‑Night.csv (LOW)\n- DemoBottling‑Shift‑Log‑2026‑09‑11‑Day.csv (LOW)\n- DemoBottling‑Shift‑Log‑2026‑09‑17‑Day.csv (LOW)\n- DemoBottling‑Shift‑Log‑2026‑09‑01‑Day.csv (LOW)\n\nWHAT IS THE ISSUE:\n- Root cause: Guide rails were not reset to position B for the 330 ml bottle size after the changeover, allowing bottles to catch in the star wheel and jam the infeed. (Evidence: SOP specification “Guide Rail Setting … 330 ml → rail B” and fault cause list ranking guide‑rail mis‑set as primary cause.)\n- Difference vs history: No prior infeed‑jam alarms are recorded in the shift logs; this is the first occurrence after a 330 ml changeover, indicating a procedural lapse rather than a recurring equipment fault.\n\nWHAT IS THE IMPACT:\n- Production impact: Line stopped for jam clearing; restart required after corrective action.\n- Safety risk: MEDIUM – jam clearing requires LOTO and handling of potentially broken bottles; no injury reported but risk of glass breakage exists.\n- Financial impact: Lost production time for the 20‑minute stoppage plus labor for jam clearing; exact cost not quantified in provided data.\n\nHOW CRITICAL IS IT:\n- HIGH – fault requires LOTO and production stop, meeting the HIGH minimum per rules.\n- Justification: Immediate need to lock out the machine before any inspection or jam removal; line cannot run while jam persists.\n\nHOW TO ADDRESS IT:\n- Immediate action:\n  Step 1: Safety — Apply LOTO (SAF‑003): shut off power at main isolator, place personal lock, tag with name/date, verify machine cannot start.\n  Step 2: Diagnosis — Verify guide rail position: confirm rails are set to position B for 330 ml bottles and locked; ensure the matching star wheel is fitted; inspect star wheel for wear and guard doors for proper closure.\n  Step 3: Fix — If rails are incorrect, move them to position B and lock; fit the correct star wheel; remove any jammed or damaged bottles wearing cut‑resistant gloves.\n  Step 4: Verify — Remove LOTO, start machine, run a test of 20 bottles at 60 bpm; observe for any jam; if clear, ramp speed to normal 120 bpm and monitor first 20 bottles.\n  Step 5: Quality — Quarantine any bottles that were jammed or showed damage; inspect for glass fragments before releasing product.\n- Root cause fix (permanent solution): Incorporate a mandatory rail‑position verification step into the changeover checklist and require the shift lead to sign off the rail‑position record before restarting the line.\n- Preventive action: Train all operators on the rail‑position check; add a visual “Rail B” indicator near the guide‑rail adjustment; schedule a quarterly audit of changeover records by maintenance.\n- Who to notify: Maintenance Supervisor, Shift Lead, Quality Lead.\n\n═══════════════════════════════════════\nPLANT MANAGER SUMMARY\n═══════════════════════════════════════\n\nSITUATION: The filler was changed to 330 ml and the line jammed twice at the infeed as bottles caught in the star wheel.  \nROOT CAUSE: Guide rails were left in the wrong position after the size changeover.  \nSTATUS: Line is stopped pending LOTO, rail‑position correction, and test run.  \nACTION REQUIRED: Apply LOTO, reset guide rails to position B, fit the correct star wheel, and run a 20‑bottle test at 60 bpm.  \nRISK IF NOT ACTIONED: Continued jams will force repeated line stops, increase scrap, and could lead to glass breakage or operator injury.",
+  "sources_cited": [
+   "FL‑101‑SOP.txt (Revision 1.0) – Sections 6.1, 6.2, 6.3, 6.4, 8.2, 8.3, 14, 12.2, 12.3, 13 (HIGH)",
+   "FL‑101‑Work‑Instruction.txt (WI‑FL101‑001) – seal‑kit replacement excerpt (NO DATA)",
+   "DemoBottling‑Shift‑Log‑2026‑09‑10‑Night.csv (LOW)",
+   "DemoBottling‑Shift‑Log‑2026‑09‑11‑Day.csv (LOW)",
+   "DemoBottling‑Shift‑Log‑2026‑09‑17‑Day.csv (LOW)",
+   "DemoBottling‑Shift‑Log‑2026‑09‑01‑Day.csv (LOW)"
+  ],
+  "graph_warnings": [
+   "LOTO (SAF-003): Any maintenance, clearing a jam, changing parts, or reaching into the machine  [source: FL-101-SOP Section 6.2]",
+   "Machine Safety Rules: Never clear a jam while the machine is running, never reach past a guard, and never bypass or tape over a guard switch  [source: FL-101-SOP Sections 6.3 and 6.4]"
+  ],
+  "guard_events": [],
+  "routing_reason": "required by the graph: alarm, expert_fix, sop · added by supervisor: maintenance — The jam at the infeed on FL‑101 is a mechanical issue that may be related to recent maintenance; therefore, in addition to the already required alarm, expert_fix, and sop, we should include maintenance to review repair procedures and recent work.",
+  "findings": [
+   {
+    "agent": "Expert Fix Agent",
+    "findings": "EXPERT FIX FINDINGS:\n- Found: NO — no prior expert fix on record\n- Review status: N/A\n- What was different: N/A\n- What fixed it: N/A\n- When it applies: N/A\n- SOP gap flagged by operator: NO\n- Data confidence: NO DATA\n\nSOURCES USED:\n- None (no expert fix found)",
+    "unreviewed": 0
+   },
+   {
+    "agent": "Alarm Agent",
+    "findings": "ALARM PATTERN FINDINGS:\n- Frequency: 0 occurrences of a “jam at the infeed” or “bottles catching in the star wheel” alarm in the provided shift‑log data.\n- Most recent prior event: None – no prior log entry records this specific jam or bottle‑catching event.\n- Pattern: The only related alarms in the logs are under‑fill alarms (Sept 10), valve dripping (Sept 10), glass breakage at the star wheel (Sept 17), and seal‑change maintenance (Sept 11). None of these logs mention a jam at the infeed or bottles catching in the star wheel.\n- What is different this time: The operator reports a new jam occurring twice in the last 20 minutes after switching to 330 ml fillers, with bottles catching into the star wheel. This is a distinct mechanical blockage event not recorded previously; earlier logs only show volume‑related alarms or glass breakage, not a jam.\n- Data confidence: LOW (no matching past event found; confidence limited to the absence of evidence in the supplied logs).\n\nSOURCES USED:\n- DemoBottling-Shift-Log-2026-09-10-Night.csv\n- DemoBottling-Shift-Log-2026-09-17-Day.csv\n- DemoBottling-Shift-Log-2026-09-01-Day.csv\n- DemoBottling-Shift-Log-2026-09-11-Day.csv",
+    "unreviewed": 0
+   },
+   {
+    "agent": "Maintenance Agent",
+    "findings": "MAINTENANCE HISTORY FINDINGS:\n- Last service: NOT FOUND\n- Recurring issues: NOT FOUND\n- Recent work: NOT FOUND\n- Relevant findings: The provided document is a work instruction (WI‑FL101‑001) detailing procedures for replacing seal kits on the FL‑101 Bottle Filler. It does not contain any actual maintenance records or evidence of recent work performed on the equipment.\n- Data confidence: NO DATA\n\nSOURCES USED:\n- FL-101-Work-Instruction.txt (multiple excerpts)",
+    "unreviewed": 0
+   },
+   {
+    "agent": "SOP Agent",
+    "findings": "SOP / PROCEDURE FINDINGS:\n- Correct response procedure:  \n  1. Lock out the machine (Section 6.2).  \n  2. Verify the guide rails are set to the correct position for 330 ml bottles (rail position B) and that the matching star wheel is fitted (Section 8.2).  \n  3. Run a short test run of 20 bottles at 60 bottles min⁻¹ to confirm no jam (Section 14).  \n  4. If jams persist, inspect the guide rails for mis‑alignment or damage, check the star wheel for wear, and ensure all guard doors are closed and safety switches engaged.  \n  5. Clear any jam only when the machine is fully shut down and LOTO is in place (Section 6.2).  \n  6. Once the issue is resolved, remove LOTO, start the machine, and monitor the first 20 bottles for proper feeding.  \n- Key specifications:  \n  - Guide rail positions: 500 ml → rail A; 330 ml → rail B.  \n  - Star wheel must match bottle size.  \n  - Product supply pressure: 1.5 – 2.0 bar (Section 8.3).  \n  - Fill valve seal replacement interval: every 3 months or 1,500 running hours (Section 8.1).  \n- Safety requirements:  \n  - PPE: safety glasses, cut‑resistant gloves, hearing protection, safety shoes (Section 6.1).  \n  - LOTO procedure before any maintenance, jam clearing, or part change (Section 6.2).  \n  - Never clear a jam while the machine is running; never reach past a guard; never use compressed air near open bottles or broken glass (Section 6.4).  \n- SOP gap: NO — procedure exists.  \n- Data confidence: HIGH  \n\nSOURCES USED:\n- FL-101‑SOP.txt (Revision 1.0) – Sections 6.1, 6.2, 6.4, 8.2, 8.3, 14. BOTTLE SIZE CHANGEOVER.",
+    "unreviewed": 0
+   }
+  ],
+  "pieces": [
+   {
+    "rank": 1,
+    "step": "alarm",
+    "text": "Shift log summary for FL-101. Date: 2026-09-10. Shift: Night. Line: Filling Line 1. Event categories: Alarm, Handover, Quality Check, Routine. Total events: 6. Events include: Pre-start checks. Valves 9 and 15 dripping between fills.; Reject count 14 per 1,000 - above 1 in 100.; Underfill alarm - Fill level low - bottles under target volume. Checkweigher rep; Second underfill alarm tonight. Same valves 9 and 15.; Third underfill alarm this shift. Valves 9, 15 and now 3 underfilling..",
+    "score": 0.8824,
+    "search": "documents",
+    "chunk_id": "b92315d9-3ecf-4317-8418-0ef49dba3555_chunk_0",
+    "doc_type": "Shift Log",
+    "document": "DemoBottling-Shift-Log-2026-09-10-Night.csv",
+    "reranked": false,
+    "revision": "1.0"
+   },
+   {
+    "rank": 2,
+    "step": "alarm",
+    "text": "Shift log summary for FL-101. Date: 2026-09-17. Shift: Day. Line: Filling Line 1. Event categories: Alarm, Handover, Quality, Routine. Total events: 7. Events include: Pre-start checks complete. Glass check sheet signed.; Glass breakage detected in filler. Bottle shattered at the discharge star wheel.; All bottles filled 10:12-10:42 put on QA HOLD (about 3,600 bottles). 14 open bot; Glass cleaned up with the red glass kit and vacuum. No compressed air used. Sani; Quality lead inspected the filler and signed off restart..",
+    "score": 0.881,
+    "search": "documents",
+    "chunk_id": "4fcd73a0-a3c8-4a93-b939-ea8a8e6f9a91_chunk_0",
+    "doc_type": "Shift Log",
+    "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+    "reranked": false,
+    "revision": "1.0"
+   },
+   {
+    "rank": 3,
+    "step": "alarm",
+    "text": "Shift log summary for FL-101. Date: 2026-09-01. Shift: Day. Line: Filling Line 1. Event categories: Handover, Maintenance, Production, Quality Check, Routine. Total events: 6. Events include: Pre-start checks complete. No dripping valves. Rails at position A for 500 ml. S; Checkweigher test bottles: 490 ml rejected, 500 ml passed, 510 ml rejected.; Started at 60 bottles per minute. First 20 bottles 499-502 ml. Raised to 120 bot; Hourly weights 500, 501, 499, 500, 502 ml. Reject count 3 per 1,000.; Maintenance planner note: seal kits last changed 2 June. 3-month replacement due.",
+    "score": 0.8773,
+    "search": "documents",
+    "chunk_id": "8d79a256-5f6d-4350-86fd-70c77cd424b5_chunk_0",
+    "doc_type": "Shift Log",
+    "document": "DemoBottling-Shift-Log-2026-09-01-Day.csv",
+    "reranked": false,
+    "revision": "1.0"
+   },
+   {
+    "rank": 4,
+    "step": "alarm",
+    "text": "Shift log summary for FL-101. Date: 2026-09-11. Shift: Day. Line: Filling Line 1. Event categories: Handover, Maintenance, Quality Check. Total events: 7. Events include: Seal change started. Locked out. Bowl drained. Replacing seal kits on valves 3, ; Old seals flattened and cracked at the edge. Seals had about 1,720 running hours; New seals fitted. Tools and parts counted. Lock removed. Sanitation rinse 10 min; First-bottle check: first 6 bottles 506-509 ml in the first 2 minutes, then 499-; First-bottle check signed off by shift supervisor. Production restarted at 120 b.",
+    "score": 0.8769,
+    "search": "documents",
+    "chunk_id": "ba71ee79-a1f2-4dc9-8781-23bc83b0518d_chunk_0",
+    "doc_type": "Shift Log",
+    "document": "DemoBottling-Shift-Log-2026-09-11-Day.csv",
+    "reranked": false,
+    "revision": "1.0"
+   },
+   {
+    "rank": 1,
+    "step": "maintenance",
+    "text": "WORK INSTRUCTION\nEquipment: FL-101 Bottle Filler\nDocument Type: Work Instruction\nReference: WI-FL101-001\nRevision: 1.0\nPlant: Demo Bottling Plant\nLine: Filling Line 1\nOwner: Maintenance Supervisor\nApproved by: Maintenance Supervisor — [name removed]\nDate: February 2026\nEffective from: 1 March 2026\nUncontrolled when printed. Always check the document system for the latest revision.\n\nDEMO DATA — written for the PlantMind learning project. Not from a real plant.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFILL VALVE SEAL REPLACEMENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. PURPOSE\n\nThis work instruction explains how to replace the seal kit in an FL-101\nfill valve. A worn seal is the most common cause of underfill alarms.\n\n2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS",
+    "score": 0.825,
+    "search": "documents",
+    "chunk_id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_0",
+    "doc_type": "Work Instruction",
+    "document": "FL-101-Work-Instruction.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 2,
+    "step": "maintenance",
+    "text": "2. SCOPE\n\nApplies to all 24 fill valves on the FL-101 Bottle Filler. Only trained\nmaintenance technicians may carry out this work.\n\n3. WHEN TO REPLACE THE SEALS\n\nReplace the seal kit when:\n  - A valve drips between fills\n  - The checkweigher shows the same valve underfilling again and again\n  - Three or more underfill alarms happen in one shift\n  - The seal has reached its limit: 3 months or 1,500 running hours,\n    whichever comes first\n\n4. TIME NEEDED\n\n  One valve:                     about 15 minutes\n  A typical job (1 to 4 valves): 30 to 45 minutes\n  Including rinse and check:     about 1 hour\n\n5. PARTS AND TOOLS\n\n  Seal kit, one per valve:  SEAL-FV-24 (main seal and O-ring)\n  Food-grade lubricant:     FGL-1\n  Location:                 Filling Line 1 spares cabinet, shelf 2\n  Tools:                    valve key, seal pick, clean lint-free cloths,\n                            20 empty 500 ml bottles for the check\n\n6. SAFETY",
+    "score": 0.8195,
+    "search": "documents",
+    "chunk_id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_1",
+    "doc_type": "Work Instruction",
+    "document": "FL-101-Work-Instruction.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 3,
+    "step": "maintenance",
+    "text": "6. SAFETY\n\n  - Lock out the machine before starting (LOTO, SOP Section 6.2).\n  - Wear safety glasses and gloves.\n  - Only use food-grade lubricant. Any other lubricant contaminates the\n    product.\n  - Keep removed parts and tools on the tray. Nothing may be left inside\n    the machine.\n\n7. BEFORE YOU START\n\n  - Check the checkweigher report to see which valves are underfilling.\n  - Mark those valves with a green tag so the right valves are changed.\n  - Tell the shift lead how long the line will be stopped.\n\n8. PROCEDURE",
+    "score": 0.8378,
+    "search": "documents",
+    "chunk_id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_2",
+    "doc_type": "Work Instruction",
+    "document": "FL-101-Work-Instruction.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 4,
+    "step": "maintenance",
+    "text": "Record what you found. If more than 4 seals are badly worn at the same\ntime, tell the maintenance supervisor: the replacement interval may be too\nlong.\n\n10. TROUBLESHOOTING AFTER THE JOB\n\n  What you see                        Check                     Action\n  ─────────────────────────────────────────────────────────────────────────\n  Valve still drips                   Seal seated correctly?    Refit the seal\n  Valve still underfills, no drip     Nozzle blocked?           Clean the nozzle\n  All valves underfill                Supply pressure?          SOP Section 12.4\n  Overfill for 2 to 3 minutes only    Normal settling           No action\n  Overfill after 5 minutes            Valve fully clicked in?   Refit the valve\n  Leak at the valve body              O-ring missing?           Fit a new O-ring\n\n11. SIGN-OFF",
+    "score": 0.8131,
+    "search": "documents",
+    "chunk_id": "59f4f3fb-adfa-4feb-ba1e-1c19dc411fcf_chunk_6",
+    "doc_type": "Work Instruction",
+    "document": "FL-101-Work-Instruction.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 1,
+    "step": "sop",
+    "text": "STANDARD OPERATING PROCEDURE\nEquipment: FL-101 Bottle Filler\nDocument Type: SOP\nReference: FL-101-SOP\nRevision: 1.0\nPlant: Demo Bottling Plant\nLine: Filling Line 1\nOwner: Production Manager\nApproved by: Plant Manager — [name removed]\nDate: February 2026\nEffective from: 1 March 2026\nNext review: March 2027\nUncontrolled when printed. Always check the document system for the latest revision.\n\nDEMO DATA — written for the PlantMind learning project. Not from a real plant.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n1. PURPOSE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nThis SOP explains how to run the FL-101 Bottle Filler safely and correctly.\nIt covers the checks before starting, the start-up sequence, the normal\nsettings, the checks during the shift, what to do for each alarm, bottle\nsize changeovers, cleaning, records and shutdown.",
+    "score": 0.8234,
+    "search": "documents",
+    "chunk_id": "13da9b82-317c-4b6e-8118-f45ceb0256bf_chunk_0",
+    "doc_type": "SOP",
+    "document": "FL-101-SOP.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 2,
+    "step": "sop",
+    "text": "6.1 PPE required on Filling Line 1\n  - Safety glasses at all times\n  - Cut-resistant gloves when handling glass or change parts\n  - Hearing protection\n  - Safety shoes\n\n6.2 Lockout / tagout (LOTO)\nLOTO is required before any maintenance, clearing a jam, changing parts, or\nreaching into the machine. Follow SAF-003:\n  1. Switch off power at the main isolator.\n  2. Lock the isolator with your personal padlock.\n  3. Tag it with your name and the date.\n  4. Try to start the machine to prove it cannot run.\nOnly the person who fitted a lock may remove it.\n\n6.3 Guards\nAll guard doors have safety switches. The machine stops if a guard door is\nopened. Never bypass or tape over a guard switch.\n\n6.4 Main safety rules\n  - Never clear a jam while the machine is running.\n  - Never reach past a guard.\n  - Never use compressed air near open bottles or broken glass.\n  - Keep the floor dry. Report leaks and spills straight away.",
+    "score": 0.8298,
+    "search": "documents",
+    "chunk_id": "13da9b82-317c-4b6e-8118-f45ceb0256bf_chunk_6",
+    "doc_type": "SOP",
+    "document": "FL-101-SOP.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 3,
+    "step": "sop",
+    "text": "Record every check on the pre-start checklist. The shift lead signs it.\n\n8.1 Fill valves and seals\n  - Look at each of the 24 fill valves for cracks or dripping.\n  - A valve that drips between fills has a worn seal. Report it before\n    starting.\n  - Seal kits (part SEAL-FV-24) are replaced every 3 months or every\n    1,500 running hours, whichever comes first.\n  - Spare seal kits are kept in the Filling Line 1 spares cabinet, shelf 2.\n    The minimum stock is 10 kits.\n\n8.2 Infeed and guide rails\n  - Check the guide rails are set for the bottle size being run:\n      500 ml bottles: rail position A\n      330 ml bottles: rail position B\n  - Check the rails are locked and the matching star wheel is fitted.\n\n8.3 Product supply\n  - Check the bowl level indicator shows NORMAL.\n  - Check the product supply pressure is 1.5 to 2.0 bar.\n  - The supply filter (part FLT-PS-10) is cleaned once a week. Check the\n    date on the filter tag.",
+    "score": 0.8447,
+    "search": "documents",
+    "chunk_id": "13da9b82-317c-4b6e-8118-f45ceb0256bf_chunk_8",
+    "doc_type": "SOP",
+    "document": "FL-101-SOP.txt",
+    "reranked": true,
+    "revision": "1.0"
+   },
+   {
+    "rank": 4,
+    "step": "sop",
+    "text": "Do not attempt electrical repairs. Always call maintenance.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n14. BOTTLE SIZE CHANGEOVER\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nWhen changing between 500 ml and 330 ml bottles:\n  1. Lock out the machine (Section 6.2).\n  2. Move the guide rails to the position on the changeover sheet CS-FL101\n     (A for 500 ml, B for 330 ml) and lock them.\n  3. Fit the matching star wheel.\n  4. Remove the lock and run 20 bottles at 60 bottles per minute.\n  5. Check none jam and all fill correctly, then return to normal speed.\n  6. Record the changeover in the shift log. The shift lead signs the\n     changeover record.\n\nMost infeed jams in the first hour after a changeover come from rails left\nin the wrong position.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n15. CLEANING AND HYGIENE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+    "score": 0.8466,
+    "search": "documents",
+    "chunk_id": "13da9b82-317c-4b6e-8118-f45ceb0256bf_chunk_19",
+    "doc_type": "SOP",
+    "document": "FL-101-SOP.txt",
+    "reranked": true,
+    "revision": "1.0"
+   }
+  ],
+  "events": [
+   {
+    "ms": 367,
+    "kind": "llm_call",
+    "step": "graph",
+    "t_ms": 1856,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "fault_match",
+    "tokens_in": 375,
+    "tokens_out": 75,
+    "finish_reason": "stop"
+   },
+   {
+    "ms": 538,
+    "kind": "llm_call",
+    "step": "supervisor",
+    "t_ms": 2404,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "supervisor",
+    "tokens_in": 1042,
+    "tokens_out": 180,
+    "finish_reason": "stop"
+   },
+   {
+    "kind": "search",
+    "step": "alarm",
+    "t_ms": 2857,
+    "query": "alarm history incidents for FL-101 [Plant: Demo Bottling Plant, Line: Filling Line 1] Just changed the filler over to the 330s and it's",
+    "pieces": 4,
+    "search": "documents",
+    "outcome": "ok",
+    "doc_type": "Shift Log",
+    "reranked": false
+   },
+   {
+    "kind": "search",
+    "step": "expert_fix",
+    "t_ms": 2888,
+    "query": "fix for FL-101 [Plant: Demo Bottling Plant, Line: Filling Line 1] Just changed the filler over to the 330s and it's",
+    "pieces": 0,
+    "search": "expert_fixes",
+    "outcome": "no_data",
+    "doc_type": "Expert Fix",
+    "reranked": null
+   },
+   {
+    "ms": 534,
+    "kind": "llm_call",
+    "step": "expert_fix",
+    "t_ms": 3428,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "specialist",
+    "tokens_in": 669,
+    "tokens_out": 97,
+    "finish_reason": "stop"
+   },
+   {
+    "ms": 840,
+    "kind": "llm_call",
+    "step": "alarm",
+    "t_ms": 3703,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "specialist",
+    "tokens_in": 1305,
+    "tokens_out": 395,
+    "finish_reason": "stop"
+   },
+   {
+    "kind": "search",
+    "step": "maintenance",
+    "t_ms": 3965,
+    "query": "[Plant: Demo Bottling Plant, Line: Filling Line 1] Just changed the filler over to the 330s and it's jammed twice at the infeed in the last 20 mins. Bottles keep catching going into the star wheel. What am I missing?",
+    "pieces": 4,
+    "search": "documents",
+    "outcome": "ok",
+    "doc_type": "Work Instruction",
+    "reranked": true
+   },
+   {
+    "kind": "search",
+    "step": "sop",
+    "t_ms": 4468,
+    "query": "[Plant: Demo Bottling Plant, Line: Filling Line 1] Just changed the filler over to the 330s and it's jammed twice at the infeed in the last 20 mins. Bottles keep catching going into the star wheel. What am I missing?",
+    "pieces": 4,
+    "search": "documents",
+    "outcome": "ok",
+    "doc_type": "SOP",
+    "reranked": true
+   },
+   {
+    "ms": 683,
+    "kind": "llm_call",
+    "step": "maintenance",
+    "t_ms": 4654,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "specialist",
+    "tokens_in": 1277,
+    "tokens_out": 133,
+    "finish_reason": "stop"
+   },
+   {
+    "kind": "budget_wait",
+    "step": "sop",
+    "t_ms": 54692,
+    "model": "openai/gpt-oss-20b",
+    "waited_s": 50.2,
+    "call_type": "specialist",
+    "needed_tokens": 1806,
+    "used_this_minute": 5548,
+    "budget_per_minute": 7600
+   },
+   {
+    "ms": 1938,
+    "kind": "llm_call",
+    "step": "sop",
+    "t_ms": 56633,
+    "error": null,
+    "model": "openai/gpt-oss-20b",
+    "call_type": "specialist",
+    "tokens_in": 1402,
+    "tokens_out": 479,
+    "finish_reason": "stop"
+   },
+   {
+    "ms": 3397,
+    "kind": "llm_call",
+    "step": "writer",
+    "t_ms": 60043,
+    "error": null,
+    "model": "openai/gpt-oss-120b",
+    "call_type": "orchestrator",
+    "tokens_in": 4358,
+    "tokens_out": 1364,
+    "finish_reason": "stop"
+   }
+  ],
+  "tokens_by_model": {
+   "openai/gpt-oss-20b": {
+    "in": 6070,
+    "out": 1359
+   },
+   "openai/gpt-oss-120b": {
+    "in": 4358,
+    "out": 1364
+   }
+  }
+ }
+}

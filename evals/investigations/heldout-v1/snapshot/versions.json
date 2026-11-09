@@ -1,0 +1,224 @@
+{
+ "saved_utc": "2026-11-09T15:17:27+00:00",
+ "git_head": "4dd2351336f1d7f68a53f6b72af8c36ab791fec3",
+ "git_status": "?? evals/baselines/fl101_eval/final-v1/\n?? evals/baselines/fl101_task_success/\n?? evals/export_trace.py\n?? evals/fl101/results/trace_final-1106-r2-TC5.json\n?? evals/investigations/\n?? sketches/home/",
+ "files": {
+  "fl101_graph.json": "7fd0bb422f3f01b6",
+  "multi_agent.py": "a62547a68adb7be3",
+  "knowledge_graph.py": "087b34bdc1f34586",
+  "models.py": "50f7c03fc535ccda",
+  "evals/promptfoo/eval_fl101_heldout.yaml": "b63fcdf278823080",
+  "evals/fl101/HELDOUT.md": "b821239997535f4c",
+  "evals/results/heldout-before-1104.json": "8c1e76eee7e4087c",
+  "evals/results/heldout-after-1108.json": "2fbbadb8f5fa7067",
+  "demo_data/fl101/FL-101-NCR.txt": "4a9bad9325cac244",
+  "demo_data/fl101/FL-101-SOP.txt": "13eca5172221942f",
+  "demo_data/fl101/FL-101-Work-Instruction.txt": "6c4801704e685ae6",
+  "demo_data/fl101/make_shift_logs.py": "92d5fcd7a8bb26c7",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-01-Day.csv": "324bd763e6e1a999",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-03-Night.csv": "671e16260e9bc0be",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-07-Day.csv": "67a6ac06e0cd4236",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-08-Day.csv": "cd4360b3fbb77b76",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-10-Night.csv": "3d6624d9209dbf44",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-11-Day.csv": "591a18639e3b1729",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-14-Night.csv": "9e9bab3c0492cb86",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-17-Day.csv": "8ae342c831a16110",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-21-Night.csv": "b2d61e4cd8f27ac2",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-24-Day.csv": "08a27aa94a37dd7d",
+  "demo_data/fl101/shift_logs/DemoBottling-Shift-Log-2026-09-26-Night.csv": "0b73258a82e2caf8"
+ },
+ "runs": {
+  "H1-before": {
+   "run_tag": "heldout-before-1104-H1",
+   "created_at": "2026-11-04T18:11:57.903104+00:00",
+   "git_commit": "ed17260",
+   "code_hash": "7211bcfb13",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1a7c2-b4f4-77d0-814c-6ad200f975ab"
+  },
+  "H2-before": {
+   "run_tag": "heldout-before-1104-H2",
+   "created_at": "2026-11-04T18:13:06.71071+00:00",
+   "git_commit": "ed17260",
+   "code_hash": "7211bcfb13",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1a7c3-c215-7721-98fa-4abdf9405e41"
+  },
+  "H3-before": {
+   "run_tag": "heldout-before-1104-H3",
+   "created_at": "2026-11-04T18:14:07.114551+00:00",
+   "git_commit": "ed17260",
+   "code_hash": "7211bcfb13",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1a7c4-ae09-77e2-8c31-7a1f646e2803"
+  },
+  "H4-before": {
+   "run_tag": "heldout-before-1104-H4",
+   "created_at": "2026-11-04T18:15:16.550802+00:00",
+   "git_commit": "ed17260",
+   "code_hash": "7211bcfb13",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1a7c5-bd46-7872-afed-39e3a3f1a31c"
+  },
+  "H5-before": {
+   "run_tag": "heldout-before-1104-H5",
+   "created_at": "2026-11-04T18:16:14.722757+00:00",
+   "git_commit": "ed17260",
+   "code_hash": "7211bcfb13",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1a7c6-a081-7053-bcca-4fde8755a1f1"
+  },
+  "H1-after": {
+   "run_tag": "heldout-after-1108-H1",
+   "created_at": "2026-11-08T18:44:07.080565+00:00",
+   "git_commit": "a3c9155+dirty",
+   "code_hash": "b8bb09c396",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1bc79-9522-7283-b011-b0efe5de8eb7"
+  },
+  "H2-after": {
+   "run_tag": "heldout-after-1108-H2",
+   "created_at": "2026-11-08T18:45:15.406686+00:00",
+   "git_commit": "a3c9155+dirty",
+   "code_hash": "b8bb09c396",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1bc7a-a00b-7020-abd2-87944a1ec29f"
+  },
+  "H3-after": {
+   "run_tag": "heldout-after-1108-H3",
+   "created_at": "2026-11-08T18:46:15.173051+00:00",
+   "git_commit": "a3c9155+dirty",
+   "code_hash": "b8bb09c396",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1bc7b-8985-7023-b123-ecfbf85deabb"
+  },
+  "H4-after": {
+   "run_tag": "heldout-after-1108-H4",
+   "created_at": "2026-11-08T18:47:25.689056+00:00",
+   "git_commit": "a3c9155+dirty",
+   "code_hash": "b8bb09c396",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1bc7c-9cf9-7a53-89ff-e5a4ac7b3b4a"
+  },
+  "H5-after": {
+   "run_tag": "heldout-after-1108-H5",
+   "created_at": "2026-11-08T18:48:24.413497+00:00",
+   "git_commit": "a3c9155+dirty",
+   "code_hash": "b8bb09c396",
+   "model_fast": "openai/gpt-oss-20b",
+   "model_deep": "openai/gpt-oss-120b",
+   "switches": {
+    "reflection": false,
+    "search_rerank": true,
+    "graph_disabled": false,
+    "graph_no_routing": false,
+    "writer_gets_evidence": false,
+    "search_piece_max_chars": 2000,
+    "specialist_query_version": 3
+   },
+   "langsmith_trace_id": "01a1bc7d-825d-78e2-a90c-8e86e2ca6f55"
+  }
+ },
+ "names_removed": [
+  "A. Moreno",
+  "J. Kim",
+  "K. Brandt",
+  "L. Haddad",
+  "M. Varga",
+  "N. Adeyemi",
+  "P. Singh",
+  "R. Osei",
+  "T. Novak"
+ ],
+ "problems": []
+}
