@@ -1,0 +1,38 @@
+{
+  "about": "Rubric for FAITHFULNESS (grounding dimension) on the held-out questions: is everything the answer says backed by the evidence the writer was given? No answer key is needed. The evaluator is RAGAS with an AI judge; faithfulness_ragas.py only applies this rubric and stops if anything here is different from what it knows. LOCK RULE: never change this file after its results are seen; make a new version instead. CALIBRATION FIRST: run on H1 only, where the made-up claims are already known, before trusting it on H2-H5.",
+  "version": 1,
+  "metric": "faithfulness",
+  "metric_question": "Is every statement in the answer supported by the evidence the writer was given?",
+  "look_in": "writer_input",
+  "look_in_means": "Option A: exactly what PlantMind's writer received, read from the saved trace (orchestrator step input): each helper's summary, plus the knowledge-graph text (chain text, warnings, exact values, downtime). Not the raw search pieces: the writer never sees them (PM_WRITER_GETS_EVIDENCE is off). The writer's instructions and template are NOT evidence.",
+  "response_means": "The final report as graded, without the REPORT CONFIDENCE and SOURCE DATA blocks (written by code, not claims to the operator).",
+  "evaluator": {
+    "tool": "ragas",
+    "ragas_version": "0.4.3",
+    "metric_class": "ragas.metrics.collections.Faithfulness",
+    "prompts": "RAGAS built-in StatementGeneratorPrompt and NLIStatementPrompt, unchanged",
+    "judge_model": "qwen/qwen3.8-27b",
+    "judge_provider": "groq",
+    "temperature": 0,
+    "reasoning_format": "hidden"
+  },
+  "rules": {
+    "split": "RAGAS breaks the response into atomic statements",
+    "verdict": "RAGAS asks the judge, for each statement, whether the evidence supports it (1) or not (0), with a reason",
+    "score": "supported statements / all statements"
+  },
+  "calibration": {
+    "case": "H1",
+    "pass_only_if_unsupported": [
+      "the operator should inspect wiring / recalibrate or repair the checkweigher",
+      "the SOP requires LOTO for any checkweigher failure",
+      "510 ml bottles have always been rejected"
+    ],
+    "note": "These three are known to be made up (H1 investigation). If the judge marks any of them supported, faithfulness with this judge is not trusted for H2-H5."
+  },
+  "known_limits": [
+    "An AI judge decides each verdict: it can be wrong, so every verdict on H1 is checked by a person.",
+    "A statement copied from a wrong helper summary counts as faithful: this measures 'did the writer invent it', not 'is it true'.",
+    "The writer received the graph chain text with its duplicate warning list removed; the evidence here keeps the full chain text. Same facts, a little longer."
+  ]
+}
