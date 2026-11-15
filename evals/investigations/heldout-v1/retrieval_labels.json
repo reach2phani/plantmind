@@ -1,0 +1,602 @@
+{
+  "about": "Marking sheet for RETRIEVAL RECALL on the held-out questions. The rules below define the measurement; retrieval_recall.py only applies them. For each fact, all_of is a list of groups: every group must match, and a group matches if ANY of its wordings is present. LOCK RULE: write a case before its search results are opened, and never change it after its results are seen; make a new version instead. Each result file records a fingerprint of the rules and of each case, so any later change is visible.",
+  "version": 1,
+  "metric": "retrieval_recall",
+  "metric_question": "Did search bring back the facts the right answer needs?",
+  "look_in": "search_results",
+  "look_in_means": "the pieces search handed to the helpers, saved in the run record (details.pieces)",
+  "rules": {
+    "ignore_case": true,
+    "ignore_line_breaks": true,
+    "found_means": "the fact is inside at least one piece search handed to the helpers",
+    "skip_facts_not_in_documents": true,
+    "score": "facts found / facts that exist in the documents"
+  },
+  "cases": {
+    "H1": {
+      "written": "2026-11-14",
+      "blind": false,
+      "blind_note": "Written AFTER H1's answer and search results were read during the investigation. Not a blind label; H2-H5 must be written before their search results are opened.",
+      "source_answer_key": "evals/fl101/HELDOUT.md (H1, written 2026-11-04)",
+      "facts": [
+        {
+          "id": "F1",
+          "fact": "Do not start the line",
+          "sop": "FL-101-SOP 8.4, line 184",
+          "all_of": [
+            [
+              "do not start",
+              "don't start",
+              "must not start"
+            ]
+          ]
+        },
+        {
+          "id": "F2",
+          "fact": "Call the quality lead",
+          "sop": "FL-101-SOP 8.4, line 184",
+          "all_of": [
+            [
+              "call the quality lead"
+            ]
+          ]
+        },
+        {
+          "id": "F3",
+          "fact": "By hand it is only 5 bottles an hour",
+          "sop": "FL-101-SOP 11, lines 225-226",
+          "all_of": [
+            [
+              "5 bottles",
+              "five bottles"
+            ],
+            [
+              "hour"
+            ]
+          ]
+        },
+        {
+          "id": "F4",
+          "fact": "The checkweigher weighs every bottle",
+          "sop": "FL-101-SOP 7, line 149",
+          "all_of": [
+            [
+              "weighs every bottle"
+            ]
+          ]
+        },
+        {
+          "id": "F5",
+          "fact": "490 and 510 ml rejected, 500 ml passes",
+          "sop": "FL-101-SOP 8.4, lines 181-184",
+          "all_of": [
+            [
+              "490 ml and 510 ml bottles must be rejected"
+            ],
+            [
+              "500 ml bottle must pass"
+            ]
+          ]
+        },
+        {
+          "id": "F6",
+          "fact": "Record on the pre-start checklist",
+          "sop": "FL-101-SOP 8, line 157",
+          "all_of": [
+            [
+              "record every check on the pre-start checklist"
+            ]
+          ]
+        },
+        {
+          "id": "F7",
+          "fact": "The shift lead signs it",
+          "sop": "FL-101-SOP 8, line 157",
+          "all_of": [
+            [
+              "the shift lead signs it"
+            ]
+          ]
+        }
+      ]
+    },
+    "H2": {
+      "written": "2026-11-15",
+      "blind": true,
+      "blind_note": "Written from the answer key and the source documents only. This case's search results were NOT opened before the entry was reviewed and locked.",
+      "source_answer_key": "evals/fl101/HELDOUT.md (H2, written 2026-11-04)",
+      "facts": [
+        {
+          "id": "F1",
+          "fact": "330 ml bottles need rail position B",
+          "sop": "SOP 8.2 line 171; SOP 14 line 365",
+          "all_of": [
+            [
+              "330 ml bottles: rail position b",
+              "b for 330 ml"
+            ]
+          ]
+        },
+        {
+          "id": "F2",
+          "fact": "Rails not reset after a changeover are the usual cause",
+          "sop": "SOP 12.2 line 277; SOP 14 lines 372-373",
+          "all_of": [
+            [
+              "guide rails not reset after a bottle size changeover",
+              "rails left in the wrong position"
+            ]
+          ]
+        },
+        {
+          "id": "F3",
+          "fact": "The matching star wheel is fitted",
+          "sop": "SOP 8.2 line 172; SOP 14 line 366",
+          "all_of": [
+            [
+              "matching star wheel"
+            ]
+          ]
+        },
+        {
+          "id": "F4",
+          "fact": "The rails are locked",
+          "sop": "SOP 8.2 line 172; SOP 14 line 365",
+          "all_of": [
+            [
+              "rails are locked",
+              "and lock them"
+            ]
+          ]
+        },
+        {
+          "id": "F5",
+          "fact": "Stop and lock out before clearing a jam",
+          "sop": "SOP 12.2 lines 282-284; SOP 6.2 line 120",
+          "all_of": [
+            [
+              "before clearing any jam",
+              "before any maintenance, clearing a jam"
+            ]
+          ]
+        },
+        {
+          "id": "F6",
+          "fact": "Restart at 60 bottles per minute",
+          "sop": "SOP 12.2 step 6 line 293; SOP 14 step 4 line 367",
+          "all_of": [
+            [
+              "restart at 60 bottles per minute",
+              "run 20 bottles at 60 bottles per minute"
+            ]
+          ]
+        },
+        {
+          "id": "F7",
+          "fact": "Never reach into the infeed or star wheel while running",
+          "sop": "SOP 12.2 line 282",
+          "all_of": [
+            [
+              "never reach into the infeed"
+            ]
+          ]
+        },
+        {
+          "id": "F8",
+          "fact": "Wear cut-resistant gloves",
+          "sop": "SOP 12.2 step 3 line 289; SOP 6.1 line 115",
+          "all_of": [
+            [
+              "cut-resistant gloves"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F9",
+          "fact": "Check the changeover record",
+          "sop": "SOP 12.2 line 278",
+          "all_of": [
+            [
+              "check the changeover record"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F10",
+          "fact": "Remove chipped or damaged bottles",
+          "sop": "SOP 12.2 lines 279, 292",
+          "all_of": [
+            [
+              "chipped or damaged bottles"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F11",
+          "fact": "The shift lead signs the changeover record",
+          "sop": "SOP 14 lines 369-370; SOP 3 line 55",
+          "all_of": [
+            [
+              "the shift lead signs the changeover record",
+              "signs the pre-start checklist and the changeover record"
+            ]
+          ],
+          "extra": true
+        }
+      ]
+    },
+    "H3": {
+      "written": "2026-11-15",
+      "blind": true,
+      "blind_note": "Written from the answer key and the source documents only. This case's search results were NOT opened before the entry was reviewed and locked.",
+      "source_answer_key": "evals/fl101/HELDOUT.md (H3, written 2026-11-04)",
+      "facts": [
+        {
+          "id": "F1",
+          "fact": "Call the maintenance supervisor",
+          "sop": "SOP 13 line 349; SOP 12.1 line 271",
+          "all_of": [
+            [
+              "call the maintenance supervisor"
+            ]
+          ]
+        },
+        {
+          "id": "F2",
+          "fact": "Underfill after new seals is a reason to call the maintenance supervisor",
+          "sop": "SOP 13 line 351",
+          "all_of": [
+            [
+              "underfill continues after the seals have been replaced"
+            ]
+          ]
+        },
+        {
+          "id": "F3",
+          "fact": "3 underfill alarms in one shift = a systemic fault",
+          "sop": "SOP 12.1 line 269; NCR section 8",
+          "all_of": [
+            [
+              "three or more underfill alarms in one shift"
+            ],
+            [
+              "systemic fault"
+            ]
+          ]
+        },
+        {
+          "id": "F4",
+          "fact": "Stop production and raise a work order",
+          "sop": "SOP 12.1 lines 270-271",
+          "all_of": [
+            [
+              "stop production"
+            ],
+            [
+              "work order"
+            ]
+          ]
+        },
+        {
+          "id": "F5",
+          "fact": "Check for a blocked nozzle",
+          "sop": "SOP 12.1 cause 2 line 251; WI section 10",
+          "all_of": [
+            [
+              "blocked fill nozzle",
+              "nozzle blocked"
+            ]
+          ]
+        },
+        {
+          "id": "F6",
+          "fact": "Check the product supply pressure",
+          "sop": "SOP 12.1 step 5 line 264; SOP 8.3 line 176",
+          "all_of": [
+            [
+              "check the product supply pressure"
+            ]
+          ]
+        },
+        {
+          "id": "F7",
+          "fact": "Do not raise the fill time",
+          "sop": "SOP 10 line 217; SOP 12.1 line 266; NCR section 8",
+          "all_of": [
+            [
+              "do not increase the fill time",
+              "never increase the fill time",
+              "fill time must not be changed"
+            ]
+          ]
+        },
+        {
+          "id": "F8",
+          "fact": "The checkweigher report shows which valves",
+          "sop": "SOP 12.1 step 2 lines 257-258",
+          "all_of": [
+            [
+              "which valve numbers are underfilling"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F9",
+          "fact": "Supply pressure should be 1.5 to 2.0 bar",
+          "sop": "SOP 8.3 line 176; SOP 10 line 213",
+          "all_of": [
+            [
+              "1.5 to 2.0 bar"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F10",
+          "fact": "A scratched valve seat stops a new seal sealing",
+          "sop": "WI section 8 step 5 lines 74-76",
+          "all_of": [
+            [
+              "scratched seat"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F11",
+          "fact": "NCR-2026-012 is the reason not to raise the fill time",
+          "sop": "SOP 10 line 219; SOP 12.1 line 267",
+          "all_of": [
+            [
+              "ncr-2026-012"
+            ]
+          ],
+          "extra": true
+        }
+      ]
+    },
+    "H4": {
+      "written": "2026-11-15",
+      "blind": true,
+      "blind_note": "Written from the answer key and the source documents only. This case's search results were NOT opened before the entry was reviewed and locked.",
+      "source_answer_key": "evals/fl101/HELDOUT.md (H4, written 2026-11-04)",
+      "facts": [
+        {
+          "id": "F1",
+          "fact": "Stop the line",
+          "sop": "SOP 12.3 step 1 line 305; SOP 3 line 51",
+          "all_of": [
+            [
+              "stop the line at once",
+              "stops the machine if anything looks unsafe"
+            ]
+          ]
+        },
+        {
+          "id": "F2",
+          "fact": "Call the quality lead",
+          "sop": "SOP 13 line 354",
+          "all_of": [
+            [
+              "also call the quality lead"
+            ]
+          ]
+        },
+        {
+          "id": "F3",
+          "fact": "The quality lead owns QA HOLD decisions",
+          "sop": "SOP 3 line 59",
+          "all_of": [
+            [
+              "owns the glass breakage procedure and all qa hold decisions"
+            ]
+          ]
+        },
+        {
+          "id": "F4",
+          "fact": "The quality lead signs off before restart",
+          "sop": "SOP 12.3 step 6 line 314; SOP 3 line 60",
+          "all_of": [
+            [
+              "the quality lead must sign off before the line restarts",
+              "signs off the line before restart after any glass breakage"
+            ]
+          ]
+        },
+        {
+          "id": "F5",
+          "fact": "Clean up with the red glass kit",
+          "sop": "SOP 12.3 step 4 line 311; SOP 8.5 line 187",
+          "all_of": [
+            [
+              "red glass kit"
+            ]
+          ]
+        },
+        {
+          "id": "F6",
+          "fact": "Use a vacuum, never compressed air",
+          "sop": "SOP 12.3 step 4 line 312; SOP 6.4 line 135",
+          "all_of": [
+            [
+              "never compressed air",
+              "never use compressed air near open bottles or broken glass"
+            ]
+          ]
+        },
+        {
+          "id": "F7",
+          "fact": "Do not open any guard until locked out",
+          "sop": "SOP 12.3 step 2 lines 306-307",
+          "all_of": [
+            [
+              "do not open any guard until the machine has stopped"
+            ]
+          ]
+        },
+        {
+          "id": "F8",
+          "fact": "Do not reach in until locked out",
+          "sop": "SOP 6.2 lines 120-121; SOP 6.4 line 134",
+          "all_of": [
+            [
+              "reaching into the machine",
+              "never reach past a guard"
+            ]
+          ]
+        },
+        {
+          "id": "F9",
+          "fact": "Put bottles from the last 30 minutes on QA HOLD",
+          "sop": "SOP 12.3 step 3 line 308",
+          "all_of": [
+            [
+              "bottle filled in the last 30 minutes on hold"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F10",
+          "fact": "Throw away open bottles within 2 metres",
+          "sop": "SOP 12.3 step 3 lines 309-310",
+          "all_of": [
+            [
+              "throw away any open bottles within 2 metres"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F11",
+          "fact": "Record it in the glass breakage log",
+          "sop": "SOP 12.3 step 7 line 315",
+          "all_of": [
+            [
+              "record the event in the glass breakage log"
+            ]
+          ],
+          "extra": true
+        }
+      ]
+    },
+    "H5": {
+      "written": "2026-11-15",
+      "blind": true,
+      "blind_note": "Written from the answer key and the source documents only. This case's search results were NOT opened before the entry was reviewed and locked.",
+      "source_answer_key": "evals/fl101/HELDOUT.md (H5, written 2026-11-04)",
+      "facts": [
+        {
+          "id": "F1",
+          "fact": "More than 1 in 100 over an hour: tell the shift lead",
+          "sop": "SOP 11 lines 238-239",
+          "all_of": [
+            [
+              "rejects more than 1 bottle in 100 over an hour, tell the shift lead"
+            ]
+          ]
+        },
+        {
+          "id": "F2",
+          "fact": "A rising reject count is often the first sign of worn seals",
+          "sop": "SOP 11 line 239",
+          "all_of": [
+            [
+              "a rising reject count is often the first sign of worn seals"
+            ]
+          ]
+        },
+        {
+          "id": "F3",
+          "fact": "Look at the fill valves for dripping",
+          "sop": "SOP 11 line 231; SOP 8.1 line 160",
+          "all_of": [
+            [
+              "look at the fill valves for dripping",
+              "look at each of the 24 fill valves for cracks or dripping"
+            ]
+          ]
+        },
+        {
+          "id": "F4",
+          "fact": "The checkweigher report shows which valves",
+          "sop": "SOP 12.1 step 2 lines 257-258",
+          "all_of": [
+            [
+              "which valve numbers are underfilling"
+            ]
+          ]
+        },
+        {
+          "id": "F5",
+          "fact": "Hand-weigh 5 bottles to confirm",
+          "sop": "SOP 11 line 225",
+          "all_of": [
+            [
+              "take 5 bottles off the line and weigh them by hand"
+            ]
+          ]
+        },
+        {
+          "id": "F6",
+          "fact": "Do not change the fill time",
+          "sop": "SOP 10 line 217; SOP 12.1 line 266",
+          "all_of": [
+            [
+              "fill time must not be changed",
+              "do not increase the fill time"
+            ]
+          ]
+        },
+        {
+          "id": "F7",
+          "fact": "Record the checkweigher reject count",
+          "sop": "SOP 11 line 228",
+          "all_of": [
+            [
+              "record the checkweigher reject count"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F8",
+          "fact": "Dripping valve: maintenance replaces the seal kit",
+          "sop": "SOP 12.1 step 3 lines 259-261",
+          "all_of": [
+            [
+              "call the maintenance technician to replace the seal kit"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F9",
+          "fact": "Seals every 3 months or 1,500 running hours",
+          "sop": "SOP 8.1 lines 163-164",
+          "all_of": [
+            [
+              "every 3 months or every 1,500 running hours"
+            ]
+          ],
+          "extra": true
+        },
+        {
+          "id": "F10",
+          "fact": "Check the product supply pressure",
+          "sop": "SOP 12.1 step 5 line 264; SOP 8.3 line 176",
+          "all_of": [
+            [
+              "check the product supply pressure"
+            ]
+          ],
+          "extra": true
+        }
+      ]
+    }
+  }
+}
