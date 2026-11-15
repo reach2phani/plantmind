@@ -1,0 +1,870 @@
+{
+ "run_utc": "2026-11-15T20:08:56+00:00",
+ "side": "before",
+ "labels_version": 1,
+ "metric": "retrieval_recall",
+ "look_in": "search_results",
+ "locked": "2026-11-15",
+ "rules": {
+  "ignore_case": true,
+  "ignore_line_breaks": true,
+  "found_means": "the fact is inside at least one piece search handed to the helpers",
+  "skip_facts_not_in_documents": true,
+  "score": "facts found / facts that exist in the documents"
+ },
+ "rules_fingerprint": "0c5704da82fe",
+ "cases": {
+  "H1": {
+   "case_fingerprint": "7a5c2e782611",
+   "blind": false,
+   "pieces_returned": 16,
+   "found": 6,
+   "counted": 7,
+   "recall": 0.8571428571428571,
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "Do not start the line",
+     "in_index": [
+      "FL-101-SOP.txt#9"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "9"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F2",
+     "fact": "Call the quality lead",
+     "in_index": [
+      "FL-101-SOP.txt#9",
+      "FL-101-SOP.txt#18"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "9"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F3",
+     "fact": "By hand it is only 5 bottles an hour",
+     "in_index": [
+      "FL-101-SOP.txt#12",
+      "FL-101-SOP.txt#20"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F4",
+     "fact": "The checkweigher weighs every bottle",
+     "in_index": [
+      "FL-101-SOP.txt#7"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "7"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F5",
+     "fact": "490 and 510 ml rejected, 500 ml passes",
+     "in_index": [
+      "FL-101-SOP.txt#9"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "9"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F6",
+     "fact": "Record on the pre-start checklist",
+     "in_index": [
+      "FL-101-SOP.txt#7",
+      "FL-101-SOP.txt#8"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "7"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F7",
+     "fact": "The shift lead signs it",
+     "in_index": [
+      "FL-101-SOP.txt#7",
+      "FL-101-SOP.txt#8"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "7"
+      }
+     ],
+     "result": "FOUND"
+    }
+   ]
+  },
+  "H2": {
+   "case_fingerprint": "b6ebc9a0dfe6",
+   "blind": true,
+   "pieces_returned": 12,
+   "found": 8,
+   "counted": 11,
+   "recall": 0.7272727272727273,
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "330 ml bottles need rail position B",
+     "in_index": [
+      "DemoBottling-Shift-Log-2026-09-07-Day.csv#2",
+      "FL-101-SOP.txt#8",
+      "FL-101-SOP.txt#19"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "8"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "19"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F2",
+     "fact": "Rails not reset after a changeover are the usual cause",
+     "in_index": [
+      "FL-101-SOP.txt#15",
+      "FL-101-SOP.txt#19"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "19"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F3",
+     "fact": "The matching star wheel is fitted",
+     "in_index": [
+      "FL-101-SOP.txt#8",
+      "FL-101-SOP.txt#19"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "8"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "19"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F4",
+     "fact": "The rails are locked",
+     "in_index": [
+      "FL-101-SOP.txt#8",
+      "FL-101-SOP.txt#19"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "8"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "19"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F5",
+     "fact": "Stop and lock out before clearing a jam",
+     "in_index": [
+      "FL-101-SOP.txt#6",
+      "FL-101-SOP.txt#15"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "6"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F6",
+     "fact": "Restart at 60 bottles per minute",
+     "in_index": [
+      "FL-101-SOP.txt#15",
+      "FL-101-SOP.txt#19"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "19"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F7",
+     "fact": "Never reach into the infeed or star wheel while running",
+     "in_index": [
+      "FL-101-SOP.txt#15"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F8",
+     "fact": "Wear cut-resistant gloves",
+     "in_index": [
+      "FL-101-SOP.txt#5",
+      "FL-101-SOP.txt#6",
+      "FL-101-SOP.txt#15"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "6"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F9",
+     "fact": "Check the changeover record",
+     "in_index": [
+      "FL-101-SOP.txt#15"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F10",
+     "fact": "Remove chipped or damaged bottles",
+     "in_index": [
+      "FL-101-SOP.txt#15"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F11",
+     "fact": "The shift lead signs the changeover record",
+     "in_index": [
+      "FL-101-SOP.txt#2",
+      "FL-101-SOP.txt#19"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "19"
+      }
+     ],
+     "result": "FOUND"
+    }
+   ]
+  },
+  "H3": {
+   "case_fingerprint": "5413906a93d1",
+   "blind": true,
+   "pieces_returned": 16,
+   "found": 9,
+   "counted": 11,
+   "recall": 0.8181818181818182,
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "Call the maintenance supervisor",
+     "in_index": [
+      "FL-101-SOP.txt#14",
+      "FL-101-SOP.txt#18"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "14"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F2",
+     "fact": "Underfill after new seals is a reason to call the maintenance supervisor",
+     "in_index": [
+      "FL-101-SOP.txt#18"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F3",
+     "fact": "3 underfill alarms in one shift = a systemic fault",
+     "in_index": [
+      "FL-101-NCR.txt#7",
+      "FL-101-SOP.txt#14"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "14"
+      },
+      {
+       "document": "FL-101-NCR.txt",
+       "rank": 4,
+       "chunk": "7"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F4",
+     "fact": "Stop production and raise a work order",
+     "in_index": [
+      "FL-101-SOP.txt#14"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "14"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F5",
+     "fact": "Check for a blocked nozzle",
+     "in_index": [
+      "FL-101-SOP.txt#13",
+      "FL-101-Work-Instruction.txt#6"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-Work-Instruction.txt",
+       "rank": 3,
+       "chunk": "6"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F6",
+     "fact": "Check the product supply pressure",
+     "in_index": [
+      "FL-101-SOP.txt#8",
+      "FL-101-SOP.txt#14"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "8"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "14"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F7",
+     "fact": "Do not raise the fill time",
+     "in_index": [
+      "DemoBottling-Shift-Log-2026-09-10-Night.csv#1",
+      "FL-101-NCR.txt#7",
+      "FL-101-SOP.txt#11",
+      "FL-101-SOP.txt#14"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "14"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "11"
+      },
+      {
+       "document": "FL-101-NCR.txt",
+       "rank": 4,
+       "chunk": "7"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F8",
+     "fact": "The checkweigher report shows which valves",
+     "in_index": [
+      "FL-101-SOP.txt#14"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "14"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F9",
+     "fact": "Supply pressure should be 1.5 to 2.0 bar",
+     "in_index": [
+      "FL-101-SOP.txt#8",
+      "FL-101-SOP.txt#11",
+      "FL-101-SOP.txt#17"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "8"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "11"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F10",
+     "fact": "A scratched valve seat stops a new seal sealing",
+     "in_index": [
+      "FL-101-Work-Instruction.txt#3"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F11",
+     "fact": "NCR-2026-012 is the reason not to raise the fill time",
+     "in_index": [
+      "DemoBottling-Shift-Log-2026-09-10-Night.csv#1",
+      "FL-101-NCR.txt#0",
+      "FL-101-SOP.txt#5",
+      "FL-101-SOP.txt#11",
+      "FL-101-SOP.txt#14",
+      "FL-101-SOP.txt#22"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 1,
+       "chunk": "5"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "14"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "11"
+      },
+      {
+       "document": "FL-101-NCR.txt",
+       "rank": 1,
+       "chunk": "0"
+      }
+     ],
+     "result": "FOUND"
+    }
+   ]
+  },
+  "H4": {
+   "case_fingerprint": "ebb429d6967a",
+   "blind": true,
+   "pieces_returned": 12,
+   "found": 9,
+   "counted": 11,
+   "recall": 0.8181818181818182,
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "Stop the line",
+     "in_index": [
+      "FL-101-SOP.txt#1",
+      "FL-101-SOP.txt#16"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "1"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "16"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F2",
+     "fact": "Call the quality lead",
+     "in_index": [
+      "FL-101-SOP.txt#18"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F3",
+     "fact": "The quality lead owns QA HOLD decisions",
+     "in_index": [
+      "FL-101-SOP.txt#2"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F4",
+     "fact": "The quality lead signs off before restart",
+     "in_index": [
+      "FL-101-SOP.txt#2",
+      "FL-101-SOP.txt#16"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "16"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F5",
+     "fact": "Clean up with the red glass kit",
+     "in_index": [
+      "DemoBottling-Shift-Log-2026-09-17-Day.csv#0",
+      "DemoBottling-Shift-Log-2026-09-17-Day.csv#1",
+      "FL-101-SOP.txt#9",
+      "FL-101-SOP.txt#16"
+     ],
+     "found_in": [
+      {
+       "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+       "rank": 1,
+       "chunk": "0"
+      },
+      {
+       "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+       "rank": 2,
+       "chunk": "1"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "16"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F6",
+     "fact": "Use a vacuum, never compressed air",
+     "in_index": [
+      "FL-101-SOP.txt#6",
+      "FL-101-SOP.txt#16"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "6"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "16"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F7",
+     "fact": "Do not open any guard until locked out",
+     "in_index": [
+      "FL-101-SOP.txt#16"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "16"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F8",
+     "fact": "Do not reach in until locked out",
+     "in_index": [
+      "FL-101-SOP.txt#6"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "6"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F9",
+     "fact": "Put bottles from the last 30 minutes on QA HOLD",
+     "in_index": [
+      "FL-101-SOP.txt#16"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "16"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F10",
+     "fact": "Throw away open bottles within 2 metres",
+     "in_index": [
+      "FL-101-SOP.txt#16"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "16"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F11",
+     "fact": "Record it in the glass breakage log",
+     "in_index": [
+      "FL-101-SOP.txt#16"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 4,
+       "chunk": "16"
+      }
+     ],
+     "result": "FOUND"
+    }
+   ]
+  },
+  "H5": {
+   "case_fingerprint": "9a6693fe295f",
+   "blind": true,
+   "pieces_returned": 12,
+   "found": 7,
+   "counted": 10,
+   "recall": 0.7,
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "More than 1 in 100 over an hour: tell the shift lead",
+     "in_index": [
+      "FL-101-SOP.txt#12"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "12"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F2",
+     "fact": "A rising reject count is often the first sign of worn seals",
+     "in_index": [
+      "FL-101-SOP.txt#12"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "12"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F3",
+     "fact": "Look at the fill valves for dripping",
+     "in_index": [
+      "FL-101-SOP.txt#8",
+      "FL-101-SOP.txt#12"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "12"
+      },
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "8"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F4",
+     "fact": "The checkweigher report shows which valves",
+     "in_index": [
+      "FL-101-SOP.txt#14"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F5",
+     "fact": "Hand-weigh 5 bottles to confirm",
+     "in_index": [
+      "FL-101-SOP.txt#12"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "12"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F6",
+     "fact": "Do not change the fill time",
+     "in_index": [
+      "DemoBottling-Shift-Log-2026-09-10-Night.csv#1",
+      "FL-101-SOP.txt#11",
+      "FL-101-SOP.txt#14"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F7",
+     "fact": "Record the checkweigher reject count",
+     "in_index": [
+      "FL-101-SOP.txt#12"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 2,
+       "chunk": "12"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F8",
+     "fact": "Dripping valve: maintenance replaces the seal kit",
+     "in_index": [
+      "FL-101-SOP.txt#14"
+     ],
+     "found_in": [],
+     "result": "MISSED"
+    },
+    {
+     "id": "F9",
+     "fact": "Seals every 3 months or 1,500 running hours",
+     "in_index": [
+      "FL-101-SOP.txt#8"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "8"
+      }
+     ],
+     "result": "FOUND"
+    },
+    {
+     "id": "F10",
+     "fact": "Check the product supply pressure",
+     "in_index": [
+      "FL-101-SOP.txt#8",
+      "FL-101-SOP.txt#14"
+     ],
+     "found_in": [
+      {
+       "document": "FL-101-SOP.txt",
+       "rank": 3,
+       "chunk": "8"
+      }
+     ],
+     "result": "FOUND"
+    }
+   ]
+  }
+ }
+}
