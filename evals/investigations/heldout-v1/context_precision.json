@@ -1,0 +1,21 @@
+{
+  "about": "Rubric for CONTEXT PRECISION on the held-out questions: did search put the useful pieces at the TOP? It is rank-aware, in the same way as RAGAS context precision, but computed by code with the same 'useful piece' check as retrieval precision. precision.py only applies it. Facts come from retrieval_labels.json (locked). LOCK RULE: never change this file after its results are seen; make a new version instead. NOT BLIND, for the same reason as retrieval_precision.json.",
+  "version": 1,
+  "metric": "context_precision",
+  "metric_question": "Did search place the useful pieces at the top of each helper's list?",
+  "look_in": "search_results",
+  "look_in_means": "the pieces search handed to the helpers, saved in the run record (details.pieces); each helper's pieces form their own ranked list",
+  "facts_from": "retrieval_labels.json",
+  "rules": {
+    "ignore_case": true,
+    "ignore_line_breaks": true,
+    "useful_means": "the piece contains at least one fact from that question's locked list",
+    "score": "per helper: at each rank that holds a useful piece, take (useful pieces so far / pieces so far); average those values. Question score: the average over the helpers that got at least one useful piece",
+    "also_report": ["per helper", "helpers with no useful piece"]
+  },
+  "known_limits": [
+    "Helpers that got no useful piece at all are left out of the question score (they have nothing to rank); they are reported separately, and their junk shows up in retrieval precision instead.",
+    "Same wording limits as retrieval_precision.json."
+  ],
+  "worked_example": "H1, SOP helper: ranks 1-4 = title page (no), purpose (no), 8.4 checkweigher (yes), section 7 (yes). At rank 3: 1/3 = 0.33. At rank 4: 2/4 = 0.50. Context precision = (0.33 + 0.50) / 2 = 0.42. The same two useful pieces at ranks 1 and 2 would score 1.0."
+}

@@ -1,0 +1,20 @@
+{
+  "about": "Rubric for RETRIEVAL PRECISION on the held-out questions: how much of what search brought back was useful (the junk ratio). precision.py only applies it. The facts are NOT copied here: they are read from retrieval_labels.json, and only if they still match their locked fingerprints. LOCK RULE: never change this file after its results are seen; make a new version instead. NOT BLIND: the facts were locked before any results were seen, but the returned pieces had already been seen during retrieval recall. The rule is mechanical, so this does not bias the count.",
+  "version": 1,
+  "metric": "retrieval_precision",
+  "metric_question": "Of the pieces search brought back, how many held a needed fact?",
+  "look_in": "search_results",
+  "look_in_means": "the pieces search handed to the helpers, saved in the run record (details.pieces)",
+  "facts_from": "retrieval_labels.json",
+  "rules": {
+    "ignore_case": true,
+    "ignore_line_breaks": true,
+    "useful_means": "the piece contains at least one fact from that question's locked list",
+    "score": "useful pieces / pieces returned",
+    "also_report": ["per helper"]
+  },
+  "known_limits": [
+    "A piece with useful context that holds none of the listed facts counts as not useful (for example shift-log history).",
+    "Wording limits are inherited from retrieval_labels.json version 1 (for example the H5 work-instruction piece that says 'which valves are underfilling')."
+  ]
+}
