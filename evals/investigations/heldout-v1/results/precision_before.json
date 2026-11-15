@@ -1,0 +1,804 @@
+{
+ "run_utc": "2026-11-15T23:04:31+00:00",
+ "side": "before",
+ "rubrics": {
+  "retrieval_precision": {
+   "version": 1,
+   "fingerprint": "7062cc5b75d8",
+   "locked": "2026-11-15"
+  },
+  "context_precision": {
+   "version": 1,
+   "fingerprint": "60f5720498a9",
+   "locked": "2026-11-15"
+  }
+ },
+ "cases": {
+  "H1": {
+   "blind_facts": false,
+   "retrieval_precision": {
+    "useful": 2,
+    "returned": 16,
+    "score": 0.125
+   },
+   "context_precision": {
+    "score": 0.41666666666666663,
+    "helpers_scored": 1,
+    "helpers_with_no_useful_piece": [
+     "alarm",
+     "maintenance",
+     "ncr"
+    ]
+   },
+   "helpers": {
+    "alarm": {
+     "useful": 0,
+     "returned": 4,
+     "retrieval_precision": 0.0,
+     "context_precision": null,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "DemoBottling-Shift-Log-2026-09-10-Night.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "DemoBottling-Shift-Log-2026-09-01-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "DemoBottling-Shift-Log-2026-09-21-Night.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "maintenance": {
+     "useful": 0,
+     "returned": 4,
+     "retrieval_precision": 0.0,
+     "context_precision": null,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "1",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "4",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "2",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "sop": {
+     "useful": 2,
+     "returned": 4,
+     "retrieval_precision": 0.5,
+     "context_precision": 0.41666666666666663,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-SOP.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-SOP.txt",
+       "chunk": "1",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-SOP.txt",
+       "chunk": "9",
+       "useful": true,
+       "facts": [
+        "F1",
+        "F2",
+        "F5"
+       ]
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-SOP.txt",
+       "chunk": "7",
+       "useful": true,
+       "facts": [
+        "F4",
+        "F6",
+        "F7"
+       ]
+      }
+     ]
+    },
+    "ncr": {
+     "useful": 0,
+     "returned": 4,
+     "retrieval_precision": 0.0,
+     "context_precision": null,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-NCR.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-NCR.txt",
+       "chunk": "2",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-NCR.txt",
+       "chunk": "4",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-NCR.txt",
+       "chunk": "7",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    }
+   }
+  },
+  "H2": {
+   "blind_facts": true,
+   "retrieval_precision": {
+    "useful": 3,
+    "returned": 12,
+    "score": 0.25
+   },
+   "context_precision": {
+    "score": 0.6388888888888888,
+    "helpers_scored": 1,
+    "helpers_with_no_useful_piece": [
+     "alarm",
+     "maintenance"
+    ]
+   },
+   "helpers": {
+    "alarm": {
+     "useful": 0,
+     "returned": 4,
+     "retrieval_precision": 0.0,
+     "context_precision": null,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "DemoBottling-Shift-Log-2026-09-10-Night.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "DemoBottling-Shift-Log-2026-09-01-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "DemoBottling-Shift-Log-2026-09-11-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "maintenance": {
+     "useful": 0,
+     "returned": 4,
+     "retrieval_precision": 0.0,
+     "context_precision": null,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "1",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "2",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "6",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "sop": {
+     "useful": 3,
+     "returned": 4,
+     "retrieval_precision": 0.75,
+     "context_precision": 0.6388888888888888,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-SOP.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-SOP.txt",
+       "chunk": "6",
+       "useful": true,
+       "facts": [
+        "F5",
+        "F8"
+       ]
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-SOP.txt",
+       "chunk": "8",
+       "useful": true,
+       "facts": [
+        "F1",
+        "F3",
+        "F4"
+       ]
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-SOP.txt",
+       "chunk": "19",
+       "useful": true,
+       "facts": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F6",
+        "F11"
+       ]
+      }
+     ]
+    }
+   }
+  },
+  "H3": {
+   "blind_facts": true,
+   "retrieval_precision": {
+    "useful": 7,
+    "returned": 16,
+    "score": 0.4375
+   },
+   "context_precision": {
+    "score": 0.6944444444444443,
+    "helpers_scored": 3,
+    "helpers_with_no_useful_piece": [
+     "alarm"
+    ]
+   },
+   "helpers": {
+    "alarm": {
+     "useful": 0,
+     "returned": 4,
+     "retrieval_precision": 0.0,
+     "context_precision": null,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "DemoBottling-Shift-Log-2026-09-11-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "DemoBottling-Shift-Log-2026-09-01-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "DemoBottling-Shift-Log-2026-09-10-Night.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "DemoBottling-Shift-Log-2026-09-08-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "maintenance": {
+     "useful": 1,
+     "returned": 4,
+     "retrieval_precision": 0.25,
+     "context_precision": 0.3333333333333333,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "1",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "6",
+       "useful": true,
+       "facts": [
+        "F5"
+       ]
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "7",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "sop": {
+     "useful": 4,
+     "returned": 4,
+     "retrieval_precision": 1.0,
+     "context_precision": 1.0,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-SOP.txt",
+       "chunk": "5",
+       "useful": true,
+       "facts": [
+        "F11"
+       ]
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-SOP.txt",
+       "chunk": "8",
+       "useful": true,
+       "facts": [
+        "F6",
+        "F9"
+       ]
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-SOP.txt",
+       "chunk": "14",
+       "useful": true,
+       "facts": [
+        "F1",
+        "F3",
+        "F4",
+        "F6",
+        "F7",
+        "F8",
+        "F11"
+       ]
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-SOP.txt",
+       "chunk": "11",
+       "useful": true,
+       "facts": [
+        "F7",
+        "F9",
+        "F11"
+       ]
+      }
+     ]
+    },
+    "ncr": {
+     "useful": 2,
+     "returned": 4,
+     "retrieval_precision": 0.5,
+     "context_precision": 0.75,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-NCR.txt",
+       "chunk": "0",
+       "useful": true,
+       "facts": [
+        "F11"
+       ]
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-NCR.txt",
+       "chunk": "2",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-NCR.txt",
+       "chunk": "6",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-NCR.txt",
+       "chunk": "7",
+       "useful": true,
+       "facts": [
+        "F3",
+        "F7"
+       ]
+      }
+     ]
+    }
+   }
+  },
+  "H4": {
+   "blind_facts": true,
+   "retrieval_precision": {
+    "useful": 5,
+    "returned": 12,
+    "score": 0.4166666666666667
+   },
+   "context_precision": {
+    "score": 0.8194444444444444,
+    "helpers_scored": 2,
+    "helpers_with_no_useful_piece": [
+     "maintenance"
+    ]
+   },
+   "helpers": {
+    "alarm": {
+     "useful": 2,
+     "returned": 4,
+     "retrieval_precision": 0.5,
+     "context_precision": 1.0,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+       "chunk": "0",
+       "useful": true,
+       "facts": [
+        "F5"
+       ]
+      },
+      {
+       "rank": 2,
+       "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+       "chunk": "1",
+       "useful": true,
+       "facts": [
+        "F5"
+       ]
+      },
+      {
+       "rank": 3,
+       "document": "DemoBottling-Shift-Log-2026-09-10-Night.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+       "chunk": "2",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "maintenance": {
+     "useful": 0,
+     "returned": 4,
+     "retrieval_precision": 0.0,
+     "context_precision": null,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "1",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "6",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "2",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "sop": {
+     "useful": 3,
+     "returned": 4,
+     "retrieval_precision": 0.75,
+     "context_precision": 0.6388888888888888,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-SOP.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-SOP.txt",
+       "chunk": "6",
+       "useful": true,
+       "facts": [
+        "F6",
+        "F8"
+       ]
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-SOP.txt",
+       "chunk": "1",
+       "useful": true,
+       "facts": [
+        "F1"
+       ]
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-SOP.txt",
+       "chunk": "16",
+       "useful": true,
+       "facts": [
+        "F1",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F9",
+        "F10",
+        "F11"
+       ]
+      }
+     ]
+    }
+   }
+  },
+  "H5": {
+   "blind_facts": true,
+   "retrieval_precision": {
+    "useful": 2,
+    "returned": 12,
+    "score": 0.16666666666666666
+   },
+   "context_precision": {
+    "score": 0.5833333333333333,
+    "helpers_scored": 1,
+    "helpers_with_no_useful_piece": [
+     "alarm",
+     "maintenance"
+    ]
+   },
+   "helpers": {
+    "alarm": {
+     "useful": 0,
+     "returned": 4,
+     "retrieval_precision": 0.0,
+     "context_precision": null,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "DemoBottling-Shift-Log-2026-09-10-Night.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "DemoBottling-Shift-Log-2026-09-17-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "DemoBottling-Shift-Log-2026-09-01-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "DemoBottling-Shift-Log-2026-09-11-Day.csv",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "maintenance": {
+     "useful": 0,
+     "returned": 4,
+     "retrieval_precision": 0.0,
+     "context_precision": null,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "1",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "6",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-Work-Instruction.txt",
+       "chunk": "2",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    },
+    "sop": {
+     "useful": 2,
+     "returned": 4,
+     "retrieval_precision": 0.5,
+     "context_precision": 0.5833333333333333,
+     "pieces": [
+      {
+       "rank": 1,
+       "document": "FL-101-SOP.txt",
+       "chunk": "0",
+       "useful": false,
+       "facts": []
+      },
+      {
+       "rank": 2,
+       "document": "FL-101-SOP.txt",
+       "chunk": "12",
+       "useful": true,
+       "facts": [
+        "F1",
+        "F2",
+        "F3",
+        "F5",
+        "F7"
+       ]
+      },
+      {
+       "rank": 3,
+       "document": "FL-101-SOP.txt",
+       "chunk": "8",
+       "useful": true,
+       "facts": [
+        "F3",
+        "F9",
+        "F10"
+       ]
+      },
+      {
+       "rank": 4,
+       "document": "FL-101-SOP.txt",
+       "chunk": "7",
+       "useful": false,
+       "facts": []
+      }
+     ]
+    }
+   }
+  }
+ },
+ "total": {
+  "retrieval_precision": {
+   "useful": 19,
+   "returned": 68,
+   "score": 0.27941176470588236
+  },
+  "context_precision": {
+   "score": 0.6305555555555553,
+   "note": "average of the question scores"
+  }
+ }
+}
