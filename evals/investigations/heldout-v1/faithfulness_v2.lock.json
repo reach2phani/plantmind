@@ -1,0 +1,6 @@
+{
+  "about": "Fingerprint of faithfulness_v2.json when it was locked. faithfulness_ragas.py --rubric 2 refuses to score if the rubric changed.",
+  "locked": "2026-11-15",
+  "rubric_version": 2,
+  "rubric_fingerprint": "bd5db8095d1c"
+}

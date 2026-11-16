@@ -50,8 +50,16 @@ LIMIT_WAIT_TRIES = 6      # on a rate-limit refusal (nothing generated, nothing 
 LIMIT_WAIT_SECONDS = 65   # default wait when Groq gives no "try again in" hint (limits reset each minute)
 
 
-def check_rubric():
-    rub = json.loads((HERE / "faithfulness.json").read_text(encoding="utf-8"))
+RUBRICS = {1: ("faithfulness.json", "faithfulness.lock.json", None),
+           2: ("faithfulness_v2.json", "faithfulness_v2.lock.json",
+               {"question_in_evidence": True, "remove_step_labels": True})}
+
+
+def check_rubric(version):
+    name, lock_name, prep = RUBRICS[version]
+    rub = json.loads((HERE / name).read_text(encoding="utf-8"))
+    if rub.get("version") != version:
+        sys.exit(f"{name}: version = {rub.get('version')!r}, expected {version}")
     for key in ("metric", "look_in"):
         if rub.get(key) != KNOWN[key]:
             sys.exit(f"{key} = {rub.get(key)!r}: this script only knows {KNOWN[key]!r}")
@@ -59,15 +67,17 @@ def check_rubric():
         sys.exit("evaluator settings differ from what this script applies")
     if rub.get("rules", {}).get("score") != KNOWN["score"]:
         sys.exit("score rule differs from what this script applies")
+    if rub.get("prep") != prep:
+        sys.exit(f"{name}: prep = {rub.get('prep')!r}: this script applies {prep!r} for version {version}")
     import ragas
     if ragas.__version__ != KNOWN["evaluator"]["ragas_version"]:
         sys.exit(f"RAGAS {ragas.__version__} installed, rubric needs {KNOWN['evaluator']['ragas_version']}")
-    lock_path = HERE / "faithfulness.lock.json"
+    lock_path = HERE / lock_name
     if not lock_path.is_file():
-        sys.exit("No faithfulness.lock.json: lock the rubric before scoring")
+        sys.exit(f"No {lock_name}: lock the rubric before scoring")
     lock = json.loads(lock_path.read_text(encoding="utf-8"))
     if fingerprint(rub) != lock["rubric_fingerprint"]:
-        sys.exit("faithfulness.json changed after it was locked: make a new version instead")
+        sys.exit(f"{name} changed after it was locked: make a new version instead")
     return rub, lock
 
 
@@ -79,14 +89,26 @@ def strip_meta(report):
     return text.strip()
 
 
-def writer_evidence(case, side):
-    """The writer's input, from the saved trace: helper summaries + graph text."""
+STEP_LABEL = re.compile(r"(?im)^(\s*)step\s*\d+\s*[:.\-–—]\s*")
+
+
+def remove_step_labels(text):
+    """v2: 'Step 2: Diagnosis - inspect X' -> 'Diagnosis - inspect X'. The judge
+    checked step NUMBERS against the documents' own numbering (H2 review:
+    13 judge errors). The actions themselves are unchanged."""
+    return STEP_LABEL.sub(r"\1", text)
+
+
+def writer_evidence(case, side, question_in_evidence=False):
+    """The writer's input, from the saved trace: (question) + helper summaries + graph text."""
     trace = json.loads((SNAP / "traces" / f"{case}-{side}.json").read_text(encoding="utf-8"))
     step = next((s for s in trace["steps"] if s["name"] == "orchestrator"), None)
     if not step:
         sys.exit(f"{case}-{side}: no orchestrator step in the trace")
     inp = step["input"]
     contexts = [f"{r['agent'].upper()} FINDINGS\n{r['findings']}" for r in inp.get("specialist_results") or []]
+    if question_in_evidence and inp.get("incident"):
+        contexts.insert(0, "OPERATOR'S QUESTION (what the operator reported)\n" + inp["incident"])
     g = inp.get("graph_context") or {}
     if g.get("has_data") and g.get("chain_text"):
         contexts.append("KNOWLEDGE GRAPH CONTEXT\n" + g["chain_text"])
@@ -164,9 +186,38 @@ async def score_one(metric, question, response, contexts, label):
     return {"score": metric._compute_score(verdicts), "statements": rows, "limit_waits_s": waits}
 
 
+def _matches(item, text):
+    t = (text or "").lower()
+    return (all(any(w.lower() in t for w in group) for group in item["all_of"])
+            and not any(w.lower() in t for w in item.get("none_of", [])))
+
+
+def calibration_check(rub, case, statements):
+    """Both directions: known-true topics must be supported, known-made-up topics must not.
+    Prints every matching statement so a person can confirm (word matching can hit by accident)."""
+    cal = (rub.get("calibration") or {}).get("cases", {}).get(case)
+    if not cal:
+        return None
+    report, ok = [], True
+    for kind, want in (("must_support", 1), ("must_not_support", 0)):
+        for item in cal.get(kind, []):
+            hits = [(i, s) for i, s in enumerate(statements, 1) if _matches(item, s["statement"])]
+            bad = [i for i, s in hits if s["verdict"] != want]
+            ok = ok and not bad and bool(hits)
+            report.append({"kind": kind, "topic": item["topic"], "matched": [i for i, _ in hits],
+                           "wrong": bad, "no_match": not hits})
+    print(f"\n  CALIBRATION ({case}): {'PASS' if ok else 'FAIL'}  (a person confirms)")
+    for r in report:
+        mark = "ok  " if (not r["wrong"] and not r["no_match"]) else "FAIL"
+        extra = " (no statement matched)" if r["no_match"] else (f" wrong verdict on #{r['wrong']}" if r["wrong"] else "")
+        print(f"    {mark} {r['kind']:<17} {r['topic']:<45} statements {r['matched']}{extra}")
+    return {"pass": ok, "topics": report}
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
+    ap.add_argument("--rubric", type=int, choices=sorted(RUBRICS), default=2)
     ap.add_argument("--cases", nargs="+", default=["H1"])
     ap.add_argument("--side", default="after", choices=["before", "after"])
     g = ap.add_mutually_exclusive_group()
@@ -176,7 +227,8 @@ def main():
 
     from dotenv import load_dotenv
     load_dotenv(ROOT / ".env")
-    rub, lock = check_rubric()
+    rub, lock = check_rubric(args.rubric)
+    prep = rub.get("prep") or {}
 
     if args.smoke:
         question = "What does the bowl hold?"
@@ -188,8 +240,10 @@ def main():
         jobs = {}
         for case in args.cases:
             run = json.loads((SNAP / "runs" / f"{case}-{args.side}.json").read_text(encoding="utf-8"))
-            question, contexts = writer_evidence(case, args.side)
+            question, contexts = writer_evidence(case, args.side, prep.get("question_in_evidence", False))
             response = strip_meta(run["report_as_graded"])
+            if prep.get("remove_step_labels"):
+                response = remove_step_labels(response)
             jobs[case] = (question, response, contexts)
             ev_tok = sum(len(c) for c in contexts) // 4
             resp_tok = len(response) // 4
@@ -212,7 +266,8 @@ def main():
 
     def save(case, res):
         # One file per case, written as soon as that case finishes: a later failure loses nothing.
-        dest = HERE / "results" / f"faithfulness_{case if not args.smoke else 'smoke'}_{args.side}.json"
+        tag = "" if args.rubric == 1 else f"v{args.rubric}_"      # v1 file names stay as they were
+        dest = HERE / "results" / f"faithfulness_{tag}{case if not args.smoke else 'smoke'}_{args.side}.json"
         dest.parent.mkdir(exist_ok=True)
         dest.write_text(json.dumps(dict(out, cases={case: res}), indent=1, ensure_ascii=False), encoding="utf-8")
         print(f"  saved {dest.relative_to(ROOT)}")
@@ -239,6 +294,7 @@ def main():
             t = res["tokens"]
             print(f"  tokens: {t['in']:,} in + {t['out']:,} out in {t['calls']} calls"
                   f"{'  (refused first: ' + str(t['non_200']) + ')' if t['non_200'] else ''}")
+            res["calibration"] = calibration_check(rub, case, res["statements"])
             save(case, res)
 
     asyncio.run(run_all())

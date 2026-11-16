@@ -1,0 +1,262 @@
+{
+  "about": "Rubric VERSION 2 for FAITHFULNESS (grounding dimension). Same metric, judge and score as version 1 (faithfulness.json, kept unchanged with its results). Version 2 fixes the two judge-error causes found in the H2 human review (2026-11-15: the judge was wrong on 18 of 32 'not supported' verdicts): step numbers were judged instead of actions, and facts from the operator's own question were not in the evidence. Calibration now checks BOTH directions: known-true statements must be supported, known-made-up statements must not. LOCK RULE: never change this file after its results are seen; make a new version instead.",
+  "version": 2,
+  "supersedes": "faithfulness.json (version 1)",
+  "metric": "faithfulness",
+  "metric_question": "Is every statement in the answer supported by the evidence the writer was given?",
+  "look_in": "writer_input",
+  "look_in_means": "Option A: exactly what PlantMind's writer received, read from the saved trace (orchestrator step input): the operator's question, each helper's summary, and the knowledge-graph text (chain text, warnings, exact values, downtime). Not the raw search pieces. The writer's instructions and template are NOT evidence.",
+  "response_means": "The final report as graded, without the REPORT CONFIDENCE and SOURCE DATA blocks, and with 'Step N:' labels removed (the actions stay).",
+  "prep": {
+    "question_in_evidence": true,
+    "remove_step_labels": true
+  },
+  "evaluator": {
+    "tool": "ragas",
+    "ragas_version": "0.4.3",
+    "metric_class": "ragas.metrics.collections.Faithfulness",
+    "prompts": "RAGAS built-in StatementGeneratorPrompt and NLIStatementPrompt, unchanged",
+    "judge_model": "qwen/qwen3.8-27b",
+    "judge_provider": "groq",
+    "temperature": 0,
+    "reasoning_format": "hidden"
+  },
+  "rules": {
+    "split": "RAGAS breaks the response into atomic statements",
+    "verdict": "RAGAS asks the judge, for each statement, whether the evidence supports it (1) or not (0), with a reason",
+    "score": "supported statements / all statements"
+  },
+  "calibration": {
+    "about": "Checked by code after scoring a calibration case, then confirmed by a person. A statement 'matches' a topic when every all_of group has at least one wording in it and it contains none of the none_of words (case ignored). none_of keeps borderline and made-up statements that mention the same words (for example the invented 'Rail Position B' indicator, or a likely cause stated as the root cause) out of the must_support check. Pass only if every statement matching a must_support topic is supported AND every statement matching a must_not_support topic is not supported. Answer key: H1 investigation (cases/H1.md) and the H2 human review (reports/faithfulness/H2-human-review.md, confirmed 2026-11-15). Borderline (B) statements from that review are not used.",
+    "cases": {
+      "H1": {
+        "must_not_support": [
+          {
+            "topic": "operator checks wiring",
+            "all_of": [
+              [
+                "wiring"
+              ]
+            ]
+          },
+          {
+            "topic": "recalibrate the checkweigher",
+            "all_of": [
+              [
+                "recalibrat"
+              ]
+            ]
+          },
+          {
+            "topic": "SOP requires LOTO for any checkweigher failure",
+            "all_of": [
+              [
+                "any checkweigher failure"
+              ],
+              [
+                "lock"
+              ]
+            ]
+          }
+        ],
+        "must_support": [
+          {
+            "topic": "do not start",
+            "all_of": [
+              [
+                "not be started",
+                "not start",
+                "cannot be started"
+              ]
+            ]
+          },
+          {
+            "topic": "test-bottle rule",
+            "all_of": [
+              [
+                "490"
+              ]
+            ]
+          }
+        ]
+      },
+      "H2": {
+        "must_not_support": [
+          {
+            "topic": "train operators",
+            "all_of": [
+              [
+                "train"
+              ]
+            ]
+          },
+          {
+            "topic": "change-over audits",
+            "all_of": [
+              [
+                "audit"
+              ]
+            ]
+          },
+          {
+            "topic": "visual indicator",
+            "all_of": [
+              [
+                "indicator"
+              ]
+            ]
+          },
+          {
+            "topic": "root-cause fix: new checklist step",
+            "all_of": [
+              [
+                "root cause fix",
+                "root-cause fix"
+              ],
+              [
+                "checklist"
+              ]
+            ]
+          },
+          {
+            "topic": "notify the maintenance supervisor",
+            "all_of": [
+              [
+                "maintenance supervisor"
+              ],
+              [
+                "notif"
+              ]
+            ]
+          },
+          {
+            "topic": "notify the quality lead",
+            "all_of": [
+              [
+                "quality lead"
+              ],
+              [
+                "notif"
+              ]
+            ]
+          },
+          {
+            "topic": "scrap",
+            "all_of": [
+              [
+                "scrap"
+              ]
+            ]
+          }
+        ],
+        "must_support": [
+          {
+            "topic": "rails at position B",
+            "all_of": [
+              [
+                "position b"
+              ]
+            ],
+            "none_of": [
+              "root cause",
+              "indicator",
+              "checklist",
+              "not reset",
+              "were not",
+              "was not"
+            ]
+          },
+          {
+            "topic": "matching star wheel",
+            "all_of": [
+              [
+                "star wheel"
+              ]
+            ],
+            "none_of": [
+              "root cause",
+              "indicator",
+              "checklist",
+              "not reset",
+              "were not",
+              "was not"
+            ]
+          },
+          {
+            "topic": "run at 60 bottles per minute",
+            "all_of": [
+              [
+                "60 bottles"
+              ]
+            ],
+            "none_of": [
+              "root cause",
+              "indicator",
+              "checklist",
+              "not reset",
+              "were not",
+              "was not"
+            ]
+          },
+          {
+            "topic": "cut-resistant gloves",
+            "all_of": [
+              [
+                "cut-resistant"
+              ]
+            ],
+            "none_of": [
+              "root cause",
+              "indicator",
+              "checklist",
+              "not reset",
+              "were not",
+              "was not"
+            ]
+          },
+          {
+            "topic": "shift lead signs",
+            "all_of": [
+              [
+                "shift lead"
+              ],
+              [
+                "sign"
+              ]
+            ],
+            "none_of": [
+              "root cause",
+              "indicator",
+              "checklist",
+              "not reset",
+              "were not",
+              "was not"
+            ]
+          },
+          {
+            "topic": "changed over to 330 ml (from the question)",
+            "all_of": [
+              [
+                "330"
+              ]
+            ],
+            "none_of": [
+              "root cause",
+              "indicator",
+              "checklist",
+              "not reset",
+              "were not",
+              "was not"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "known_limits": [
+    "An AI judge decides each verdict: a person still checks the calibration result.",
+    "The judge can be too strict about conditional actions ('required' vs 'if wrong'); not fixable without changing RAGAS's prompts.",
+    "A statement copied from a wrong helper summary counts as faithful: this measures 'did the writer invent it', not 'is it true'.",
+    "Calibration topics are matched by words; a statement that matches a topic by accident is shown and decided by a person."
+  ]
+}
