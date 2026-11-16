@@ -1,0 +1,593 @@
+{
+ "run_utc": "2026-11-16T17:09:22+00:00",
+ "side": "after",
+ "metric": "handover_recall",
+ "rubric_version": 1,
+ "rubric_fingerprint": "8ff45ecb82ec",
+ "locked": "2026-11-16",
+ "cases": {
+  "H1": {
+   "case_fingerprint": "7a5c2e782611",
+   "blind_facts": false,
+   "found_by_search": 6,
+   "kept": 2,
+   "handover_recall": 0.3333333333333333,
+   "reached_writer": {
+    "count": 2,
+    "score": 0.3333333333333333
+   },
+   "kept_without_search": [],
+   "per_helper": {
+    "Expert Fix Agent": [],
+    "Alarm Agent": [],
+    "Maintenance Agent": [],
+    "SOP Agent": [
+     "F1",
+     "F2"
+    ],
+    "NCR Agent": []
+   },
+   "dropped_for_manual_review": [
+    "F4",
+    "F5",
+    "F6",
+    "F7"
+   ],
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "Do not start the line",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": true,
+     "result": "KEPT"
+    },
+    {
+     "id": "F2",
+     "fact": "Call the quality lead",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": true,
+     "result": "KEPT"
+    },
+    {
+     "id": "F3",
+     "fact": "By hand it is only 5 bottles an hour",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F4",
+     "fact": "The checkweigher weighs every bottle",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F5",
+     "fact": "490 and 510 ml rejected, 500 ml passes",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F6",
+     "fact": "Record on the pre-start checklist",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F7",
+     "fact": "The shift lead signs it",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    }
+   ]
+  },
+  "H2": {
+   "case_fingerprint": "b6ebc9a0dfe6",
+   "blind_facts": true,
+   "found_by_search": 8,
+   "kept": 4,
+   "handover_recall": 0.5,
+   "reached_writer": {
+    "count": 8,
+    "score": 1.0
+   },
+   "kept_without_search": [],
+   "per_helper": {
+    "Expert Fix Agent": [],
+    "Alarm Agent": [],
+    "Maintenance Agent": [],
+    "SOP Agent": [
+     "F1",
+     "F3",
+     "F4",
+     "F6"
+    ]
+   },
+   "dropped_for_manual_review": [
+    "F2",
+    "F5",
+    "F8",
+    "F11"
+   ],
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "330 ml bottles need rail position B",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": false,
+     "result": "KEPT"
+    },
+    {
+     "id": "F2",
+     "fact": "Rails not reset after a changeover are the usual cause",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F3",
+     "fact": "The matching star wheel is fitted",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": true,
+     "result": "KEPT"
+    },
+    {
+     "id": "F4",
+     "fact": "The rails are locked",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": true,
+     "result": "KEPT"
+    },
+    {
+     "id": "F5",
+     "fact": "Stop and lock out before clearing a jam",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F6",
+     "fact": "Restart at 60 bottles per minute",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": true,
+     "result": "KEPT"
+    },
+    {
+     "id": "F7",
+     "fact": "Never reach into the infeed or star wheel while running",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F8",
+     "fact": "Wear cut-resistant gloves",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F9",
+     "fact": "Check the changeover record",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F10",
+     "fact": "Remove chipped or damaged bottles",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F11",
+     "fact": "The shift lead signs the changeover record",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    }
+   ]
+  },
+  "H3": {
+   "case_fingerprint": "5413906a93d1",
+   "blind_facts": true,
+   "found_by_search": 9,
+   "kept": 1,
+   "handover_recall": 0.1111111111111111,
+   "reached_writer": {
+    "count": 8,
+    "score": 0.8888888888888888
+   },
+   "kept_without_search": [],
+   "per_helper": {
+    "Expert Fix Agent": [],
+    "Alarm Agent": [],
+    "Maintenance Agent": [],
+    "SOP Agent": [
+     "F4"
+    ],
+    "NCR Agent": []
+   },
+   "dropped_for_manual_review": [
+    "F1",
+    "F3",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9",
+    "F11"
+   ],
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "Call the maintenance supervisor",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F2",
+     "fact": "Underfill after new seals is a reason to call the maintenance supervisor",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F3",
+     "fact": "3 underfill alarms in one shift = a systemic fault",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F4",
+     "fact": "Stop production and raise a work order",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": true,
+     "result": "KEPT"
+    },
+    {
+     "id": "F5",
+     "fact": "Check for a blocked nozzle",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F6",
+     "fact": "Check the product supply pressure",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F7",
+     "fact": "Do not raise the fill time",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F8",
+     "fact": "The checkweigher report shows which valves",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F9",
+     "fact": "Supply pressure should be 1.5 to 2.0 bar",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F10",
+     "fact": "A scratched valve seat stops a new seal sealing",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F11",
+     "fact": "NCR-2026-012 is the reason not to raise the fill time",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    }
+   ]
+  },
+  "H4": {
+   "case_fingerprint": "ebb429d6967a",
+   "blind_facts": true,
+   "found_by_search": 9,
+   "kept": 2,
+   "handover_recall": 0.2222222222222222,
+   "reached_writer": {
+    "count": 6,
+    "score": 0.6666666666666666
+   },
+   "kept_without_search": [],
+   "per_helper": {
+    "Expert Fix Agent": [],
+    "Alarm Agent": [],
+    "SOP Agent": [
+     "F5",
+     "F6"
+    ],
+    "Maintenance Agent": []
+   },
+   "dropped_for_manual_review": [
+    "F1",
+    "F4",
+    "F7",
+    "F8",
+    "F9",
+    "F10",
+    "F11"
+   ],
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "Stop the line",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F2",
+     "fact": "Call the quality lead",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F3",
+     "fact": "The quality lead owns QA HOLD decisions",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F4",
+     "fact": "The quality lead signs off before restart",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F5",
+     "fact": "Clean up with the red glass kit",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": true,
+     "result": "KEPT"
+    },
+    {
+     "id": "F6",
+     "fact": "Use a vacuum, never compressed air",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": true,
+     "result": "KEPT"
+    },
+    {
+     "id": "F7",
+     "fact": "Do not open any guard until locked out",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F8",
+     "fact": "Do not reach in until locked out",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F9",
+     "fact": "Put bottles from the last 30 minutes on QA HOLD",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F10",
+     "fact": "Throw away open bottles within 2 metres",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F11",
+     "fact": "Record it in the glass breakage log",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": true,
+     "result": "DROPPED"
+    }
+   ]
+  },
+  "H5": {
+   "case_fingerprint": "9a6693fe295f",
+   "blind_facts": true,
+   "found_by_search": 7,
+   "kept": 1,
+   "handover_recall": 0.14285714285714285,
+   "reached_writer": {
+    "count": 1,
+    "score": 0.14285714285714285
+   },
+   "kept_without_search": [],
+   "per_helper": {
+    "Alarm Agent": [],
+    "Maintenance Agent": [],
+    "Expert Fix Agent": [],
+    "SOP Agent": [
+     "F1"
+    ]
+   },
+   "dropped_for_manual_review": [
+    "F2",
+    "F3",
+    "F5",
+    "F7",
+    "F9",
+    "F10"
+   ],
+   "facts": [
+    {
+     "id": "F1",
+     "fact": "More than 1 in 100 over an hour: tell the shift lead",
+     "found_by_search": true,
+     "kept_by": [
+      "SOP Agent"
+     ],
+     "in_graph": false,
+     "result": "KEPT"
+    },
+    {
+     "id": "F2",
+     "fact": "A rising reject count is often the first sign of worn seals",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F3",
+     "fact": "Look at the fill valves for dripping",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F4",
+     "fact": "The checkweigher report shows which valves",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F5",
+     "fact": "Hand-weigh 5 bottles to confirm",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F6",
+     "fact": "Do not change the fill time",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F7",
+     "fact": "Record the checkweigher reject count",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F8",
+     "fact": "Dripping valve: maintenance replaces the seal kit",
+     "found_by_search": false,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "NOT FOUND BY SEARCH"
+    },
+    {
+     "id": "F9",
+     "fact": "Seals every 3 months or 1,500 running hours",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    },
+    {
+     "id": "F10",
+     "fact": "Check the product supply pressure",
+     "found_by_search": true,
+     "kept_by": [],
+     "in_graph": false,
+     "result": "DROPPED"
+    }
+   ]
+  }
+ },
+ "total": {
+  "found_by_search": 39,
+  "kept": 10,
+  "handover_recall": 0.2564102564102564,
+  "reached_writer": 0.6410256410256411,
+  "note": "automated checker only; corrected numbers come from the manual review"
+ }
+}

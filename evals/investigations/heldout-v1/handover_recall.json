@@ -1,0 +1,33 @@
+{
+  "about": "Rubric for HANDOVER RECALL (grounding dimension) on the held-out questions: of the facts search found, how many did the helper agents keep in the summaries they handed to the writer? It measures the summarise step only: a fact search never found is search's failure (already counted in retrieval recall) and is left out here. handover_recall.py only applies this rubric. The facts are NOT copied here: they are read from retrieval_labels.json, and only if they still match their locked fingerprints. LOCK RULE: never change this file after its results are seen; make a new version instead. NOT BLIND: the helper summaries for H1, H2, H4 and H5 were read during the faithfulness review. The automated rule is mechanical, and the manual-review rule below is fixed before any handover result is seen.",
+  "version": 1,
+  "metric": "handover_recall",
+  "metric_question": "Of the facts search found, how many did the helpers keep in what they handed to the writer?",
+  "look_in": "helper_summaries",
+  "look_in_means": "each helper's summary exactly as the writer received it, read from the saved trace (orchestrator step input, specialist_results[].findings). The writer never sees the raw search pieces.",
+  "facts_from": "retrieval_labels.json",
+  "found_by_search_from": "the retrieval recall rule in retrieval_labels.json, applied again to the saved search pieces (details.pieces)",
+  "rules": {
+    "ignore_case": true,
+    "ignore_line_breaks": true,
+    "kept_means": "the fact matches (same all_of wordings as retrieval recall) inside at least one helper summary; any helper counts, not only the one whose search found it",
+    "only_count_facts_found_by_search": true,
+    "score": "facts kept in the helper summaries / facts found by search",
+    "also_report": {
+      "reached_writer": "facts found by search that are in the helper summaries OR the knowledge-graph text the writer received (chain text, warnings, exact values, downtime) / facts found by search. Shows whether the graph rescues facts the helpers dropped. Information only, not the metric.",
+      "kept_without_search": "facts in the helper summaries that search did NOT find (expected zero; would mean a helper added a fact from somewhere other than its search pieces)",
+      "per_helper": "for each helper, which facts its summary kept"
+    }
+  },
+  "manual_review": {
+    "when": "after the automated run, for every fact counted DROPPED",
+    "rule": "A person reads the helper summaries. The fact counts as KEPT only if a summary states the same instruction or fact with the same meaning and the same numbers (a reworded fact is kept; a vaguer one, such as 'follow the SOP' or 'check the weight', is not). Each decision is written down with the quoted summary text.",
+    "report": "both numbers: automated checker and corrected by manual review"
+  },
+  "known_limits": [
+    "Helpers reword facts, so word matching undercounts KEPT; the manual review corrects this.",
+    "A fact kept in a summary may still be left out of the final answer: that is the next step (answer completeness), not this metric.",
+    "Counts whether a fact reached the writer, not whether the helper flagged it as important.",
+    "Wording limits are inherited from retrieval_labels.json version 1."
+  ]
+}
