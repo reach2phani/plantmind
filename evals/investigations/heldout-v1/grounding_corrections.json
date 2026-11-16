@@ -1,0 +1,38 @@
+{
+  "about": "Human-reviewed corrections to the automated grounding results on the held-out questions. Each correction is a person's decision, made under a rule locked before the results were seen, and points to the review that records it. grounding_card.py reads this file next to the automated result files and shows both numbers. Only the cases listed here were corrected; every other case keeps its automated number.",
+  "retrieval_recall": {
+    "H5": {"found": 8, "counted": 10,
+           "review": "reports/retrieval-recall/summary.md",
+           "why": "one work-instruction fact written in different words (F4 'which valves are underfilling')"}
+  },
+  "retrieval_precision": {
+    "H5": {"useful": 3, "returned": 12,
+           "review": "reports/retrieval-precision/summary.md",
+           "why": "the same work-instruction piece counted as useful"}
+  },
+  "context_precision": {
+    "H5": {"score": 0.42,
+           "review": "reports/retrieval-precision/summary.md",
+           "why": "the extra useful piece sat last, at rank 4"}
+  },
+  "handover_recall": {
+    "review": "reports/handover-recall/manual-review.md",
+    "why": "17 facts the checker missed because of rewording, Markdown bold marks and special hyphens",
+    "cases": {
+      "H1": {"kept": 3, "reached": 3},
+      "H2": {"kept": 6, "reached": 8},
+      "H3": {"kept": 8, "reached": 9},
+      "H4": {"kept": 8, "reached": 9},
+      "H5": {"kept": 2, "reached": 2}
+    }
+  },
+  "faithfulness": {
+    "about": "Range after a person checked the judge's 'not supported' verdicts: low = borderline counted unsupported, high = borderline counted supported.",
+    "cases": {
+      "H2": {"low": 0.77, "high": 0.87, "review": "reports/faithfulness/H2-human-review.md",
+             "note": "reviewed on the rubric v1 run (60 statements); the v2 judge score falls inside this range"},
+      "H4": {"low": 0.77, "high": 0.87, "review": "reports/faithfulness/H4-H5-human-review.md"},
+      "H5": {"low": 0.43, "high": 0.59, "review": "reports/faithfulness/H4-H5-human-review.md"}
+    }
+  }
+}
