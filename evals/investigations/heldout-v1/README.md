@@ -30,12 +30,12 @@ From the run records, saved in `snapshot/versions.json` on 2026-11-09.
 
 ## The rules
 
-1. **No stage is marked failed without evidence from that stage. No root cause is marked confirmed without evidence linking the mechanism to the observed failure.**
+1. **No stage is marked failed without evidence from that stage. No root cause is marked proven without evidence linking the mechanism to the observed failure.**
 2. **✅ also needs evidence:** a quote, a rank, or a line number. A stage we didn't check is never shown as passed.
 3. **No saved evidence means ⬜ "not observable"**, never passed or failed. Each ⬜ is listed as an observability gap.
 4. **Rebuilt evidence is weaker.** For example, the graph text rebuilt from Neo4j today shows what the graph says now, not what the AI saw then. Mark it "reconstructed". A cause that rests only on reconstructed evidence is at most "Likely".
 5. **Every stage note keeps three things apart:** evidence (what the data shows), observation (what that means for this fact), interpretation (what might explain it).
-6. **"Unresolved" is an acceptable answer.** Say what would settle it.
+6. **"Unknown" is an acceptable answer.** Say what would settle it.
 7. **Say what works as well as what fails.**
 
 ### Stage marks
@@ -52,9 +52,9 @@ From the run records, saved in `snapshot/versions.json` on 2026-11-09.
 
 | Level | What it requires |
 |---|---|
-| **Confirmed** | evidence on both sides of the break (present before, absent after) **and** the mechanism visible in the code or prompt |
+| **Proven** | evidence on both sides of the break (present before, absent after) **and** the mechanism visible in the code or prompt |
 | **Likely** | the evidence fits, but the mechanism is inferred or rests on reconstructed evidence |
-| **Unresolved** | not enough evidence; say what would settle it |
+| **Unknown** | not enough evidence; say what would settle it |
 | **Tested** | confirmed by a re-run with one thing changed (Phase 4, costs tokens, asked first) |
 
 ## The seven stages
@@ -82,6 +82,64 @@ PlantMind hands evidence over twice: search pieces go to the specialists, then t
 | E | Reasoning | the writer had the evidence and used it wrongly or left it out |
 | F | Prompt interference | must-show / Do NOT content pushes out the diagnosis |
 | G | Checker / answer key | the verdict or the expectation is wrong |
+
+## Fixed lists (used in every case)
+
+Every finding gets one **finding type**, one or more **causes**, a **severity**, and a **checker** result, always from these lists, so findings can be counted across cases. A new name is added only when nothing fits, with the case that needed it.
+
+**Finding types** (what the operator would see in the answer). If two fit, use the more serious one.
+
+| Finding type | Meaning |
+|---|---|
+| Required step missing | A step or fact the documents require is not in the answer |
+| Unsupported instruction | Tells the operator to do something no document supports |
+| Unsafe instruction | Tells the operator to do something the documents forbid, or that could hurt someone |
+| Irrelevant content | Rules or steps from a different situation |
+| Wrong rating | Criticality doesn't fit the situation |
+| Overstated confidence | Says it is sure when it shouldn't be |
+| Distorted fact | A real fact stretched or changed ("1 time" → "always") |
+| Missing reason | Right instruction, no explanation where the operator needs one |
+| Format problem | The required report structure is broken |
+
+**Causes** (how it happened inside PlantMind)
+
+| Cause | Meaning |
+|---|---|
+| Knowledge missing | Not in the documents or the graph |
+| Not found by search | In the documents, but search didn't return it |
+| Lost between steps | Found, then dropped by a summary or handover |
+| Wrong problem chosen | The question was treated as the wrong type of problem |
+| Template pressure | The fixed report format pushed the AI to fill a slot |
+| Rule too broad | A prompt instruction applied where it shouldn't |
+| Evidence misused | The AI had the right information but used it wrongly |
+| Confidence not checked | Labels don't reflect how weak the evidence is |
+
+**Checker results:** right pass · right fail · **False pass** (passed a bad answer) · **False fail** (failed a good answer) · **Answer key weak** (the expectation itself is uncertain) · not tested (no check covers it).
+
+**Severity:** **High** = could lead to an unsafe act, or hides one · **Medium** = missing record, wrong rating, quality risk · **Low** = wording or minor.
+
+**Evidence strength:** **Proven** (seen on both sides of the break, with the mechanism visible) · **Likely** (fits, but inferred) · **Unknown** (say what would settle it) · **Tested** (a re-run with one thing changed).
+
+## Case file layout (see TEMPLATE.md)
+
+- **A. The case:** 1 industrial context, 2 expected behaviour
+- **B. Findings at a glance:** one row per finding, plus the cause count
+- **C. Findings:**
+  - full card (stages 3–10) for High and Medium
+  - short card (3–7, 10) for Low
+  - stages: 3 what happened, 4 why it matters, 5 evidence trace, 6 mechanism, 7 evidence strength, 8 competing explanations, 9 verification, 10 evaluator
+- **D. Lessons:** 11 learning takeaway, 12 independent exercise, what worked, open questions
+- **Appendix:** fact journey, evidence files
+
+The evidence trace points to the exact place: file + line, or trace step + field. For missing information it shows **where it disappeared**; for added content, **where it first appeared**.
+
+## Limits of this method
+
+- **One run per case.** A problem seen once may be chance. The before run helps; repeats cost tokens.
+- **Most causes are Likely, not Tested.** Proving a cause needs a re-run with one thing changed.
+- **One person decides** the answer key and the checker verdicts.
+- **Deep, not wide.** 5 cases show *why*, not *how often*. After H5–H4, do one wide pass over all saved answers (list every problem, group, count) to check the lists above.
+- **GR grounding checks** (`eval_summary.py`) were not run on held-out.
 
 ## Steps for each case
 
