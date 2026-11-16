@@ -44,6 +44,10 @@ KNOWN = {
     "score": "supported statements / all statements",
 }
 TPM_LIMIT = 7000          # qwen input tokens per minute on Groq free tier (groq_judge.js)
+REPLY_LIMIT = 16000       # judge reply cap (run setting, not a judging rule; saved with every result)
+JUDGE_ATTEMPTS = 1        # no automatic re-asking of the judge on a bad reply
+LIMIT_WAIT_TRIES = 6      # on a rate-limit refusal (nothing generated, nothing spent): wait and ask again
+LIMIT_WAIT_SECONDS = 65   # default wait when Groq gives no "try again in" hint (limits reset each minute)
 
 
 def check_rubric():
@@ -115,18 +119,49 @@ def make_judge(usage):
                          max_retries=8, http_client=httpx.AsyncClient(event_hooks={"response": [record]},
                                                                       timeout=120))
     ev = KNOWN["evaluator"]
+    # REPLY_LIMIT: the verdict reply repeats every statement with a reason; H1's ~45
+    # statements did not fit in 4,096 tokens (2026-11-15). JUDGE_ATTEMPTS = 1: a failed
+    # judge call costs one call, not three (instructor retried the same cut-off reply).
+    # Rate-limit refusals (429) are still retried by the HTTP client and cost nothing.
     return llm_factory(ev["judge_model"], provider="openai", client=client,
-                       temperature=ev["temperature"], max_tokens=4096,
+                       temperature=ev["temperature"], max_tokens=REPLY_LIMIT,
+                       max_retries=JUDGE_ATTEMPTS,
                        extra_body={"reasoning_format": ev["reasoning_format"]})
 
 
-async def score_one(metric, question, response, contexts):
-    statements = await metric._create_statements(question, response)
+def _limit_refusal(exc):
+    """True when Groq refused the call over a rate limit (429), e.g. its output
+    allowance (OTPM) shrank for a while (seen 2026-11-15: 1,000, then back up).
+    A refused call generates nothing, so waiting and asking again costs nothing.
+    A cut-off reply (max_tokens) is NOT a refusal and is never re-asked."""
+    text = str(exc)
+    return "429" in text or "rate_limit" in text or "RateLimitError" in type(exc).__name__
+
+
+async def with_limit_wait(make_call, label, waits):
+    for attempt in range(1, LIMIT_WAIT_TRIES + 1):
+        try:
+            return await make_call()
+        except Exception as e:
+            if not _limit_refusal(e) or attempt == LIMIT_WAIT_TRIES:
+                raise
+            m = re.search(r"try again in\s+(?:(\d+)m\s*)?([\d.]+)s", str(e))
+            wait = min(120, (int(m.group(1) or 0) * 60 + float(m.group(2)) + 2) if m else LIMIT_WAIT_SECONDS)
+            waits.append(round(wait))
+            print(f"  {label}: Groq refused over a rate limit; waiting {wait:.0f}s (try {attempt}/{LIMIT_WAIT_TRIES})")
+            await asyncio.sleep(wait)
+
+
+async def score_one(metric, question, response, contexts, label):
+    waits = []
+    statements = await with_limit_wait(lambda: metric._create_statements(question, response),
+                                       f"{label} split", waits)
     if not statements:
-        return {"score": None, "statements": []}
-    verdicts = await metric._create_verdicts(statements, "\n".join(contexts))
+        return {"score": None, "statements": [], "limit_waits_s": waits}
+    verdicts = await with_limit_wait(lambda: metric._create_verdicts(statements, "\n".join(contexts)),
+                                     f"{label} verdicts", waits)
     rows = [{"statement": v.statement, "verdict": int(v.verdict), "reason": v.reason} for v in verdicts.statements]
-    return {"score": metric._compute_score(verdicts), "statements": rows}
+    return {"score": metric._compute_score(verdicts), "statements": rows, "limit_waits_s": waits}
 
 
 def main():
@@ -172,39 +207,41 @@ def main():
     metric = Faithfulness(llm=make_judge(usage))
     out = {"run_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"), "side": args.side,
            "metric": "faithfulness", "rubric_version": rub["version"], "rubric_fingerprint": fingerprint(rub),
-           "locked": lock["locked"], "evaluator": KNOWN["evaluator"], "cases": {}}
+           "locked": lock["locked"], "evaluator": KNOWN["evaluator"],
+           "run_settings": {"reply_limit": REPLY_LIMIT, "judge_attempts": JUDGE_ATTEMPTS}, "cases": {}}
+
+    def save(case, res):
+        # One file per case, written as soon as that case finishes: a later failure loses nothing.
+        dest = HERE / "results" / f"faithfulness_{case if not args.smoke else 'smoke'}_{args.side}.json"
+        dest.parent.mkdir(exist_ok=True)
+        dest.write_text(json.dumps(dict(out, cases={case: res}), indent=1, ensure_ascii=False), encoding="utf-8")
+        print(f"  saved {dest.relative_to(ROOT)}")
 
     async def run_all():
         # One event loop for every case: the HTTP client belongs to the loop it was first used in.
-        results = {}
         for case, (question, response, contexts) in jobs.items():
             before = len(usage)
-            res = await score_one(metric, question, response, contexts)
-            res["_calls"] = usage[before:]
-            results[case] = res
-        return results
+            try:
+                res = await score_one(metric, question, response, contexts, case)
+            except Exception as e:
+                print(f"\n{case}: FAILED ({type(e).__name__}: {str(e)[:200]}) - other cases continue")
+                continue
+            calls = usage[before:]
+            res["tokens"] = {"calls": len(calls), "in": sum(c["in"] for c in calls),
+                             "out": sum(c["out"] for c in calls),
+                             "non_200": [c["status"] for c in calls if c["status"] != 200]}
+            sc = res["score"]
+            print(f"\n{case}: faithfulness = {sc:.2f}" if sc is not None else f"\n{case}: no statements")
+            for i, s in enumerate(res["statements"], 1):
+                print(f"  {i:>2} [{'SUPPORTED' if s['verdict'] else 'NOT SUPPORTED'}] {s['statement']}")
+                if not s["verdict"]:
+                    print(f"       reason: {s['reason']}")
+            t = res["tokens"]
+            print(f"  tokens: {t['in']:,} in + {t['out']:,} out in {t['calls']} calls"
+                  f"{'  (refused first: ' + str(t['non_200']) + ')' if t['non_200'] else ''}")
+            save(case, res)
 
-    for case, res in asyncio.run(run_all()).items():
-        calls = res.pop("_calls")
-        res["tokens"] = {"calls": len(calls), "in": sum(c["in"] for c in calls),
-                         "out": sum(c["out"] for c in calls),
-                         "non_200": [c["status"] for c in calls if c["status"] != 200]}
-        out["cases"][case] = res
-        sc = res["score"]
-        print(f"\n{case}: faithfulness = {sc:.2f}" if sc is not None else f"\n{case}: no statements")
-        for i, s in enumerate(res["statements"], 1):
-            print(f"  {i:>2} [{'SUPPORTED' if s['verdict'] else 'NOT SUPPORTED'}] {s['statement']}")
-            if not s["verdict"]:
-                print(f"       reason: {s['reason']}")
-        t = res["tokens"]
-        print(f"  tokens: {t['in']:,} in + {t['out']:,} out in {t['calls']} calls"
-              f"{'  (retries: ' + str(t['non_200']) + ')' if t['non_200'] else ''}")
-
-    name = "smoke" if args.smoke else "_".join(args.cases)
-    dest = HERE / "results" / f"faithfulness_{name}_{args.side}.json"
-    dest.parent.mkdir(exist_ok=True)
-    dest.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
-    print(f"\nSaved {dest.relative_to(ROOT)}")
+    asyncio.run(run_all())
 
 
 if __name__ == "__main__":

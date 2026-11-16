@@ -1,0 +1,265 @@
+{
+ "run_utc": "2026-11-15T23:51:44+00:00",
+ "side": "after",
+ "metric": "faithfulness",
+ "rubric_version": 1,
+ "rubric_fingerprint": "422d3f6d13bb",
+ "locked": "2026-11-15",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.Faithfulness",
+  "prompts": "RAGAS built-in StatementGeneratorPrompt and NLIStatementPrompt, unchanged",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H5": {
+   "score": 0.4186046511627907,
+   "statements": [
+    {
+     "statement": "The checkweigher reject rate is observed at approximately 2 percent, which is equivalent to 2 bottles per 100.",
+     "verdict": 1,
+     "reason": "The context states the operator reports a 2% reject rate. Mathematically, 2% is equivalent to 2 per 100."
+    },
+    {
+     "statement": "The observed checkweigher reject rate of 2 percent exceeds the Standard Operating Procedure threshold of greater than 1 percent over an hour.",
+     "verdict": 1,
+     "reason": "The SOP threshold is defined as >1% (1 bottle per 100) over an hour. The observed rate is 2%, which is greater than 1%."
+    },
+    {
+     "statement": "No underfill alarm or valve-drip symptom is reported for the current issue.",
+     "verdict": 1,
+     "reason": "The context explicitly states: 'No mention of valve dripping or underfill in the operator’s message' and 'no alarm is triggered'."
+    },
+    {
+     "statement": "The current occurrence differs from historical patterns because no alarm is triggered.",
+     "verdict": 1,
+     "reason": "The context lists 'What is different this time' and includes: 'The operator reports a 2% reject rate but notes no alarm is triggered, whereas past high-reject incidents were accompanied by alarms'."
+    },
+    {
+     "statement": "The current occurrence is happening on a Sunday shift.",
+     "verdict": 1,
+     "reason": "The context states: 'The current observation is made on a Sunday shift'."
+    },
+    {
+     "statement": "The production impact is minor quality loss.",
+     "verdict": 0,
+     "reason": "The context does not explicitly characterize the production impact as 'minor quality loss'. It only states the reject rate and that the line continues running. While 2% might be considered minor in some contexts, this specific qualitative assessment is not in the text."
+    },
+    {
+     "statement": "The filling line continues running without a shutdown.",
+     "verdict": 1,
+     "reason": "The SOP states 'No further escalation or shutdown is required unless additional symptoms appear.' Since no additional symptoms (like alarms) are reported, it is inferred that the line continues running without a shutdown."
+    },
+    {
+     "statement": "The safety risk is low because no hazardous condition is identified.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that the safety risk is 'low'. It lists general safety rules but does not provide a risk assessment for this specific incident."
+    },
+    {
+     "statement": "The financial impact is small product waste of approximately 2 percent of output until corrective action is taken.",
+     "verdict": 0,
+     "reason": "The context does not discuss financial impact or quantify product waste in financial terms. It only mentions the reject rate."
+    },
+    {
+     "statement": "There is no major cost associated with the current issue.",
+     "verdict": 0,
+     "reason": "The context does not mention costs or financial implications."
+    },
+    {
+     "statement": "The criticality of the issue is low.",
+     "verdict": 0,
+     "reason": "The context does not assign a criticality level (low/medium/high) to the issue."
+    },
+    {
+     "statement": "The Standard Operating Procedure defines the condition as a notification only.",
+     "verdict": 1,
+     "reason": "The SOP states: 'If the checkweigher rejects more than 1 bottle in 100 over an hour, tell the shift lead. No further escalation or shutdown is required...'. This implies the required action is notification."
+    },
+    {
+     "statement": "No safety or production stop is required for the current issue.",
+     "verdict": 1,
+     "reason": "The SOP states 'No further escalation or shutdown is required unless additional symptoms appear.' Since no additional symptoms are present, no stop is required."
+    },
+    {
+     "statement": "Operators must not remove a lock unless the operator is the person who fitted the lock, according to LOTO SAF-003.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states under LOTO (SAF-003): 'lock rule: Only the person who fitted a lock may remove it'."
+    },
+    {
+     "statement": "Operators must not perform any maintenance, part change, or reach into the machine without applying Lockout/Tagout, according to LOTO SAF-003.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states LOTO is 'required before: Any maintenance, clearing a jam, changing parts, or reaching into the machine'."
+    },
+    {
+     "statement": "Operators must not clear a jam while the machine is running, according to Machine Safety Rules.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states under Machine Safety Rules: 'Never clear a jam while the machine is running'."
+    },
+    {
+     "statement": "Operators must not reach past a guard or bypass a guard switch, according to Machine Safety Rules.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states under Machine Safety Rules: 'never reach past a guard, and never bypass or tape over a guard switch'."
+    },
+    {
+     "statement": "Operators must not use compressed air near open bottles or broken glass, according to Machine Safety Rules.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states under Machine Safety Rules: 'Never use compressed air near open bottles or broken glass'."
+    },
+    {
+     "statement": "Step 1 requires verifying Personal Protective Equipment, including safety shoes, cut-resistant gloves, hearing protection, and safety glasses.",
+     "verdict": 0,
+     "reason": "The context lists PPE requirements in the Knowledge Graph, but does not define a specific 'Step 1' of a procedure that requires verifying these items. The SOP mentions 'shift lead signs pre-start checklist' but does not detail the steps as 'Step 1 requires...'."
+    },
+    {
+     "statement": "Step 1 requires verifying that all guard doors are closed.",
+     "verdict": 0,
+     "reason": "The context does not define a 'Step 1' that requires verifying guard doors are closed. It mentions guard doors have safety switches, but not as a specific step in a procedure for this issue."
+    },
+    {
+     "statement": "Step 2 requires monitoring the checkweigher reject count for the next hour to confirm the rate is greater than 1 percent.",
+     "verdict": 0,
+     "reason": "The context does not define a 'Step 2'. The SOP mentions the threshold is over an hour, but does not outline a step-by-step procedure labeled 'Step 2'."
+    },
+    {
+     "statement": "Step 3 requires notifying the shift lead immediately as required by the Standard Operating Procedure.",
+     "verdict": 0,
+     "reason": "The context does not define a 'Step 3'. While the SOP requires telling the shift lead, it is not labeled as 'Step 3' in the provided text."
+    },
+    {
+     "statement": "Step 3 requires scheduling a checkweigher calibration by maintenance if the high reject rate persists.",
+     "verdict": 0,
+     "reason": "The context does not mention scheduling calibration as a step, nor does it label any action as 'Step 3'."
+    },
+    {
+     "statement": "Step 4 requires re-measuring the reject rate for one hour after calibration.",
+     "verdict": 0,
+     "reason": "The context does not mention re-measuring after calibration or label any action as 'Step 4'."
+    },
+    {
+     "statement": "Step 4 requires ensuring the reject rate is less than or equal to 1 percent after calibration.",
+     "verdict": 0,
+     "reason": "The context does not mention ensuring the rate is <= 1% after calibration or label any action as 'Step 4'."
+    },
+    {
+     "statement": "Step 5 requires placing the affected product batch on Quality Assurance Hold.",
+     "verdict": 0,
+     "reason": "The context does not mention placing product on QA Hold or label any action as 'Step 5'."
+    },
+    {
+     "statement": "Step 5 requires recording the reject count per the Standard Operating Procedure.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that recording the reject count is a required step in the SOP for this specific incident, nor does it label it as 'Step 5'."
+    },
+    {
+     "statement": "Step 5 requires noting \"None required by the documents\" if no further action is defined.",
+     "verdict": 0,
+     "reason": "This is a meta-instruction or output format requirement, not a statement found in the context documents."
+    },
+    {
+     "statement": "The root cause fix involves recalibrating the checkweigher according to the manufacturer's calibration schedule.",
+     "verdict": 0,
+     "reason": "The context does not identify the root cause or prescribe recalibration as the fix. It notes 'NO MACHINE FAULT REPORTED' and says to answer from documents, but the documents do not specify calibration as the fix for this specific 2% reject rate without alarms."
+    },
+    {
+     "statement": "The root cause fix involves investigating possible drift causing the elevated reject rate.",
+     "verdict": 0,
+     "reason": "The context does not mention investigating drift as a root cause fix."
+    },
+    {
+     "statement": "The preventive action involves adding a daily pre-shift checkweigher verification step to the shift checklist.",
+     "verdict": 0,
+     "reason": "The context does not mention adding a daily pre-shift verification step as a preventive action."
+    },
+    {
+     "statement": "The preventive action involves recording results and triggering early maintenance if the reject rate approaches 1 percent.",
+     "verdict": 0,
+     "reason": "The context does not mention triggering early maintenance as a preventive action."
+    },
+    {
+     "statement": "The shift lead requires immediate notification.",
+     "verdict": 1,
+     "reason": "The SOP states: 'If the checkweigher rejects more than 1 bottle in 100 over an hour, tell the shift lead.' Since the rate is 2%, notification is required."
+    },
+    {
+     "statement": "The Maintenance Supervisor requires notification for calibration.",
+     "verdict": 0,
+     "reason": "The context does not state that the Maintenance Supervisor requires notification for calibration."
+    },
+    {
+     "statement": "The checkweigher is rejecting approximately 2 percent of bottles.",
+     "verdict": 1,
+     "reason": "The context states: 'The operator reports a 2% reject rate'."
+    },
+    {
+     "statement": "The checkweigher rejection rate exceeds the Standard Operating Procedure threshold.",
+     "verdict": 1,
+     "reason": "The SOP threshold is >1%. The observed rate is 2%. Therefore, it exceeds the threshold."
+    },
+    {
+     "statement": "The likely root cause is checkweigher calibration drift causing weight readings outside tolerance.",
+     "verdict": 0,
+     "reason": "The context does not identify the root cause. It explicitly states 'NO MACHINE FAULT REPORTED' and that the operator's words do not describe a known fault."
+    },
+    {
+     "statement": "The filling line remains running.",
+     "verdict": 1,
+     "reason": "The SOP states no shutdown is required unless additional symptoms appear. No additional symptoms are reported. Thus, it is inferred the line remains running."
+    },
+    {
+     "statement": "A quality hold is placed on the affected product.",
+     "verdict": 0,
+     "reason": "The context does not state that a quality hold is placed on the product."
+    },
+    {
+     "statement": "The shift lead must be notified now.",
+     "verdict": 1,
+     "reason": "The SOP requires telling the shift lead if the reject rate is >1% over an hour. The current rate is 2%. Therefore, notification is required."
+    },
+    {
+     "statement": "A checkweigher calibration must be scheduled.",
+     "verdict": 0,
+     "reason": "The context does not state that calibration must be scheduled. The SOP only requires notifying the shift lead."
+    },
+    {
+     "statement": "The risk if no action is taken is continued product waste.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state the risk of inaction is continued product waste, although it is a logical consequence, it is not directly inferred from the text which focuses on procedure and safety rules."
+    },
+    {
+     "statement": "The risk if no action is taken is potential downstream quality complaints.",
+     "verdict": 0,
+     "reason": "The context does not mention downstream quality complaints as a risk."
+    }
+   ],
+   "limit_waits_s": [
+    65,
+    65,
+    65,
+    65,
+    65
+   ],
+   "tokens": {
+    "calls": 9,
+    "in": 5051,
+    "out": 3826,
+    "non_200": [
+     429,
+     429,
+     429,
+     429,
+     429,
+     429,
+     429
+    ]
+   }
+  }
+ }
+}

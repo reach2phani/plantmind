@@ -1,0 +1,432 @@
+{
+ "run_utc": "2026-11-15T23:46:32+00:00",
+ "side": "after",
+ "metric": "faithfulness",
+ "rubric_version": 1,
+ "rubric_fingerprint": "422d3f6d13bb",
+ "locked": "2026-11-15",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.Faithfulness",
+  "prompts": "RAGAS built-in StatementGeneratorPrompt and NLIStatementPrompt, unchanged",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H1": {
+   "score": 0.569620253164557,
+   "statements": [
+    {
+     "statement": "The checkweigher failed to reject the 510 ml test bottle.",
+     "verdict": 1,
+     "reason": "The context states that the operator reports a 510 ml test bottle 'went straight through' and was 'not rejected', which is a failure to reject."
+    },
+    {
+     "statement": "The 510 ml test bottle passed straight through the checkweigher.",
+     "verdict": 1,
+     "reason": "The context explicitly states: 'The operator reports that a 510 ml test bottle went straight through the checkweigher'."
+    },
+    {
+     "statement": "Historical logs show that 510 ml bottles have always been rejected by the checkweigher.",
+     "verdict": 1,
+     "reason": "The context states: 'No other logs mention a 510 ml bottle passing the checkweigher' and 'No prior event shows a 510 ml bottle passing'. This supports the inference that historically they were rejected (or at least never passed)."
+    },
+    {
+     "statement": "The failure to reject the 510 ml test bottle is a new deviation from the documented checkweigher test-bottle requirement.",
+     "verdict": 1,
+     "reason": "The context states: 'this is a new deviation' and notes that the SOP requires 510 ml bottles to be rejected."
+    },
+    {
+     "statement": "The production line cannot be started due to the checkweigher failure.",
+     "verdict": 1,
+     "reason": "The SOP states: 'If not [test bottles rejected/passed correctly], do not start'. Since the 510 ml bottle passed, the condition to start is not met."
+    },
+    {
+     "statement": "The production line is stopped pending resolution of the checkweigher issue.",
+     "verdict": 1,
+     "reason": "The SOP requires to 'Immediately stop the line' and 'Do not start the machine' until the issue is resolved. The context implies the line is in a state where it should not be running/started."
+    },
+    {
+     "statement": "The safety risk associated with the checkweigher failure is low.",
+     "verdict": 0,
+     "reason": "The context does not explicitly assign a 'low' safety risk rating. It lists safety requirements like LOTO and stopping the machine, implying significant safety protocols are needed, but does not quantify the risk level as 'low'."
+    },
+    {
+     "statement": "There is no immediate personal injury hazard from the checkweigher failure.",
+     "verdict": 0,
+     "reason": "The context does not state that there is 'no' hazard. It emphasizes safety rules (LOTO, guards), suggesting hazards exist if procedures are not followed, but does not explicitly rule out immediate personal injury hazards from the failure itself."
+    },
+    {
+     "statement": "A quality risk exists due to the checkweigher failure.",
+     "verdict": 1,
+     "reason": "The checkweigher is a quality control device. If it fails to reject out-of-spec bottles (510 ml), out-of-spec product could enter the stream, creating a quality risk. The SOP mandates stopping the line to prevent this."
+    },
+    {
+     "statement": "The financial impact includes potential loss of production time and product waste.",
+     "verdict": 0,
+     "reason": "While NCR-2026-012 mentions downtime and rejected bottles, the current context does not explicitly state the financial impact of *this specific* failure includes these costs, though it is a reasonable inference, it is not directly stated as a fact of the current incident's impact assessment."
+    },
+    {
+     "statement": "The exact financial cost of the checkweigher failure is not determinable from available data.",
+     "verdict": 1,
+     "reason": "The context provides no financial data or cost estimates for this specific incident."
+    },
+    {
+     "statement": "The criticality of the checkweigher failure is high.",
+     "verdict": 0,
+     "reason": "The context does not explicitly assign a 'high' criticality rating. It mandates a stop, which implies importance, but 'high criticality' is a specific classification not found in the text."
+    },
+    {
+     "statement": "The Standard Operating Procedure requires an immediate line stop for any checkweigher failure.",
+     "verdict": 1,
+     "reason": "The SOP section states: '1. Immediately stop the line.' in the context of the checkweigher failure procedure."
+    },
+    {
+     "statement": "The Standard Operating Procedure requires Lock Out Tag Out for any checkweigher failure.",
+     "verdict": 0,
+     "reason": "The SOP states: 'Follow normal lock-out/tag-out procedures if required while investigating.' It does not mandate LOTO for *any* checkweigher failure, only 'if required'."
+    },
+    {
+     "statement": "A production stop meets the high minimum criticality requirement for a checkweigher failure.",
+     "verdict": 0,
+     "reason": "The context does not define a 'high minimum criticality requirement' or state that a stop meets it. It simply mandates a stop."
+    },
+    {
+     "statement": "The machine must not be started.",
+     "verdict": 1,
+     "reason": "The SOP states: '2. Do not start the machine.'"
+    },
+    {
+     "statement": "Bottles must not be weighed by hand.",
+     "verdict": 1,
+     "reason": "The SOP states: '4. Do not weigh bottles by hand... until the issue is resolved'."
+    },
+    {
+     "statement": "The checkweigher must not be bypassed.",
+     "verdict": 1,
+     "reason": "The SOP states: 'Do not... bypass the checkweigher.'"
+    },
+    {
+     "statement": "The fill time must not be changed to fix the checkweigher issue.",
+     "verdict": 1,
+     "reason": "The context states: 'The fill time must NOT be changed by operators.' and 'A longer fill time does not fix underfill... it hides the real cause'. While the issue is a checkweigher failure, the general rule is that operators must not change fill time. The specific instruction for checkweigher failure is to call quality lead, not change fill time."
+    },
+    {
+     "statement": "The fill time must not be raised to fix the checkweigher issue.",
+     "verdict": 1,
+     "reason": "Similar to the previous statement, the context prohibits changing fill time by operators and specifically warns against raising it to fix underfill. It is not a prescribed fix for checkweigher failure."
+    },
+    {
+     "statement": "A jam must not be cleared while the machine is running.",
+     "verdict": 1,
+     "reason": "The Machine Safety Rules state: 'Never clear a jam while the machine is running'."
+    },
+    {
+     "statement": "An operator must not reach past a guard.",
+     "verdict": 1,
+     "reason": "The Machine Safety Rules state: 'never reach past a guard'."
+    },
+    {
+     "statement": "A guard switch must not be bypassed.",
+     "verdict": 1,
+     "reason": "The Machine Safety Rules state: 'never... bypass... a guard switch'."
+    },
+    {
+     "statement": "A guard switch must not be taped over.",
+     "verdict": 1,
+     "reason": "The Machine Safety Rules state: 'never... tape over a guard switch'."
+    },
+    {
+     "statement": "Compressed air must not be used near open bottles.",
+     "verdict": 1,
+     "reason": "The Machine Safety Rules state: 'Never use compressed air near open bottles'."
+    },
+    {
+     "statement": "Compressed air must not be used near broken glass.",
+     "verdict": 1,
+     "reason": "The Machine Safety Rules state: 'Never use compressed air near... broken glass'."
+    },
+    {
+     "statement": "A lock must not be removed unless the operator placed it.",
+     "verdict": 1,
+     "reason": "The LOTO rule states: 'Only the person who fitted a lock may remove it'."
+    },
+    {
+     "statement": "The machine must not be restarted until the First-Bottle Check is completed.",
+     "verdict": 1,
+     "reason": "The context states: 'First-Bottle Check is MANDATORY — normal production must not restart without it'."
+    },
+    {
+     "statement": "The First-Bottle Check must be signed off by the shift supervisor before restart.",
+     "verdict": 1,
+     "reason": "The context states: 'The shift supervisor signs off the first-bottle check' and it is mandatory before restart."
+    },
+    {
+     "statement": "The checkweigher must be verified to reject 490 ml and 510 ml test bottles before restart.",
+     "verdict": 1,
+     "reason": "The SOP states: 'Do not weigh bottles by hand or continue production until the issue is resolved and the checkweigher is verified to reject the 490 ml and 510 ml test bottles.'"
+    },
+    {
+     "statement": "Lock out and tag out must be performed according to procedures SAF-003.",
+     "verdict": 1,
+     "reason": "The context references 'LOTO (SAF-003)' as the procedure for maintenance/reaching into the machine. While the SOP says 'if required', the general safety rule for maintenance is LOTO. However, the statement says 'must be performed', which might be too strong if 'if required' applies. But looking at the 'Critical warnings', LOTO is listed as a mandatory requirement for 'Any maintenance...'. If the checkweigher failure requires maintenance/investigation that involves reaching in, LOTO is required. The statement is a general safety rule derived from the context."
+    },
+    {
+     "statement": "Power must be isolated during the lock out and tag out procedure.",
+     "verdict": 1,
+     "reason": "The LOTO steps state: '1. Switch off power at the main isolator.'"
+    },
+    {
+     "statement": "The checkweigher must be isolated during the lock out and tag out procedure.",
+     "verdict": 0,
+     "reason": "The context specifies isolating 'power at the main isolator'. It does not explicitly state that the *checkweigher* specifically must be isolated, only the machine power. While likely true in practice, it is not explicitly stated in the text."
+    },
+    {
+     "statement": "The checkweigher sensor must be inspected.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that the sensor must be inspected. It says to call the quality lead to investigate."
+    },
+    {
+     "statement": "The checkweigher calibration settings must be inspected.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that calibration settings must be inspected. It says to call the quality lead."
+    },
+    {
+     "statement": "The checkweigher wiring must be verified.",
+     "verdict": 0,
+     "reason": "The context does not mention verifying wiring."
+    },
+    {
+     "statement": "Recent maintenance notes for the checkweigher must be verified.",
+     "verdict": 0,
+     "reason": "The context states 'Last service: NOT FOUND' and 'Recurring issues: NOT FOUND'. It does not mandate verifying notes as a step in the procedure, but rather notes their absence."
+    },
+    {
+     "statement": "The 490 ml test bottle must be run through the checkweigher.",
+     "verdict": 1,
+     "reason": "The SOP states: 'checkweigher is verified to reject the 490 ml and 510 ml test bottles'. This implies running them through."
+    },
+    {
+     "statement": "The 500 ml test bottle must be run through the checkweigher.",
+     "verdict": 1,
+     "reason": "The SOP states: '500 ml must pass'. This implies running it through to verify."
+    },
+    {
+     "statement": "The 510 ml test bottle must be run through the checkweigher.",
+     "verdict": 1,
+     "reason": "The SOP states: 'checkweigher is verified to reject... 510 ml test bottles'. This implies running it through."
+    },
+    {
+     "statement": "The checkweigher must be recalibrated as required.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that recalibration is required. It says to call the quality lead to investigate. Recalibration is a possible fix but not explicitly mandated as a step in the provided text."
+    },
+    {
+     "statement": "The checkweigher must be repaired as required.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that repair is required. It says to call the quality lead to investigate. Repair is a possible outcome but not explicitly mandated as a step in the provided text."
+    },
+    {
+     "statement": "Maintenance must be called to service the checkweigher if the fault cannot be corrected by the operator.",
+     "verdict": 0,
+     "reason": "The SOP says to 'Call the quality lead'. It does not explicitly say to call maintenance, although LOTO is mentioned for maintenance. The primary contact is the quality lead."
+    },
+    {
+     "statement": "The test-bottle sequence must be repeated to verify the fix.",
+     "verdict": 1,
+     "reason": "The SOP states: 'until the issue is resolved and the checkweigher is verified to reject...'. This implies repeating the test to verify."
+    },
+    {
+     "statement": "The 490 ml test bottle must be confirmed to be rejected by the checkweigher.",
+     "verdict": 1,
+     "reason": "The SOP states: 'checkweigher is verified to reject the 490 ml... test bottles'."
+    },
+    {
+     "statement": "The 510 ml test bottle must be confirmed to be rejected by the checkweigher.",
+     "verdict": 1,
+     "reason": "The SOP states: 'checkweigher is verified to reject... 510 ml test bottles'."
+    },
+    {
+     "statement": "The 500 ml test bottle must be confirmed to pass the checkweigher.",
+     "verdict": 1,
+     "reason": "The SOP states: '500 ml must pass'."
+    },
+    {
+     "statement": "The shift supervisor must sign off on the First-Bottle Check.",
+     "verdict": 1,
+     "reason": "The context states: 'The shift supervisor signs off the first-bottle check'."
+    },
+    {
+     "statement": "The line must be placed on QA HOLD.",
+     "verdict": 0,
+     "reason": "The context does not use the term 'QA HOLD'. It says to stop the line and call the quality lead."
+    },
+    {
+     "statement": "The checkweigher failure must be recorded.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that the failure must be recorded, although it is standard practice. The NCR section mentions past NCRs, but doesn't mandate recording this specific event in the text provided."
+    },
+    {
+     "statement": "The corrective action for the checkweigher failure must be recorded.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that the corrective action must be recorded."
+    },
+    {
+     "statement": "The quality lead must be notified as required by the Standard Operating Procedure.",
+     "verdict": 1,
+     "reason": "The SOP states: 'Call the quality lead... to investigate'."
+    },
+    {
+     "statement": "The checkweigher must be repaired to restore proper rejection of out-of-range bottles.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that repair is the required action, only that the issue must be resolved and the checkweigher verified. Repair is a likely method but not explicitly mandated as the sole or required action in the text."
+    },
+    {
+     "statement": "The checkweigher must be recalibrated to restore proper rejection of out-of-range bottles.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that recalibration is the required action."
+    },
+    {
+     "statement": "The checkweigher adjustment must be documented.",
+     "verdict": 0,
+     "reason": "The context does not mention documenting adjustments."
+    },
+    {
+     "statement": "A daily pre-start checkweigher calibration check must be added to the start-up checklist.",
+     "verdict": 0,
+     "reason": "The context does not mention adding a daily check to the checklist. It mentions a pre-start test bottle check."
+    },
+    {
+     "statement": "Periodic preventive maintenance must be scheduled for the checkweigher.",
+     "verdict": 0,
+     "reason": "The context does not mention scheduling periodic preventive maintenance for the checkweigher."
+    },
+    {
+     "statement": "Operators must be trained on the test-bottle procedure.",
+     "verdict": 0,
+     "reason": "The context does not mention training requirements."
+    },
+    {
+     "statement": "Operators must be trained on the prohibition against manual weighing.",
+     "verdict": 0,
+     "reason": "The context does not mention training requirements."
+    },
+    {
+     "statement": "The quality lead must be notified of the checkweigher failure.",
+     "verdict": 1,
+     "reason": "The SOP states: 'Call the quality lead... to investigate'."
+    },
+    {
+     "statement": "The maintenance department must be notified of the checkweigher failure.",
+     "verdict": 0,
+     "reason": "The SOP says to call the quality lead. It does not explicitly say to notify the maintenance department, although LOTO is mentioned for maintenance. The primary notification is to quality."
+    },
+    {
+     "statement": "The shift supervisor must be notified of the checkweigher failure.",
+     "verdict": 0,
+     "reason": "The SOP says to call the quality lead. It mentions the shift supervisor signs off the first-bottle check, but does not explicitly state they must be notified of the failure itself, only involved in the restart sign-off."
+    },
+    {
+     "statement": "The plant manager must be notified of the checkweigher failure.",
+     "verdict": 0,
+     "reason": "The context does not mention notifying the plant manager."
+    },
+    {
+     "statement": "The checkweigher allowed a 510 ml test bottle to pass.",
+     "verdict": 1,
+     "reason": "The context states: 'a 510 ml test bottle went straight through the checkweigher and was not rejected'."
+    },
+    {
+     "statement": "The production line cannot be started because the checkweigher allowed a 510 ml test bottle to pass.",
+     "verdict": 1,
+     "reason": "The SOP states: 'If not [test bottles rejected/passed correctly], do not start'. Since the 510 ml bottle passed (incorrectly), the line cannot be started."
+    },
+    {
+     "statement": "The root cause of the issue is a checkweigher malfunction.",
+     "verdict": 0,
+     "reason": "The context describes the symptom (failure to reject) but does not explicitly state the root cause is a 'malfunction'. It could be a setting error, sensor issue, etc. 'Malfunction' is a broad term, but the text doesn't confirm the specific root cause."
+    },
+    {
+     "statement": "The root cause of the issue is checkweigher mis-calibration.",
+     "verdict": 0,
+     "reason": "The context does not state that the root cause is mis-calibration. It is an unverified hypothesis."
+    },
+    {
+     "statement": "The checkweigher malfunction prevents rejection of out-of-range bottles.",
+     "verdict": 1,
+     "reason": "The context states the checkweigher failed to reject the 510 ml bottle (which is out of range). This implies the malfunction (whatever it is) prevents rejection."
+    },
+    {
+     "statement": "The checkweigher mis-calibration prevents rejection of out-of-range bottles.",
+     "verdict": 0,
+     "reason": "The context does not confirm mis-calibration as the cause."
+    },
+    {
+     "statement": "The production line is stopped pending repair of the checkweigher.",
+     "verdict": 0,
+     "reason": "The SOP says to stop the line and not start it until the issue is resolved. 'Repair' is a specific action not explicitly mandated as the only resolution path (could be recalibration, etc.), but 'pending resolution' is accurate. However, the statement says 'pending repair'. The text says 'pending resolution'. Repair is a subset of resolution. Is it strictly inferred? The text says 'Do not start... until the issue is resolved'. It does not specify 'repair'."
+    },
+    {
+     "statement": "The production line is stopped pending verification of the checkweigher.",
+     "verdict": 1,
+     "reason": "The SOP states: 'Do not start the machine... until the issue is resolved and the checkweigher is verified'. This matches 'stopped pending verification'."
+    },
+    {
+     "statement": "Lock out and tag out must be performed before any restart.",
+     "verdict": 0,
+     "reason": "The context states LOTO is required for 'Any maintenance... or reaching into the machine'. It does not state LOTO is required for *any* restart, only if maintenance/reaching in is involved. The restart procedure is 'resume normal start-up sequence'."
+    },
+    {
+     "statement": "The production line must be stopped before any restart.",
+     "verdict": 1,
+     "reason": "This is tautological or trivially true (you stop before you restart), but in the context of the failure, the line is already stopped. The statement is a general operational truth but not a specific instruction derived from the failure context other than the initial stop."
+    },
+    {
+     "statement": "The checkweigher must be repaired before any restart.",
+     "verdict": 0,
+     "reason": "The SOP says 'until the issue is resolved'. It does not explicitly say 'repaired'. The issue could be resolved by recalibration or other means. 'Repaired' is too specific."
+    },
+    {
+     "statement": "The checkweigher must be calibrated before any restart.",
+     "verdict": 0,
+     "reason": "The SOP says 'until the issue is resolved and the checkweigher is verified'. It does not explicitly say 'calibrated'. Verification is the key step."
+    },
+    {
+     "statement": "Production will remain down if the checkweigher issue is not actioned.",
+     "verdict": 1,
+     "reason": "The SOP states 'Do not start the machine' until the issue is resolved. If not actioned, it cannot be started, so production remains down."
+    },
+    {
+     "statement": "Out-of-spec bottles could be filled if the checkweigher issue is not actioned.",
+     "verdict": 1,
+     "reason": "If the checkweigher is not fixed and the line is started (in violation of SOP), out-of-spec bottles could pass. The risk exists if the issue is not actioned (i.e., if one were to ignore the SOP). The statement implies the consequence of not fixing it. Given the SOP forbids starting, the 'could' refers to the potential hazard if the control is bypassed or if the failure persists and the line is erroneously started. It is a valid inference of the risk."
+    },
+    {
+     "statement": "Quality failures could occur if the checkweigher issue is not actioned.",
+     "verdict": 1,
+     "reason": "Similar to the previous statement, if the checkweigher is not fixed, out-of-spec product could be produced, leading to quality failures."
+    },
+    {
+     "statement": "A potential product recall could occur if the checkweigher issue is not actioned.",
+     "verdict": 1,
+     "reason": "If out-of-spec product is shipped, a recall could occur. This is a downstream consequence of the quality failure. It is a reasonable inference of the risk."
+    }
+   ],
+   "tokens": {
+    "calls": 3,
+    "in": 7705,
+    "out": 7051,
+    "non_200": [
+     429
+    ]
+   }
+  }
+ }
+}

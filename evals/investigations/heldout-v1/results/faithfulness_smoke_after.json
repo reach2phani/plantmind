@@ -1,0 +1,41 @@
+{
+ "run_utc": "2026-11-15T23:35:26+00:00",
+ "side": "after",
+ "metric": "faithfulness",
+ "rubric_version": 1,
+ "rubric_fingerprint": "422d3f6d13bb",
+ "locked": "2026-11-15",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.Faithfulness",
+  "prompts": "RAGAS built-in StatementGeneratorPrompt and NLIStatementPrompt, unchanged",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "cases": {
+  "SMOKE": {
+   "score": 0.5,
+   "statements": [
+    {
+     "statement": "The bowl holds clean water.",
+     "verdict": 1,
+     "reason": "The statement is identical to the context provided."
+    },
+    {
+     "statement": "The bowl is painted red.",
+     "verdict": 0,
+     "reason": "The context only mentions the contents of the bowl (clean water) and does not provide any information about the color or paint of the bowl."
+    }
+   ],
+   "tokens": {
+    "calls": 2,
+    "in": 1647,
+    "out": 145,
+    "non_200": []
+   }
+  }
+ }
+}

@@ -1,0 +1,205 @@
+{
+ "run_utc": "2026-11-15T23:51:44+00:00",
+ "side": "after",
+ "metric": "faithfulness",
+ "rubric_version": 1,
+ "rubric_fingerprint": "422d3f6d13bb",
+ "locked": "2026-11-15",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.Faithfulness",
+  "prompts": "RAGAS built-in StatementGeneratorPrompt and NLIStatementPrompt, unchanged",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H4": {
+   "score": 0.5161290322580645,
+   "statements": [
+    {
+     "statement": "The root cause of the issue is broken glass on the floor beside the filler.",
+     "verdict": 0,
+     "reason": "The context describes the symptom (broken glass on the floor) and notes that the alarm did not trigger, but it does not explicitly identify the 'root cause' of the incident (e.g., whether it was a jam, a sensor failure, or a mechanical fault). It only states the glass is there."
+    },
+    {
+     "statement": "The broken glass indicates a glass-breakage event that has not yet triggered the machine's glass-break alarm.",
+     "verdict": 1,
+     "reason": "The context states: 'The operator reports broken glass on the floor but notes that no glass alarm was triggered'. This directly supports the statement."
+    },
+    {
+     "statement": "A prior recorded glass-break event on 2026-09-17 triggered an alarm and an emergency stop.",
+     "verdict": 1,
+     "reason": "The context states: 'Most recent prior event: 2026‑09‑17 at 10:42 (Glass breakage detected in filler, emergency stop pressed...)' and 'A single recorded glass‑breakage alarm... triggered an emergency stop'."
+    },
+    {
+     "statement": "The current glass-breakage event shows no alarm and the line is still running.",
+     "verdict": 1,
+     "reason": "The context states: 'no glass alarm was triggered and the machine is still running normally.'"
+    },
+    {
+     "statement": "The production line continues running but product safety is compromised.",
+     "verdict": 1,
+     "reason": "The context states the machine is 'still running normally' and classifies the situation as 'CRITICAL — broken glass can end up inside filled bottles. This is a product safety event.'"
+    },
+    {
+     "statement": "All product filled in the last 30 minutes must be placed on QA HOLD.",
+     "verdict": 1,
+     "reason": "The context states: 'Every bottle filled in the last 30 minutes goes on QA HOLD'."
+    },
+    {
+     "statement": "The safety risk is classified as CRITICAL because broken glass can enter bottles and cause product contamination.",
+     "verdict": 1,
+     "reason": "The context states: 'criticality: CRITICAL — broken glass can end up inside filled bottles. This is a product safety event.'"
+    },
+    {
+     "statement": "The financial impact includes potential product loss from QA HOLD and disposal of open bottles.",
+     "verdict": 0,
+     "reason": "While the context mentions QA HOLD and disposal of bottles, it does not explicitly discuss 'financial impact' or 'product loss' in monetary or business terms. It focuses on safety and procedure."
+    },
+    {
+     "statement": "The financial impact may include re-work or scrap, but no exact dollar amount is available.",
+     "verdict": 0,
+     "reason": "The context does not mention financial impact, re-work, scrap costs, or dollar amounts."
+    },
+    {
+     "statement": "Broken glass is a product safety event that can lead to contamination of filled bottles according to GBP-001 and SOP.",
+     "verdict": 1,
+     "reason": "The context states: 'CRITICAL — broken glass can end up inside filled bottles. This is a product safety event. Follow GBP-001 (Glass and Brittle Plastics Policy).' and cites FL-101-SOP."
+    },
+    {
+     "statement": "Operators must not open any guard until the machine has stopped and is locked out according to SOP Section 12.3, Step 2.",
+     "verdict": 1,
+     "reason": "The context states: 'Do not open any guard until the machine has stopped and is locked out (SOP Section 12.3, Step 2).' Note: The SOP Agent section cites Section 6.2 for LOTO, but the Knowledge Graph and Critical Warnings explicitly cite Section 12.3 Step 2 for this specific rule in the context of glass breakage."
+    },
+    {
+     "statement": "Operators must not use compressed air near the broken glass or open bottles according to SOP Sections 6.4 and 12.3.",
+     "verdict": 1,
+     "reason": "The context states: 'Never use compressed air near open bottles or broken glass (Section 6.4)' and 'Glass Breakage Response: Never use compressed air: air spreads glass [source: FL-101-SOP Section 12.3]'."
+    },
+    {
+     "statement": "Operators must not attempt any electrical repairs according to SOP Section 13.",
+     "verdict": 1,
+     "reason": "The context states: 'Escalate to Maintenance Supervisor... electrical rule: Do not attempt electrical repairs. Always call maintenance. [source: FL-101-SOP Section 13]'."
+    },
+    {
+     "statement": "Operators must not clear a jam while the machine is running according to SOP Section 6.4.",
+     "verdict": 1,
+     "reason": "The context states: 'Never clear a jam while the machine is running (Section 6.4).' and 'Machine Safety Rules... [source: FL-101-SOP Sections 6.3 and 6.4]'."
+    },
+    {
+     "statement": "Operators must not bypass or tape over any guard switch according to SOP Section 6.4.",
+     "verdict": 1,
+     "reason": "The context states: 'never bypass or tape over a guard switch [source: FL-101-SOP Sections 6.3 and 6.4]'."
+    },
+    {
+     "statement": "Operators must not restart the line until lockout is applied, glass is cleaned, sanitation rinse is completed, and quality-lead sign-off is obtained.",
+     "verdict": 1,
+     "reason": "The context lists steps: 'Obtain sign‑off from the quality lead before restarting the line', 'Clean up the broken glass', 'Perform a sanitation rinse', and 'Do not open any guard until... locked out'. This implies the sequence required before restart."
+    },
+    {
+     "statement": "Operators must not ship any bottles labeled QA HOLD until the quality lead releases them according to SOP Sections 4 and 12.3.",
+     "verdict": 1,
+     "reason": "The context states: 'QA HOLD... release: Bottles on QA HOLD may only be released after the quality lead has inspected them... do not ship until the quality lead has checked them [source: FL-101-SOP Sections 4 and 12.3]'."
+    },
+    {
+     "statement": "The immediate action Step 1 is to activate the emergency stop and apply lock out and tag out (LOTO) according to the SAF-003 procedure.",
+     "verdict": 0,
+     "reason": "The context lists Step 1 as 'Stop the line immediately using the emergency stop' and Step 2 as 'Do not open any guard until the machine has fully stopped and is locked out (LOTO)'. It does not combine them into a single 'Step 1' that includes LOTO application as the primary action of Step 1, nor does it explicitly label the LOTO procedure as 'SAF-003' in the step-by-step list (though SAF-003 is mentioned in the knowledge graph). More importantly, the SOP lists LOTO as a condition for Step 2, not part of Step 1's definition. However, looking closely at the 'Glass Breakage Response' steps: 1. Stop line. 2. Do not open guard until locked out. The statement says Step 1 is to activate E-stop AND apply LOTO. The text says Step 1 is Stop, Step 2 involves LOTO. Thus, the statement misrepresents the step numbering/content."
+    },
+    {
+     "statement": "The immediate action Step 2 is to verify that the machine is fully stopped, inspect the area for additional glass fragments, and identify any open bottles within 2 meters of the break.",
+     "verdict": 0,
+     "reason": "The context's Step 2 is 'Do not open any guard until the machine has fully stopped and is locked out (LOTO)'. It does not mention inspecting for fragments or identifying bottles in Step 2. Those actions are part of the cleanup/disposal steps (3 and 4)."
+    },
+    {
+     "statement": "The immediate action Step 3 is to place every bottle filled in the last 30 minutes on QA HOLD, discard all open bottles within 2 meters, clean the broken glass using the red glass kit and a vacuum only, and perform the mandatory 10-minute sanitation rinse of the filler.",
+     "verdict": 0,
+     "reason": "The context lists these as separate steps: Step 3 (QA HOLD), Step 4 (Dispose of bottles), Step 5 (Clean up), Step 6 (Sanitation rinse). The statement combines Steps 3, 4, 5, and 6 into 'Step 3'."
+    },
+    {
+     "statement": "The immediate action Step 4 is to confirm that the guard is locked out, the area is free of glass, the sanitation rinse has completed, and the quality lead has signed off on the QA HOLD release.",
+     "verdict": 0,
+     "reason": "The context's Step 4 is 'Dispose of any open bottles...'. The sign-off is Step 7. The statement misaligns the steps."
+    },
+    {
+     "statement": "The immediate action Step 5 is to record the incident in the glass breakage log and ensure QA HOLD bottles remain labeled and are not shipped until released.",
+     "verdict": 0,
+     "reason": "The context's Step 5 is 'Clean up the broken glass...'. Recording is Step 8. The statement misaligns the steps."
+    },
+    {
+     "statement": "The root cause fix requires reviewing and repairing the glass-breakage sensor to ensure future breakage events generate an alarm and automatic emergency stop.",
+     "verdict": 0,
+     "reason": "The context does not mention sensor repair or root cause fixes for the alarm failure. It only describes the response to the current event."
+    },
+    {
+     "statement": "The preventive action includes adding a quarterly inspection of the glass-breakage detection system.",
+     "verdict": 0,
+     "reason": "The context does not mention quarterly inspections or preventive actions for the detection system."
+    },
+    {
+     "statement": "The preventive action includes updating operator training to reinforce immediate stop and LOTO when any glass is observed, even if no alarm sounds.",
+     "verdict": 0,
+     "reason": "The context does not mention updating operator training."
+    },
+    {
+     "statement": "The Quality lead, Maintenance Supervisor, Shift Supervisor, and Plant Manager must be notified.",
+     "verdict": 0,
+     "reason": "The context mentions calling 'The quality lead and the maintenance supervisor' for glass breakage. It does not mention notifying the Shift Supervisor or Plant Manager."
+    },
+    {
+     "statement": "Broken glass was found on the floor of Filling Line 1 while the line was still running and no alarm sounded.",
+     "verdict": 1,
+     "reason": "The context states: 'operator reports broken glass on the floor... no glass alarm was triggered and the machine is still running normally' and identifies the location as 'Filling Line 1' in the pattern findings."
+    },
+    {
+     "statement": "The root cause is that glass breakage occurred but the detection alarm did not activate, leaving the line running.",
+     "verdict": 0,
+     "reason": "The context describes the *symptom* and the *difference* from past events (alarm didn't trigger), but it does not explicitly state the *root cause* is the alarm failure. It is an inference, but the context focuses on the response to the glass, not the diagnosis of the alarm system failure as the 'root cause' of the incident itself (the incident is the glass breakage). However, usually 'root cause' refers to why the glass broke. The statement claims the root cause is the alarm failure. The context does not support this causal link as a defined root cause."
+    },
+    {
+     "statement": "The line is stopped for safe cleanup and production is halted pending QA hold release.",
+     "verdict": 0,
+     "reason": "The context states the machine is 'still running normally' at the time of the report. It does not state that the line *is* stopped, only that it *must* be stopped as part of the procedure."
+    },
+    {
+     "statement": "The required action is to stop the line, apply LOTO, place recent product on QA HOLD, clean the glass with the red kit, run the sanitation rinse, and obtain quality-lead sign-off before restarting.",
+     "verdict": 1,
+     "reason": "This summarizes the correct response procedure listed in the SOP Agent Findings and Knowledge Graph: Stop line, LOTO, QA HOLD, Clean up (red kit), Sanitation rinse, Sign-off."
+    },
+    {
+     "statement": "If the required actions are not taken, contaminated bottles could reach customers, causing product recalls, safety incidents, and significant financial loss.",
+     "verdict": 0,
+     "reason": "The context states 'broken glass can end up inside filled bottles. This is a product safety event.' It does not explicitly mention 'product recalls', 'safety incidents' (beyond the event itself), or 'significant financial loss' as consequences of inaction. These are extrapolations."
+    }
+   ],
+   "limit_waits_s": [
+    65,
+    65,
+    65,
+    65,
+    65,
+    65
+   ],
+   "tokens": {
+    "calls": 8,
+    "in": 6633,
+    "out": 3982,
+    "non_200": [
+     429,
+     429,
+     429,
+     429,
+     429,
+     429
+    ]
+   }
+  }
+ }
+}

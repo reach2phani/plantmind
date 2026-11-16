@@ -1,0 +1,341 @@
+{
+ "run_utc": "2026-11-15T23:51:44+00:00",
+ "side": "after",
+ "metric": "faithfulness",
+ "rubric_version": 1,
+ "rubric_fingerprint": "422d3f6d13bb",
+ "locked": "2026-11-15",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.Faithfulness",
+  "prompts": "RAGAS built-in StatementGeneratorPrompt and NLIStatementPrompt, unchanged",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H2": {
+   "score": 0.4666666666666667,
+   "statements": [
+    {
+     "statement": "The root cause of the infeed jam and bottles catching in the star wheel was that the guide rails were not reset to position B and locked after the 330 ml filler changeover.",
+     "verdict": 0,
+     "reason": "The context lists 'Guide rails not reset after a bottle size changeover' as the first possible cause, but it does not explicitly confirm this as the definitive root cause for this specific incident. It remains a hypothesis to be checked."
+    },
+    {
+     "statement": "The standard operating procedure cause list includes \"Guide Rails Not Reset After Changeover\".",
+     "verdict": 1,
+     "reason": "The Knowledge Graph section explicitly lists 'Guide Rails Not Reset After Changeover' under 'Possible causes' for Infeed Jam."
+    },
+    {
+     "statement": "The specification requires rail B for 330 ml bottles.",
+     "verdict": 1,
+     "reason": "The 'EXACT VALUES FROM KNOWLEDGE GRAPH' section states: 'bottle 330 ml = Rail position B'."
+    },
+    {
+     "statement": "There are no prior logged incidents of this fault on Filling Line 1.",
+     "verdict": 1,
+     "reason": "The Alarm Agent Findings state: 'No prior logged incidents of a filler jam at the infeed or bottles catching in the star wheel on Filling Line 1.'"
+    },
+    {
+     "statement": "This is the first recorded occurrence of this fault for Filling Line 1.",
+     "verdict": 1,
+     "reason": "The Alarm Agent Findings state: 'This is a first-time occurrence for this line.'"
+    },
+    {
+     "statement": "The incident indicates a change-over procedural lapse rather than a recurring equipment defect.",
+     "verdict": 0,
+     "reason": "While the context suggests a changeover issue is likely (first occurrence, possible cause list), it does not definitively conclude that it is a procedural lapse *rather than* a recurring equipment defect. It lists multiple possible causes including damaged bottles and conveyor speed."
+    },
+    {
+     "statement": "The production line stopped due to the infeed jam.",
+     "verdict": 1,
+     "reason": "The context mentions 'Infeed jam — bottles stopped at infeed' as the alarm message and the operator reports jams. It is directly inferable that the line stopped or jammed."
+    },
+    {
+     "statement": "Lock out and tag out and jam clearing are required before restarting the line.",
+     "verdict": 1,
+     "reason": "The SOP and Knowledge Graph mandate LOTO before clearing a jam and restarting. The procedure involves clearing the jam and then restarting."
+    },
+    {
+     "statement": "The safety risk is rated as HIGH.",
+     "verdict": 0,
+     "reason": "The Knowledge Graph states 'min criticality: HIGH' for the Infeed Jam fault. It does not explicitly use the term 'safety risk' rating, but 'criticality' is the provided metric. However, usually 'safety risk' and 'criticality' are distinct. Let's look closer. The text says 'min criticality: HIGH'. It does not say 'safety risk is HIGH'."
+    },
+    {
+     "statement": "Jam clearing mandates lock out and tag out.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: 'LOTO (SAF-003): Any maintenance, clearing a jam...'. Also, 'Never clear a jam while the machine is running. Stop the machine and lock it out before clearing any jam.'"
+    },
+    {
+     "statement": "There is a risk of reaching into moving parts during jam clearing.",
+     "verdict": 1,
+     "reason": "The context warns: 'Never reach into the infeed or the star wheel while the machine is running.' This implies the risk exists if the rule is violated, but the statement is a general inference about the nature of the task. The context explicitly forbids it, implying the danger. However, strictly speaking, the context provides the rule, not a risk assessment document. But 'Never reach... while running' implies the risk of injury from moving parts. This is a reasonable direct inference from the safety rule."
+    },
+    {
+     "statement": "The financial impact is not quantified in the provided data.",
+     "verdict": 1,
+     "reason": "The provided context contains no financial data, costs, or monetary values."
+    },
+    {
+     "statement": "The incident implies a loss of production time.",
+     "verdict": 1,
+     "reason": "The incident involves jams and a stoppage ('bottles stopped at infeed'), which inherently implies a loss of production time."
+    },
+    {
+     "statement": "The incident implies potential scrap from jammed bottles.",
+     "verdict": 0,
+     "reason": "The context mentions 'chipped or damaged bottles' as a cause and 'glass breakage' as a related fault. Jams often lead to breakage. However, the context does not explicitly state that scrap occurred or is implied as a direct consequence in the text provided. It mentions 'Remove any chipped or damaged bottles'. It is a strong inference but perhaps not 'directly inferred' as a fact of the incident report itself, which focuses on the jam. Let's look at the 'Glass Breakage' fault. It is listed as 'Other faults... not matching this incident'. So glass breakage is not confirmed. Therefore, scrap is not directly inferred."
+    },
+    {
+     "statement": "The criticality of the fault is rated as HIGH.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph explicitly states: 'min criticality: HIGH' for the Infeed Jam fault."
+    },
+    {
+     "statement": "The fault requires lock out and tag out and a production stop.",
+     "verdict": 1,
+     "reason": "The context states: 'Stop the machine and lock it out before clearing any jam.' and 'LOTO... required before... clearing a jam'."
+    },
+    {
+     "statement": "The HIGH criticality rating meets the minimum defined in the knowledge graph.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states 'min criticality: HIGH'. The rating is HIGH. Therefore, it meets the minimum."
+    },
+    {
+     "statement": "Operators must never reach into the infeed or the star wheel while the machine is running.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: 'Never reach into the infeed or the star wheel while the machine is running.'"
+    },
+    {
+     "statement": "Operators must never clear a jam while the machine is running.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: 'Never clear a jam while the machine is running.'"
+    },
+    {
+     "statement": "Operators must never reach past a guard.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: 'never reach past a guard'."
+    },
+    {
+     "statement": "Operators must not bypass or tape over a guard switch.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: 'never bypass or tape over a guard switch'."
+    },
+    {
+     "statement": "Operators must never use compressed air near open bottles or broken glass.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: 'Never use compressed air near open bottles or broken glass'."
+    },
+    {
+     "statement": "Operators must not attempt electrical repairs.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: 'Do not attempt electrical repairs.'"
+    },
+    {
+     "statement": "Operators must always call maintenance for electrical repairs.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: 'Always call maintenance.' in the context of electrical repairs."
+    },
+    {
+     "statement": "Only the person who fitted a lock may remove it.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: 'Only the person who fitted a lock may remove it'."
+    },
+    {
+     "statement": "Step 1 of the immediate action is to lock out and tag out the machine, stop production, and isolate power.",
+     "verdict": 0,
+     "reason": "The SOP procedure for 'Bottle Size Changeover' (which is the fix for the likely cause) lists '1. Lock out the machine.' The LOTO steps include 'Switch off power at the main isolator.' The statement combines these. However, the 'Immediate Action' for a jam specifically is '1. Press STOP. 2. Lock out the machine.' The statement says 'Step 1... is to lock out... stop production... isolate power'. The SOP for jam clearing says '1. Press STOP. 2. Lock out'. The SOP for changeover says '1. Lock out'. The statement is a bit mixed. Let's look at the 'Infeed Jam Clearing' procedure: '1. Press STOP. 2. Lock out the machine.' It does not explicitly say 'isolate power' in step 1, though LOTO does. The statement claims Step 1 is LOTO/Stop/Isolate. The text says Step 1 is Press STOP. So this is not strictly accurate to the numbered steps in the text."
+    },
+    {
+     "statement": "Step 2 of the immediate action is to verify that the guide rails are set to position B for 330 ml and locked.",
+     "verdict": 0,
+     "reason": "The 'Infeed Jam Clearing' procedure Step 4 is 'Check the guide rail position...'. The 'Bottle Size Changeover' procedure Step 2 is 'Move the guide rails...'. There is no 'Step 2' in the jam clearing procedure that verifies rails. Step 2 is 'Lock out the machine'."
+    },
+    {
+     "statement": "Step 2 of the immediate action is to confirm the star wheel matches the 330 ml bottle size.",
+     "verdict": 0,
+     "reason": "As above, Step 2 of the jam clearing procedure is 'Lock out the machine'."
+    },
+    {
+     "statement": "Step 2 of the immediate action is to inspect the infeed for jammed or damaged bottles.",
+     "verdict": 0,
+     "reason": "As above, Step 2 of the jam clearing procedure is 'Lock out the machine'. Inspection happens in Step 3/5."
+    },
+    {
+     "statement": "Step 3 of the immediate action is to adjust the guide rails to position B and lock them.",
+     "verdict": 0,
+     "reason": "In the 'Infeed Jam Clearing' procedure, Step 3 is 'Remove the jammed bottles...'. Step 4 is 'Check the guide rail position... and reset...'. In the 'Bottle Size Changeover' procedure, Step 2 is 'Move the guide rails...'. The statement refers to 'Step 3 of the immediate action'. If 'immediate action' refers to the Jam Clearing procedure, Step 3 is removing bottles. If it refers to Changeover, Step 3 is fitting the star wheel. Neither matches 'adjust guide rails' as Step 3."
+    },
+    {
+     "statement": "Step 3 of the immediate action is to fit the correct 330 ml star wheel.",
+     "verdict": 0,
+     "reason": "In the 'Bottle Size Changeover' procedure, Step 3 is 'Fit the matching star wheel.' If the 'immediate action' is interpreted as the changeover fix, this is correct. However, the primary 'immediate action' for a jam is the Jam Clearing procedure. In Jam Clearing, Step 3 is removing bottles. The context provides two procedures. The prompt asks about 'the immediate action'. Usually, this refers to the direct response to the alarm (Jam Clearing). In Jam Clearing, Step 3 is not fitting the star wheel. It is removing bottles. Therefore, this is not directly inferred as the standard Step 3 for the incident response."
+    },
+    {
+     "statement": "Step 3 of the immediate action is to remove any jammed or chipped bottles while wearing cut-resistant gloves.",
+     "verdict": 0,
+     "reason": "The 'Infeed Jam Clearing' procedure Step 3 is 'Remove the jammed bottles wearing cut-resistant gloves.' Step 5 is 'Remove any chipped or damaged bottles'. The statement combines Step 3 and 5. It is partially correct but conflates steps. However, Step 3 specifically says 'Remove the jammed bottles wearing cut-resistant gloves'. It does not mention chipped bottles in Step 3. So it is not fully accurate."
+    },
+    {
+     "statement": "Step 3 of the immediate action is to remove the lock after confirming the jam is cleared.",
+     "verdict": 0,
+     "reason": "In the 'Infeed Jam Clearing' procedure, Step 6 is 'Remove the lock...'. Step 3 is removing bottles."
+    },
+    {
+     "statement": "Step 4 of the immediate action is to run 20 test bottles at 60 bottles per minute.",
+     "verdict": 0,
+     "reason": "In the 'Infeed Jam Clearing' procedure, Step 6 is 'restart at 60 bottles per minute for 2 minutes'. It does not specify '20 test bottles'. The 'Bottle Size Changeover' procedure Step 4 is 'run 20 bottles at 60 bottles per minute'. If 'immediate action' refers to the changeover fix, this is Step 4. If it refers to Jam Clearing, it is Step 6 and doesn't specify 20 bottles. Given the ambiguity, and that the Jam Clearing procedure is the direct response to the alarm, this statement is not directly inferred for the Jam Clearing procedure."
+    },
+    {
+     "statement": "Step 4 of the immediate action is to ensure no jam and correct fill.",
+     "verdict": 0,
+     "reason": "In the 'Bottle Size Changeover' procedure, Step 5 is 'Check none jam and all fill correctly'. In 'Infeed Jam Clearing', there is no explicit 'ensure no jam' step as a numbered item, though it is implied by restarting. The statement matches Step 5 of Changeover, not Step 4."
+    },
+    {
+     "statement": "Step 4 of the immediate action is to increase line speed to the normal 120 bottles per minute if the test is successful.",
+     "verdict": 0,
+     "reason": "In the 'Bottle Size Changeover' procedure, Step 5 says 'return to normal speed'. In 'Infeed Jam Clearing', Step 6 says 'return to normal speed'. Neither is Step 4."
+    },
+    {
+     "statement": "Step 5 of the immediate action is to record the change-over and jam-clearing actions in the shift log.",
+     "verdict": 0,
+     "reason": "In the 'Bottle Size Changeover' procedure, Step 6 is 'Record the changeover in the shift log'. In 'Infeed Jam Clearing', there is no explicit step for recording in the log within the numbered list (though it's good practice). The statement says Step 5. In Changeover, Step 5 is checking fill. So this is incorrect."
+    },
+    {
+     "statement": "Step 5 of the immediate action is to have the shift lead sign the record.",
+     "verdict": 0,
+     "reason": "In the 'Bottle Size Changeover' procedure, Step 6 says 'the shift lead signs the changeover record'. It is not Step 5."
+    },
+    {
+     "statement": "No additional quality actions are required by the documents beyond logging.",
+     "verdict": 0,
+     "reason": "The context mentions 'Escalate to Maintenance Supervisor' triggers, including 'Any glass breakage (also call the quality lead)'. If glass breakage occurred, quality action is required. The context does not state that no quality actions are required; it lists conditions under which they are. It does not explicitly say 'no additional quality actions are required' for this specific incident (where breakage is not confirmed but possible). It is a negative claim not supported by the text."
+    },
+    {
+     "statement": "The root cause fix is to implement a mandatory checklist step after every filler size change.",
+     "verdict": 0,
+     "reason": "The context provides the existing SOP for changeover. It does not propose a *new* fix of implementing a mandatory checklist step as a corrective action for this incident. It describes the existing procedure."
+    },
+    {
+     "statement": "The mandatory checklist step requires confirming guide rails are set to the correct position (B for 330 ml) and locked before removing lock out and tag out.",
+     "verdict": 0,
+     "reason": "The context describes the existing SOP steps. It does not describe a 'mandatory checklist step' as a specific new requirement or a distinct checklist item separate from the procedure steps. It is a rephrasing of the SOP, but the term 'mandatory checklist step' is not used, and the context doesn't frame it as a 'fix' but as the standard procedure."
+    },
+    {
+     "statement": "The preventive action is to add a visual \"Rail Position B\" indicator on the change-over sheet.",
+     "verdict": 0,
+     "reason": "The context does not mention adding a visual indicator."
+    },
+    {
+     "statement": "The preventive action is to train operators to verify the rail position each shift.",
+     "verdict": 0,
+     "reason": "The context does not mention training as a preventive action."
+    },
+    {
+     "statement": "The preventive action is to schedule periodic audits of change-over compliance.",
+     "verdict": 0,
+     "reason": "The context does not mention scheduling audits."
+    },
+    {
+     "statement": "The Shift Lead must be notified of the incident.",
+     "verdict": 0,
+     "reason": "The context states the shift lead signs the changeover record. It does not explicitly state they must be *notified* of the incident as a separate action, although signing implies involvement. However, 'Escalate to Maintenance Supervisor' is a specific trigger. There is no specific trigger for notifying the Shift Lead of the *incident* itself, only for the changeover record."
+    },
+    {
+     "statement": "The Maintenance Supervisor must be notified of the incident.",
+     "verdict": 0,
+     "reason": "The context lists 'Escalate to Maintenance Supervisor' with triggers. One trigger is 'The same alarm happens 3 or more times in one shift'. This is the first occurrence. Another trigger is 'A guide rail will not lock in position'. We don't know if that happened. Another is 'Any electrical fault code'. We don't know. Another is 'Underfill continues...'. We don't know. Another is 'Any glass breakage'. We don't know. Since none of the specific escalation triggers are confirmed to have occurred in this first-time incident, it is not directly inferred that the Maintenance Supervisor *must* be notified. The SOP says 'Always call maintenance' for electrical repairs, but this is a mechanical jam. So, not directly inferred."
+    },
+    {
+     "statement": "The Quality Lead must be notified of the incident.",
+     "verdict": 0,
+     "reason": "The context states to call the quality lead if 'Any glass breakage' occurs. Glass breakage is not confirmed in this incident (it is listed as a non-matching fault). Therefore, it is not directly inferred that the Quality Lead must be notified."
+    },
+    {
+     "statement": "The filler was changed to 330 ml.",
+     "verdict": 0,
+     "reason": "The context mentions 'bottle 330 ml' in the specifications and the operator reports a problem. The Alarm Agent says 'What is different this time... none of which appear in the past shift logs.' It does not explicitly state that a changeover to 330 ml *just happened*. It lists 'Guide rails not reset after a bottle size changeover' as a *possible* cause. It does not confirm the changeover occurred."
+    },
+    {
+     "statement": "The line jammed twice at the infeed after the filler change.",
+     "verdict": 0,
+     "reason": "The Alarm Agent states: 'two jams at the infeed within 20 minutes'. It does not explicitly state these happened *after the filler change*. It lists the changeover as a possible cause. It does not confirm the temporal relationship of 'after the filler change'."
+    },
+    {
+     "statement": "Bottles were catching in the star wheel.",
+     "verdict": 1,
+     "reason": "The Alarm Agent states: 'bottles catching in the star wheel'."
+    },
+    {
+     "statement": "The guide rails were not reset to the required position B and locked after the size changeover.",
+     "verdict": 0,
+     "reason": "This is listed as a 'Possible cause' and a 'first check'. It is not confirmed as a fact. The context says 'Check the guide rail position...'. It does not state that they *were* not reset."
+    },
+    {
+     "statement": "The line is stopped pending lock out, rail correction, and jam clearing.",
+     "verdict": 1,
+     "reason": "The context says 'Stop the machine and lock it out before clearing any jam.' It implies the line is stopped. 'Pending' implies a state of waiting. The procedure is to stop, lock out, clear, and restart. So the line is stopped to perform these actions. This is a reasonable inference of the current state based on the required actions."
+    },
+    {
+     "statement": "The required action is to perform lock out.",
+     "verdict": 1,
+     "reason": "The context mandates LOTO for clearing jams."
+    },
+    {
+     "statement": "The required action is to set guide rails to position B.",
+     "verdict": 0,
+     "reason": "The context says 'Check the guide rail position matches the bottle size, and reset the rails if they are wrong.' It does not confirm they are wrong, so setting them to B is not a *required* action unless they are found to be wrong. It is a conditional action. However, if the bottle size is 330ml (implied by the context of the question and specs), and the rails are not at B, they must be set. But is it *required*? Only if they are wrong. The statement is absolute. It is not directly inferred that they *must* be set (as opposed to checked)."
+    },
+    {
+     "statement": "The required action is to lock the guide rails.",
+     "verdict": 0,
+     "reason": "Similar to above, the rails must be locked if they are moved/reset. The SOP says 'Move the guide rails... and lock them' in the changeover procedure. In the jam clearing procedure, it says 'reset the rails if they are wrong'. It doesn't explicitly say 'lock them' in the jam clearing steps, but the changeover procedure does. Given the ambiguity, and that it's conditional on them being wrong, it's not a blanket required action for the incident response without verification."
+    },
+    {
+     "statement": "The required action is to fit the correct star wheel.",
+     "verdict": 0,
+     "reason": "The SOP says 'Fit the matching star wheel' in the changeover procedure. In the jam clearing procedure, it says 'ensure the star wheel is correctly fitted' (in the SOP Agent findings: 'inspect... ensure the star wheel is correctly fitted'). So checking/ensuring it is fitted is required. Fitting it is required if it's not. The statement 'fit the correct star wheel' is an action. Is it required? Only if it's missing/wrong. Not directly inferred as a mandatory step for *this* incident without knowing the state."
+    },
+    {
+     "statement": "The required action is to run the 20-bottle test as per the standard operating procedure.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings list 'Run 20 bottles at 60 bottles per minute' as part of the correct response procedure (Step 4). The Knowledge Graph 'Bottle Size Changeover' fix includes this. The 'Infeed Jam Clearing' procedure says 'restart at 60 bottles per minute for 2 minutes'. It does not specify 20 bottles. The SOP Agent findings seem to conflate the two or refer to the changeover procedure. Since the SOP Agent explicitly lists 'Run 20 bottles...' in the 'Correct response procedure', it is directly inferred from that section."
+    },
+    {
+     "statement": "The risk if the action is not taken includes continued jams.",
+     "verdict": 1,
+     "reason": "If the jam is not cleared or the cause (e.g., rails) is not fixed, the jam will likely persist or recur. This is a logical inference from the nature of the fault."
+    },
+    {
+     "statement": "The risk if the action is not taken includes possible safety injury.",
+     "verdict": 1,
+     "reason": "The context emphasizes safety rules (LOTO, no reaching into running machine). Violating these (by not taking the action) leads to injury risk. This is directly inferred from the safety warnings."
+    },
+    {
+     "statement": "The risk if the action is not taken includes extended production loss.",
+     "verdict": 1,
+     "reason": "If the jam is not cleared, production remains stopped, leading to extended loss. This is a direct inference from the stoppage."
+    }
+   ],
+   "limit_waits_s": [
+    65
+   ],
+   "tokens": {
+    "calls": 4,
+    "in": 6609,
+    "out": 6963,
+    "non_200": [
+     429,
+     429
+    ]
+   }
+  }
+ }
+}
