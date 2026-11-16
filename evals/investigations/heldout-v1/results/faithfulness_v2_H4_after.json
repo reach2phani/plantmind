@@ -1,0 +1,283 @@
+{
+ "run_utc": "2026-11-16T14:41:11+00:00",
+ "side": "after",
+ "metric": "faithfulness",
+ "rubric_version": 2,
+ "rubric_fingerprint": "bd5db8095d1c",
+ "locked": "2026-11-15",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.Faithfulness",
+  "prompts": "RAGAS built-in StatementGeneratorPrompt and NLIStatementPrompt, unchanged",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H4": {
+   "score": 0.723404255319149,
+   "statements": [
+    {
+     "statement": "Broken glass was found on the floor beside the filler on Filling Line 1 at the Demo Bottling Plant.",
+     "verdict": 1,
+     "reason": "The operator's question explicitly states: \"[Plant: Demo Bottling Plant, Line: Filling Line 1] I've just spotted some broken glass on the floor beside the filler.\""
+    },
+    {
+     "statement": "The glass-breakage event did not trigger the machine's glass-break alarm.",
+     "verdict": 1,
+     "reason": "The operator states: \"there's been no glass alarm.\" The Alarm Agent findings confirm: \"no glass alarm was triggered\"."
+    },
+    {
+     "statement": "The Filling Line 1 machine was still running normally when the broken glass was discovered.",
+     "verdict": 1,
+     "reason": "The operator states: \"The machine's still running normally.\" The Alarm Agent findings confirm: \"the machine is still running normally.\""
+    },
+    {
+     "statement": "A prior glass-break event on 2026-09-17 triggered an alarm and an emergency stop.",
+     "verdict": 1,
+     "reason": "The Alarm Agent findings state: \"Most recent prior event: 2026-09-17 at 10:42 (Glass breakage detected in filler, emergency stop pressed, machine locked out)\" and \"A single recorded glass-breakage alarm... which triggered an emergency stop\"."
+    },
+    {
+     "statement": "The current glass-break event shows no alarm and the line is still running.",
+     "verdict": 1,
+     "reason": "The Alarm Agent findings state: \"The operator reports broken glass on the floor but notes that no glass alarm was triggered and the machine is still running normally.\""
+    },
+    {
+     "statement": "Product safety is compromised because the line continues running.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: \"CRITICAL — broken glass can end up inside filled bottles. This is a product safety event.\" Since the line is running (as established in previous statements) and glass is present, the safety risk is active/compromised until stopped."
+    },
+    {
+     "statement": "All product filled in the last 30 minutes must be placed on QA HOLD.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings and Knowledge Graph state: \"Place all bottles filled in the last 30 minutes on QA HOLD\" and \"Every bottle filled in the last 30 minutes goes on QA HOLD\"."
+    },
+    {
+     "statement": "The safety risk is classified as CRITICAL because broken glass can enter bottles.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: \"criticality: CRITICAL — broken glass can end up inside filled bottles.\""
+    },
+    {
+     "statement": "Broken glass poses a product contamination risk.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: \"broken glass can end up inside filled bottles. This is a product safety event.\" This implies contamination risk."
+    },
+    {
+     "statement": "The financial impact includes potential product loss from QA HOLD and disposal of open bottles.",
+     "verdict": 0,
+     "reason": "The SOP requires placing bottles on QA HOLD and discarding open bottles within 2m. While the context doesn't explicitly use the term \"financial impact\", the loss of product (holding/disposal) is a direct consequence described in the procedure. However, strictly speaking, the text does not discuss financials. Let's look closer. The prompt asks if it can be *directly inferred*. The text describes the *actions* (hold/dispose) but not the *financial impact*. Usually, NLI tasks are strict. The text does not mention money, cost, or financial loss. It mentions product safety and procedure. Therefore, this is not directly inferable from the text provided."
+    },
+    {
+     "statement": "The financial impact may include re-work or scrap costs.",
+     "verdict": 0,
+     "reason": "The context does not mention financial impacts, re-work costs, or scrap costs explicitly. It only mentions the procedural steps for handling the glass and product."
+    },
+    {
+     "statement": "No exact dollar amount is available for the financial impact.",
+     "verdict": 0,
+     "reason": "The context does not provide any financial data or dollar amounts. While it is true that no amount is available, the statement is about the *availability* of data which is a meta-statement. However, in NLI, if the text doesn't mention financials, we can't infer the *nature* of the financial impact. But can we infer that *no amount is available*? The text lists sources and findings. It does not list financial findings. This is a tricky one. Usually, if the text doesn't contain the info, we can't infer the statement about the info's absence unless it's a 'not found' field. The Maintenance Agent says 'NOT FOUND' for service. The Expert Fix says 'NO DATA'. But for financials, it's just not a topic. Let's look at the previous verdicts. If I said 0 for financial impact, I should be consistent. The statement is 'No exact dollar amount is available'. This is a negative claim. The text doesn't say 'No financial data available'. It just doesn't talk about it. Therefore, it cannot be directly inferred."
+    },
+    {
+     "statement": "Broken glass is a product safety event that can lead to contamination of filled bottles.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: \"CRITICAL — broken glass can end up inside filled bottles. This is a product safety event.\""
+    },
+    {
+     "statement": "Operators must not open any guard until the machine has stopped and is locked out.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Do not open any guard until the machine has fully stopped and is locked out (LOTO) as per Section 6.2.\" The Knowledge Graph repeats this."
+    },
+    {
+     "statement": "Operators must not use compressed air near the broken glass or open bottles.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Never use compressed air near open bottles or broken glass (Section 6.4).\" The Knowledge Graph repeats this."
+    },
+    {
+     "statement": "Operators must not attempt any electrical repairs.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states under 'Escalate to Maintenance Supervisor': \"Do not attempt electrical repairs. Always call maintenance.\""
+    },
+    {
+     "statement": "Operators must not clear a jam while the machine is running.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Never clear a jam while the machine is running (Section 6.4).\" The Knowledge Graph repeats this."
+    },
+    {
+     "statement": "Operators must not bypass or tape over any guard switch.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states under 'Machine Safety Rules': \"never bypass or tape over a guard switch\"."
+    },
+    {
+     "statement": "Operators must not restart the line until lockout is applied, glass is cleaned, sanitation rinse is completed, and quality-lead sign-off is obtained.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings list steps: 1. Stop, 2. LOTO, 5. Clean, 6. Sanitation rinse, 7. Obtain sign-off from quality lead before restarting. This sequence implies the line cannot restart until these are done."
+    },
+    {
+     "statement": "Operators must not ship any bottles labeled QA HOLD until the quality lead releases them.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states under 'QA HOLD': \"do not ship until the quality lead has checked them\" and \"Bottles on QA HOLD may only be released after the quality lead has inspected them\"."
+    },
+    {
+     "statement": "The emergency stop must be activated.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Stop the line immediately using the emergency stop.\" The Knowledge Graph states: \"Stop the line at once with the emergency stop.\""
+    },
+    {
+     "statement": "Lock out and tag out (LOTO) must be applied according to the SAF-003 procedure.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph references \"LOTO (SAF-003)\" and the SOP Agent mentions \"locked out (LOTO) as per Section 6.2\". The Knowledge Graph details the LOTO steps under SAF-003."
+    },
+    {
+     "statement": "The machine must be verified as fully stopped.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Do not open any guard until the machine has fully stopped\". The LOTO steps in the Knowledge Graph include: \"Try to start the machine to prove it cannot run.\" This implies verification of the stop."
+    },
+    {
+     "statement": "The area must be inspected for additional glass fragments.",
+     "verdict": 0,
+     "reason": "The SOP states to \"Clean up the broken glass\". While it doesn't explicitly say 'inspect for additional fragments', cleaning up implies finding and removing all glass. However, is it *directly* inferred? The SOP says \"Clean up the broken glass using the red glass kit only\". It doesn't explicitly mandate an inspection step separate from cleaning. But logically, you can't clean what you haven't found. Let's look for explicit text. The text says \"Clean up the broken glass\". It does not explicitly say 'inspect the area'. This might be a 0 if we are very strict. However, 'cleaning up' inherently involves identifying the glass. Let's compare with other statements. Most are explicit. This one is slightly inferential. Let's look at the 'What is different' section: \"operator reports broken glass on the floor\". The SOP says \"Clean up the broken glass\". I will lean towards 0 because 'inspection' is a specific action not explicitly listed as a distinct step from cleaning, though cleaning requires it. Wait, looking at the SOP steps: 1. Stop, 2. LOTO, 3. QA Hold, 4. Dispose, 5. Clean up, 6. Rinse, 7. Sign-off, 8. Record. There is no 'Inspect' step. Therefore, it is not directly stated."
+    },
+    {
+     "statement": "Any open bottles within 2 meters of the break must be identified.",
+     "verdict": 1,
+     "reason": "The SOP states: \"Dispose of any open bottles within 2 m of the broken glass.\" To dispose of them, they must be identified. The Knowledge Graph says \"open bottles within 2 metres of the break are thrown away\". Identification is a prerequisite for disposal. Is it directly inferred? The instruction is to dispose. Disposal implies identification. I will mark this as 1 because you cannot execute the disposal command without identifying the specific bottles."
+    },
+    {
+     "statement": "Every bottle filled in the last 30 minutes must be placed on QA HOLD.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Place all bottles filled in the last 30 minutes on QA HOLD\"."
+    },
+    {
+     "statement": "All open bottles within 2 meters of the break must be discarded.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Dispose of any open bottles within 2 m of the broken glass.\" The Knowledge Graph states: \"open bottles within 2 metres of the break are thrown away\"."
+    },
+    {
+     "statement": "The broken glass must be cleaned using the red glass kit and a vacuum only.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Clean up the broken glass using the red glass kit only; use a vacuum, never compressed air.\""
+    },
+    {
+     "statement": "A mandatory 10-minute sanitation rinse of the filler must be performed.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Perform a sanitation rinse of the filler (10 min).\" The Knowledge Graph states: \"Sanitation Rinse is MANDATORY\" and \"Rinse... for 10 minutes.\""
+    },
+    {
+     "statement": "The guard must be confirmed as locked out.",
+     "verdict": 0,
+     "reason": "The SOP states: \"Do not open any guard until the machine has fully stopped and is locked out (LOTO)\". The LOTO procedure involves locking the isolator. The guard itself isn't 'locked out' in the electrical sense, but the machine is. However, the SOP says \"Do not open any guard until... locked out\". This implies the state of being locked out is a prerequisite for interacting with the guard. The statement says 'The guard must be confirmed as locked out'. This phrasing is slightly off; the *machine* is locked out. But in common parlance, ensuring the guard is secure/locked out is part of the process. Let's look at the LOTO steps: \"Lock the isolator...\". It doesn't say 'lock the guard'. It says 'Do not open any guard until... locked out'. I will mark this as 0 because the guard itself is not the object being locked out (the isolator is), and the text doesn't say to 'confirm the guard is locked out', but rather to not open it until the machine is locked out."
+    },
+    {
+     "statement": "The area must be confirmed free of glass.",
+     "verdict": 0,
+     "reason": "Similar to the 'inspect' statement, the SOP says \"Clean up the broken glass\". It does not explicitly state a verification step that the area is 'confirmed free of glass'. It is an implicit goal of cleaning, but not an explicit instruction in the text."
+    },
+    {
+     "statement": "The sanitation rinse must be confirmed as completed.",
+     "verdict": 0,
+     "reason": "The SOP says \"Perform a sanitation rinse\". It does not explicitly state a confirmation step, though it is a mandatory step. However, 'confirmed as completed' is a specific verification action not explicitly listed as a separate step like 'sign-off'. The sign-off is for the quality lead. The rinse is just 'perform'. I will mark this as 0 for lack of explicit 'confirmation' language, although it's a mandatory step."
+    },
+    {
+     "statement": "The quality lead must sign off on the QA HOLD release.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Obtain sign-off from the quality lead before restarting the line.\" The Knowledge Graph states: \"Bottles on QA HOLD may only be released after the quality lead has inspected them\". This implies sign-off/inspection for release."
+    },
+    {
+     "statement": "The incident must be recorded in the glass breakage log.",
+     "verdict": 1,
+     "reason": "The SOP Agent findings state: \"Record the event in the glass breakage log.\""
+    },
+    {
+     "statement": "QA HOLD bottles must remain labeled and not shipped until released.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: \"Label the held bottles QA HOLD: do not ship until the quality lead has checked them\"."
+    },
+    {
+     "statement": "The glass-breakage sensor must be reviewed and repaired to ensure future breakage events generate an alarm and automatic emergency stop.",
+     "verdict": 0,
+     "reason": "The context discusses the *current* incident and the *past* incident. It notes that the current incident did *not* trigger an alarm. It does not provide instructions to repair or review the sensor. It only provides the SOP for handling the glass breakage. There is no mention of sensor maintenance or repair in the provided text."
+    },
+    {
+     "statement": "A quarterly inspection of the glass-breakage detection system must be added.",
+     "verdict": 0,
+     "reason": "The context does not mention any inspection schedules, quarterly or otherwise, for the detection system."
+    },
+    {
+     "statement": "Operator training must be updated to reinforce immediate stop and LOTO when any glass is observed, even if no alarm sounds.",
+     "verdict": 0,
+     "reason": "The context does not mention operator training updates. It provides the SOP for the current situation."
+    },
+    {
+     "statement": "The Quality lead must be notified.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states under 'who to call': \"The quality lead and the maintenance supervisor, for any glass breakage\". The SOP also requires sign-off from the quality lead."
+    },
+    {
+     "statement": "The Maintenance Supervisor must be notified.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states under 'who to call': \"The quality lead and the maintenance supervisor, for any glass breakage\". It also lists 'Escalate to Maintenance Supervisor' as a procedure."
+    },
+    {
+     "statement": "The Shift Supervisor must be notified.",
+     "verdict": 0,
+     "reason": "The context mentions 'Shift-Log' in the sources, but does not explicitly state that the Shift Supervisor must be notified. It specifies the Quality Lead and Maintenance Supervisor."
+    },
+    {
+     "statement": "The Plant Manager must be notified.",
+     "verdict": 0,
+     "reason": "The context does not mention notifying the Plant Manager."
+    },
+    {
+     "statement": "The line must be stopped for safe cleanup.",
+     "verdict": 1,
+     "reason": "The SOP states: \"Stop the line immediately using the emergency stop.\" and \"Do not open any guard until the machine has fully stopped...\". Cleanup is step 5, which happens after stopping."
+    },
+    {
+     "statement": "Production is halted pending QA hold release.",
+     "verdict": 1,
+     "reason": "The SOP states: \"Obtain sign-off from the quality lead before restarting the line.\" This implies production (the line) is halted until this sign-off (which relates to the QA hold/release process) is obtained."
+    },
+    {
+     "statement": "The line must be stopped, LOTO applied, recent product placed on QA HOLD, glass cleaned with the red kit, sanitation rinse run, and quality-lead sign-off obtained before restarting.",
+     "verdict": 1,
+     "reason": "This statement summarizes the 8 steps listed in the SOP Agent findings: 1. Stop, 2. LOTO, 3. QA Hold, 4. Dispose (part of cleanup), 5. Clean with red kit, 6. Rinse, 7. Sign-off, 8. Record. The statement captures the essential sequence required before restarting."
+    },
+    {
+     "statement": "Contaminated bottles could reach customers if the incident is not actioned.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states: \"broken glass can end up inside filled bottles. This is a product safety event.\" If the incident is not actioned (i.e., bottles not held/checked), contaminated bottles could theoretically reach customers. This is a direct logical inference from the risk description."
+    },
+    {
+     "statement": "Failure to action the incident could cause product recalls, safety incidents, and significant financial loss.",
+     "verdict": 0,
+     "reason": "The context states it is a \"product safety event\" and \"CRITICAL\". While it doesn't explicitly list \"recalls\" or \"financial loss\" as outcomes, these are standard consequences of a critical product safety event involving contamination. However, strictly based on the text, 'financial loss' and 'recalls' are not mentioned. The text focuses on safety and procedure. In strict NLI, this is often considered an external knowledge inference. The text says \"product safety event\". It does not say \"will cause recalls\". I will mark this as 0 because the specific consequences (recalls, financial loss) are not in the text."
+    }
+   ],
+   "limit_waits_s": [
+    65,
+    65,
+    65,
+    65
+   ],
+   "tokens": {
+    "calls": 7,
+    "in": 6639,
+    "out": 5430,
+    "non_200": [
+     429,
+     429,
+     429,
+     429,
+     429
+    ]
+   },
+   "calibration": null
+  }
+ }
+}

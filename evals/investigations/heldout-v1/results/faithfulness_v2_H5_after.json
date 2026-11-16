@@ -1,0 +1,263 @@
+{
+ "run_utc": "2026-11-16T14:33:27+00:00",
+ "side": "after",
+ "metric": "faithfulness",
+ "rubric_version": 2,
+ "rubric_fingerprint": "bd5db8095d1c",
+ "locked": "2026-11-15",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.Faithfulness",
+  "prompts": "RAGAS built-in StatementGeneratorPrompt and NLIStatementPrompt, unchanged",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H5": {
+   "score": 0.4318181818181818,
+   "statements": [
+    {
+     "statement": "The checkweigher reject rate is observed at approximately 2 percent, which is equivalent to 2 bottles per 100.",
+     "verdict": 1,
+     "reason": "The operator's report explicitly states the reject rate is 'roughly two out of every hundred', which is 2%."
+    },
+    {
+     "statement": "The observed checkweigher reject rate of 2 percent exceeds the Standard Operating Procedure threshold of greater than 1 percent over an hour.",
+     "verdict": 1,
+     "reason": "The SOP Agent Findings state the threshold is '>1 % (1 bottle per 100) over an hour'. The observed rate is 2%, which is greater than 1%."
+    },
+    {
+     "statement": "No underfill alarm or valve-drip symptom is reported for the current occurrence.",
+     "verdict": 1,
+     "reason": "The Alarm Agent Findings note 'No mention of valve dripping or underfill in the operator’s message' and the operator stated 'There's no alarm'."
+    },
+    {
+     "statement": "The current occurrence differs from historical patterns because no alarm is triggered.",
+     "verdict": 1,
+     "reason": "The Alarm Agent Findings explicitly list 'The operator reports a 2 % reject rate but notes no alarm is triggered, whereas past high-reject incidents were accompanied by alarms' as a difference."
+    },
+    {
+     "statement": "The current occurrence is taking place on a Sunday shift.",
+     "verdict": 1,
+     "reason": "The Alarm Agent Findings state 'The current observation is made on a Sunday shift'."
+    },
+    {
+     "statement": "The production impact is minor quality loss.",
+     "verdict": 0,
+     "reason": "The context does not explicitly characterize the production impact as 'minor quality loss'. While the rate is 2%, the text does not provide a qualitative assessment of the impact severity."
+    },
+    {
+     "statement": "The filling line continues running without a shutdown.",
+     "verdict": 1,
+     "reason": "The operator states 'The line's been running alright' and 'the filler seems to be running fine', implying it is currently running. The SOP states 'No further escalation or shutdown is required unless additional symptoms appear', and no such symptoms are present."
+    },
+    {
+     "statement": "The safety risk is low because no hazardous condition is identified.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that the safety risk is 'low'. It lists general safety rules but does not provide a risk assessment for this specific incident."
+    },
+    {
+     "statement": "The financial impact is small product waste of approximately 2 percent of output until corrective action is taken.",
+     "verdict": 0,
+     "reason": "The context does not discuss financial impact or quantify product waste in financial terms. It only mentions the reject rate."
+    },
+    {
+     "statement": "There is no major cost associated with the current issue.",
+     "verdict": 0,
+     "reason": "The context does not contain any information regarding costs or financial implications."
+    },
+    {
+     "statement": "The criticality of the issue is low.",
+     "verdict": 0,
+     "reason": "The context does not assign a criticality level (low/medium/high) to the issue. It only provides the procedure to follow."
+    },
+    {
+     "statement": "The Standard Operating Procedure defines the condition as a notification only.",
+     "verdict": 1,
+     "reason": "The SOP Agent Findings state: 'If the checkweigher rejects more than 1 bottle in 100 over an hour, tell the shift lead. No further escalation or shutdown is required...'. This implies the required action is notification."
+    },
+    {
+     "statement": "No safety or production stop is required for the current issue.",
+     "verdict": 1,
+     "reason": "The SOP Agent Findings state 'No further escalation or shutdown is required unless additional symptoms appear'. Since no additional symptoms are reported, no stop is required."
+    },
+    {
+     "statement": "Operators must not remove a lock unless the operator is the person who fitted the lock, as per LOTO SAF-003.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph and Mandatory Requirements explicitly state: 'Only the person who fitted a lock may remove it' under LOTO (SAF-003)."
+    },
+    {
+     "statement": "Operators must not perform any maintenance, part change, or reach into the machine without applying LOTO, as per LOTO SAF-003.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph states LOTO is 'required before: Any maintenance, clearing a jam, changing parts, or reaching into the machine'."
+    },
+    {
+     "statement": "Operators must not clear a jam while the machine is running, as per Machine Safety Rules.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph and Mandatory Requirements state: 'Never clear a jam while the machine is running'."
+    },
+    {
+     "statement": "Operators must not reach past a guard or bypass a guard switch, as per Machine Safety Rules.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph and Mandatory Requirements state: 'never reach past a guard, and never bypass or tape over a guard switch'."
+    },
+    {
+     "statement": "Operators must not use compressed air near open bottles or broken glass, as per Machine Safety Rules.",
+     "verdict": 1,
+     "reason": "The Knowledge Graph and Mandatory Requirements state: 'Never use compressed air near open bottles or broken glass'."
+    },
+    {
+     "statement": "Operators must verify that Personal Protective Equipment, including safety shoes, cut-resistant gloves, hearing protection, and safety glasses, is worn.",
+     "verdict": 0,
+     "reason": "The Knowledge Graph lists 'PPE Required on Filling Line 1' including these specific items. While it lists them as required, the statement 'must verify' is a standard operational interpretation of 'Required' in a safety context, but strictly speaking, the text lists the requirements, not the verification action. However, in NLI for safety protocols, stating the requirement implies the operator must ensure compliance. Let's look closer. The text says 'PPE Required...'. It does not explicitly say 'Operators must verify'. But usually, 'Required' means the operator must wear it. The statement says 'verify that... is worn'. This is a slight inference. However, looking at the other statements, they are direct quotes or direct logical consequences. Is 'verify' in the text? No. Is it a direct inference? If PPE is required, the operator must wear it. 'Verify' might be too strong or specific. Let's look at the SOP section 11 mentioned: 'shift lead signs pre-start checklist'. It doesn't explicitly say the operator verifies PPE for themselves in this specific context snippet, but it is a general rule. Let's compare with other 'must' statements. The LOTO ones are explicit 'lock rule' or 'required before'. The PPE section just lists 'PPE Required'. I will mark this as 0 because the specific action of 'verifying' is not explicitly stated, only the requirement to wear them is implied by 'Required'. Wait, actually, usually 'Required' means the operator must wear them. The statement says 'verify that... is worn'. This is a procedural step not explicitly in the text. The text says 'PPE Required'. It doesn't say 'Verify PPE'. I will stick with 0 to be strict about 'directly inferred'."
+    },
+    {
+     "statement": "Operators must verify that all guard doors are closed.",
+     "verdict": 0,
+     "reason": "The context states 'All guard doors have safety switches; the machine stops if a guard door is opened'. It does not explicitly state that operators must 'verify' they are closed as a specific task, although it is implied by safe operation. However, unlike the LOTO rules which are explicit prohibitions/requirements, this is a description of the machine's behavior. There is no explicit instruction 'Verify guard doors are closed'."
+    },
+    {
+     "statement": "Operators must monitor the checkweigher reject count for the next hour to confirm the rate is greater than 1 percent.",
+     "verdict": 0,
+     "reason": "The SOP says 'If the checkweigher rejects more than 1 bottle in 100 over an hour, tell the shift lead.' The operator has already observed 'roughly two out of every hundred'. The SOP implies the condition is met. It does not explicitly instruct to 'monitor for the next hour to confirm'. The operator has already reported the rate. The instruction is to tell the shift lead. The monitoring might be part of the 'over an hour' condition, but the operator's report suggests the observation is already made. The statement says 'must monitor... to confirm'. The text doesn't explicitly mandate a new monitoring period for confirmation; it mandates notification based on the rate. However, the rate is defined 'over an hour'. If the operator just noticed it, they might need to confirm it's sustained. But the text doesn't explicitly say 'monitor to confirm'. It says 'If... tell shift lead'. I will mark this 0 as it's an inferred procedure not explicitly stated as a 'must monitor' step."
+    },
+    {
+     "statement": "Operators must notify the shift lead immediately as required by the Standard Operating Procedure.",
+     "verdict": 1,
+     "reason": "The SOP states: 'If the checkweigher rejects more than 1 bottle in 100 over an hour, tell the shift lead.' The condition is met (2% > 1%). Therefore, the operator must tell the shift lead. 'Immediately' is a reasonable interpretation of 'tell' in an operational context, but strictly, the text says 'tell'. Is 'immediately' in the text? No. But 'tell the shift lead' is the required action. I will mark this 1 because the core action 'notify shift lead' is explicitly required by the SOP when the condition is met."
+    },
+    {
+     "statement": "Maintenance must schedule a checkweigher calibration if the high reject rate persists.",
+     "verdict": 0,
+     "reason": "The context does not mention checkweigher calibration or maintenance scheduling for this specific issue. The Maintenance Agent found 'NO DATA' and the Expert Fix found 'NO DATA'. The SOP does not mention calibration."
+    },
+    {
+     "statement": "Operators must re-measure the reject rate for one hour after calibration.",
+     "verdict": 0,
+     "reason": "The context does not mention calibration or re-measurement procedures."
+    },
+    {
+     "statement": "The reject rate must be at or below 1 percent after calibration.",
+     "verdict": 0,
+     "reason": "The context does not mention calibration or target rates after calibration."
+    },
+    {
+     "statement": "The affected product batch must be placed on Quality Assurance Hold.",
+     "verdict": 0,
+     "reason": "The context does not mention Quality Assurance Hold or product holds."
+    },
+    {
+     "statement": "The reject count must be recorded per the Standard Operating Procedure.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state that the reject count must be recorded. It mentions telling the shift lead. It does not mention logging/recording the count itself in the SOP section provided."
+    },
+    {
+     "statement": "If no further action is defined in the documents, the note \"None required by the documents\" must be recorded.",
+     "verdict": 0,
+     "reason": "This is a meta-instruction or a specific logging requirement not found in the provided context. The context does not contain this rule."
+    },
+    {
+     "statement": "The checkweigher must be recalibrated according to the manufacturer's calibration schedule.",
+     "verdict": 0,
+     "reason": "The context does not mention manufacturer's calibration schedules or mandatory recalibration."
+    },
+    {
+     "statement": "Possible drift causing the elevated reject rate must be investigated.",
+     "verdict": 0,
+     "reason": "The context does not mention investigating drift. The Alarm Agent notes differences but does not mandate an investigation into drift."
+    },
+    {
+     "statement": "A daily pre-shift checkweigher verification step must be added to the shift checklist.",
+     "verdict": 0,
+     "reason": "The context does not mention adding steps to the shift checklist."
+    },
+    {
+     "statement": "Results of the daily pre-shift checkweigher verification must be recorded.",
+     "verdict": 0,
+     "reason": "The context does not mention daily pre-shift verification or recording its results."
+    },
+    {
+     "statement": "Early maintenance must be triggered if the reject rate approaches 1 percent.",
+     "verdict": 0,
+     "reason": "The context does not mention triggering early maintenance based on approaching 1 percent."
+    },
+    {
+     "statement": "The shift lead must be notified immediately.",
+     "verdict": 1,
+     "reason": "The SOP states 'tell the shift lead' when the threshold is exceeded. The threshold is exceeded. Therefore, the shift lead must be notified. 'Immediately' is a fair inference for 'tell' in this context, similar to the previous statement."
+    },
+    {
+     "statement": "The Maintenance Supervisor must be notified for calibration.",
+     "verdict": 0,
+     "reason": "The context does not mention notifying a Maintenance Supervisor or performing calibration."
+    },
+    {
+     "statement": "The checkweigher is rejecting approximately 2 percent of bottles.",
+     "verdict": 1,
+     "reason": "The operator reports 'roughly two out of every hundred', which is 2%."
+    },
+    {
+     "statement": "The checkweigher reject rate exceeds the Standard Operating Procedure threshold.",
+     "verdict": 1,
+     "reason": "The SOP threshold is >1%. The observed rate is 2%. 2% > 1%."
+    },
+    {
+     "statement": "The likely root cause is checkweigher calibration drift causing weight readings outside tolerance.",
+     "verdict": 0,
+     "reason": "The context does not identify the root cause. The Alarm Agent notes differences but does not conclude it is calibration drift. The Maintenance Agent found no data. This is a hypothesis, not a fact from the context."
+    },
+    {
+     "statement": "The filling line remains running.",
+     "verdict": 1,
+     "reason": "The operator states 'The line's been running alright' and 'the filler seems to be running fine'."
+    },
+    {
+     "statement": "A quality hold is placed on the affected product.",
+     "verdict": 0,
+     "reason": "The context does not state that a quality hold has been placed or is required."
+    },
+    {
+     "statement": "The shift lead must be notified now.",
+     "verdict": 1,
+     "reason": "The SOP requires telling the shift lead when the reject rate exceeds 1%. The rate is 2%. Therefore, notification is required now."
+    },
+    {
+     "statement": "A checkweigher calibration must be scheduled.",
+     "verdict": 0,
+     "reason": "The context does not state that calibration must be scheduled. The SOP only requires notifying the shift lead."
+    },
+    {
+     "statement": "Continued product waste is a risk if the issue is not actioned.",
+     "verdict": 0,
+     "reason": "The context does not explicitly state this risk. It is a logical consequence, but not directly stated in the text."
+    },
+    {
+     "statement": "Potential downstream quality complaints are a risk if the issue is not actioned.",
+     "verdict": 0,
+     "reason": "The context does not mention downstream quality complaints or this specific risk."
+    }
+   ],
+   "limit_waits_s": [
+    65
+   ],
+   "tokens": {
+    "calls": 5,
+    "in": 5113,
+    "out": 4440,
+    "non_200": [
+     429,
+     429,
+     429
+    ]
+   },
+   "calibration": null
+  }
+ }
+}
