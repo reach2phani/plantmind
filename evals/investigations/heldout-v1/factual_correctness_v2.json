@@ -1,0 +1,129 @@
+{
+  "about": "Settings VERSION 2 for FACTUAL CORRECTNESS. Same metric, judge, mode, splitting and score as version 1 (factual_correctness.json, kept unchanged with its H2 result). Version 2 changes only the REFERENCE WORDING. The H2 first-run check (2026-11-17) found the judge wrong on 3 of 5 'missing' verdicts, because our facts were written as short phrases for word-matching in retrieval recall: 'The rails are locked' reads like a statement about the machine right now, while the SOP means an instruction ('lock the rails'). Each fact below keeps its meaning and numbers; only the wording changes. LOCK RULE: never change this file after its results are seen; make a new version instead.",
+  "version": 2,
+  "supersedes": "factual_correctness.json (version 1)",
+  "metric": "factual_correctness",
+  "metric_question": "Did the facts the operator needed make it into the final answer?",
+
+  "reference": {
+    "from": "the 'reference' wording in this file, one sentence per fact. Fact ids and meanings are those of retrieval_labels.json (locked 2026-11-15, still checked at run time).",
+    "wording_rules": [
+      "Keep the fact's meaning and every number. Do not add a new requirement.",
+      "Take the words from the source document (FL-101 SOP / work instruction), never from any PlantMind answer.",
+      "Write an instruction as an instruction ('Lock the guide rails'), not as a state ('The rails are locked').",
+      "Add a condition only when the instruction depends on it in the source ('If the checkweigher test fails, ...').",
+      "A fact that was already clear keeps its original wording (changed: false)."
+    ],
+    "blind_note": "Written after the v1 H2 verdicts and H2's answer were read; the faithfulness and handover reviews had already read the answers of all five cases. The wording comes from the source documents only, but no case is fully blind for v2. H1's facts were not blind in v1 either."
+  },
+
+  "response_means": "The final report as graded, without the REPORT CONFIDENCE and SOURCE DATA blocks, and with 'Step N:' labels removed (the actions stay). Same answer text as faithfulness v2 and factual correctness v1.",
+  "prep": {
+    "remove_step_labels": true
+  },
+
+  "evaluator": {
+    "tool": "ragas",
+    "ragas_version": "0.4.3",
+    "metric_class": "ragas.metrics.collections.FactualCorrectness",
+    "prompts": "RAGAS built-in claim-splitting and claim-checking prompts, unchanged",
+    "mode": "recall",
+    "atomicity": "high",
+    "coverage": "high",
+    "judge_model": "qwen/qwen3.8-27b",
+    "judge_provider": "groq",
+    "temperature": 0,
+    "reasoning_format": "hidden",
+    "steps_used": "Only the reference -> answer direction, with RAGAS's own steps unchanged: split the reference into claims (ClaimDecompositionPrompt) and check each claim against the answer (NLIStatementPrompt). The score is then computed by our rule below, not by RAGAS's combined formula.",
+    "why_not_ragas_score": "Found in the RAGAS 0.4.3 source before locking v1: its 'recall' = TP / (TP + FN), where TP counts ANSWER claims backed by the reference and FN counts REFERENCE claims missing from the answer. It mixes two directions. Our rule counts reference claims only."
+  },
+
+  "rules": {
+    "split": "RAGAS splits the reference into claims (atomicity high, coverage high)",
+    "verdict": "For each reference claim, the judge decides whether the answer supports it (1) or not (0)",
+    "score": "reference claims supported by the answer / all reference claims"
+  },
+
+  "first_run_check": {
+    "about": "Run H2 first and compare with the v1 H2 human check (judge errors on #3 star wheel, #4 rails locked, #7 restart at 60 bpm; #11 check the changeover record truly missing; #2 usual cause borderline). v2 passes if the three judge errors are gone, the truly missing fact is still missing, and the split is still sensible. A person confirms. If it fails, stop: do not tune and re-run silently.",
+    "case": "H2"
+  },
+
+  "also_report": {
+    "per_fact": "Map each reference claim back to its fact id (by code: the fact sharing the most words with the claim; a person confirms) so a missed fact can be compared with the grounding funnel (never found / dropped by a helper / reached the writer but left out of the answer).",
+    "wrong_value": "Manual review of every MISSING fact: if the answer states the same thing with a DIFFERENT value (for example 1.4 bar where the SOP says 1.3), label it WRONG, not just missing. Quote the answer text."
+  },
+
+  "manual_review_rule": "A claim counts as present only with the same meaning and the same numbers; a vaguer statement does not count. Corrections are recorded as data, pointing to the review, never by editing results.",
+
+  "cases": {
+    "H1": [
+      {"id": "F1", "fact_v1": "Do not start the line", "reference": "If the checkweigher test fails, do not start the line.", "source": "SOP 8.4 line 184", "changed": true},
+      {"id": "F2", "fact_v1": "Call the quality lead", "reference": "If the checkweigher test fails, call the quality lead.", "source": "SOP 8.4 line 184", "changed": true},
+      {"id": "F3", "fact_v1": "By hand it is only 5 bottles an hour", "reference": "Weighing by hand checks only 5 bottles an hour.", "source": "SOP 11 lines 225-226", "changed": true},
+      {"id": "F4", "fact_v1": "The checkweigher weighs every bottle", "reference": "The checkweigher weighs every bottle.", "source": "SOP 7 line 149", "changed": false},
+      {"id": "F5", "fact_v1": "490 and 510 ml rejected, 500 ml passes", "reference": "In the checkweigher test, the 490 ml and 510 ml test bottles must be rejected and the 500 ml test bottle must pass.", "source": "SOP 8.4 lines 181-184", "changed": true},
+      {"id": "F6", "fact_v1": "Record on the pre-start checklist", "reference": "Record the checks on the pre-start checklist.", "source": "SOP 8 line 157", "changed": true},
+      {"id": "F7", "fact_v1": "The shift lead signs it", "reference": "The shift lead signs the pre-start checklist.", "source": "SOP 8 line 157", "changed": true}
+    ],
+    "H2": [
+      {"id": "F1", "fact_v1": "330 ml bottles need rail position B", "reference": "For 330 ml bottles, set the guide rails to position B.", "source": "SOP 8.2 line 171; SOP 14 line 365", "changed": true},
+      {"id": "F2", "fact_v1": "Rails not reset after a changeover are the usual cause", "reference": "Guide rails not reset after a bottle size changeover are the most common cause of infeed jams.", "source": "SOP 12.2 line 277; SOP 14 lines 372-373", "changed": true},
+      {"id": "F3", "fact_v1": "The matching star wheel is fitted", "reference": "Fit the star wheel that matches the bottle size.", "source": "SOP 8.2 line 172; SOP 14 line 366", "changed": true},
+      {"id": "F4", "fact_v1": "The rails are locked", "reference": "Lock the guide rails in position.", "source": "SOP 8.2 line 172; SOP 14 line 365", "changed": true},
+      {"id": "F5", "fact_v1": "Stop and lock out before clearing a jam", "reference": "Stop the machine and lock it out before clearing a jam.", "source": "SOP 12.2 lines 282-284; SOP 6.2 line 120", "changed": true},
+      {"id": "F6", "fact_v1": "Restart at 60 bottles per minute", "reference": "When restarting, run the line at 60 bottles per minute first.", "source": "SOP 12.2 step 6 line 293; SOP 14 step 4 line 367", "changed": true},
+      {"id": "F7", "fact_v1": "Never reach into the infeed or star wheel while running", "reference": "Never reach into the infeed or the star wheel while the machine is running.", "source": "SOP 12.2 line 282", "changed": true},
+      {"id": "F8", "fact_v1": "Wear cut-resistant gloves", "reference": "Wear cut-resistant gloves when removing jammed bottles.", "source": "SOP 12.2 step 3 line 289; SOP 6.1 line 115", "changed": true},
+      {"id": "F9", "fact_v1": "Check the changeover record", "reference": "If a changeover happened this shift, check the changeover record first.", "source": "SOP 12.2 line 278", "changed": true},
+      {"id": "F10", "fact_v1": "Remove chipped or damaged bottles", "reference": "Remove any chipped or damaged bottles from the infeed.", "source": "SOP 12.2 lines 279, 292", "changed": true},
+      {"id": "F11", "fact_v1": "The shift lead signs the changeover record", "reference": "The shift lead signs the changeover record.", "source": "SOP 14 lines 369-370; SOP 3 line 55", "changed": false}
+    ],
+    "H3": [
+      {"id": "F1", "fact_v1": "Call the maintenance supervisor", "reference": "Call the maintenance supervisor.", "source": "SOP 13 line 349; SOP 12.1 line 271", "changed": false},
+      {"id": "F2", "fact_v1": "Underfill after new seals is a reason to call the maintenance supervisor", "reference": "Underfill that continues after the seals have been replaced is a reason to call the maintenance supervisor.", "source": "SOP 13 line 351", "changed": true},
+      {"id": "F3", "fact_v1": "3 underfill alarms in one shift = a systemic fault", "reference": "Three or more underfill alarms in one shift means a systemic fault.", "source": "SOP 12.1 line 269; NCR section 8", "changed": true},
+      {"id": "F4", "fact_v1": "Stop production and raise a work order", "reference": "Stop production and raise a maintenance work order.", "source": "SOP 12.1 lines 270-271", "changed": true},
+      {"id": "F5", "fact_v1": "Check for a blocked nozzle", "reference": "Check whether the fill nozzle is blocked.", "source": "SOP 12.1 cause 2 line 251; WI section 10", "changed": true},
+      {"id": "F6", "fact_v1": "Check the product supply pressure", "reference": "Check the product supply pressure.", "source": "SOP 12.1 step 5 line 264; SOP 8.3 line 176", "changed": false},
+      {"id": "F7", "fact_v1": "Do not raise the fill time", "reference": "Do not increase the fill time to make up for underfill.", "source": "SOP 10 line 217; SOP 12.1 line 266; NCR section 8", "changed": true},
+      {"id": "F8", "fact_v1": "The checkweigher report shows which valves", "reference": "The checkweigher report shows which valve numbers are underfilling.", "source": "SOP 12.1 step 2 lines 257-258", "changed": true},
+      {"id": "F9", "fact_v1": "Supply pressure should be 1.5 to 2.0 bar", "reference": "The product supply pressure should be 1.5 to 2.0 bar.", "source": "SOP 8.3 line 176; SOP 10 line 213", "changed": true},
+      {"id": "F10", "fact_v1": "A scratched valve seat stops a new seal sealing", "reference": "A new seal will not seal on a scratched valve seat.", "source": "WI section 8 step 5 lines 74-76", "changed": true},
+      {"id": "F11", "fact_v1": "NCR-2026-012 is the reason not to raise the fill time", "reference": "NCR-2026-012 is the reason the fill time must not be raised.", "source": "SOP 10 line 219; SOP 12.1 line 267", "changed": true}
+    ],
+    "H4": [
+      {"id": "F1", "fact_v1": "Stop the line", "reference": "Stop the line.", "source": "SOP 12.3 step 1 line 305; SOP 3 line 51", "changed": false},
+      {"id": "F2", "fact_v1": "Call the quality lead", "reference": "Call the quality lead.", "source": "SOP 13 line 354", "changed": false},
+      {"id": "F3", "fact_v1": "The quality lead owns QA HOLD decisions", "reference": "The quality lead owns QA HOLD decisions.", "source": "SOP 3 line 59", "changed": false},
+      {"id": "F4", "fact_v1": "The quality lead signs off before restart", "reference": "The quality lead must sign off before the line restarts.", "source": "SOP 12.3 step 6 line 314; SOP 3 line 60", "changed": true},
+      {"id": "F5", "fact_v1": "Clean up with the red glass kit", "reference": "Clean up with the red glass kit.", "source": "SOP 12.3 step 4 line 311; SOP 8.5 line 187", "changed": false},
+      {"id": "F6", "fact_v1": "Use a vacuum, never compressed air", "reference": "Use a vacuum to clean up the glass, never compressed air.", "source": "SOP 12.3 step 4 line 312; SOP 6.4 line 135", "changed": true},
+      {"id": "F7", "fact_v1": "Do not open any guard until locked out", "reference": "Do not open any guard until the machine is locked out.", "source": "SOP 12.3 step 2 lines 306-307", "changed": true},
+      {"id": "F8", "fact_v1": "Do not reach in until locked out", "reference": "Do not reach into the machine until it is locked out.", "source": "SOP 6.2 lines 120-121; SOP 6.4 line 134", "changed": true},
+      {"id": "F9", "fact_v1": "Put bottles from the last 30 minutes on QA HOLD", "reference": "Put every bottle filled in the last 30 minutes on QA HOLD.", "source": "SOP 12.3 step 3 line 308", "changed": true},
+      {"id": "F10", "fact_v1": "Throw away open bottles within 2 metres", "reference": "Throw away any open bottles within 2 metres of the break.", "source": "SOP 12.3 step 3 lines 309-310", "changed": true},
+      {"id": "F11", "fact_v1": "Record it in the glass breakage log", "reference": "Record the event in the glass breakage log.", "source": "SOP 12.3 step 7 line 315", "changed": true}
+    ],
+    "H5": [
+      {"id": "F1", "fact_v1": "More than 1 in 100 over an hour: tell the shift lead", "reference": "If the checkweigher rejects more than 1 bottle in 100 over an hour, tell the shift lead.", "source": "SOP 11 lines 238-239", "changed": true},
+      {"id": "F2", "fact_v1": "A rising reject count is often the first sign of worn seals", "reference": "A rising reject count is often the first sign of worn seals.", "source": "SOP 11 line 239", "changed": false},
+      {"id": "F3", "fact_v1": "Look at the fill valves for dripping", "reference": "Look at the fill valves for dripping.", "source": "SOP 11 line 231; SOP 8.1 line 160", "changed": false},
+      {"id": "F4", "fact_v1": "The checkweigher report shows which valves", "reference": "The checkweigher report shows which valve numbers are underfilling.", "source": "SOP 12.1 step 2 lines 257-258", "changed": true},
+      {"id": "F5", "fact_v1": "Hand-weigh 5 bottles to confirm", "reference": "Weigh 5 bottles by hand to confirm.", "source": "SOP 11 line 225", "changed": true},
+      {"id": "F6", "fact_v1": "Do not change the fill time", "reference": "Do not change the fill time.", "source": "SOP 10 line 217; SOP 12.1 line 266", "changed": false},
+      {"id": "F7", "fact_v1": "Record the checkweigher reject count", "reference": "Record the checkweigher reject count.", "source": "SOP 11 line 228", "changed": false},
+      {"id": "F8", "fact_v1": "Dripping valve: maintenance replaces the seal kit", "reference": "If a valve drips, maintenance replaces its seal kit.", "source": "SOP 12.1 step 3 lines 259-261", "changed": true},
+      {"id": "F9", "fact_v1": "Seals every 3 months or 1,500 running hours", "reference": "Seal kits are replaced every 3 months or every 1,500 running hours.", "source": "SOP 8.1 lines 163-164", "changed": true},
+      {"id": "F10", "fact_v1": "Check the product supply pressure", "reference": "Check the product supply pressure.", "source": "SOP 12.1 step 5 line 264; SOP 8.3 line 176", "changed": false}
+    ]
+  },
+
+  "known_limits": [
+    "An AI judge decides each verdict; a person checks the first run and every MISSING fact.",
+    "Recall does not punish made-up content; faithfulness measures that.",
+    "The reference is only the facts we listed as needed; a needed fact we forgot to list is invisible to this metric.",
+    "Rewording a fact can change how strict it is; each change is listed with its original (fact_v1) so a person can check it.",
+    "Small test set: 5 scenarios, 50 facts."
+  ]
+}

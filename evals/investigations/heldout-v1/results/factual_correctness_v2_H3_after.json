@@ -1,0 +1,223 @@
+{
+ "run_utc": "2026-11-17T19:03:09+00:00",
+ "side": "after",
+ "metric": "factual_correctness",
+ "rubric_version": 2,
+ "rubric_fingerprint": "9ec2c1074bda",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.FactualCorrectness",
+  "mode": "recall",
+  "atomicity": "high",
+  "coverage": "high",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H3": {
+   "score": 0.4545,
+   "supported": 5,
+   "total": 11,
+   "split_claims": [
+    "Underfill that continues after the seals have been replaced is a reason to call the maintenance supervisor.",
+    "Three or more underfill alarms in one shift means a systemic fault.",
+    "If there are three or more underfill alarms in one shift, production should be stopped.",
+    "If there are three or more underfill alarms in one shift, a maintenance work order should be raised.",
+    "One should check whether the fill nozzle is blocked.",
+    "One should check the product supply pressure.",
+    "The fill time should not be increased to make up for underfill.",
+    "The checkweigher report shows which valve numbers are underfilling.",
+    "The product supply pressure should be 1.5 to 2.0 bar.",
+    "A new seal will not seal on a scratched valve seat.",
+    "NCR-2026-012 is the reason the fill time must not be raised."
+   ],
+   "claims": [
+    {
+     "claim": "Underfill that continues after the seals have been replaced is a reason to call the maintenance supervisor.",
+     "verdict": 0,
+     "reason": "The context states that if a valve is dripping, the seal should be replaced. It also states that if no dripping is found, the nozzle should be cleaned. It does not explicitly state that continued underfill after seal replacement is a specific trigger to call the maintenance supervisor, although it implies maintenance involvement for electrical repairs or if the issue persists. However, the specific condition 'underfill that continues after seals have been replaced' is not directly linked to calling the supervisor in the text; the supervisor is notified for the systemic fault (3 alarms) or for sign-off. The text says 'notify the maintenance supervisor immediately' in the context of the three-alarm escalation, not specifically for post-replacement failure.",
+     "fact": "F1",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Three or more underfill alarms in one shift means a systemic fault.",
+     "verdict": 1,
+     "reason": "The context explicitly states: 'This is the third underfill alarm on the current (Sunday) shift, meeting the \"three-or-more alarms in one shift\" systemic fault trigger'.",
+     "fact": "F3",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "If there are three or more underfill alarms in one shift, production should be stopped.",
+     "verdict": 1,
+     "reason": "The context states under 'Preventive action': 'Enforce the three-alarm-per-shift escalation: stop production...'. It also notes under 'HOW CRITICAL IS IT' that this trigger requires 'production stop'.",
+     "fact": "F3",
+     "fact_match": 0.67
+    },
+    {
+     "claim": "If there are three or more underfill alarms in one shift, a maintenance work order should be raised.",
+     "verdict": 1,
+     "reason": "The context states under 'Preventive action': 'Enforce the three-alarm-per-shift escalation: ... raise a maintenance work order...'.",
+     "fact": "F3",
+     "fact_match": 0.67
+    },
+    {
+     "claim": "One should check whether the fill nozzle is blocked.",
+     "verdict": 0,
+     "reason": "The context states under 'Fix': 'If no dripping, lock out the machine and clean the nozzle of the underfilling valve.' Cleaning the nozzle implies checking for blockages or debris, but the text specifically says to 'clean' it, not explicitly 'check whether it is blocked'. However, cleaning is the action taken to resolve a blockage. More strictly, the text says to 'inspect those valves for dripping' and then 'clean the nozzle'. It does not explicitly use the word 'blocked'. Let's look closer. 'Diagnosis - Read the checkweigher report... inspect those valves for dripping.' 'Fix - ... If no dripping... clean the nozzle'. It does not explicitly say to check for a block, but cleaning is the remedy for a block. Is it directly inferable? The instruction is to clean. Checking for a block is a diagnostic step not explicitly listed, though implied by the cleaning action. However, usually NLI requires direct inference. The text says 'clean the nozzle', not 'check if blocked'. Let's look at the other options. Actually, 'clean the nozzle' is the action. The statement says 'check whether... is blocked'. This is a slight deviation. But wait, if you clean it, you are addressing a potential block. Let's compare with 'check product supply pressure' which is definitely not there. Let's look at the 'Diagnosis' section again. It says 'inspect those valves for dripping'. It does not say inspect for blockage. It says clean the nozzle if no dripping. So the check for blockage is not explicitly stated as a diagnostic step, only the cleaning action. I will mark this as 0 because the specific diagnostic check for 'blocked' is not mentioned, only the corrective action of cleaning.",
+     "fact": "F5",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "One should check the product supply pressure.",
+     "verdict": 0,
+     "reason": "The context does not mention checking product supply pressure anywhere in the diagnosis or fix sections.",
+     "fact": "F6",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The fill time should not be increased to make up for underfill.",
+     "verdict": 1,
+     "reason": "The context explicitly lists under 'Do NOT': 'Do NOT increase the fill time to make up for underfill.'",
+     "fact": "F7",
+     "fact_match": 0.83
+    },
+    {
+     "claim": "The checkweigher report shows which valve numbers are underfilling.",
+     "verdict": 1,
+     "reason": "The context states under 'Diagnosis': 'Read the checkweigher report to identify which valves are underfilling'.",
+     "fact": "F8",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The product supply pressure should be 1.5 to 2.0 bar.",
+     "verdict": 0,
+     "reason": "The context does not mention any specific pressure values or product supply pressure requirements.",
+     "fact": "F9",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "A new seal will not seal on a scratched valve seat.",
+     "verdict": 0,
+     "reason": "The context does not mention valve seats, scratches, or the interaction between seal condition and valve seat condition.",
+     "fact": "F10",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "NCR-2026-012 is the reason the fill time must not be raised.",
+     "verdict": 0,
+     "reason": "The context cites 'FL-101-SOP Sections 11, 12.1' and 'Section 10' as the reasons for not changing the fill time. It does not mention 'NCR-2026-012'.",
+     "fact": "F11",
+     "fact_match": 1.0
+    }
+   ],
+   "limit_waits_s": [],
+   "per_fact": [
+    {
+     "id": "F1",
+     "fact": "Call the maintenance supervisor.",
+     "status": "MISSING",
+     "claims": [
+      1
+     ]
+    },
+    {
+     "id": "F2",
+     "fact": "Underfill that continues after the seals have been replaced is a reason to call the maintenance supervisor.",
+     "status": "NO CLAIM",
+     "claims": []
+    },
+    {
+     "id": "F3",
+     "fact": "Three or more underfill alarms in one shift means a systemic fault.",
+     "status": "PRESENT",
+     "claims": [
+      2,
+      3,
+      4
+     ]
+    },
+    {
+     "id": "F4",
+     "fact": "Stop production and raise a maintenance work order.",
+     "status": "NO CLAIM",
+     "claims": []
+    },
+    {
+     "id": "F5",
+     "fact": "Check whether the fill nozzle is blocked.",
+     "status": "MISSING",
+     "claims": [
+      5
+     ]
+    },
+    {
+     "id": "F6",
+     "fact": "Check the product supply pressure.",
+     "status": "MISSING",
+     "claims": [
+      6
+     ]
+    },
+    {
+     "id": "F7",
+     "fact": "Do not increase the fill time to make up for underfill.",
+     "status": "PRESENT",
+     "claims": [
+      7
+     ]
+    },
+    {
+     "id": "F8",
+     "fact": "The checkweigher report shows which valve numbers are underfilling.",
+     "status": "PRESENT",
+     "claims": [
+      8
+     ]
+    },
+    {
+     "id": "F9",
+     "fact": "The product supply pressure should be 1.5 to 2.0 bar.",
+     "status": "MISSING",
+     "claims": [
+      9
+     ]
+    },
+    {
+     "id": "F10",
+     "fact": "A new seal will not seal on a scratched valve seat.",
+     "status": "MISSING",
+     "claims": [
+      10
+     ]
+    },
+    {
+     "id": "F11",
+     "fact": "NCR-2026-012 is the reason the fill time must not be raised.",
+     "status": "MISSING",
+     "claims": [
+      11
+     ]
+    }
+   ],
+   "case_fingerprint": "5413906a93d1",
+   "blind_facts": true,
+   "tokens": {
+    "calls": 4,
+    "in": 2930,
+    "out": 1457,
+    "non_200": [
+     429,
+     429
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,240 @@
+{
+ "run_utc": "2026-11-17T19:02:18+00:00",
+ "side": "after",
+ "metric": "factual_correctness",
+ "rubric_version": 2,
+ "rubric_fingerprint": "9ec2c1074bda",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.FactualCorrectness",
+  "mode": "recall",
+  "atomicity": "high",
+  "coverage": "high",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H2": {
+   "score": 0.8462,
+   "supported": 11,
+   "total": 13,
+   "split_claims": [
+    "For 330 ml bottles, the guide rails must be set to position B.",
+    "Guide rails not reset after a bottle size changeover are the most common cause of infeed jams.",
+    "The star wheel that matches the bottle size must be fitted.",
+    "The guide rails must be locked in position.",
+    "The machine must be stopped before clearing a jam.",
+    "The machine must be locked out before clearing a jam.",
+    "When restarting, the line must be run at 60 bottles per minute first.",
+    "Operators must never reach into the infeed while the machine is running.",
+    "Operators must never reach into the star wheel while the machine is running.",
+    "Cut-resistant gloves must be worn when removing jammed bottles.",
+    "If a changeover happened this shift, the changeover record must be checked first.",
+    "Chipped or damaged bottles must be removed from the infeed.",
+    "The shift lead signs the changeover record."
+   ],
+   "claims": [
+    {
+     "claim": "For 330 ml bottles, the guide rails must be set to position B.",
+     "verdict": 1,
+     "reason": "The context explicitly states in the root cause section that 'rail B is required for 330 ml' and in the fix section to 'adjust the guide rails to position B' for 330 ml.",
+     "fact": "F1",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Guide rails not reset after a bottle size changeover are the most common cause of infeed jams.",
+     "verdict": 0,
+     "reason": "The context states that this is the 'first recorded occurrence' and indicates a 'procedural lapse rather than a recurring equipment defect'. It does not claim this is the 'most common' cause, only that it is the cause of this specific incident.",
+     "fact": "F2",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The star wheel that matches the bottle size must be fitted.",
+     "verdict": 1,
+     "reason": "The context instructs to 'confirm the star wheel matches the 330 ml bottle size' and to 'fit the correct 330 ml star wheel'.",
+     "fact": "F3",
+     "fact_match": 0.83
+    },
+    {
+     "claim": "The guide rails must be locked in position.",
+     "verdict": 1,
+     "reason": "The context repeatedly mentions that the rails were not 'locked' and instructs to 'lock them' as part of the fix and root cause prevention.",
+     "fact": "F4",
+     "fact_match": 0.75
+    },
+    {
+     "claim": "The machine must be stopped before clearing a jam.",
+     "verdict": 1,
+     "reason": "The context states 'Never clear a jam while the machine is running' and lists 'stop production' as an immediate action.",
+     "fact": "F5",
+     "fact_match": 0.57
+    },
+    {
+     "claim": "The machine must be locked out before clearing a jam.",
+     "verdict": 1,
+     "reason": "The context states 'jam clearing mandates lock out and tag out' and lists 'Safety - lock out and tag out (LOTO) the machine' as an immediate action.",
+     "fact": "F5",
+     "fact_match": 0.71
+    },
+    {
+     "claim": "When restarting, the line must be run at 60 bottles per minute first.",
+     "verdict": 1,
+     "reason": "The verification step instructs to 'run 20 test bottles at 60 bottles per minute' before increasing to normal speed.",
+     "fact": "F6",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Operators must never reach into the infeed while the machine is running.",
+     "verdict": 1,
+     "reason": "The context explicitly lists under 'Do NOT' the instruction: 'Never reach into the infeed... while the machine is running.'",
+     "fact": "F7",
+     "fact_match": 0.78
+    },
+    {
+     "claim": "Operators must never reach into the star wheel while the machine is running.",
+     "verdict": 1,
+     "reason": "The context explicitly lists under 'Do NOT' the instruction: 'Never reach into... the star wheel while the machine is running.'",
+     "fact": "F7",
+     "fact_match": 0.89
+    },
+    {
+     "claim": "Cut-resistant gloves must be worn when removing jammed bottles.",
+     "verdict": 1,
+     "reason": "The fix section instructs to 'remove any jammed or chipped bottles wearing cut-resistant gloves'.",
+     "fact": "F8",
+     "fact_match": 0.86
+    },
+    {
+     "claim": "If a changeover happened this shift, the changeover record must be checked first.",
+     "verdict": 0,
+     "reason": "The context instructs to 'record the change-over... in the shift log' and 'have the shift lead sign the record' as a quality step after the fix. It does not state that the record must be 'checked first' as a prerequisite for starting work or diagnosis.",
+     "fact": "F9",
+     "fact_match": 0.83
+    },
+    {
+     "claim": "Chipped or damaged bottles must be removed from the infeed.",
+     "verdict": 1,
+     "reason": "The diagnosis step says to 'inspect the infeed for jammed or damaged bottles' and the fix step says to 'remove any jammed or chipped bottles'.",
+     "fact": "F10",
+     "fact_match": 0.67
+    },
+    {
+     "claim": "The shift lead signs the changeover record.",
+     "verdict": 1,
+     "reason": "The quality section states to 'have the shift lead sign the record' regarding the change-over and jam-clearing actions.",
+     "fact": "F11",
+     "fact_match": 1.0
+    }
+   ],
+   "limit_waits_s": [],
+   "per_fact": [
+    {
+     "id": "F1",
+     "fact": "For 330 ml bottles, set the guide rails to position B.",
+     "status": "PRESENT",
+     "claims": [
+      1
+     ]
+    },
+    {
+     "id": "F2",
+     "fact": "Guide rails not reset after a bottle size changeover are the most common cause of infeed jams.",
+     "status": "MISSING",
+     "claims": [
+      2
+     ]
+    },
+    {
+     "id": "F3",
+     "fact": "Fit the star wheel that matches the bottle size.",
+     "status": "PRESENT",
+     "claims": [
+      3
+     ]
+    },
+    {
+     "id": "F4",
+     "fact": "Lock the guide rails in position.",
+     "status": "PRESENT",
+     "claims": [
+      4
+     ]
+    },
+    {
+     "id": "F5",
+     "fact": "Stop the machine and lock it out before clearing a jam.",
+     "status": "PRESENT",
+     "claims": [
+      5,
+      6
+     ]
+    },
+    {
+     "id": "F6",
+     "fact": "When restarting, run the line at 60 bottles per minute first.",
+     "status": "PRESENT",
+     "claims": [
+      7
+     ]
+    },
+    {
+     "id": "F7",
+     "fact": "Never reach into the infeed or the star wheel while the machine is running.",
+     "status": "PRESENT",
+     "claims": [
+      8,
+      9
+     ]
+    },
+    {
+     "id": "F8",
+     "fact": "Wear cut-resistant gloves when removing jammed bottles.",
+     "status": "PRESENT",
+     "claims": [
+      10
+     ]
+    },
+    {
+     "id": "F9",
+     "fact": "If a changeover happened this shift, check the changeover record first.",
+     "status": "MISSING",
+     "claims": [
+      11
+     ]
+    },
+    {
+     "id": "F10",
+     "fact": "Remove any chipped or damaged bottles from the infeed.",
+     "status": "PRESENT",
+     "claims": [
+      12
+     ]
+    },
+    {
+     "id": "F11",
+     "fact": "The shift lead signs the changeover record.",
+     "status": "PRESENT",
+     "claims": [
+      13
+     ]
+    }
+   ],
+   "case_fingerprint": "b6ebc9a0dfe6",
+   "blind_facts": true,
+   "tokens": {
+    "calls": 2,
+    "in": 2848,
+    "out": 1191,
+    "non_200": []
+   }
+  }
+ }
+}

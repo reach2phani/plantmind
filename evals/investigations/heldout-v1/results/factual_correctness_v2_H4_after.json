@@ -1,0 +1,237 @@
+{
+ "run_utc": "2026-11-17T19:03:09+00:00",
+ "side": "after",
+ "metric": "factual_correctness",
+ "rubric_version": 2,
+ "rubric_fingerprint": "9ec2c1074bda",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.FactualCorrectness",
+  "mode": "recall",
+  "atomicity": "high",
+  "coverage": "high",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H4": {
+   "score": 0.9167,
+   "supported": 11,
+   "total": 12,
+   "split_claims": [
+    "The line must be stopped.",
+    "The quality lead must be called.",
+    "The quality lead owns QA HOLD decisions.",
+    "The quality lead must sign off before the line restarts.",
+    "The cleanup must be performed with the red glass kit.",
+    "A vacuum must be used to clean up the glass.",
+    "Compressed air must never be used to clean up the glass.",
+    "No guard may be opened until the machine is locked out.",
+    "No one may reach into the machine until it is locked out.",
+    "Every bottle filled in the last 30 minutes must be placed on QA HOLD.",
+    "Any open bottles within 2 metres of the break must be thrown away.",
+    "The event must be recorded in the glass breakage log."
+   ],
+   "claims": [
+    {
+     "claim": "The line must be stopped.",
+     "verdict": 1,
+     "reason": "The context explicitly states in the 'Immediate action' section to 'activate the emergency stop' and in the 'Plant Manager Summary' that 'Line stopped for safe cleanup' and 'ACTION REQUIRED: Stop the line'.",
+     "fact": "F1",
+     "fact_match": 0.5
+    },
+    {
+     "claim": "The quality lead must be called.",
+     "verdict": 1,
+     "reason": "The context lists 'Quality lead' under 'Who to notify', which implies they must be contacted/called.",
+     "fact": "F2",
+     "fact_match": 0.67
+    },
+    {
+     "claim": "The quality lead owns QA HOLD decisions.",
+     "verdict": 1,
+     "reason": "The context states that bottles must not be shipped 'until the quality lead releases them' and that 'quality-lead sign-off is obtained' is required. This implies the quality lead has authority over the release (decision) of QA HOLD items.",
+     "fact": "F3",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The quality lead must sign off before the line restarts.",
+     "verdict": 1,
+     "reason": "The context explicitly states: 'Do NOT restart the line until... quality-lead sign-off is obtained.'",
+     "fact": "F4",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The cleanup must be performed with the red glass kit.",
+     "verdict": 1,
+     "reason": "The context states: 'clean the broken glass using the red glass kit and a vacuum only'.",
+     "fact": "F5",
+     "fact_match": 0.6
+    },
+    {
+     "claim": "A vacuum must be used to clean up the glass.",
+     "verdict": 1,
+     "reason": "The context states: 'clean the broken glass using the red glass kit and a vacuum only'.",
+     "fact": "F5",
+     "fact_match": 0.6
+    },
+    {
+     "claim": "Compressed air must never be used to clean up the glass.",
+     "verdict": 1,
+     "reason": "The context explicitly states: 'Do NOT use compressed air near the broken glass or open bottles'.",
+     "fact": "F6",
+     "fact_match": 0.75
+    },
+    {
+     "claim": "No guard may be opened until the machine is locked out.",
+     "verdict": 1,
+     "reason": "The context explicitly states: 'Do NOT open any guard until the machine has stopped and is locked out'.",
+     "fact": "F7",
+     "fact_match": 0.71
+    },
+    {
+     "claim": "No one may reach into the machine until it is locked out.",
+     "verdict": 0,
+     "reason": "While the context forbids opening guards and clearing jams while running, it does not explicitly state a general prohibition on 'reaching into the machine' specifically, although it is implied by safety protocols. However, strictly speaking, the text does not contain the phrase 'reach into the machine'. It forbids opening guards and clearing jams. Reaching in might be possible without opening a guard in some contexts, or the statement is a generalization not directly stated. Let's look closer. The text says 'Do NOT open any guard until... locked out'. It does not explicitly say 'Do not reach in'. Therefore, it cannot be *directly* inferred as a specific rule stated in the text, even if it is a logical safety consequence. In strict NLI, if the text doesn't say it, it's 0. However, 'Do NOT clear a jam while the machine is running' and 'Do NOT open any guard' are specific. 'Reaching in' is not mentioned. Thus, it is not directly inferable from the text provided.",
+     "fact": "F8",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Every bottle filled in the last 30 minutes must be placed on QA HOLD.",
+     "verdict": 1,
+     "reason": "The context explicitly states: 'place every bottle filled in the last 30 minutes on QA HOLD'.",
+     "fact": "F9",
+     "fact_match": 0.89
+    },
+    {
+     "claim": "Any open bottles within 2 metres of the break must be thrown away.",
+     "verdict": 1,
+     "reason": "The context explicitly states: 'discard all open bottles within 2 m'. 'Discard' is synonymous with 'throw away' in this context.",
+     "fact": "F10",
+     "fact_match": 0.89
+    },
+    {
+     "claim": "The event must be recorded in the glass breakage log.",
+     "verdict": 1,
+     "reason": "The context explicitly states: 'record the incident in the glass breakage log'.",
+     "fact": "F11",
+     "fact_match": 0.8
+    }
+   ],
+   "limit_waits_s": [
+    65,
+    65
+   ],
+   "per_fact": [
+    {
+     "id": "F1",
+     "fact": "Stop the line.",
+     "status": "PRESENT",
+     "claims": [
+      1
+     ]
+    },
+    {
+     "id": "F2",
+     "fact": "Call the quality lead.",
+     "status": "PRESENT",
+     "claims": [
+      2
+     ]
+    },
+    {
+     "id": "F3",
+     "fact": "The quality lead owns QA HOLD decisions.",
+     "status": "PRESENT",
+     "claims": [
+      3
+     ]
+    },
+    {
+     "id": "F4",
+     "fact": "The quality lead must sign off before the line restarts.",
+     "status": "PRESENT",
+     "claims": [
+      4
+     ]
+    },
+    {
+     "id": "F5",
+     "fact": "Clean up with the red glass kit.",
+     "status": "PRESENT",
+     "claims": [
+      5,
+      6
+     ]
+    },
+    {
+     "id": "F6",
+     "fact": "Use a vacuum to clean up the glass, never compressed air.",
+     "status": "PRESENT",
+     "claims": [
+      7
+     ]
+    },
+    {
+     "id": "F7",
+     "fact": "Do not open any guard until the machine is locked out.",
+     "status": "PRESENT",
+     "claims": [
+      8
+     ]
+    },
+    {
+     "id": "F8",
+     "fact": "Do not reach into the machine until it is locked out.",
+     "status": "MISSING",
+     "claims": [
+      9
+     ]
+    },
+    {
+     "id": "F9",
+     "fact": "Put every bottle filled in the last 30 minutes on QA HOLD.",
+     "status": "PRESENT",
+     "claims": [
+      10
+     ]
+    },
+    {
+     "id": "F10",
+     "fact": "Throw away any open bottles within 2 metres of the break.",
+     "status": "PRESENT",
+     "claims": [
+      11
+     ]
+    },
+    {
+     "id": "F11",
+     "fact": "Record the event in the glass breakage log.",
+     "status": "PRESENT",
+     "claims": [
+      12
+     ]
+    }
+   ],
+   "case_fingerprint": "ebb429d6967a",
+   "blind_facts": true,
+   "tokens": {
+    "calls": 4,
+    "in": 2844,
+    "out": 1150,
+    "non_200": [
+     429,
+     429
+    ]
+   }
+  }
+ }
+}

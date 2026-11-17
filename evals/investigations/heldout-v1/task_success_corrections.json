@@ -1,0 +1,26 @@
+{
+  "about": "Human-reviewed corrections to the automated TASK-SUCCESS results on the held-out questions. These correct the MEASUREMENT (the marks), never PlantMind. Each correction is a person's decision under rules locked before the results were seen, and points to the review that records it. A future task-success card reads this file next to the automated result files and shows both numbers.",
+  "factual_correctness": {
+    "settings": "factual_correctness_v2.json",
+    "review": "reports/factual-correctness/review.md",
+    "confirmed": "2026-11-17",
+    "unit": "The judge scores CLAIMS (RAGAS splits our facts into claims); the person scores FACTS. present = facts in the answer with the same meaning and numbers. borderline = counted missing in 'present', present in the high figure. wrong = the answer gives a different value or procedure for the fact.",
+    "judge_errors": {"missing_verdicts": 22, "judge_errors": 0},
+    "cases": {
+      "H1": {"facts": 7, "present": 3, "wrong": ["F7"],
+             "note": "F7: answer gives the seal-change sign-off (First-Bottle Check, shift supervisor) instead of the pre-start checklist signed by the shift lead"},
+      "H2": {"facts": 11, "present": 9, "borderline": ["F2"]},
+      "H3": {"facts": 11, "present": 5, "borderline": ["F5"],
+             "why": "RAGAS merged F1 into F2's claim and F4 into F3's claims when splitting; F1 checked by hand (present), F4 covered by claims 3-4 (present)"},
+      "H4": {"facts": 11, "present": 10},
+      "H5": {"facts": 10, "present": 2, "wrong": ["F2"],
+             "note": "F2: answer blames checkweigher calibration drift (in no document) instead of worn seals"}
+    },
+    "lost_at": {
+      "about": "Where each missing fact was lost, using retrieval recall and the handover-recall manual review",
+      "writer_left_out": ["H1 F3", "H2 F2", "H2 F9", "H3 F2", "H3 F5", "H3 F6", "H3 F9", "H3 F10", "H3 F11", "H4 F8", "H5 F9"],
+      "helper_dropped_no_rescue": ["H1 F4", "H1 F6", "H1 F7", "H5 F2", "H5 F3", "H5 F5", "H5 F10"],
+      "never_found_no_rescue": ["H5 F4", "H5 F6", "H5 F8"]
+    }
+  }
+}

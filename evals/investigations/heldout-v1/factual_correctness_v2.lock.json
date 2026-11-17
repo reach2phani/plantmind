@@ -1,0 +1,6 @@
+{
+  "about": "Fingerprint of factual_correctness_v2.json when it was locked. factual_correctness_ragas.py --rubric 2 refuses to score if the settings or reference wording changed.",
+  "locked": "2026-11-17",
+  "rubric_version": 2,
+  "rubric_fingerprint": "9ec2c1074bda"
+}

@@ -1,0 +1,227 @@
+{
+ "run_utc": "2026-11-17T19:03:09+00:00",
+ "side": "after",
+ "metric": "factual_correctness",
+ "rubric_version": 2,
+ "rubric_fingerprint": "9ec2c1074bda",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.FactualCorrectness",
+  "mode": "recall",
+  "atomicity": "high",
+  "coverage": "high",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H5": {
+   "score": 0.25,
+   "supported": 3,
+   "total": 12,
+   "split_claims": [
+    "The checkweigher rejection threshold is more than 1 bottle in 100 over an hour.",
+    "If the checkweigher rejects more than 1 bottle in 100 over an hour, the shift lead must be notified.",
+    "A rising reject count is often the first sign of worn seals.",
+    "Operators should look at the fill valves for dripping.",
+    "The checkweigher report shows which valve numbers are underfilling.",
+    "5 bottles should be weighed by hand to confirm underfilling.",
+    "The fill time should not be changed.",
+    "The checkweigher reject count must be recorded.",
+    "If a valve drips, maintenance replaces its seal kit.",
+    "Seal kits are replaced every 3 months.",
+    "Seal kits are replaced every 1,500 running hours.",
+    "The product supply pressure should be checked."
+   ],
+   "claims": [
+    {
+     "claim": "The checkweigher rejection threshold is more than 1 bottle in 100 over an hour.",
+     "verdict": 1,
+     "reason": "The context states the issue is a reject rate of ~2% (2 bottles per 100) which exceeds the SOP threshold of >1% over an hour. This implies the threshold is indeed defined as more than 1% (or 1 bottle per 100).",
+     "fact": "F1",
+     "fact_match": 0.67
+    },
+    {
+     "claim": "If the checkweigher rejects more than 1 bottle in 100 over an hour, the shift lead must be notified.",
+     "verdict": 1,
+     "reason": "The context states that the current occurrence (which exceeds the >1% threshold) requires notifying the shift lead immediately as required by SOP. It links the condition of exceeding the threshold to the notification requirement.",
+     "fact": "F1",
+     "fact_match": 0.92
+    },
+    {
+     "claim": "A rising reject count is often the first sign of worn seals.",
+     "verdict": 0,
+     "reason": "The context attributes the issue to 'checkweigher calibration drift' and does not mention worn seals as a cause or symptom.",
+     "fact": "F2",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Operators should look at the fill valves for dripping.",
+     "verdict": 0,
+     "reason": "The context explicitly states 'No underfill alarm or valve-drip symptom reported', implying that valve dripping is not the current issue or a required diagnostic step in this specific scenario, which focuses on checkweigher calibration.",
+     "fact": "F3",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The checkweigher report shows which valve numbers are underfilling.",
+     "verdict": 0,
+     "reason": "The context does not mention that the checkweigher report identifies specific valve numbers or underfilling; it focuses on reject rates and calibration drift.",
+     "fact": "F4",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "5 bottles should be weighed by hand to confirm underfilling.",
+     "verdict": 0,
+     "reason": "The context does not mention weighing bottles by hand or a specific quantity of 5 bottles.",
+     "fact": "F5",
+     "fact_match": 0.8
+    },
+    {
+     "claim": "The fill time should not be changed.",
+     "verdict": 0,
+     "reason": "The context does not provide instructions regarding changing or not changing the fill time.",
+     "fact": "F6",
+     "fact_match": 0.67
+    },
+    {
+     "claim": "The checkweigher reject count must be recorded.",
+     "verdict": 1,
+     "reason": "The context states under 'Quality' to 'record reject count per SOP' and under 'Preventive action' to 'record results'.",
+     "fact": "F7",
+     "fact_match": 0.75
+    },
+    {
+     "claim": "If a valve drips, maintenance replaces its seal kit.",
+     "verdict": 0,
+     "reason": "The context does not mention valve dripping as a current issue or provide a protocol for replacing seal kits in response to dripping.",
+     "fact": "F8",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Seal kits are replaced every 3 months.",
+     "verdict": 0,
+     "reason": "The context does not mention seal kits or their replacement schedule.",
+     "fact": "F9",
+     "fact_match": 0.6
+    },
+    {
+     "claim": "Seal kits are replaced every 1,500 running hours.",
+     "verdict": 0,
+     "reason": "The context does not mention seal kits or their replacement schedule.",
+     "fact": "F9",
+     "fact_match": 0.8
+    },
+    {
+     "claim": "The product supply pressure should be checked.",
+     "verdict": 0,
+     "reason": "The context does not mention checking product supply pressure.",
+     "fact": "F10",
+     "fact_match": 0.75
+    }
+   ],
+   "limit_waits_s": [],
+   "per_fact": [
+    {
+     "id": "F1",
+     "fact": "If the checkweigher rejects more than 1 bottle in 100 over an hour, tell the shift lead.",
+     "status": "PRESENT",
+     "claims": [
+      1,
+      2
+     ]
+    },
+    {
+     "id": "F2",
+     "fact": "A rising reject count is often the first sign of worn seals.",
+     "status": "MISSING",
+     "claims": [
+      3
+     ]
+    },
+    {
+     "id": "F3",
+     "fact": "Look at the fill valves for dripping.",
+     "status": "MISSING",
+     "claims": [
+      4
+     ]
+    },
+    {
+     "id": "F4",
+     "fact": "The checkweigher report shows which valve numbers are underfilling.",
+     "status": "MISSING",
+     "claims": [
+      5
+     ]
+    },
+    {
+     "id": "F5",
+     "fact": "Weigh 5 bottles by hand to confirm.",
+     "status": "MISSING",
+     "claims": [
+      6
+     ]
+    },
+    {
+     "id": "F6",
+     "fact": "Do not change the fill time.",
+     "status": "MISSING",
+     "claims": [
+      7
+     ]
+    },
+    {
+     "id": "F7",
+     "fact": "Record the checkweigher reject count.",
+     "status": "PRESENT",
+     "claims": [
+      8
+     ]
+    },
+    {
+     "id": "F8",
+     "fact": "If a valve drips, maintenance replaces its seal kit.",
+     "status": "MISSING",
+     "claims": [
+      9
+     ]
+    },
+    {
+     "id": "F9",
+     "fact": "Seal kits are replaced every 3 months or every 1,500 running hours.",
+     "status": "MISSING",
+     "claims": [
+      10,
+      11
+     ]
+    },
+    {
+     "id": "F10",
+     "fact": "Check the product supply pressure.",
+     "status": "MISSING",
+     "claims": [
+      12
+     ]
+    }
+   ],
+   "case_fingerprint": "9a6693fe295f",
+   "blind_facts": true,
+   "tokens": {
+    "calls": 4,
+    "in": 2672,
+    "out": 1013,
+    "non_200": [
+     429,
+     429
+    ]
+   }
+  }
+ }
+}

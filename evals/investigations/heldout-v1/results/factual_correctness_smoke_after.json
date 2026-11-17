@@ -1,0 +1,76 @@
+{
+ "run_utc": "2026-11-17T18:48:04+00:00",
+ "side": "after",
+ "metric": "factual_correctness",
+ "rubric_version": 1,
+ "rubric_fingerprint": "0410d0a85943",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.FactualCorrectness",
+  "mode": "recall",
+  "atomicity": "high",
+  "coverage": "high",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "SMOKE": {
+   "score": 0.5,
+   "supported": 1,
+   "total": 2,
+   "split_claims": [
+    "The bowl holds clean water.",
+    "The bowl is painted red."
+   ],
+   "claims": [
+    {
+     "claim": "The bowl holds clean water.",
+     "verdict": 1,
+     "reason": "The context explicitly states that the bowl holds clean water.",
+     "fact": "F1",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The bowl is painted red.",
+     "verdict": 0,
+     "reason": "The context does not provide any information about the color or paint of the bowl.",
+     "fact": "F2",
+     "fact_match": 1.0
+    }
+   ],
+   "limit_waits_s": [],
+   "per_fact": [
+    {
+     "id": "F1",
+     "fact": "The bowl holds clean water",
+     "status": "PRESENT",
+     "claims": [
+      1
+     ]
+    },
+    {
+     "id": "F2",
+     "fact": "The bowl is painted red",
+     "status": "MISSING",
+     "claims": [
+      2
+     ]
+    }
+   ],
+   "tokens": {
+    "calls": 2,
+    "in": 1685,
+    "out": 135,
+    "non_200": []
+   }
+  }
+ }
+}

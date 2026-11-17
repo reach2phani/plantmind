@@ -1,0 +1,179 @@
+{
+ "run_utc": "2026-11-17T19:03:09+00:00",
+ "side": "after",
+ "metric": "factual_correctness",
+ "rubric_version": 2,
+ "rubric_fingerprint": "9ec2c1074bda",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.FactualCorrectness",
+  "mode": "recall",
+  "atomicity": "high",
+  "coverage": "high",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H1": {
+   "score": 0.5556,
+   "supported": 5,
+   "total": 9,
+   "split_claims": [
+    "If the checkweigher test fails, the line must not be started.",
+    "If the checkweigher test fails, the quality lead must be called.",
+    "Weighing by hand checks only 5 bottles an hour.",
+    "The checkweigher weighs every bottle.",
+    "In the checkweigher test, the 490 ml test bottle must be rejected.",
+    "In the checkweigher test, the 510 ml test bottle must be rejected.",
+    "In the checkweigher test, the 500 ml test bottle must pass.",
+    "The checks must be recorded on the pre-start checklist.",
+    "The shift lead signs the pre-start checklist."
+   ],
+   "claims": [
+    {
+     "claim": "If the checkweigher test fails, the line must not be started.",
+     "verdict": 1,
+     "reason": "The context explicitly states under 'Immediate action' to 'Do NOT start the machine' and 'Do NOT restart until... the checkweigher is verified to reject 490 ml and 510 ml test bottles.'",
+     "fact": "F1",
+     "fact_match": 0.8
+    },
+    {
+     "claim": "If the checkweigher test fails, the quality lead must be called.",
+     "verdict": 1,
+     "reason": "The context states under 'Quality' to 'notify the quality lead as required by the SOP' and lists the 'Quality lead' under 'Who to notify'.",
+     "fact": "F2",
+     "fact_match": 0.83
+    },
+    {
+     "claim": "Weighing by hand checks only 5 bottles an hour.",
+     "verdict": 0,
+     "reason": "The context prohibits weighing by hand ('Do NOT weigh bottles by hand') but does not provide any data regarding the speed or capacity of manual weighing.",
+     "fact": "F3",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The checkweigher weighs every bottle.",
+     "verdict": 0,
+     "reason": "While the context implies the checkweigher is part of the production line and tests bottles, it does not explicitly state that it weighs *every* single bottle (as opposed to sampling), nor does it define the operational mode of the machine in normal production beyond the test context.",
+     "fact": "F4",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "In the checkweigher test, the 490 ml test bottle must be rejected.",
+     "verdict": 1,
+     "reason": "The context states under 'Verify' to 'confirm that 490 ml and 510 ml bottles are rejected'.",
+     "fact": "F5",
+     "fact_match": 0.6
+    },
+    {
+     "claim": "In the checkweigher test, the 510 ml test bottle must be rejected.",
+     "verdict": 1,
+     "reason": "The context states under 'Verify' to 'confirm that 490 ml and 510 ml bottles are rejected' and notes the issue was that the 510 ml bottle passed when it should have been rejected.",
+     "fact": "F5",
+     "fact_match": 0.6
+    },
+    {
+     "claim": "In the checkweigher test, the 500 ml test bottle must pass.",
+     "verdict": 1,
+     "reason": "The context states under 'Verify' to 'confirm that... the 500 ml bottle passes'.",
+     "fact": "F5",
+     "fact_match": 0.6
+    },
+    {
+     "claim": "The checks must be recorded on the pre-start checklist.",
+     "verdict": 0,
+     "reason": "The context suggests adding a 'daily pre-start checkweigher calibration check to the start-up checklist' as a preventive action, but does not state that the current checks or the specific test-bottle verification must be recorded on the pre-start checklist. It mentions recording the failure and corrective action generally.",
+     "fact": "F6",
+     "fact_match": 0.75
+    },
+    {
+     "claim": "The shift lead signs the pre-start checklist.",
+     "verdict": 0,
+     "reason": "The context states that the 'First-Bottle Check' must be 'signed off by the shift supervisor'. It does not mention a 'pre-start checklist' being signed by a 'shift lead' (the term used is shift supervisor, and the document is First-Bottle Check).",
+     "fact": "F7",
+     "fact_match": 1.0
+    }
+   ],
+   "limit_waits_s": [],
+   "per_fact": [
+    {
+     "id": "F1",
+     "fact": "If the checkweigher test fails, do not start the line.",
+     "status": "PRESENT",
+     "claims": [
+      1
+     ]
+    },
+    {
+     "id": "F2",
+     "fact": "If the checkweigher test fails, call the quality lead.",
+     "status": "PRESENT",
+     "claims": [
+      2
+     ]
+    },
+    {
+     "id": "F3",
+     "fact": "Weighing by hand checks only 5 bottles an hour.",
+     "status": "MISSING",
+     "claims": [
+      3
+     ]
+    },
+    {
+     "id": "F4",
+     "fact": "The checkweigher weighs every bottle.",
+     "status": "MISSING",
+     "claims": [
+      4
+     ]
+    },
+    {
+     "id": "F5",
+     "fact": "In the checkweigher test, the 490 ml and 510 ml test bottles must be rejected and the 500 ml test bottle must pass.",
+     "status": "PRESENT",
+     "claims": [
+      5,
+      6,
+      7
+     ]
+    },
+    {
+     "id": "F6",
+     "fact": "Record the checks on the pre-start checklist.",
+     "status": "MISSING",
+     "claims": [
+      8
+     ]
+    },
+    {
+     "id": "F7",
+     "fact": "The shift lead signs the pre-start checklist.",
+     "status": "MISSING",
+     "claims": [
+      9
+     ]
+    }
+   ],
+   "case_fingerprint": "7a5c2e782611",
+   "blind_facts": false,
+   "tokens": {
+    "calls": 4,
+    "in": 2706,
+    "out": 917,
+    "non_200": [
+     429,
+     429
+    ]
+   }
+  }
+ }
+}

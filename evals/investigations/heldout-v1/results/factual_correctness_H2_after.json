@@ -1,0 +1,240 @@
+{
+ "run_utc": "2026-11-17T18:48:38+00:00",
+ "side": "after",
+ "metric": "factual_correctness",
+ "rubric_version": 1,
+ "rubric_fingerprint": "0410d0a85943",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.FactualCorrectness",
+  "mode": "recall",
+  "atomicity": "high",
+  "coverage": "high",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H2": {
+   "score": 0.6154,
+   "supported": 8,
+   "total": 13,
+   "split_claims": [
+    "330 ml bottles need rail position B.",
+    "Rails not reset after a changeover are the usual cause of the issue.",
+    "The matching star wheel is fitted.",
+    "The rails are locked.",
+    "Operators must stop the machine before clearing a jam.",
+    "Operators must lock out the machine before clearing a jam.",
+    "The machine should be restarted at 60 bottles per minute.",
+    "Operators must never reach into the infeed while the machine is running.",
+    "Operators must never reach into the star wheel while the machine is running.",
+    "Operators must wear cut-resistant gloves.",
+    "Operators must check the changeover record.",
+    "Chipped or damaged bottles must be removed.",
+    "The shift lead signs the changeover record."
+   ],
+   "claims": [
+    {
+     "claim": "330 ml bottles need rail position B.",
+     "verdict": 1,
+     "reason": "The context explicitly states in the root cause section that 'rail B is required for 330 ml' and in the fix section to 'adjust the guide rails to position B' for 330 ml.",
+     "fact": "F1",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Rails not reset after a changeover are the usual cause of the issue.",
+     "verdict": 0,
+     "reason": "The context states that this is the 'first recorded occurrence' and indicates a 'procedural lapse rather than a recurring equipment defect'. It does not state that this is the 'usual' cause, only that it is the cause of this specific incident.",
+     "fact": "F2",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The matching star wheel is fitted.",
+     "verdict": 0,
+     "reason": "The context lists 'fit the correct 330 ml star wheel' as a required action in the 'Fix' section, implying it is not currently fitted or verified. The status is 'Line stopped pending... jam clearing', suggesting the fix has not yet been completed.",
+     "fact": "F3",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "The rails are locked.",
+     "verdict": 0,
+     "reason": "The root cause states the rails were 'not... locked'. The fix section instructs to 'lock them', implying they are currently not locked.",
+     "fact": "F4",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Operators must stop the machine before clearing a jam.",
+     "verdict": 1,
+     "reason": "The context states 'Never clear a jam while the machine is running' and 'stop production' as part of the immediate action.",
+     "fact": "F5",
+     "fact_match": 0.67
+    },
+    {
+     "claim": "Operators must lock out the machine before clearing a jam.",
+     "verdict": 1,
+     "reason": "The context states 'Safety - lock out and tag out (LOTO) the machine' and 'jam clearing mandates lock out and tag out'.",
+     "fact": "F5",
+     "fact_match": 0.83
+    },
+    {
+     "claim": "The machine should be restarted at 60 bottles per minute.",
+     "verdict": 0,
+     "reason": "The context states to 'run 20 test bottles at 60 bottles per minute' and then 'increase line speed to the normal 120 bottles per minute'. It does not state the machine should be restarted (for normal production) at 60 bpm, but rather that the test run is at that speed.",
+     "fact": "F6",
+     "fact_match": 0.8
+    },
+    {
+     "claim": "Operators must never reach into the infeed while the machine is running.",
+     "verdict": 1,
+     "reason": "The context explicitly lists 'Never reach into the infeed... while the machine is running' under 'Do NOT'.",
+     "fact": "F7",
+     "fact_match": 0.75
+    },
+    {
+     "claim": "Operators must never reach into the star wheel while the machine is running.",
+     "verdict": 1,
+     "reason": "The context explicitly lists 'Never reach into the infeed or the star wheel while the machine is running' under 'Do NOT'.",
+     "fact": "F7",
+     "fact_match": 0.88
+    },
+    {
+     "claim": "Operators must wear cut-resistant gloves.",
+     "verdict": 1,
+     "reason": "The context states to 'remove any jammed or chipped bottles wearing cut-resistant gloves'. This is a specific instruction for that task.",
+     "fact": "F8",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Operators must check the changeover record.",
+     "verdict": 0,
+     "reason": "The context mentions 'record the change-over... in the shift log' and 'Add a visual... indicator on the change-over sheet and train operators to verify it each shift'. It does not explicitly state that operators must 'check the changeover record' as a general rule, but rather verify the indicator or record the action. However, 'verify it each shift' refers to the indicator on the sheet. The statement is slightly ambiguous but 'check the changeover record' is not explicitly mandated as a distinct action separate from verifying the indicator or recording the action. More importantly, the text says 'train operators to verify it [the indicator] each shift'. It does not say they must check the *record* itself. Let's look closer. 'record the change-over... in the shift log'. It doesn't say check the record. It says verify the indicator. So this is not directly inferred.",
+     "fact": "F9",
+     "fact_match": 1.0
+    },
+    {
+     "claim": "Chipped or damaged bottles must be removed.",
+     "verdict": 1,
+     "reason": "The context states to 'remove any jammed or chipped bottles'.",
+     "fact": "F10",
+     "fact_match": 0.75
+    },
+    {
+     "claim": "The shift lead signs the changeover record.",
+     "verdict": 1,
+     "reason": "The context states to 'record the change-over and jam-clearing actions in the shift log and have the shift lead sign the record.'",
+     "fact": "F11",
+     "fact_match": 1.0
+    }
+   ],
+   "limit_waits_s": [],
+   "per_fact": [
+    {
+     "id": "F1",
+     "fact": "330 ml bottles need rail position B",
+     "status": "PRESENT",
+     "claims": [
+      1
+     ]
+    },
+    {
+     "id": "F2",
+     "fact": "Rails not reset after a changeover are the usual cause",
+     "status": "MISSING",
+     "claims": [
+      2
+     ]
+    },
+    {
+     "id": "F3",
+     "fact": "The matching star wheel is fitted",
+     "status": "MISSING",
+     "claims": [
+      3
+     ]
+    },
+    {
+     "id": "F4",
+     "fact": "The rails are locked",
+     "status": "MISSING",
+     "claims": [
+      4
+     ]
+    },
+    {
+     "id": "F5",
+     "fact": "Stop and lock out before clearing a jam",
+     "status": "PRESENT",
+     "claims": [
+      5,
+      6
+     ]
+    },
+    {
+     "id": "F6",
+     "fact": "Restart at 60 bottles per minute",
+     "status": "MISSING",
+     "claims": [
+      7
+     ]
+    },
+    {
+     "id": "F7",
+     "fact": "Never reach into the infeed or star wheel while running",
+     "status": "PRESENT",
+     "claims": [
+      8,
+      9
+     ]
+    },
+    {
+     "id": "F8",
+     "fact": "Wear cut-resistant gloves",
+     "status": "PRESENT",
+     "claims": [
+      10
+     ]
+    },
+    {
+     "id": "F9",
+     "fact": "Check the changeover record",
+     "status": "MISSING",
+     "claims": [
+      11
+     ]
+    },
+    {
+     "id": "F10",
+     "fact": "Remove chipped or damaged bottles",
+     "status": "PRESENT",
+     "claims": [
+      12
+     ]
+    },
+    {
+     "id": "F11",
+     "fact": "The shift lead signs the changeover record",
+     "status": "PRESENT",
+     "claims": [
+      13
+     ]
+    }
+   ],
+   "case_fingerprint": "b6ebc9a0dfe6",
+   "blind_facts": true,
+   "tokens": {
+    "calls": 2,
+    "in": 2753,
+    "out": 1271,
+    "non_200": []
+   }
+  }
+ }
+}
