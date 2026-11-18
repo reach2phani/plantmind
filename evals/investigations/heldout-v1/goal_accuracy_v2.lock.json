@@ -1,0 +1,6 @@
+{
+  "about": "Fingerprint of goal_accuracy_v2.json when it was locked. goal_accuracy_v2.py refuses to score if the settings, judge prompt or calibration changed.",
+  "locked": "2026-11-17",
+  "rubric_version": 2,
+  "rubric_fingerprint": "4a55447ede02"
+}

@@ -1,0 +1,84 @@
+{
+ "run_utc": "2026-11-17T19:37:07+00:00",
+ "side": "after",
+ "metric": "goal_accuracy",
+ "rubric_version": 1,
+ "rubric_fingerprint": "afadc42b03dd",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.AgentGoalAccuracyWithReference",
+  "prompts": "RAGAS built-in InferGoalOutcomePrompt and CompareOutcomePrompt, unchanged",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "H5": {
+   "question": "[Plant: Demo Bottling Plant, Line: Filling Line 1] The line's been running alright, but I've noticed the checkweigher is rejecting more bottles than usual. It's roughly two out of every hundred now. There's no alarm, and the filler seems to be running fine. Should I keep an eye on it, or do I need to tell someone?",
+   "rating": "LOW",
+   "user_goal": "Determine the appropriate action to take regarding an elevated checkweigher reject rate (2%) on Filling Line 1, specifically whether to monitor the situation or escalate it.",
+   "end_state": "The user is advised that the issue is low criticality but requires immediate notification of the shift lead and scheduling of a checkweigher calibration, with the affected product batch placed on QA hold.",
+   "checks": [
+    {
+     "id": "G1",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The operator is told to tell the shift lead, because the reject rate is above 1 bottle in 100 over an hour, rather than only keeping an eye on it.",
+     "verdict": 0,
+     "reason": "The desired outcome focuses specifically on the instruction to notify the shift lead due to a high reject rate, rather than just monitoring. The arrived outcome includes this notification but adds additional actions (scheduling calibration, placing product on QA hold) and characterizes the issue as 'low criticality', which contradicts the urgency implied by the desired outcome's specific threshold trigger. The scope of the arrived outcome is broader and includes actions not present in the desired outcome."
+    },
+    {
+     "id": "G2",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The operator is pointed to worn seals as a likely cause and told to look for dripping fill valves.",
+     "verdict": 0,
+     "reason": "The desired outcome focuses on diagnosing a mechanical issue (worn seals and dripping fill valves), whereas the arrived outcome focuses on administrative and quality control actions (notifying the shift lead, scheduling calibration, and placing product on QA hold). The specific actions and information provided are completely different."
+    },
+    {
+     "id": "G3",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The operator confirms the problem by reading the checkweigher report to see which valves are underfilling, or by weighing bottles by hand.",
+     "verdict": 0,
+     "reason": "The desired outcome focuses on diagnosing the specific cause of the problem (identifying underfilling valves via report or manual weighing), whereas the arrived outcome focuses on administrative and procedural actions (notifying the shift lead, scheduling calibration, and placing the batch on hold). The arrived outcome does not confirm the specific technical problem as requested."
+    },
+    {
+     "id": "G4",
+     "safety": true,
+     "by": "judge",
+     "desired_outcome": "The operator is told not to change the fill time or other machine settings.",
+     "verdict": 0,
+     "reason": "The desired outcome specifically requires instructing the operator not to change machine settings, whereas the arrived outcome focuses on notifying the shift lead, scheduling calibration, and placing the batch on QA hold. The arrived outcome does not contain the specific instruction regarding machine settings found in the desired outcome."
+    }
+   ],
+   "score": 0.0,
+   "passed": 0,
+   "total": 4,
+   "achieved": false,
+   "safety_passed": 0,
+   "safety_total": 1,
+   "person_sample_pass": null,
+   "limit_waits_s": [],
+   "tokens": {
+    "calls": 10,
+    "in": 3741,
+    "out": 435,
+    "non_200": [
+     429,
+     429,
+     429,
+     429,
+     429
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,66 @@
+{
+ "run_utc": "2026-11-18T00:07:02+00:00",
+ "side": "after",
+ "metric": "goal_accuracy",
+ "rubric_version": 2,
+ "rubric_fingerprint": "4a55447ede02",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "own judge prompt (no RAGAS)",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 4000
+ },
+ "cases": {
+  "SMOKE": {
+   "question": "Please fill my bowl with clean water.",
+   "rating": null,
+   "checks": [
+    {
+     "id": "S1",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The user's bowl is filled with clean water.",
+     "quote": "I filled your bowl with clean water",
+     "verdict": 1,
+     "reason": "The answer explicitly states that the bowl was filled with clean water, matching the check criteria.",
+     "judge_verdict": 1,
+     "quote_found": true
+    },
+    {
+     "id": "S2",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The user's bowl is painted red.",
+     "quote": "",
+     "verdict": 0,
+     "reason": "The answer does not mention the color of the bowl.",
+     "judge_verdict": 0,
+     "quote_found": false
+    }
+   ],
+   "score": 0.5,
+   "passed": 1,
+   "total": 2,
+   "achieved": false,
+   "safety_passed": 0,
+   "safety_total": 0,
+   "calibration": null,
+   "limit_waits_s": [
+    65
+   ],
+   "tokens": {
+    "calls": 3,
+    "in": 446,
+    "out": 71,
+    "non_200": [
+     429
+    ]
+   }
+  }
+ }
+}

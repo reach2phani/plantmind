@@ -1,0 +1,6 @@
+{
+  "about": "Fingerprint of goal_accuracy.json when it was locked. goal_accuracy_ragas.py refuses to score if the settings or goal checks changed.",
+  "locked": "2026-11-17",
+  "rubric_version": 1,
+  "rubric_fingerprint": "afadc42b03dd"
+}

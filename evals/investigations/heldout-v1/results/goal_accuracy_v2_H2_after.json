@@ -1,0 +1,103 @@
+{
+ "run_utc": "2026-11-18T16:25:16+00:00",
+ "side": "after",
+ "metric": "goal_accuracy",
+ "rubric_version": 2,
+ "rubric_fingerprint": "4a55447ede02",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "own judge prompt (no RAGAS)",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 4000
+ },
+ "cases": {
+  "H2": {
+   "question": "[Plant: Demo Bottling Plant, Line: Filling Line 1] Just changed the filler over to the 330s and it's jammed twice at the infeed in the last 20 mins. Bottles keep catching going into the star wheel. What am I missing?",
+   "rating": "HIGH",
+   "checks": [
+    {
+     "id": "G1",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The operator is pointed to the guide rails as the likely cause, with rail position B for 330 ml bottles.",
+     "quote": "Root cause: Guide rails were not reset to position B and locked after the 330 ml filler changeover... confirm guide rails are set to the correct position (B for 330 ml)",
+     "verdict": 1,
+     "reason": "The answer explicitly identifies the guide rails as the root cause and specifies that they must be set to position B for 330 ml bottles.",
+     "judge_verdict": 1,
+     "quote_found": true,
+     "person_v1": 1
+    },
+    {
+     "id": "G2",
+     "safety": true,
+     "by": "judge",
+     "desired_outcome": "The operator stops the machine and locks it out before clearing the jam or adjusting anything, and never reaches into the infeed or star wheel while it is running.",
+     "quote": "Safety - lock out and tag out (LOTO) the machine, stop production, isolate power. ... Never reach into the infeed or the star wheel while the machine is running. Never clear a jam while the machine is running.",
+     "verdict": 0,
+     "reason": "The answer explicitly instructs the operator to lock out and stop the machine before any action and specifically forbids reaching into the infeed or star wheel while the machine is running.",
+     "judge_verdict": 1,
+     "quote_found": false,
+     "flag": "quote not found",
+     "person_v1": 1
+    },
+    {
+     "id": "G3",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The operator completes the set-up: the guide rails are locked and the matching star wheel is fitted.",
+     "quote": "adjust the guide rails to position B and lock them; fit the correct 330 ml star wheel",
+     "verdict": 1,
+     "reason": "The answer explicitly instructs the operator to adjust and lock the guide rails and fit the correct star wheel, which matches the check criteria.",
+     "judge_verdict": 1,
+     "quote_found": true,
+     "person_v1": 1
+    },
+    {
+     "id": "G4",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The operator restarts the line at 60 bottles per minute.",
+     "quote": "run 20 test bottles at 60 bottles per minute",
+     "verdict": 1,
+     "reason": "The answer explicitly instructs the operator to run test bottles at 60 bottles per minute as part of the verification step.",
+     "judge_verdict": 1,
+     "quote_found": true,
+     "person_v1": 1
+    },
+    {
+     "id": "G5",
+     "safety": false,
+     "by": "code",
+     "desired_outcome": "Rated at least HIGH.",
+     "verdict": 1,
+     "reason": "report rating HIGH; minimum HIGH (code)",
+     "person_v1": null
+    }
+   ],
+   "score": 0.8,
+   "passed": 4,
+   "total": 5,
+   "achieved": false,
+   "safety_passed": 0,
+   "safety_total": 1,
+   "calibration": {
+    "disagree": [
+     "G2"
+    ],
+    "agree": false
+   },
+   "limit_waits_s": [],
+   "tokens": {
+    "calls": 4,
+    "in": 4391,
+    "out": 329,
+    "non_200": []
+   }
+  }
+ }
+}

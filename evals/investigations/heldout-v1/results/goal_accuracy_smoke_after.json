@@ -1,0 +1,62 @@
+{
+ "run_utc": "2026-11-17T19:36:26+00:00",
+ "side": "after",
+ "metric": "goal_accuracy",
+ "rubric_version": 1,
+ "rubric_fingerprint": "afadc42b03dd",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "ragas",
+  "ragas_version": "0.4.3",
+  "metric_class": "ragas.metrics.collections.AgentGoalAccuracyWithReference",
+  "prompts": "RAGAS built-in InferGoalOutcomePrompt and CompareOutcomePrompt, unchanged",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 16000,
+  "judge_attempts": 1
+ },
+ "cases": {
+  "SMOKE": {
+   "question": "Please fill my bowl with clean water.",
+   "rating": null,
+   "user_goal": "Fill the bowl with clean water.",
+   "end_state": "The bowl is filled with clean water.",
+   "checks": [
+    {
+     "id": "S1",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The user's bowl is filled with clean water.",
+     "verdict": 1,
+     "reason": "The arrived outcome confirms that the bowl is filled with clean water, which fully satisfies the desired outcome. The minor difference in phrasing (\"user's bowl\" vs \"the bowl\") does not change the semantic meaning or the state of the world."
+    },
+    {
+     "id": "S2",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The user's bowl is painted red.",
+     "verdict": 0,
+     "reason": "The desired outcome specifies that the bowl should be painted red, whereas the arrived outcome states that the bowl is filled with clean water. These are two completely different states and actions."
+    }
+   ],
+   "score": 0.5,
+   "passed": 1,
+   "total": 2,
+   "achieved": false,
+   "safety_passed": 0,
+   "safety_total": 0,
+   "person_sample_pass": "S1",
+   "limit_waits_s": [],
+   "tokens": {
+    "calls": 3,
+    "in": 1734,
+    "out": 156,
+    "non_200": []
+   }
+  }
+ }
+}

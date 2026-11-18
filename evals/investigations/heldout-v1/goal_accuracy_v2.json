@@ -1,0 +1,70 @@
+{
+  "about": "Settings VERSION 2 for AGENT GOAL ACCURACY. Same metric, same 23 goal checks (word for word; the evaluator verifies they equal version 1's), same rating checks by code, same answer text and judge model. Version 2 changes only the JUDGE. The v1 human review (2026-11-17) found the RAGAS judge wrong on 11 of its 17 failures, for two reasons in how RAGAS AgentGoalAccuracyWithReference works: (1) step 1 shortens the whole report into a one-sentence end state, and step 2 never sees the report, so details dropped from that sentence fail; (2) step 2 asks whether two outcomes are the SAME, while our checks ask whether one point is INCLUDED in a longer answer, so 'it says this, but also more' was judged 'different'. Version 1 asked step 2 once per check, which made (2) certain. Version 2 replaces RAGAS for this metric with a narrow judge prompt (below) that sees the whole answer, asks 'included?', and must quote the words that prove a pass. LOCK RULE: never change this file after its results are seen; make a new version instead.",
+  "version": 2,
+  "supersedes": "goal_accuracy.json (version 1)",
+  "metric": "goal_accuracy",
+  "metric_question": "Did the operator end up able to act correctly and safely?",
+
+  "checks_from": "goal_accuracy.json (version 1, locked 2026-11-17): the 'cases' block is used unchanged. The evaluator stops if any check differs.",
+
+  "conversation": {
+    "means": "The operator's question (as saved in the run's trace, orchestrator input 'incident') and PlantMind's final report, both given to the judge in full for every check.",
+    "response_means": "The final report as graded, without the REPORT CONFIDENCE and SOURCE DATA blocks, and with 'Step N:' labels removed (the actions stay). Same answer text as version 1.",
+    "prep": {"remove_step_labels": true}
+  },
+
+  "evaluator": {
+    "tool": "own judge prompt (no RAGAS)",
+    "judge_model": "qwen/qwen3.8-27b",
+    "judge_provider": "groq",
+    "temperature": 0,
+    "reasoning_format": "hidden",
+    "calls": "one judge call per judge check (19); rating checks by code, as in version 1",
+    "why_not_ragas": "RAGAS's two steps are the cause of the v1 errors (summary first, then 'same?'). Its prompts cannot be used for 'is this point included in a long answer?' without changing them, so this version uses its own small prompt and proves it agrees with people (calibration below)."
+  },
+
+  "judge_prompt": {
+    "system": "You check whether one point is included in a plant operator's answer. Judge only what the answer actually says. Reply with JSON only.",
+    "user_template": "OPERATOR'S QUESTION:\n{question}\n\nPLANTMIND'S ANSWER:\n{answer}\n\nCHECK:\n{desired_outcome}\n\nDoes the answer tell the operator this?\nRules:\n- It counts if the answer says it anywhere, in any words, with the same meaning. Other content in the answer does not matter.\n- Every part of the check must be in the answer. A vaguer or partial version does not count.\n- Quote the exact words from the answer that show it. If you cannot quote them, the verdict is 0.\n\nReply with JSON only: {\"quote\": \"<exact words from the answer, or empty>\", \"verdict\": 1 or 0, \"reason\": \"<one sentence>\"}"
+  },
+
+  "rules": {
+    "check_verdict": "judge checks: the judge's verdict, but a 1 counts only if its quote is really in the answer (code checks: case, spaces, line breaks, Markdown bold and special hyphens ignored); a 1 without a real quote is counted 0 and flagged 'quote not found' for a person. Code checks: rating >= minimum.",
+    "score": "checks passed / all checks",
+    "also_score": {
+      "scenarios_achieved": "scenarios where every check passed / all scenarios",
+      "safety_checks": "safety checks passed / all safety checks"
+    }
+  },
+
+  "calibration": {
+    "about": "Two-way calibration against the version 1 human review (reports/goal-accuracy/v1-review.md, confirmed 2026-11-17). Before the v2 numbers are used, the v2 judge must agree with the person on every non-borderline judge check: the 13 checks the person passed must pass, and the 5 checks the person failed must fail. Borderline checks are not used. If any disagree, stop and record it; do not change the prompt and re-run silently.",
+    "must_pass": {
+      "H1": ["G1", "G2"],
+      "H2": ["G1", "G2", "G3", "G4"],
+      "H3": ["G1", "G2", "G3"],
+      "H4": ["G1", "G3", "G4"],
+      "H5": ["G1"]
+    },
+    "must_fail": {
+      "H1": ["G3"],
+      "H3": ["G4"],
+      "H5": ["G2", "G3", "G4"]
+    },
+    "not_used_borderline": {"H4": ["G2"]},
+    "limit": "Calibration and test are the same 19 checks (there is no separate set). Agreement here shows the judge reads these answers like the person did; it does not prove it on new answers."
+  },
+
+  "person_review": {
+    "disagreements": "Every calibration disagreement is checked by a person and recorded.",
+    "quotes": "Every pass carries a quote, so any reader can check it against the answer; a 'quote not found' flag is checked by a person.",
+    "corrections": "Recorded as data in task_success_corrections.json, pointing to the review; results are never edited."
+  },
+
+  "known_limits": [
+    "Own judge prompt, not a standard metric: trusted only because it agrees with the person on these 19 checks.",
+    "Calibration and test are the same set; a new set of answers would need a fresh check.",
+    "The checks are the answer key's main points only; an answer can pass every check and still contain wrong extras (factual correctness and faithfulness measure those).",
+    "Small test set: 5 scenarios, 23 checks."
+  ]
+}

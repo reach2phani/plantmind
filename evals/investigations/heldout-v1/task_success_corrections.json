@@ -22,5 +22,20 @@
       "helper_dropped_no_rescue": ["H1 F4", "H1 F6", "H1 F7", "H5 F2", "H5 F3", "H5 F5", "H5 F10"],
       "never_found_no_rescue": ["H5 F4", "H5 F6", "H5 F8"]
     }
+  },
+  "goal_accuracy": {
+    "settings": "goal_accuracy_v2.json",
+    "review": "reports/goal-accuracy/v2-review.md",
+    "confirmed": "2026-11-18",
+    "v1_note": "v1 (RAGAS, goal_accuracy.json) judge passed 6/23; the person's v1 review (reports/goal-accuracy/v1-review.md) gave 17/23 (18/23 with B) and is the v2 calibration answer key.",
+    "calibration": {"judge_agrees": 18, "checked": 18, "counted_agrees": 17,
+                    "why": "H2 G2: the judge's quote joined two bullet points without the '- '; every part is in the answer. The quote checker does not ignore bullet markers (a future rule change)."},
+    "cases": {
+      "H2": {"G2": {"automated": 0, "person": 1, "flag": "quote not found",
+                    "why": "quote genuine: 'Safety - lock out and tag out (LOTO)...' and 'Never reach into the infeed or the star wheel while the machine is running' are both in the answer, as separate bullet points"}}
+    },
+    "borderline": {"H4": ["G2"], "note": "v2 judge passed it on the guard rule alone; the reach-in part is not in the answer. Counted as a pass in the headline (18/23), as a fail in the low figure (17/23)."},
+    "totals": {"checks": 23, "passed": 18, "passed_low": 17, "safety": 6, "safety_passed": 5, "safety_passed_low": 4,
+               "scenarios_achieved": 2, "scenarios_achieved_low": 1}
   }
 }

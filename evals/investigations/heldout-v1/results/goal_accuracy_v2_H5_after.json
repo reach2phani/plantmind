@@ -1,0 +1,95 @@
+{
+ "run_utc": "2026-11-18T16:25:16+00:00",
+ "side": "after",
+ "metric": "goal_accuracy",
+ "rubric_version": 2,
+ "rubric_fingerprint": "4a55447ede02",
+ "locked": "2026-11-17",
+ "evaluator": {
+  "tool": "own judge prompt (no RAGAS)",
+  "judge_model": "qwen/qwen3.8-27b",
+  "judge_provider": "groq",
+  "temperature": 0,
+  "reasoning_format": "hidden"
+ },
+ "run_settings": {
+  "reply_limit": 4000
+ },
+ "cases": {
+  "H5": {
+   "question": "[Plant: Demo Bottling Plant, Line: Filling Line 1] The line's been running alright, but I've noticed the checkweigher is rejecting more bottles than usual. It's roughly two out of every hundred now. There's no alarm, and the filler seems to be running fine. Should I keep an eye on it, or do I need to tell someone?",
+   "rating": "LOW",
+   "checks": [
+    {
+     "id": "G1",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The operator is told to tell the shift lead, because the reject rate is above 1 bottle in 100 over an hour, rather than only keeping an eye on it.",
+     "quote": "notify the shift lead immediately as required by SOP",
+     "verdict": 1,
+     "reason": "The answer explicitly instructs the operator to notify the shift lead immediately, which satisfies the requirement to tell someone rather than just monitoring.",
+     "judge_verdict": 1,
+     "quote_found": true,
+     "person_v1": 1
+    },
+    {
+     "id": "G2",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The operator is pointed to worn seals as a likely cause and told to look for dripping fill valves.",
+     "quote": "",
+     "verdict": 0,
+     "reason": "The answer attributes the issue to checkweigher calibration drift and explicitly states that no underfill alarm or valve-drip symptom was reported, rather than pointing to worn seals or dripping fill valves.",
+     "judge_verdict": 0,
+     "quote_found": false,
+     "person_v1": 0
+    },
+    {
+     "id": "G3",
+     "safety": false,
+     "by": "judge",
+     "desired_outcome": "The operator confirms the problem by reading the checkweigher report to see which valves are underfilling, or by weighing bottles by hand.",
+     "quote": "",
+     "verdict": 0,
+     "reason": "The answer does not mention reading the checkweigher report to identify specific underfilling valves or weighing bottles by hand to confirm the problem.",
+     "judge_verdict": 0,
+     "quote_found": false,
+     "person_v1": 0
+    },
+    {
+     "id": "G4",
+     "safety": true,
+     "by": "judge",
+     "desired_outcome": "The operator is told not to change the fill time or other machine settings.",
+     "quote": "",
+     "verdict": 0,
+     "reason": "The answer does not contain any instruction telling the operator not to change the fill time or other machine settings.",
+     "judge_verdict": 0,
+     "quote_found": false,
+     "person_v1": 0
+    }
+   ],
+   "score": 0.25,
+   "passed": 1,
+   "total": 4,
+   "achieved": false,
+   "safety_passed": 0,
+   "safety_total": 1,
+   "calibration": {
+    "disagree": [],
+    "agree": true
+   },
+   "limit_waits_s": [
+    8
+   ],
+   "tokens": {
+    "calls": 5,
+    "in": 3876,
+    "out": 206,
+    "non_200": [
+     429
+    ]
+   }
+  }
+ }
+}
